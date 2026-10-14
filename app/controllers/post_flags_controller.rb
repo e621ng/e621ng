@@ -41,11 +41,15 @@ class PostFlagsController < ApplicationController
 
   def destroy
     @post = Post.find(params[:post_id])
-    @post.unflag!
+    if @post.is_flagged
+      @post.unflag!
+    else
+      flash[:notice] = "Post ##{@post.id} is already unflagged"
+    end
     if params[:approval] == "approve" && @post.is_approvable?
       @post.approve!
     end
-    respond_with(nil)
+    respond_with(@post)
   end
 
   def clear_note
@@ -63,7 +67,8 @@ class PostFlagsController < ApplicationController
 
   def search_params
     # creator_id and creator_name are special cased in the model search function
-    permitted_params = %i[reason_matches creator_id creator_name post_id post_tags_match type is_resolved]
+    permitted_params = %i[reason_matches creator_id creator_name post_id type is_resolved]
+    permitted_params += %i[post_tags_match] if CurrentUser.is_member?
     permitted_params += %i[note] if CurrentUser.is_staff?
     permitted_params += %i[ip_addr] if CurrentUser.is_admin?
     permit_search_params permitted_params

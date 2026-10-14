@@ -37,7 +37,7 @@ class ExceptionLog < ApplicationRecord
       message: unwrapped_exception.message,
       trace: unwrapped_exception.backtrace.join("\n"),
       code: SecureRandom.uuid,
-      version: GitHelper.short_hash,
+      version: GitHelper.version,
       user_id: user_id,
       extra_params: extra_params,
     )

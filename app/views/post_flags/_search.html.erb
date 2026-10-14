@@ -1,6 +1,6 @@
 <%= form_search(path: post_flags_path) do |f| %>
   <%= f.input :reason_matches, label: "Reason", hint: "Use * for wildcard searches" %>
-  <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" %>
+  <%= f.input :post_tags_match, label: "Tags", autocomplete: "tag-query" if CurrentUser.user.is_member? %>
   <%= f.input :post_id, label: "Post ID" %>
   <%= f.input :type, collection: [
     ["Flag", "flag"],

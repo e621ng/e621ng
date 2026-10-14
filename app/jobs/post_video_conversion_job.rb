@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 class PostVideoConversionJob < ApplicationJob
-  queue_as :video
-  sidekiq_options lock: :until_executed, lock_args_method: :lock_args, retry: 3
+  # perform is destructive, so same-post runs must not overlap: until_and_while_executing
+  # serializes per post, and reschedule re-queues a concurrent arrival instead of dropping it.
+  sidekiq_options queue: "video", lock: :until_and_while_executing, lock_args_method: :lock_args,
+                  lock_ttl: 6.hours.to_i, on_conflict: { server: :reschedule }, schedule_in: 30, retry: 3
 
   def self.lock_args(args)
     [args[0]]
@@ -135,6 +137,8 @@ class PostVideoConversionJob < ApplicationJob
 
   def generate_video(post, format_args: [], fps_limited: false, clamp: 1080)
     vf_params = []
+    # The scale filter fails on mistagged colour spaces; relabel them first.
+    vf_params << ImageSampler.colorspace_relabel_filter(post.file_path)
     vf_params << (fps_limited ? "fps='if(gt(source_fps,30),source_fps/2,source_fps)'" : "fps=source_fps")
     vf_params << "scale=#{calculate_scale(post, clamp)}"
 
@@ -146,7 +150,7 @@ class PostVideoConversionJob < ApplicationJob
 
       "-fps_mode", "cfr", # Deal with some uploads having a variable frame rate
       *format_args,
-      "-vf", vf_params.join(","),
+      "-vf", vf_params.compact.join(","),
 
       "-threads", "4",
       "-max_muxing_queue_size", "4096",

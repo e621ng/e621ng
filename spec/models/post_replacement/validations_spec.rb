@@ -131,6 +131,36 @@ RSpec.describe PostReplacement do
   end
 
   # --------------------------------------------------------------------------
+  # FileValidator (inline block)
+  # --------------------------------------------------------------------------
+  describe "file validation" do
+    def build_with_file(**attrs)
+      record = build(:post_replacement, **attrs)
+      %i[set_file_name fetch_source_file update_file_attributes write_storage_file].each do |m|
+        allow(record).to receive(m)
+      end
+      record.replacement_file = File.open(file_fixture("sample.jpg"))
+      record
+    end
+
+    it "runs FileValidator for regular replacements" do
+      record = build_with_file(is_backup: false)
+      validator = instance_double(FileValidator, "validator", validate: nil)
+      allow(FileValidator).to receive(:new).and_return(validator)
+      record.valid?
+      expect(FileValidator).to have_received(:new).with(record, record.replacement_file.path)
+    end
+
+    it "skips FileValidator for backups, so originals predating current rules can still be backed up" do
+      record = build_with_file(status: "original", reason: "Backup of original file")
+      record.is_backup = true
+      allow(FileValidator).to receive(:new)
+      record.valid?
+      expect(FileValidator).not_to have_received(:new)
+    end
+  end
+
+  # --------------------------------------------------------------------------
   # user_is_not_limited
   # --------------------------------------------------------------------------
   describe "user_is_not_limited" do

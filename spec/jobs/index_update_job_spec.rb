@@ -13,14 +13,14 @@ RSpec.describe IndexUpdateJob do
       it "calls update_index on the document store" do
         allow(Post).to receive(:find).with(post.id).and_return(post)
         allow(post).to receive(:document_store).and_return(document_store)
-        described_class.perform_now("Post", post.id)
+        described_class.new.perform("Post", post.id)
         expect(document_store).to have_received(:update_index)
       end
     end
 
     context "when the record does not exist" do
       it "does not raise an error" do
-        expect { described_class.perform_now("Post", -1) }.not_to raise_error
+        expect { described_class.new.perform("Post", -1) }.not_to raise_error
       end
     end
   end

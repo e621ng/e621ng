@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 class AvatarCleanupJob < ApplicationJob
-  queue_as :default
+  sidekiq_options queue: "default"
 
-  def perform(user_id, force: false)
+  # Sidekiq args are positional JSON; keywords are not an option here.
+  def perform(user_id, force = false) # rubocop:disable Style/OptionalBooleanParameter
     user = User.find(user_id)
 
     # Don't perform cleanup if the user has a cropped avatar set.

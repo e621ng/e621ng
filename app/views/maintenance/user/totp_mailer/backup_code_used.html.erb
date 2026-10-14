@@ -1,0 +1,19 @@
+<mj-section mj-class="container hex-bg">
+  <mj-column>
+
+    <mj-text mj-class="text">
+      <h2>Hi, <%= @user.name %>!</h2>
+      <p>
+        A two-factor authentication <strong>backup code</strong> was just used to log in to your <%= Danbooru.config.app_name %> account.
+        You have <%= @remaining_count %> unused backup <%= "code".pluralize(@remaining_count) %> left.
+      </p>
+      <p>
+        If this was you and you are running low, you can generate a new set of backup codes in your account settings.
+      </p>
+      <p>
+        If you did not do this, your account may be compromised — reset your password immediately and contact staff.
+      </p>
+    </mj-text>
+
+  </mj-column>
+</mj-section>

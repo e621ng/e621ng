@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class IqdbUpdateJob < ApplicationJob
-  queue_as :iqdb
+  sidekiq_options queue: "iqdb"
 
   def perform(post_id)
     post = Post.find_by id: post_id

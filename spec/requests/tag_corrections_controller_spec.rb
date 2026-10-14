@@ -129,7 +129,7 @@ RSpec.describe TagCorrectionsController do
         it "enqueues TagPostCountJob" do
           expect do
             post tag_correction_path(tag_id: tag.id), params: { commit: "Fix" }
-          end.to have_enqueued_job(TagPostCountJob)
+          end.to enqueue_sidekiq_job(TagPostCountJob)
         end
 
         it "redirects to the tag search page with a notice" do

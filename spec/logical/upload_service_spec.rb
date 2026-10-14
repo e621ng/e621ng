@@ -79,7 +79,7 @@ RSpec.describe UploadService do
       end
 
       it "enqueues UploadDeleteFilesJob" do
-        expect { service.start! }.to have_enqueued_job(UploadDeleteFilesJob)
+        expect { service.start! }.to enqueue_sidekiq_job(UploadDeleteFilesJob)
       end
 
       it "defaults tag_string to 'tagme' when not provided" do
@@ -198,6 +198,50 @@ RSpec.describe UploadService do
       post = service.create_post_from_upload(upload)
       expect(upload.reload.post_id).to eq(post.id)
     end
+
+    context "upload karma" do
+      it "grants the approved credit when the post bypasses the review queue" do
+        allow(uploader).to receive(:upload_free?).and_return(true)
+        expect { service.create_post_from_upload(upload) }
+          .to change { uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_APPROVED_CREDIT)
+      end
+
+      it "does not grant karma when the post enters the review queue" do
+        allow(uploader).to receive(:upload_free?).and_return(false)
+        expect { service.create_post_from_upload(upload) }
+          .not_to(change { uploader.user_status.reload.upload_karma })
+      end
+
+      it "records a queue_bypass ledger row for the credit" do
+        allow(uploader).to receive(:upload_free?).and_return(true)
+        post = service.create_post_from_upload(upload)
+        expect(UploadKarmaEvent.last).to have_attributes(
+          user_id: uploader.id,
+          post_id: post.id,
+          reason: "queue_bypass",
+          delta: UserStatus::KARMA_APPROVED_CREDIT,
+        )
+      end
+
+      it "does not grant karma when upload_as_pending forces the post into the queue" do
+        allow(uploader).to receive(:upload_free?).and_return(true)
+        allow(upload).to receive(:upload_as_pending?).and_return(true)
+        expect { service.create_post_from_upload(upload) }
+          .not_to(change { uploader.user_status.reload.upload_karma })
+      end
+
+      it "nets the approved credit across an unlimited-upload user's upload, deletion, and undeletion" do
+        allow(uploader).to receive(:upload_free?).and_return(true)
+        admin = create(:admin_user)
+        expect do
+          post = service.create_post_from_upload(upload)  # +credit: bypasses the queue on upload
+          CurrentUser.scoped(admin) do
+            post.delete!("Test reason")                   # -(penalty + credit): deleting a credited post reverses the credit on top of the penalty
+            post.reload.undelete!                         # +(penalty + credit): a restored post is approved and worth the credit again
+          end
+        end.to change { uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_APPROVED_CREDIT)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -278,8 +322,8 @@ RSpec.describe UploadService do
     end
 
     context "is_pending? logic" do
-      it "marks post as pending when uploader cannot upload free" do
-        allow(upload.uploader).to receive(:can_upload_free?).and_return(false)
+      it "marks post as pending when uploader is below the karma free threshold" do
+        allow(upload.uploader).to receive(:upload_free?).and_return(false)
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
@@ -287,20 +331,64 @@ RSpec.describe UploadService do
         artist = create(:artist)
         create(:avoid_posting, artist: artist)
         upload.tag_string = artist.name
-        allow(upload.uploader).to receive_messages(can_upload_free?: true, can_approve_posts?: false)
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: false)
+        expect(service.convert_to_post(upload).is_pending).to be true
+      end
+
+      it "marks post as pending when a DNP artist is tagged with different casing" do
+        artist = create(:artist)
+        create(:avoid_posting, artist: artist)
+        upload.tag_string = artist.name.upcase
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: false)
+        expect(service.convert_to_post(upload).is_pending).to be true
+      end
+
+      it "marks post as pending when a DNP artist is tagged through an alias" do
+        artist = create(:artist)
+        create(:avoid_posting, artist: artist)
+        create(:active_tag_alias, antecedent_name: "#{artist.name}_(artist)", consequent_name: artist.name)
+        upload.tag_string = "#{artist.name}_(artist)"
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: false)
+        expect(service.convert_to_post(upload).is_pending).to be true
+      end
+
+      it "marks post as pending when a DNP artist tag has a category prefix" do
+        artist = create(:artist)
+        create(:avoid_posting, artist: artist)
+        upload.tag_string = "artist:#{artist.name}"
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: false)
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
       it "marks post as pending when upload_as_pending? is true" do
-        allow(upload.uploader).to receive_messages(can_upload_free?: true, can_approve_posts?: true)
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: true)
         allow(upload).to receive(:upload_as_pending?).and_return(true)
         expect(service.convert_to_post(upload).is_pending).to be true
       end
 
       it "does not mark post as pending when no pending conditions apply" do
-        allow(upload.uploader).to receive_messages(can_upload_free?: true, can_approve_posts?: true)
+        allow(upload.uploader).to receive_messages(upload_free?: true, can_approve_posts?: true)
         allow(upload).to receive(:upload_as_pending?).and_return(false)
         # upload.tag_string is "tagme" which has no artist tags, so avoid_posting_tags is []
+        expect(service.convert_to_post(upload).is_pending).to be false
+      end
+
+      it "does not mark post as pending for a manual grantee even when karma bypass is disabled" do
+        allow(Danbooru.config.custom_configuration).to receive(:upload_karma_free_threshold).and_return(nil)
+        upload.uploader.update(can_upload_free: true)
+        expect(service.convert_to_post(upload).is_pending).to be false
+      end
+
+      it "marks post as pending for a manual grantee with avoid_posting tags who cannot approve" do
+        artist = create(:artist)
+        create(:avoid_posting, artist: artist)
+        upload.tag_string = artist.name
+        upload.uploader.update(can_upload_free: true)
+        expect(service.convert_to_post(upload).is_pending).to be true
+      end
+
+      it "does not mark post as pending when uploader can approve but is below the karma threshold" do
+        allow(upload.uploader).to receive_messages(upload_free?: false, can_approve_posts?: true)
         expect(service.convert_to_post(upload).is_pending).to be false
       end
     end

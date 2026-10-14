@@ -4,10 +4,10 @@
   <h1>Hourly Search Trends</h1>
 
   <div class="search-trend-nav">
-    <a href="<%= url_for(request.query_parameters.except("hour").merge(hour: (@hour - 1.hour).iso8601)) %>"><%= svg_icon(:chevron_left) %> Previous</a>
+    <a href="<%= url_for(params: request.query_parameters.except("hour").merge(hour: (@hour - 1.hour).iso8601)) %>"><%= svg_icon(:chevron_left) %> Previous</a>
     <strong><%= @hour.strftime("%Y-%m-%d %H:%M UTC") %></strong>
     <% if @has_next_hour %>
-      <a href="<%= url_for(request.query_parameters.except("hour").merge(hour: (@hour + 1.hour).iso8601)) %>">Next <%= svg_icon(:chevron_right) %></a>
+      <a href="<%= url_for(params: request.query_parameters.except("hour").merge(hour: (@hour + 1.hour).iso8601)) %>">Next <%= svg_icon(:chevron_right) %></a>
     <% else %>
       <span class="disabled">Next <%= svg_icon(:chevron_right) %></span>
     <% end %>

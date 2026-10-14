@@ -3,10 +3,10 @@
 # This job is used to remove all of the user's favorites.
 # It is intended to be run when a user is deleted or when they request to clear their favorites.
 class FlushFavoritesJob < ApplicationJob
-  queue_as :low_prio
+  sidekiq_options queue: "low_prio"
 
-  def perform(*args)
-    user = User.find(args[0])
+  def perform(user_id)
+    user = User.find(user_id)
 
     Thread.current[:skip_post_index_update] = true
 
@@ -17,7 +17,7 @@ class FlushFavoritesJob < ApplicationJob
         Post.without_timeout do
           Post.where(id: ids).update_all("fav_count = fav_count - 1")
         end
-        BulkIndexUpdateJob.perform_later("Post", ids)
+        BulkIndexUpdateJob.perform_async("Post", ids)
       end
     end
 

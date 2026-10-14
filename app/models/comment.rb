@@ -349,10 +349,10 @@ class Comment < ApplicationRecord
   private
 
   def enqueue_automod_create_check
-    AutomodCheckJob.perform_later(id)
+    AutomodCheckJob.perform_async(id)
   end
 
   def enqueue_automod_update_check
-    AutomodCheckJob.perform_later(id)
+    AutomodCheckJob.perform_async(id)
   end
 end

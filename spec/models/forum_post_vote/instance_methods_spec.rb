@@ -10,53 +10,20 @@ RSpec.describe ForumPostVote do
   include_context "as member"
 
   # -------------------------------------------------------------------------
-  # #up?
+  # Score predicate methods: #up?, #down?, #meh?, #flip?
   # -------------------------------------------------------------------------
-  describe "#up?" do
-    it "returns true for score 1" do
-      expect(build(:forum_post_vote, score: 1).up?).to be true
-    end
+  describe "score predicates" do
+    score_kinds = { 1 => :up, -1 => :down, 0 => :meh, 2 => :flip }
 
-    it "returns false for score -1" do
-      expect(build(:forum_post_vote, score: -1).up?).to be false
-    end
-
-    it "returns false for score 0" do
-      expect(build(:forum_post_vote, score: 0).up?).to be false
-    end
-  end
-
-  # -------------------------------------------------------------------------
-  # #down?
-  # -------------------------------------------------------------------------
-  describe "#down?" do
-    it "returns true for score -1" do
-      expect(build(:forum_post_vote, score: -1).down?).to be true
-    end
-
-    it "returns false for score 1" do
-      expect(build(:forum_post_vote, score: 1).down?).to be false
-    end
-
-    it "returns false for score 0" do
-      expect(build(:forum_post_vote, score: 0).down?).to be false
-    end
-  end
-
-  # -------------------------------------------------------------------------
-  # #meh?
-  # -------------------------------------------------------------------------
-  describe "#meh?" do
-    it "returns true for score 0" do
-      expect(build(:forum_post_vote, score: 0).meh?).to be true
-    end
-
-    it "returns false for score 1" do
-      expect(build(:forum_post_vote, score: 1).meh?).to be false
-    end
-
-    it "returns false for score -1" do
-      expect(build(:forum_post_vote, score: -1).meh?).to be false
+    score_kinds.each do |true_score, kind|
+      describe "##{kind}?" do
+        score_kinds.each_key do |score|
+          expected = score == true_score
+          it "returns #{expected} for score #{score}" do
+            expect(build(:forum_post_vote, score: score).public_send(:"#{kind}?")).to be expected
+          end
+        end
+      end
     end
   end
 
@@ -64,19 +31,13 @@ RSpec.describe ForumPostVote do
   # #icon
   # -------------------------------------------------------------------------
   describe "#icon" do
-    it "returns :thumbs_up for score 1" do
-      expect(build(:forum_post_vote, score: 1).icon).to eq(:thumbs_up)
+    { 1 => :thumbs_up, -1 => :thumbs_down, 0 => :face_meh, 2 => :refresh }.each do |score, icon|
+      it "returns #{icon.inspect} for score #{score}" do
+        expect(build(:forum_post_vote, score: score).icon).to eq(icon)
+      end
     end
 
-    it "returns :thumbs_down for score -1" do
-      expect(build(:forum_post_vote, score: -1).icon).to eq(:thumbs_down)
-    end
-
-    it "returns :face_meh for score 0" do
-      expect(build(:forum_post_vote, score: 0).icon).to eq(:face_meh)
-    end
-
-    it "returns fallback for an unexpected score value" do
+    it "returns :flame for an unrecognized score" do
       vote = build(:forum_post_vote)
       vote.score = 99
       expect(vote.icon).to eq(:flame)
@@ -87,19 +48,13 @@ RSpec.describe ForumPostVote do
   # #vote_type
   # -------------------------------------------------------------------------
   describe "#vote_type" do
-    it "returns 'up' for score 1" do
-      expect(build(:forum_post_vote, score: 1).vote_type).to eq("up")
+    { 1 => "up", -1 => "down", 0 => "meh", 2 => "flip" }.each do |score, type|
+      it "returns #{type.inspect} for score #{score}" do
+        expect(build(:forum_post_vote, score: score).vote_type).to eq(type)
+      end
     end
 
-    it "returns 'down' for score -1" do
-      expect(build(:forum_post_vote, score: -1).vote_type).to eq("down")
-    end
-
-    it "returns 'meh' for score 0" do
-      expect(build(:forum_post_vote, score: 0).vote_type).to eq("meh")
-    end
-
-    it "returns 'unknown' for an unexpected score value" do
+    it "returns 'unknown' for an unrecognized score" do
       vote = build(:forum_post_vote)
       vote.score = 99
       expect(vote.vote_type).to eq("unknown")

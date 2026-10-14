@@ -118,6 +118,31 @@ RSpec.describe WikiPage do
     end
 
     # -------------------------------------------------------------------------
+    # body — presence (on create, unless redirect)
+    # -------------------------------------------------------------------------
+    describe "body — presence" do
+      it "is invalid on create when body is blank and no parent is set" do
+        page = build(:wiki_page, body: "")
+        expect(page).not_to be_valid
+        expect(page.errors[:body]).to be_present
+      end
+
+      it "is valid on create when body is blank but parent points to an existing page" do
+        create(:wiki_page, title: "presence_redirect_target")
+        page = build(:wiki_page, body: "", parent: "presence_redirect_target")
+        expect(page).to be_valid, page.errors.full_messages.join(", ")
+      end
+
+      it "allows updating a legacy record with a blank body" do
+        page = create(:wiki_page)
+        page.update_columns(body: "")
+        page.reload
+        page.other_names = ["legacy_alias"]
+        expect(page).to be_valid
+      end
+    end
+
+    # -------------------------------------------------------------------------
     # user_not_limited
     # -------------------------------------------------------------------------
     describe "user_not_limited" do

@@ -43,8 +43,13 @@ require_relative "../config/environment"
 
 abort("The Rails environment is running in production mode!") if Rails.env.production?
 require "rspec/rails"
+require "rspec-sidekiq" # sets Sidekiq.testing!(:fake) and clears the in-memory queues before each example
 require "factory_bot_rails"
 require "view_component/test_helpers"
+
+RSpec::Sidekiq.configure do |config|
+  config.warn_when_jobs_not_processed_by_sidekiq = false
+end
 
 # Ensures that the test database schema matches the current schema file.
 begin
@@ -68,10 +73,6 @@ RSpec.configure do |config|
   config.filter_rails_from_backtrace!
   config.infer_spec_type_from_file_location!
 
-  config.before do
-    ActiveJob::Base.queue_adapter = :test
-  end
-
   # rails-settings-cached caches all settings in Rails.cache. With transactional fixtures,
   # after_commit never fires, so the cache is never cleared after a test that writes a setting.
   # Stale cached values (e.g. takedowns_disabled=true) would then bleed into later tests.
@@ -82,6 +83,12 @@ RSpec.configure do |config|
   config.include ActiveSupport::Testing::TimeHelpers
 
   config.before(:suite) do
+    # Ensure the OpenSearch indices exist for this process. Under parallel_test each
+    # process resolves a distinct, TEST_ENV_NUMBER-suffixed index name (see
+    # DocumentStore::Model), so this creates the per-process index with the correct
+    # mappings. Idempotent: create_index! is a no-op when the index already exists.
+    [Post, PostVersion].each { |model| model.document_store.create_index! }
+
     # Sometimes, a schema rebuild may run on test databases, which can clear seeded data.
     # Here, we make sure that the very basic records are present - without these, tests will fail.
     # See `/db/seeds.rb` for the full list of seeded data.
@@ -92,23 +99,24 @@ RSpec.configure do |config|
       user.password_confirmation = "hexerade"
       user.password_hash = ""
       user.email = "admin@e621.local"
-      user.can_upload_free = true
       user.can_approve_posts = true
       user.level = UserLevel::ADMIN
 
       user.is_bd_staff = true
       user.is_bd_auditor = true
     end
+    # Karma above the free threshold so seeded staff uploads bypass the review queue.
+    admin.user_status.update_columns(upload_karma: User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) + 1000)
 
-    User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
+    system_user = User.find_or_create_by!(name: Danbooru.config.system_user) do |user|
       user.password = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
       user.password_confirmation = "ae3n4oie2n3oi4en23oie4noienaorshtaioresnt"
       user.password_hash = ""
       user.email = "system@e621.local"
-      user.can_upload_free = true
       user.can_approve_posts = true
       user.level = UserLevel::JANITOR
     end
+    system_user.user_status.update_columns(upload_karma: User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold) + 1000)
 
     ForumCategory.find_or_create_by!(name: "Tag Alias and Implication Suggestions") do |category|
       category.can_view = 0

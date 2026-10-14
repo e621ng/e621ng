@@ -73,6 +73,9 @@ class TicketsController < ApplicationController
     if @ticket.valid?
       not_changed = ticket_params[:send_update_dmail].to_s.truthy? && (!@ticket.saved_change_to_response? && !@ticket.saved_change_to_status?)
       flash[:notice] = "Not sending update, no changes" if not_changed
+    else
+      flash[:notice] = "Error: #{@ticket.errors.full_messages.join(', ')}"
+      return redirect_to(ticket_path(@ticket))
     end
 
     respond_with(@ticket)

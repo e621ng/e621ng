@@ -51,40 +51,37 @@ class RecommendedQueryBuilder < ElasticPostQueryBuilder
     }
   end
 
-  MAX_TAGS = 50
+  MAX_TAGS = 10
   WEIGHTS_FOR_TAGS = {
-    character: 1.25,
-    species: 1.25,
-    general: 1.0,
+    character: 2.0,
+    species: 1.0,
   }.freeze
-  IGNORED_CATEGORIES = %w[artist copyright].freeze
 
   def build_for_tags
     pool_ids = @post.pool_ids
     must_not.push({ terms: { pools: pool_ids } }) if pool_ids.any?
 
-    # Pick the least common tags to use as constraints.
-    # - artist tags are ignored because those are served better by the :artist mode
-    # - copyright tags are ignored because they are often too broad to be useful
-    selected_tags = @post.categorized_tags
-                         .except(*IGNORED_CATEGORIES)
-                         .values
-                         .flatten
-                         .min_by(MAX_TAGS, &:post_count)
+    # Posts by the same artists are served by the :artist mode
+    artist_names = @post.known_artist_tags.map(&:name)
+    must_not.push({ terms: { tags: artist_names } }) if artist_names.any?
 
-    should.concat(selected_tags.map { |tag| { term: { tags: tag.name } } })
-    @minimum_should_match = selected_tags.size >= 7 ? "30%" : 1
+    # Least common character/species tags; score = weighted count of shared tags
+    selected_tags = (@post.tags_for_category("character") + @post.tags_for_category("species"))
+                    .min_by(MAX_TAGS, &:post_count)
+    should.concat(selected_tags.map do |tag|
+      {
+        constant_score: {
+          filter: { term: { tags: tag.name } },
+          boost: WEIGHTS_FOR_TAGS.fetch(tag.category_name.to_sym),
+        },
+      }
+    end)
 
-    functions = [{ random_score: { seed: @post.id, field: "id" } }]
-    selected_tags.each do |tag|
-      weight = WEIGHTS_FOR_TAGS.fetch(tag.category_name.to_sym, WEIGHTS_FOR_TAGS[:general])
-      functions << { filter: { term: { tags: tag.name } }, weight: weight }
-    end
-
+    # Fractional random tiebreak in [0,1) on top of the integer weighted-overlap score
     @function_score = {
-      functions: functions,
+      functions: [{ random_score: { seed: @post.id, field: "id" } }],
       score_mode: :sum,
-      boost_mode: :replace,
+      boost_mode: :sum,
     }
   end
 end

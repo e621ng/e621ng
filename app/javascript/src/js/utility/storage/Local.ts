@@ -52,6 +52,7 @@ class LStorage extends StorageObject {
   Site = {
     NewsID: 0,
     Events: true,
+    TimeSwitch: false,
   };
 
   // Site themes and other visual options
@@ -60,7 +61,7 @@ class LStorage extends StorageObject {
     Main: "hexagon" as "bloodlust" | "hexagon" | "hotdog" | "pony" | "serpent",
     Extra: "hexagon" as "aurora" | "autumn" | "fennec" | "hexagon" | "none" | "scales" | "space" | "spring" | "stars" | "winter",
     Palette: "default" as "default" | "deut" | "trit",
-    Font: "Verdana" as "Verdana" | "Lato" | "Lexend" | "Monospace" | "OpenDyslexic" | "OpenSans" | "ComicSans",
+    Font: "Verdana" as "Verdana" | "Lato" | "Lexend" | "Monospace" | "OpenDyslexic" | "OpenSans" | "ComicSans" | "Papyrus",
     Navbar: "top" as "top" | "bottom" | "none",
     Gestures: false,
     StickyHeader: false,
@@ -83,6 +84,14 @@ class LStorage extends StorageObject {
     TagPreview: true,
     Recommendations: "artist" as "artist" | "tags",
     AutocompleteCache: true,
+    VideoPlayer: "custom" as "custom" | "native",
+
+    Video: {
+      Volume: 0.25,
+      Muted: false,
+      PlaybackRate: 1,
+      Loop: true,
+    },
 
     TagScript: {
       ID: 1,
@@ -99,6 +108,7 @@ class LStorage extends StorageObject {
   Users = {
     StaffStats: false,
     StaffNotes: false,
+    StaffWikis: false,
   };
 
   /** Backwards compatibility layer for AutocompleteInput */
@@ -254,6 +264,7 @@ const StorageKeys: StorageConfig<LStorage> = {
   "Site": {
     NewsID: "hide_news_notice",
     Events: "e6.events",
+    TimeSwitch: "e6.timeswitch",
   },
 
   "Theme": {
@@ -282,6 +293,14 @@ const StorageKeys: StorageConfig<LStorage> = {
     TagPreview: "e6.posts.tagpreview",
     Recommendations: "e6.posts.recommended.type",
     AutocompleteCache: "e6.posts.acache",
+    VideoPlayer: "e6.posts.video_player",
+
+    Video: {
+      Volume: "e6.posts.video.volume",
+      Muted: "e6.posts.video.muted",
+      PlaybackRate: "e6.posts.video.playback_rate",
+      Loop: "e6.posts.video.loop",
+    },
 
     TagScript: {
       ID: "current_tag_script_id",
@@ -298,6 +317,7 @@ const StorageKeys: StorageConfig<LStorage> = {
   "Users": {
     StaffStats: "e6.users.staffstats",
     StaffNotes: "e6.users.staffnotes",
+    StaffWikis: "e6.users.staffwikis",
   },
 
   "Raw": null, // Custom getObject and putObject functions that bypass the proxies

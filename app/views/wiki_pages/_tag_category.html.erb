@@ -1,0 +1,10 @@
+<% if tag.present? && (tag.category_editable_by?(CurrentUser.user) || tag.is_locked?) %>
+  <div id="wiki-page-tag-category">
+    <h2>Tag Category</h2>
+    <% if tag.category_editable_by?(CurrentUser.user) %>
+      <%= render "tags/edit_form", tag: tag, from_wiki: "1" %>
+    <% else %>
+      <p>This tag is category locked</p>
+    <% end %>
+  </div>
+<% end %>

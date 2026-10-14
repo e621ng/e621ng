@@ -62,7 +62,7 @@ RSpec.describe EmailsController do
       end
 
       context "when rate-limited" do
-        before { allow(RateLimiter).to receive(:check_limit).and_return(true) }
+        before { allow(RateLimiter).to receive(:throttle!).and_return(true) }
 
         it "returns 403" do
           get resend_confirmation_email_path
@@ -74,8 +74,7 @@ RSpec.describe EmailsController do
         let(:mail_message) { instance_double(ActionMailer::MessageDelivery, deliver_now: true) }
 
         before do
-          allow(RateLimiter).to receive(:check_limit).and_return(false)
-          allow(RateLimiter).to receive(:hit)
+          allow(RateLimiter).to receive(:throttle!).and_return(false)
           allow(Maintenance::User::EmailConfirmationMailer).to receive(:confirmation).and_return(mail_message)
         end
 

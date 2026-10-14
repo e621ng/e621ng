@@ -4,16 +4,17 @@ class Setting < RailsSettings::Base
   cache_prefix { "v1" }
 
   scope :lockdown do
-    field :uploads_disabled,    type: :boolean, default: false
-    field :pools_disabled,      type: :boolean, default: false
-    field :post_sets_disabled,  type: :boolean, default: false
-    field :comments_disabled,   type: :boolean, default: false
-    field :forums_disabled,     type: :boolean, default: false
-    field :blips_disabled,      type: :boolean, default: false
-    field :aiburs_disabled,     type: :boolean, default: false
-    field :favorites_disabled,  type: :boolean, default: false
-    field :votes_disabled,      type: :boolean, default: false
-    field :takedowns_disabled,  type: :boolean, default: false
+    field :uploads_disabled,           type: :boolean, default: false
+    field :post_replacements_disabled, type: :boolean, default: false
+    field :pools_disabled,             type: :boolean, default: false
+    field :post_sets_disabled,         type: :boolean, default: false
+    field :comments_disabled,          type: :boolean, default: false
+    field :forums_disabled,            type: :boolean, default: false
+    field :blips_disabled,             type: :boolean, default: false
+    field :aiburs_disabled,            type: :boolean, default: false
+    field :favorites_disabled,         type: :boolean, default: false
+    field :votes_disabled,             type: :boolean, default: false
+    field :takedowns_disabled,         type: :boolean, default: false
   end
 
   scope :limits do

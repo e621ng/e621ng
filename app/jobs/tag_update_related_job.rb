@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 class TagUpdateRelatedJob < ApplicationJob
-  queue_as :tags
+  sidekiq_options queue: "tags"
 
-  def perform(*args)
-    tag = Tag.find(args[0])
+  def perform(tag_id)
+    tag = Tag.find(tag_id)
 
     tag.update_related
   end

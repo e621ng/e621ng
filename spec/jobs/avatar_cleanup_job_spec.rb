@@ -11,7 +11,7 @@ RSpec.describe AvatarCleanupJob do
   end
 
   def perform(user_id = user.id)
-    described_class.perform_now(user_id)
+    described_class.new.perform(user_id)
   end
 
   describe "#perform" do

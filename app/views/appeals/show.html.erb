@@ -4,7 +4,7 @@
     <div class="section appeal-display-header">
       <h3><%= @appeal.type_title %> Appeal</h3>
     </div>
-    
+
     <%= render partial: "appeals/types/#{@appeal.qtype}" %>
 
     <div class="appeal-display-report">
@@ -67,7 +67,7 @@
       <% end %>
     <% end %>
 
-    
+
     <div class="appeal-display-section appeal-display-info">
       <div class="appeal-display-info-entry">
         <b>Status:</b>
@@ -122,15 +122,18 @@
 
   <% if @appeal.can_handle? %>
     <%= custom_form_for(@appeal, html: { class: "appeal-display-response" }) do |f| %>
-      <%= f.input :status, collection: [%w[Approved approved], %w[Investigating partial], %w[Rejected rejected]], selected: @appeal.status || "approved" %>
+      <% current_status = @appeal.status.presence || "pending" %>
+      <% is_pending_status = current_status == "pending" %>
+      <%= f.input :status, collection: [%w[Approved approved], %w[Investigating partial], %w[Rejected rejected]],
+        include_blank: is_pending_status, selected: is_pending_status ? "" : current_status %>
       <% unless @appeal.pending? %>
         <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
       <% end %>
-      
+
       <%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size, allow_color: false %>
 
       <%= tag.input name: "force_claim", type: "hidden", value: params[:force_claim] %>
-      <%= f.button :submit, "Submit" %>
+      <%= f.button :submit, "Submit", id: "appeal-display-submit-button", disabled: is_pending_status %>
     <% end %>
   <% end %>
 </div></div>

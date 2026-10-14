@@ -28,7 +28,7 @@ RSpec.describe SearchTrendsController do
       it "returns json" do
         hour = 2.hours.ago.utc
         SearchTrendHourly.bulk_increment!([{ tag: "fox", hour: hour }])
-        SearchTrendAggregateJob.perform_now
+        SearchTrendAggregateJob.new.perform
         get search_trends_path(format: :json, day: hour.to_date.to_s)
         expect(response).to have_http_status(:success)
         json = response.parsed_body

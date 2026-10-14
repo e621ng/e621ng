@@ -267,6 +267,15 @@ RSpec.describe DmailsController do
         get dmail_path(dmail_from_staff), params: { key: dmail_from_staff.generate_key }
         expect(response).to have_http_status(:forbidden)
       end
+
+      it "does not mark the dmail as read when viewed by a non-owner with the correct key" do
+        dmail_from_staff = create(:dmail, from: moderator, to: recipient, owner_id: recipient.id)
+        dmail_from_staff.update_columns(is_read: false)
+        sign_in_as janitor
+        get dmail_path(dmail_from_staff), params: { key: dmail_from_staff.generate_key }
+        expect(response).to have_http_status(:ok)
+        expect(dmail_from_staff.reload.is_read).to be false
+      end
     end
 
     context "staff system access" do
@@ -300,6 +309,17 @@ RSpec.describe DmailsController do
         sign_in_as moderator
         get dmail_path(dmail)
         expect(response).to have_http_status(:ok)
+      end
+
+      it "does not mark the dmail as read when viewed by a moderator via a ticket" do
+        ticket = create(:ticket, :dmail_type)
+        dmail = Dmail.find(ticket.disp_id)
+        dmail.update_columns(is_read: false)
+
+        sign_in_as moderator
+        get dmail_path(dmail)
+        expect(response).to have_http_status(:ok)
+        expect(dmail.reload.is_read).to be false
       end
 
       it "returns 403 for a moderator viewing a dmail without an associated ticket" do
@@ -377,6 +397,15 @@ RSpec.describe DmailsController do
       delete dmail_path(dmail, format: :json)
       expect(response).to have_http_status(:no_content)
     end
+
+    it "returns 403 for a moderator with ticket access" do
+      ticket = create(:ticket, :dmail_type)
+      dmail = Dmail.find(ticket.disp_id)
+      sign_in_as moderator
+      delete dmail_path(dmail, format: :json)
+      expect(response).to have_http_status(:forbidden)
+      expect(dmail.reload.is_deleted).to be false
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -391,13 +420,11 @@ RSpec.describe DmailsController do
       expect(response).to redirect_to(new_session_path)
     end
 
-    # FIXME: mark_as_read has no HTML template and no explicit respond_with or
-    # redirect, causing ActionController::MissingExactTemplate on HTML requests.
-    # it "marks the dmail as read for the owner (HTML)" do
-    #   sign_in_as recipient
-    #   put mark_as_read_dmail_path(dmail)
-    #   expect(dmail.reload.is_read).to be true
-    # end
+    it "marks the dmail as read for the owner (HTML)" do
+      sign_in_as recipient
+      put mark_as_read_dmail_path(dmail)
+      expect(dmail.reload.is_read).to be true
+    end
 
     it "marks the dmail as read for the owner (JSON)" do
       sign_in_as recipient
@@ -409,6 +436,16 @@ RSpec.describe DmailsController do
       sign_in_as other
       put mark_as_read_dmail_path(dmail, format: :json)
       expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a moderator with ticket access" do
+      ticket = create(:ticket, :dmail_type)
+      dmail = Dmail.find(ticket.disp_id)
+      dmail.update_columns(is_read: false)
+      sign_in_as moderator
+      put mark_as_read_dmail_path(dmail, format: :json)
+      expect(response).to have_http_status(:forbidden)
+      expect(dmail.reload.is_read).to be false
     end
   end
 
@@ -442,6 +479,16 @@ RSpec.describe DmailsController do
       sign_in_as other
       put mark_as_unread_dmail_path(dmail, format: :json)
       expect(response).to have_http_status(:forbidden)
+    end
+
+    it "returns 403 for a moderator with ticket access" do
+      ticket = create(:ticket, :dmail_type)
+      dmail = Dmail.find(ticket.disp_id)
+      dmail.update_columns(is_read: false)
+      sign_in_as moderator
+      put mark_as_unread_dmail_path(dmail, format: :json)
+      expect(response).to have_http_status(:forbidden)
+      expect(dmail.reload.is_read).to be false
     end
   end
 

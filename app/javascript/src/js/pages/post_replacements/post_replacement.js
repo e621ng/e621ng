@@ -1,35 +1,54 @@
+import ToastManager from "@/utility/Toast";
+
 let PostReplacement = {};
 
 PostReplacement.initialize_all = function () {
-  $(".replacement-approve-action").on("click", (e) => {
-    const $target = $(e.target);
+  const $root = $("#c-post-replacements");
+
+  // Expand / collapse a card by clicking its header (but let links navigate).
+  $root.on("click", ".replacement-card-header", (e) => {
+    if ($(e.target).closest("a").length) return;
+    const $card = $(e.currentTarget).closest(".replacement-card");
+    const expanded = $card.toggleClass("is-expanded").hasClass("is-expanded");
+    $card.find(".replacement-card-toggle").attr("aria-expanded", String(expanded));
+  });
+
+  // Actions are delegated from the container so they survive the replaceWith
+  // swaps below (freshly rendered cards are bound without re-initializing).
+  $root.on("click", ".replacement-approve-action", (e) => {
+    const $target = $(e.currentTarget);
     e.preventDefault();
     PostReplacement.approve($target.data("replacement-id"), $target.data("penalize"));
   });
 
-  $(".replacement-reject-action").on("click", (e) => {
-    const $target = $(e.target);
+  $root.on("click", ".replacement-reject-action", (e) => {
+    const $target = $(e.currentTarget);
     e.preventDefault();
     PostReplacement.reject($target.data("replacement-id"));
   });
 
-  $(".replacement-promote-action").on("click", (e) => {
-    const $target = $(e.target);
+  $root.on("click", ".replacement-promote-action", (e) => {
+    const $target = $(e.currentTarget);
     e.preventDefault();
     PostReplacement.promote($target.data("replacement-id"));
   });
 
-  $(".replacement-toggle-penalize-action").on("click", (e) => {
-    const $target = $(e.target);
+  $root.on("click", ".replacement-toggle-penalize-action", (e) => {
+    const $target = $(e.currentTarget);
     e.preventDefault();
     PostReplacement.toggle_penalize($target);
   });
 
-  $(".replacement-destroy-action").on("click", (e) => {
-    const $target = $(e.target);
-    const id = $target.data("replacement-id");
+  $root.on("click", ".replacement-destroy-action", (e) => {
+    const $target = $(e.currentTarget);
     e.preventDefault();
-    PostReplacement.destroy(id);
+    PostReplacement.destroy($target.data("replacement-id"));
+  });
+
+  $root.on("click", ".replacement-transfer-action", (e) => {
+    const $target = $(e.currentTarget);
+    e.preventDefault();
+    PostReplacement.transfer($target.data("replacement-id"));
   });
 };
 
@@ -39,16 +58,17 @@ PostReplacement.approve = function (id, penalize_current_uploader) {
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/approve`,
-    data: { penalize_current_uploader },
+    data: { penalize_current_uploader, timeline: $row.hasClass("has-timeline") },
     dataType: "html",
   })
     .done((html) => {
-      E621.Toast.notice("Replacement approved.");
-      $row.replaceWith(html);
+      ToastManager.notice("Replacement approved.");
+      $(".is-current").removeClass("is-current");
+      replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to approve the replacement.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       revert_processing($row);
     });
 };
@@ -60,15 +80,16 @@ PostReplacement.reject = function (id) {
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/reject`,
+    data: { timeline: $row.hasClass("has-timeline") },
     dataType: "html",
   })
     .done((html) => {
-      E621.Toast.notice("Replacement rejected.");
-      $row.replaceWith(html);
+      ToastManager.notice("Replacement rejected.");
+      replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to reject the replacement.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       revert_processing($row);
     });
 };
@@ -80,34 +101,37 @@ PostReplacement.promote = function (id) {
   $.ajax({
     type: "POST",
     url: `/post_replacements/${id}/promote`,
+    data: { timeline: $row.hasClass("has-timeline") },
     dataType: "html",
   })
     .done((html) => {
-      E621.Toast.notice("Replacement promoted to a new post.");
-      $row.replaceWith(html);
+      ToastManager.notice("Replacement promoted to a new post.");
+      replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to promote the replacement.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       revert_processing($row);
     });
 };
 
 PostReplacement.toggle_penalize = function ($target) {
   const id = $target.data("replacement-id");
+  const $row = $(`#replacement-${id}`);
   $target.addClass("disabled-link");
   $.ajax({
     type: "PUT",
     url: `/post_replacements/${id}/toggle_penalize`,
+    data: { timeline: $row.hasClass("has-timeline") },
     dataType: "html",
   })
     .done((html) => {
-      E621.Toast.notice("Penalization toggled.");
-      $(`#replacement-${id}`).replaceWith(html);
+      ToastManager.notice("Penalization toggled.");
+      replace_row($row, html);
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to toggle penalization.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       $target.removeClass("disabled-link");
     });
 };
@@ -122,27 +146,70 @@ PostReplacement.destroy = function (id) {
     dataType: "html",
   })
     .done(() => {
-      E621.Toast.notice("Replacement destroyed.");
+      ToastManager.notice("Replacement destroyed.");
       $row.remove();
     })
     .fail((data) => {
       const msg = data.responseText?.trim() || "Failed to destroy the replacement.";
-      E621.Toast.alert(msg);
+      ToastManager.alert(msg);
       revert_processing($row);
     });
 };
 
+PostReplacement.transfer = function (id) {
+  const $row = $(`#replacement-${id}`);
+  const raw = prompt("Enter the destination post ID to transfer this replacement to:");
+  if (raw === null) return; // cancelled — no toast
+  const newPostId = raw.trim();
+  if (!newPostId || isNaN(Number(newPostId))) {
+    ToastManager.alert("Please enter a valid post ID.");
+    return;
+  }
+  if (!confirm(`Transfer this replacement to post #${newPostId}?`)) return;
+
+  make_processing($row);
+  $.ajax({
+    type: "PUT",
+    url: `/post_replacements/${id}/transfer`,
+    data: { new_post_id: newPostId, timeline: $row.hasClass("has-timeline") },
+    dataType: "html",
+  })
+    .done((html) => {
+      // ToastManager renders HTML, so link straight to the destination post.
+      ToastManager.notice(`Replacement transferred to <a href="/posts/${newPostId}">post #${newPostId}</a>.`);
+      if ($row.hasClass("has-timeline")) {
+        $row.remove(); // it left this post's timeline — drop it, like destroy
+      } else {
+        replace_row($row, html); // global list — re-render in place with the new post link
+      }
+    })
+    .fail((data) => {
+      const msg = data.responseText?.trim() || "Failed to transfer the replacement.";
+      ToastManager.alert(msg);
+      revert_processing($row);
+    });
+};
+
+// Swap a card for its freshly rendered version, preserving whether the user had
+// it expanded (the server defaults to expanded only for pending replacements).
+function replace_row ($row, html) {
+  const wasExpanded = $row.hasClass("is-expanded");
+  const $new = $(html);
+  if (wasExpanded) $new.addClass("is-expanded");
+  $new.find(".replacement-card-toggle").attr("aria-expanded", String($new.hasClass("is-expanded")));
+  $row.replaceWith($new);
+}
 
 function make_processing ($row) {
-  $row.removeClass("replacement-pending-row").addClass("replacement-processing-row");
+  $row.removeClass("is-pending").addClass("is-processing");
   $row.find(".replacement-status").text("processing");
-  $row.find(".pending-links a").addClass("disabled-link");
+  $row.find(".replacement-card-actions a").addClass("disabled-link");
 }
 
 function revert_processing ($row) {
-  $row.removeClass("replacement-processing-row");
+  $row.removeClass("is-processing");
   $row.find(".replacement-status").text("error");
-  $row.find(".pending-links a").removeClass("disabled-link");
+  $row.find(".replacement-card-actions a").removeClass("disabled-link");
 }
 
 $(function () {

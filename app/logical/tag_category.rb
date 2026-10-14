@@ -52,6 +52,21 @@ class TagCategory
     8 => "lore",
   }.freeze
 
+  # This mapping is used specifically for the `Tag.categories` members.
+  # It defines the names of the internal symbols, not of the actual categories.
+  # This allows different category names without needing to change all the symbols.
+  ENUM_MAPPING = {
+    0 => "general",
+    1 => "artist",
+    2 => "contributor",
+    3 => "copyright",
+    4 => "character",
+    5 => "species",
+    6 => "invalid",
+    7 => "meta",
+    8 => "lore",
+  }.freeze
+
   SHORT_NAME_MAPPING = {
     "gen" => "general",
     "art" => "artist",

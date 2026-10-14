@@ -29,26 +29,28 @@ RSpec.describe WikiPage do
   # #pretty_title_with_category
   # -------------------------------------------------------------------------
   describe "#pretty_title_with_category" do
-    it "returns pretty_title without a prefix when category_id is nil" do
+    include_context "with tag categories"
+
+    it "returns pretty_title without a prefix when no tag exists" do
       page = build(:wiki_page, title: "some_page")
       expect(page.pretty_title_with_category).to eq("some page")
     end
 
-    it "returns pretty_title without a prefix when category_id is 0 (general)" do
-      page = build(:wiki_page, title: "some_page")
-      page.category_id = 0 # general
+    it "returns pretty_title without a prefix when the tag is general" do
+      create(:tag, name: "some_page", category: general_tag_category)
+      page = create(:wiki_page, title: "some_page").reload
       expect(page.pretty_title_with_category).to eq("some page")
     end
 
-    it "prepends the capitalized category name for category 1" do
-      page = build(:wiki_page, title: "my_tag")
-      page.category_id = 1
-      expect(page.pretty_title_with_category).to eq("#{TagCategory::REVERSE_MAPPING[1].capitalize}: my tag")
+    it "prepends the capitalized category name for an artist tag" do
+      create(:tag, name: "my_tag", category: artist_tag_category)
+      page = create(:wiki_page, title: "my_tag").reload
+      expect(page.pretty_title_with_category).to eq("#{TagCategory::REVERSE_MAPPING[artist_tag_category].capitalize}: my tag")
     end
 
-    it "prepends the correct category name for species" do
-      page = build(:wiki_page, title: "my_species")
-      page.category_id = 5 # species
+    it "prepends the correct category name for a species tag" do
+      create(:tag, name: "my_species", category: species_tag_category)
+      page = create(:wiki_page, title: "my_species").reload
       expect(page.pretty_title_with_category).to eq("Species: my species")
     end
   end

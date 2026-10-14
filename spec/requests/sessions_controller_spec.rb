@@ -24,12 +24,11 @@ RSpec.describe SessionsController do
 
   describe "POST /session" do
     before do
-      allow(RateLimiter).to receive(:check_limit).and_return(false)
-      allow(RateLimiter).to receive(:hit)
+      allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
     end
 
     context "when rate limited" do
-      before { allow(RateLimiter).to receive(:check_limit).and_return(true) }
+      before { allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: true)) }
 
       it "redirects to new_session_path with a notice (HTML)" do
         post session_path, params: { session: { name: member.name, password: "hexerade" } }
@@ -98,8 +97,7 @@ RSpec.describe SessionsController do
 
   describe "DELETE /session" do
     before do
-      allow(RateLimiter).to receive(:check_limit).and_return(false)
-      allow(RateLimiter).to receive(:hit)
+      allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
       make_session(member)
     end
 

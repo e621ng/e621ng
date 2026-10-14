@@ -24,6 +24,7 @@ RSpec.describe Sources::Alternates do
         Sources::Alternates::Webtoons,
         Sources::Alternates::Tapas,
         Sources::Alternates::Imgur,
+        Sources::Alternates::Tumblr,
       )
     end
 
@@ -78,6 +79,10 @@ RSpec.describe Sources::Alternates do
 
     it "returns an Imgur instance for an imgur.com URL" do
       expect(described_class.find("https://imgur.com/a/zZkdMts")).to be_a(Sources::Alternates::Imgur)
+    end
+
+    it "returns a Tumblr instance for a tumblr.com URL" do
+      expect(described_class.find("https://www.tumblr.com/unsafescapewolf/785066139893022720/raoul-in-boxers-kofi-underwear-doodles-2025")).to be_a(Sources::Alternates::Tumblr)
     end
 
     it "returns a Null instance for an unrecognised URL by default" do

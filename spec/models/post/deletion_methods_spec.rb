@@ -44,6 +44,52 @@ RSpec.describe Post do
         expect(post.errors[:is_status_locked]).to be_present
       end
 
+      it "penalizes a credited (non-pending) post's uploader by penalty plus credit" do
+        # A default post has is_pending == false, so it held the approved credit: deletion
+        # reverses that credit on top of the deletion penalty.
+        post = create(:post)
+        expect { post.delete!("Test reason") }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(-(UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT))
+      end
+
+      it "penalizes a still-pending post's uploader by only the deletion penalty" do
+        # A pending post never earned the approved credit, so only the penalty applies.
+        post = create(:pending_post)
+        expect { post.delete!("Test reason") }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(-UserStatus::KARMA_DELETION_PENALTY)
+      end
+
+      it "does not touch upload karma when skip_karma is set (takedowns)" do
+        post = create(:post)
+        expect { post.delete!("takedown #1: reason", force: true, skip_karma: true) }
+          .not_to(change { post.uploader.user_status.reload.upload_karma })
+      end
+
+      it "records a deleted ledger row noting whether the credit was reversed" do
+        credited = create(:post)
+        pending = create(:pending_post)
+        credited.delete!("Test reason")
+        pending.delete!("Test reason")
+
+        expect(UploadKarmaEvent.find_by(post_id: credited.id)).to have_attributes(
+          user_id: credited.uploader_id,
+          reason: "deleted",
+          delta: -(UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT),
+          extra_data: { "credit_reversed" => true },
+        )
+        expect(UploadKarmaEvent.find_by(post_id: pending.id)).to have_attributes(
+          reason: "deleted",
+          delta: -UserStatus::KARMA_DELETION_PENALTY,
+          extra_data: { "credit_reversed" => false },
+        )
+      end
+
+      it "records no ledger row when skip_karma is set" do
+        post = create(:post)
+        expect { post.delete!("takedown #1: reason", force: true, skip_karma: true) }
+          .not_to change(UploadKarmaEvent, :count)
+      end
+
       # FIXME: Rework after adding a PostReplacement factory
       # it "rejects pending replacements on deletion" do
       #   post = create(:post)
@@ -70,6 +116,57 @@ RSpec.describe Post do
         post = create(:deleted_post)
         post.undelete!
         expect(post.reload.is_pending).to be false
+      end
+
+      it "restores the uploader's upload karma when the deleted post had an approver" do
+        post = create(:deleted_post, approver: create(:admin_user))
+        expect { post.undelete! }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT)
+      end
+
+      it "restores the uploader's upload karma when the deleted post had no approver" do
+        # Restoring always approves the post (worth the credit), and delete! already drove
+        # every deleted post down to the penalty, so the reversal is a flat penalty + credit
+        # regardless of prior state.
+        member = create(:user)
+        post = create(:deleted_post, uploader: member, approver: nil)
+        expect { post.undelete! }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT)
+      end
+
+      it "does not touch upload karma when skip_karma is set (takedown reversal)" do
+        post = create(:deleted_post, approver: create(:admin_user))
+        expect { post.undelete!(force: true, skip_karma: true) }
+          .not_to(change { post.uploader.user_status.reload.upload_karma })
+      end
+
+      it "records an undeleted ledger row" do
+        post = create(:deleted_post, approver: create(:admin_user))
+        post.undelete!
+        expect(UploadKarmaEvent.last).to have_attributes(
+          user_id: post.uploader_id,
+          post_id: post.id,
+          reason: "undeleted",
+          delta: UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT,
+        )
+      end
+
+      it "nets zero upload karma across a delete then undelete of a credited post, even when karma goes negative" do
+        member = create(:user)
+        post = create(:post, uploader: member, approver: create(:admin_user))
+        expect do
+          post.delete!("Test reason")   # -(penalty + credit)
+          post.reload.undelete!         # +(penalty + credit)
+        end.not_to(change { member.user_status.reload.upload_karma })
+      end
+
+      it "nets the approved credit across a pending post's delete then undelete (undelete approves it)" do
+        member = create(:user)
+        post = create(:pending_post, uploader: member)
+        expect do
+          post.delete!("Test reason")   # -penalty (never earned the credit)
+          post.reload.undelete!         # +(penalty + credit) (restored → approved)
+        end.to change { member.user_status.reload.upload_karma }.by(UserStatus::KARMA_APPROVED_CREDIT)
       end
 
       # FIXME: It definitely does not do this.
@@ -268,6 +365,25 @@ RSpec.describe Post do
         post = create(:post)
         result = post.substitute_deletion_dmail_template("Staff: %STAFF_NAME%")
         expect(result).to include(CurrentUser.name)
+      end
+    end
+
+    describe "#deleted_by_takedown?" do
+      it "returns true when the post is deleted by a takedown" do
+        post = create(:post)
+        post.delete!("takedown #1: reason")
+        expect(post.deleted_by_takedown?).to be true
+      end
+
+      it "returns false when the post is deleted for another reason" do
+        post = create(:post)
+        post.delete!("other reason")
+        expect(post.deleted_by_takedown?).to be false
+      end
+
+      it "returns false when the post is not deleted" do
+        post = create(:post)
+        expect(post.deleted_by_takedown?).to be false
       end
     end
   end

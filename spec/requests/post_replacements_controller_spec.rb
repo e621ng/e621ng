@@ -37,6 +37,30 @@ RSpec.describe PostReplacementsController do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to be_an(Array)
     end
+
+    context "timeline vs. list rendering" do
+      let(:other_post) { create(:post) }
+
+      before { replacement } # ensure a card exists to carry the timeline class
+
+      it "uses the timeline when scoped to a single post id" do
+        get post_replacements_path(search: { post_id: post_record.id })
+        expect(response.body).to include("replacement-timeline")
+        expect(response.body).to include("has-timeline")
+      end
+
+      it "uses a plain list when unscoped" do
+        get post_replacements_path
+        expect(response.body).to include("replacement-list")
+        expect(response.body).not_to include("has-timeline")
+      end
+
+      it "uses a plain list when scoped to multiple post ids" do
+        get post_replacements_path(search: { post_id: "#{post_record.id},#{other_post.id}" })
+        expect(response.body).to include("replacement-list")
+        expect(response.body).not_to include("has-timeline")
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -61,8 +85,8 @@ RSpec.describe PostReplacementsController do
       expect(response).to have_http_status(:ok)
     end
 
-    context "when uploads are disabled" do
-      before { allow(Security::Lockdown).to receive(:uploads_disabled?).and_return(true) }
+    context "when post replacements are disabled" do
+      before { allow(Security::Lockdown).to receive(:post_replacements_disabled?).and_return(true) }
 
       it "returns 403 for a janitor" do
         sign_in_as replacer
@@ -110,8 +134,8 @@ RSpec.describe PostReplacementsController do
       expect(response.parsed_body["message"]).to be_present
     end
 
-    context "when uploads are disabled" do
-      before { allow(Security::Lockdown).to receive(:uploads_disabled?).and_return(true) }
+    context "when post replacements are disabled" do
+      before { allow(Security::Lockdown).to receive(:post_replacements_disabled?).and_return(true) }
 
       it "returns 403 for a replacer" do
         sign_in_as replacer
@@ -367,11 +391,118 @@ RSpec.describe PostReplacementsController do
   end
 
   # ---------------------------------------------------------------------------
-  # Upload lockdown behaviour — cross-cutting
+  # PUT /post_replacements/:id/transfer — transfer
   # ---------------------------------------------------------------------------
 
-  describe "upload lockdown behaviour" do
-    before { allow(Security::Lockdown).to receive(:uploads_disabled?).and_return(true) }
+  describe "PUT /post_replacements/:id/transfer" do
+    let(:destination) { create(:post) }
+
+    # Seed the destination with an original so the transfer's backup step is a no-op.
+    before { create(:original_post_replacement, post: destination) }
+
+    it "redirects anonymous to the login page" do
+      put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+      expect(response).to redirect_to(new_session_path)
+    end
+
+    it "returns 403 for a regular member" do
+      sign_in_as member
+      put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+      expect(response).to have_http_status(:forbidden)
+    end
+
+    context "as an approver" do
+      before { sign_in_as approver }
+
+      it "transfers the replacement and returns the card fragment" do
+        put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("id=\"replacement-#{replacement.id}\"")
+        expect(replacement.reload.post_id).to eq(destination.id)
+      end
+
+      it "returns 412 when the replacement is not pending or rejected" do
+        replacement.update_columns(status: "approved")
+        put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+        expect(response).to have_http_status(:precondition_failed)
+        expect(replacement.reload.post_id).to eq(post_record.id)
+      end
+
+      it "returns 412 when the destination is the same post" do
+        put transfer_post_replacement_path(replacement), params: { new_post_id: post_record.id }
+        expect(response).to have_http_status(:precondition_failed)
+      end
+
+      it "returns 412 when the destination is deleted" do
+        destination.update_columns(is_deleted: true)
+        put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+        expect(response).to have_http_status(:precondition_failed)
+        expect(replacement.reload.post_id).to eq(post_record.id)
+      end
+
+      it "returns 412 when the replacement is identical to the destination's current file" do
+        replacement.update_columns(md5: destination.md5)
+        put transfer_post_replacement_path(replacement), params: { new_post_id: destination.id }
+        expect(response).to have_http_status(:precondition_failed)
+      end
+
+      it "returns 404 when the destination post does not exist" do
+        put transfer_post_replacement_path(replacement), params: { new_post_id: 0 }
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # HTML fragment responses — the AJAX swap contract
+  # The mutating actions re-render the replacement card; the client swaps it in
+  # keyed on #replacement-<id>. The fragment must keep that root id.
+  # ---------------------------------------------------------------------------
+
+  describe "HTML card fragment (swap contract)" do
+    it "reject returns a card fragment rooted at #replacement-<id>" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("id=\"replacement-#{replacement.id}\"")
+      expect(response.body).to include("replacement-card")
+    end
+
+    it "reject returns a bare fragment without the application layout" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement)
+      expect(response.body).not_to include("<html")
+      expect(response.body).not_to include("<body")
+    end
+
+    it "echoes the timeline context into the fragment when requested" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement), params: { timeline: true }
+      expect(response.body).to include("has-timeline")
+    end
+
+    it "omits timeline chrome when the swap is not in timeline context" do
+      sign_in_as approver
+      put reject_post_replacement_path(replacement), params: { timeline: false }
+      expect(response.body).not_to include("has-timeline")
+    end
+
+    it "approve returns a card fragment rooted at #replacement-<id>" do
+      allow(PostReplacement).to receive(:find).and_return(replacement)
+      allow(replacement).to receive(:approve!)
+      sign_in_as approver
+      put approve_post_replacement_path(replacement)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("id=\"replacement-#{replacement.id}\"")
+    end
+  end
+
+  # ---------------------------------------------------------------------------
+  # Replacement lockdown behaviour — cross-cutting
+  # ---------------------------------------------------------------------------
+
+  describe "replacement lockdown behaviour" do
+    before { allow(Security::Lockdown).to receive(:post_replacements_disabled?).and_return(true) }
 
     it "returns 403 for GET /post_replacements/new even for a janitor" do
       sign_in_as replacer
@@ -385,8 +516,15 @@ RSpec.describe PostReplacementsController do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "still serves GET /post_replacements (index) when uploads are disabled" do
+    it "still serves GET /post_replacements (index) when replacements are disabled" do
       get post_replacements_path
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "does not gate replacements on the uploads toggle" do
+      allow(Security::Lockdown).to receive_messages(post_replacements_disabled?: false, uploads_disabled?: true)
+      sign_in_as replacer
+      get new_post_replacement_path(post_id: post_record.id)
       expect(response).to have_http_status(:ok)
     end
   end

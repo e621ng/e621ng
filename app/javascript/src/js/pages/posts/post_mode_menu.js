@@ -1,3 +1,4 @@
+import ToastManager from "@/utility/Toast";
 import Post from "@/pages/posts/posts";
 import Favorite from "@/models/Favorite";
 import PostSet from "@/pages/posts/show/PostSet";
@@ -19,7 +20,7 @@ PostModeMenu.initialize = function () {
     this.initialize_preview_link();
     this.initialize_edit_form();
     this.initialize_tag_script_field();
-    if (E621.CurrentUser.is.privileged) this.initialize_shortcuts();
+    if (CurrentUser.is.privileged) this.initialize_shortcuts();
     PostModeMenu.change();
   }
 };
@@ -32,7 +33,7 @@ PostModeMenu.initialize_shortcuts = function () {
 PostModeMenu.show_notice_toast = null;
 PostModeMenu.show_notice = function (i) {
   if (PostModeMenu.show_notice_toast) PostModeMenu.show_notice_toast.dismiss(true);
-  PostModeMenu.show_notice_toast = E621.Toast.create(`Switched to tag script #${i}. To switch tag scripts, use the number keys.`);
+  PostModeMenu.show_notice_toast = ToastManager.create(`Switched to tag script #${i}. To switch tag scripts, use the number keys.`);
 };
 
 PostModeMenu.change_tag_script = function (key) {
@@ -63,7 +64,7 @@ PostModeMenu.initialize_preview_link = function () {
 
 PostModeMenu.initialize_edit_form = function () {
   $("#quick-edit-div").hide();
-  $("#quick-edit-form input[value=Cancel]").on("click.danbooru", function (e) {
+  $("#quick-edit-form #quick-edit-cancel").on("click.danbooru", function (e) {
     PostModeMenu.close_edit_form();
     e.preventDefault();
   });
@@ -84,7 +85,7 @@ PostModeMenu.initialize_edit_form = function () {
       },
       success: function (data) {
         Post.update_data(data);
-        E621.Toast.notice("Post #" + data.post.id + " updated");
+        ToastManager.notice("Post #" + data.post.id + " updated");
         PostModeMenu.close_edit_form();
       },
     });
@@ -127,7 +128,7 @@ PostModeMenu.update_sets_menu = function () {
       type: "GET",
       url: "/post_sets/for_select.json",
     }).fail(function (data) {
-      E621.Toast.alert("Error getting sets list: " + data.message);
+      ToastManager.alert("Error getting sets list: " + data.message);
     }).done(function (data) {
       target.on("change", function (e) {
         LStorage.Posts.Set = e.target.value;
@@ -238,7 +239,7 @@ PostModeMenu.click = function (e) {
     const postTags = $(`article.thumbnail[data-id="${post_id}"]`).first().data("tags").split(" ");
     const tags = new Set(postTags);
     const changes = TagScript.run(tags, tag_script);
-    Post.tagScript(post_id, changes);
+    Post.tagScript(post_id, changes, $("#tag-script-reason").val());
   } else {
     return;
   }

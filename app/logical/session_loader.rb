@@ -33,6 +33,9 @@ class SessionLoader
       load_remember_token
     end
 
+    # Record the IP for everyone, including attempted logins from banned users.
+    UserIpTracker.track!(CurrentUser.user, CurrentUser.ip_addr)
+
     CurrentUser.user.unban! if CurrentUser.user.ban_expired?
     if CurrentUser.user.is_restricted?
       recent_ban = CurrentUser.user.recent_ban

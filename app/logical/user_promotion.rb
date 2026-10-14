@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class UserPromotion
-  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_replacements_beta
+  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_replacements_beta, :old_tag_warden, :old_raised_favorite_limit
 
   def initialize(user, promoter, new_level, options = {})
     @user = user
@@ -17,6 +17,8 @@ class UserPromotion
     @old_can_upload_free = user.can_upload_free?
     @old_no_flagging = user.no_flagging?
     @old_replacements_beta = user.replacements_beta?
+    @old_tag_warden = user.tag_warden?
+    @old_raised_favorite_limit = user.raised_favorite_limit?
 
     user.level = new_level
 
@@ -28,12 +30,20 @@ class UserPromotion
       user.can_upload_free = options[:can_upload_free]
     end
 
+    if options.key?(:tag_warden)
+      user.tag_warden = options[:tag_warden]
+    end
+
     if options.key?(:no_flagging)
       user.no_flagging = options[:no_flagging]
     end
 
     if options.key?(:replacements_beta)
       user.replacements_beta = options[:replacements_beta]
+    end
+
+    if options.key?(:raised_favorite_limit)
+      user.raised_favorite_limit = options[:raised_favorite_limit]
     end
 
     create_mod_actions
@@ -59,9 +69,11 @@ class UserPromotion
     removed = []
 
     flag_check(added, removed, "can_approve_posts", "approve posts")
-    flag_check(added, removed, "can_upload_free", "unlimited upload slots")
+    flag_check(added, removed, "can_upload_free", "unlimited uploads")
     flag_check(added, removed, "no_flagging", "flag ban")
     flag_check(added, removed, "replacements_beta", "replacements beta")
+    flag_check(added, removed, "tag_warden", "tag warden")
+    flag_check(added, removed, "raised_favorite_limit", "raised favorite limit")
 
     if added.any? || removed.any?
       ModAction.log(:user_flags_change, { user_id: user.id, added: added, removed: removed })

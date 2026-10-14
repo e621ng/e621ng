@@ -39,12 +39,13 @@
 @import "common/user_styles.scss";
 @import "common/voting.scss";
 
+@import "components/karma_badge.scss";
 @import "components/paginator_component.scss";
+@import "components/post_replacement_card_component.scss";
 @import "components/post_thumbnail_component.scss";
 @import "components/user_feedback_component.scss";
 
 @import "views/application/application";
-@import "views/staff/vote_trends";
 @import "views/appeals/appeals";
 @import "views/artists/artists";
 @import "views/auths/auths";
@@ -59,11 +60,16 @@
 @import "views/post_flags/post_flags";
 @import "views/post_replacements/post_replacements";
 @import "views/posts/posts";
+@import "views/saved_searches/saved_searches";
 @import "views/search_trends/search_trends";
+@import "views/staff/user_alts/show";
+@import "views/staff/vote_trends";
 @import "views/staff_files/staff_files";
+@import "views/staff/users/request_password_reset";
 @import "views/staff_wikis/staff_wikis";
 @import "views/static/static";
 @import "views/tickets/tickets";
+@import "views/totp/totp";
 @import "views/uploads/uploads";
 @import "views/users/users";
 @import "views/wiki_pages/wiki_pages";

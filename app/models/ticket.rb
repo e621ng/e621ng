@@ -246,7 +246,7 @@ class Ticket < ApplicationRecord
     end
 
     def validate_creator_is_not_limited
-      return if creator == User.system
+      return if creator.is_system?
 
       # Hourly limit
       hourly_allowed = creator.can_ticket_hourly_with_reason
@@ -437,7 +437,7 @@ class Ticket < ApplicationRecord
 
   module NotificationMethods
     def create_dmail
-      return if creator == User.system
+      return if creator.is_system?
       should_send = saved_change_to_status? || (send_update_dmail.to_s.truthy? && saved_change_to_response?)
       return unless should_send
 

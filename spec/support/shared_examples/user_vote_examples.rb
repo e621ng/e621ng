@@ -248,15 +248,12 @@ end
 RSpec.shared_examples "user_vote search: score" do |factory_name, model_class|
   include_context "as admin"
 
-  let(:id_param) { "#{model_class.model_type}_id" }
-
   describe ".search (score)" do
-    it "returns only votes with the given score" do
+    it "returns only votes with the given score without a narrowing param" do
       up_vote   = create(factory_name, score: 1)
       down_vote = create(factory_name, score: -1)
-      model_id  = up_vote.send("#{model_class.model_type}_id")
 
-      result = model_class.search({ id_param => model_id.to_s, score: "1" }.with_indifferent_access)
+      result = model_class.search({ score: "1" }.with_indifferent_access)
       expect(result).to include(up_vote)
       expect(result).not_to include(down_vote)
     end
@@ -270,16 +267,13 @@ end
 RSpec.shared_examples "user_vote search: timeframe" do |factory_name, model_class|
   include_context "as admin"
 
-  let(:id_param) { "#{model_class.model_type}_id" }
-
   describe ".search (timeframe)" do
-    it "excludes votes older than the timeframe" do
+    it "excludes votes older than the timeframe without a narrowing param" do
       recent = create(factory_name)
       old    = create(factory_name)
       old.update_columns(updated_at: 5.days.ago)
 
-      model_id = recent.send("#{model_class.model_type}_id")
-      result = model_class.search({ id_param => model_id.to_s, timeframe: "2" }.with_indifferent_access)
+      result = model_class.search({ timeframe: "2" }.with_indifferent_access)
       expect(result).to include(recent)
       expect(result).not_to include(old)
     end
@@ -293,17 +287,14 @@ end
 RSpec.shared_examples "user_vote search: user_ip_addr" do |factory_name, model_class|
   include_context "as admin"
 
-  let(:id_param) { "#{model_class.model_type}_id" }
-
   describe ".search (user_ip_addr)" do
-    it "returns votes from the given IP subnet" do
+    it "returns votes from the given IP subnet without a narrowing param" do
       vote  = create(factory_name)
       other = create(factory_name)
       vote.update_columns(user_ip_addr: "10.1.2.3")
       other.update_columns(user_ip_addr: "192.168.0.1")
-      model_id = vote.send("#{model_class.model_type}_id")
 
-      result = model_class.search({ id_param => model_id.to_s, user_ip_addr: "10.1.2.0/24" }.with_indifferent_access)
+      result = model_class.search({ user_ip_addr: "10.1.2.0/24" }.with_indifferent_access)
       expect(result).to include(vote)
       expect(result).not_to include(other)
     end
@@ -336,6 +327,42 @@ RSpec.shared_examples "user_vote search: order" do |factory_name, model_class|
       model_id = vote_a.send("#{model_class.model_type}_id")
       result = model_class.search({ id_param => model_id.to_s, order: "ip_addr" }.with_indifferent_access).ids
       expect(result).to include(vote_a.id)
+    end
+  end
+end
+
+# ---------------------------------------------------------------------------
+# 12. Search: subject creator param (gated behind a narrowing param)
+# ---------------------------------------------------------------------------
+
+RSpec.shared_examples "user_vote search: creator" do |factory_name, model_class|
+  include_context "as admin"
+
+  let(:model_type)     { model_class.model_type }
+  let(:id_param)       { "#{model_type}_id" }
+  let(:creator_param)  { "#{model_type}_creator_id" }
+
+  describe ".search (#{model_class.model_type}_creator)" do
+    it "filters by subject creator when narrowed by a voter" do
+      vote     = create(factory_name)
+      other    = create(factory_name)
+      voter    = vote.user_id
+      creator  = vote.send(model_type).send("#{model_class.model_creator_column}_id")
+
+      result = model_class.search({ "user_id" => voter.to_s, creator_param => creator.to_s }.with_indifferent_access)
+      expect(result).to include(vote)
+      expect(result).not_to include(other)
+    end
+
+    it "ignores the creator filter when the query is not narrowed" do
+      vote  = create(factory_name)
+      other = create(factory_name)
+      # A creator that matches neither vote; without a narrowing param the
+      # filter is dropped, so both votes are still returned.
+      absent_creator = create(:user).id
+
+      result = model_class.search({ creator_param => absent_creator.to_s }.with_indifferent_access)
+      expect(result).to include(vote, other)
     end
   end
 end

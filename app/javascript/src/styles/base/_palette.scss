@@ -30,6 +30,7 @@ $palette: (
   "background-gold-l10": #{color.adjust(#ddc676, $lightness: 10%)},
   "background-gold-d10": #{color.adjust(#ddc676, $lightness: -10%)},
   "background-gold-d20": #{color.adjust(#ddc676, $lightness: -20%)},
+  "background-gold-d30": #{color.adjust(#ddc676, $lightness: -30%)},
 
   // Orange
   "background-orange": #ec8e49,

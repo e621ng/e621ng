@@ -1,3 +1,4 @@
+import CurrentUser from "@/models/CurrentUser";
 import TaskQueue, { TaskCancelled } from "@/utility/TaskQueue";
 
 export default class Favorite {
@@ -21,7 +22,7 @@ export default class Favorite {
         credentials: "include",
         body: JSON.stringify({
           post_id: post_id,
-          authenticity_token: E621.CurrentUser.encodedAuthToken,
+          authenticity_token: CurrentUser.encodedAuthToken,
         }),
       });
     }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {
@@ -76,7 +77,7 @@ export default class Favorite {
         mode: "cors",
         body: JSON.stringify({
           post_id: post_id,
-          authenticity_token: E621.CurrentUser.encodedAuthToken,
+          authenticity_token: CurrentUser.encodedAuthToken,
         }),
       });
     }, { name: `Post.favorite.${post_id}`, unique: true, delay: delay }).then(async (response) => {

@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class PostSet < ApplicationRecord
+  class PostLimitError < StandardError; end
+
   array_attribute :post_ids, parse: %r{(?:https://(?:e621|e926)\.net/posts/)?(\d+)}i, cast: :to_i
 
   has_many :post_set_maintainers, dependent: :destroy do
@@ -87,11 +89,11 @@ class PostSet < ApplicationRecord
     end
 
     def send_maintainer_public_dmails
-      if RateLimiter.check_limit("set.public.#{id}", 1, 24.hours)
-        return
-      end
+      dmail_limiter = RateLimiter.new("set.public.#{id}", limit: 1, period: 24.hours)
+      return if dmail_limiter.throttled?
+
       if is_public_changed? && !is_public # If set was made private
-        RateLimiter.hit("set.public.#{id}", 24.hours)
+        dmail_limiter.hit!
         PostSetMaintainer.active.where(post_set_id: id).find_each do |maintainer|
           Dmail.create_automated(to_id: maintainer.user_id, title: "A set you maintain was made private",
                                  body: "The set \"#{name}\":#{post_set_path(self)} by \"#{creator.name}\":#{user_path(creator)} that you maintain was set to private. You will not be able to view, add posts, or remove posts from the set until the owner makes it public again.")
@@ -99,7 +101,7 @@ class PostSet < ApplicationRecord
 
         PostSetMaintainer.pending.where(post_set_id: id).delete
       elsif is_public_changed? && is_public # If set was made public
-        RateLimiter.hit("set.public.#{id}", 24.hours)
+        dmail_limiter.hit!
         PostSetMaintainer.active.where(post_set_id: id).find_each do |maintainer|
           Dmail.create_automated(to_id: maintainer.user_id, title: "A private set you had maintained was made public again",
                                  body: "The set \"#{name}\":#{post_set_path(self)} by \"#{creator.name}\":#{user_path(creator)} that you previously maintained was made public again. You are now able to view the set and add/remove posts.")
@@ -221,11 +223,7 @@ class PostSet < ApplicationRecord
     def add(ids)
       ids = Array(ids)
       added = process_posts_add!(ids)
-      if added.size <= 1
-        sync_posts_for_delta(added_ids: added) if added.any?
-      else
-        PostSetPostsSyncJob.perform_later(id)
-      end
+      reindex_posts(added)
       added
     end
 
@@ -242,8 +240,7 @@ class PostSet < ApplicationRecord
         return
       end
 
-      post.add_set!(self, true)
-      post.save
+      post.update_index
     end
 
     # Add specified post IDs to the set using SQL functions.
@@ -344,11 +341,7 @@ class PostSet < ApplicationRecord
     def remove(ids)
       ids = Array(ids)
       removed = process_posts_remove!(ids)
-      if removed.size <= 1
-        sync_posts_for_delta(removed_ids: removed) if removed.any?
-      else
-        PostSetPostsSyncJob.perform_later(id)
-      end
+      reindex_posts(removed)
       removed
     end
 
@@ -358,8 +351,7 @@ class PostSet < ApplicationRecord
       removed = process_posts_remove!([post.id])
       return if removed.empty?
 
-      post.remove_set!(self)
-      post.save
+      post.update_index
     end
 
     # Remove specified post IDs from the set using SQL functions.
@@ -435,16 +427,16 @@ class PostSet < ApplicationRecord
     # ========= Post Synchronization ========= #
     # ======================================== #
 
-    # Synchronize Post side for a known delta to avoid computing large diffs.
-    def sync_posts_for_delta(added_ids: [], removed_ids: [])
-      Post.where(id: added_ids).find_each do |post|
-        post.add_set!(self, true)
-        post.save
-      end
-
-      Post.where(id: removed_ids).find_each do |post|
-        post.remove_set!(self)
-        post.save
+    # Posts store no set membership in the DB; only their OpenSearch docs
+    # (the sets field is sourced from post_sets.post_ids at import time)
+    # need refreshing when membership changes.
+    def reindex_posts(ids)
+      ids = Array(ids)
+      return if ids.empty?
+      # Deferred to commit so the job cannot import pre-commit membership state
+      # when called inside a transaction; runs immediately when none is open.
+      ActiveRecord.after_all_transactions_commit do
+        ids.each_slice(5_000) { |slice| BulkIndexUpdateJob.perform_async("Post", slice) }
       end
     end
 
@@ -453,17 +445,7 @@ class PostSet < ApplicationRecord
       added = post_ids - post_ids_before
       removed = post_ids_before - post_ids
 
-      added_posts = Post.where(id: added)
-      added_posts.find_each do |post|
-        post.add_set!(self, true)
-        post.save
-      end
-
-      removed_posts = Post.where(id: removed)
-      removed_posts.find_each do |post|
-        post.remove_set!(self)
-        post.save
-      end
+      reindex_posts(added + removed)
     end
 
     def synchronize!
@@ -484,7 +466,7 @@ class PostSet < ApplicationRecord
     end
 
     def enqueue_destroy_cleanup
-      PostSetCleanupJob.perform_later(:set, id)
+      reindex_posts(post_ids)
     end
   end
 

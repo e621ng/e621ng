@@ -1,8 +1,7 @@
 // search_trends # track
 
-import E621Type from "@/interfaces/E621";
-declare const E621: E621Type;
+import ModuleRegistry from "@/utility/ModuleRegistry";
 
 import "@/pages/search_trends/track/search_trends_track";
 
-E621.Registry.register("v_search-trends_track");
+ModuleRegistry.register("v_search-trends_track");

@@ -1,8 +1,8 @@
 // posts # show
 
-import E621Type from "@/interfaces/E621";
-declare const E621: E621Type;
+import ModuleRegistry from "@/utility/ModuleRegistry";
 
+import CurrentPost from "@/models/CurrentPost";
 import "@/pages/comments/comments";
 import "@/pages/posts/show/AddToPoolDialog";
 import "@/pages/posts/show/BlacklistRevealOnClick";
@@ -12,14 +12,16 @@ import Note from "@/pages/posts/show/notes";
 import PostSet from "@/pages/posts/show/PostSet";
 import "@/pages/posts/show/PostsShowToolbar";
 import "@/pages/posts/show/recommended";
-import "@/pages/posts/show/related_tag";
+import "@/pages/posts/show/TagEditor";
+import PostResizer from "@/pages/posts/show/Resizer";
 import "@/pages/posts/show/SwipeGestureHandler";
-
+import "@/pages/posts/show/Video";
 import PostReowner from "@/pages/staff/post/posts/PostReowner";
+
 
 import "@/pages/post_flags/post_flags"; // We only need expandable notes from here
 
-E621.Registry.register("v_posts_show", { Note });
+ModuleRegistry.register("v_posts_show", { Note, CurrentPost, PostResizer });
 
 $(() => {
   PostSet.initialize_add_to_set_link();

@@ -9,7 +9,8 @@ development:
   <<: *default
   database: e621_development
   host: postgres
-  pool: 5
+  # Covers the Procfile sidekiq process: default capsule (5) + media (2) + iqdb (1)
+  pool: 10
 
 test:
   <<: *default

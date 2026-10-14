@@ -12,13 +12,13 @@ RSpec.describe BulkIndexUpdateJob do
       posts = create_list(:post, 3)
       ids   = posts.map(&:id)
       allow(Post.document_store).to receive(:import)
-      job.perform_now("Post", ids)
+      job.new.perform("Post", ids)
       expect(Post.document_store).to have_received(:import).with(query: { id: ids })
     end
 
     it "does not raise when the id list is empty" do
       allow(Post.document_store).to receive(:import)
-      expect { job.perform_now("Post", []) }.not_to raise_error
+      expect { job.new.perform("Post", []) }.not_to raise_error
     end
   end
 end

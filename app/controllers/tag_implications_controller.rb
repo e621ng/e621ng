@@ -4,6 +4,11 @@ class TagImplicationsController < ApplicationController
   before_action :admin_only, except: [:index, :show, :destroy]
   respond_to :html, :json, :js
 
+  def index
+    @tag_implications = TagImplication.includes(:antecedent_tag, :consequent_tag, :creator, :approver).search(search_params).paginate(params[:page], :limit => params[:limit])
+    respond_with(@tag_implications)
+  end
+
   def show
     @tag_implication = TagImplication.find(params[:id])
     respond_with(@tag_implication)
@@ -44,6 +49,13 @@ class TagImplicationsController < ApplicationController
     @tag_implication = TagImplication.find(params[:id])
     return access_denied unless @tag_implication.approvable_by?(CurrentUser.user)
     @tag_implication.approve!(approver: CurrentUser.user)
+    respond_with(@tag_implication, location: tag_implication_path(@tag_implication))
+  end
+
+  def undo
+    @tag_implication = TagImplication.find(params[:id])
+    return access_denied unless @tag_implication.undoable_by?(CurrentUser.user)
+    @tag_implication.undo!(undoer: CurrentUser.user)
     respond_with(@tag_implication, location: tag_implication_path(@tag_implication))
   end
 

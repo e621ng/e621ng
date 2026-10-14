@@ -14,13 +14,8 @@ class PostReportReasonsController < ApplicationController
     @reason = PostReportReason.new
   end
 
-  def destroy
+  def edit
     @reason = PostReportReason.find(params[:id])
-    PostReportReason.transaction do
-      @reason.destroy
-      ModAction.log(:report_reason_delete, {reason: @reason.reason, user_id: @reason.creator_id})
-    end
-    respond_with(@reason)
   end
 
   def create
@@ -32,10 +27,6 @@ class PostReportReasonsController < ApplicationController
     redirect_to post_report_reasons_path
   end
 
-  def edit
-    @reason = PostReportReason.find(params[:id])
-  end
-
   def update
     @reason = PostReportReason.find(params[:id])
     PostReportReason.transaction do
@@ -44,6 +35,15 @@ class PostReportReasonsController < ApplicationController
     end
     flash[:notice] = @reason.valid? ? "Post report reason updated" : @reason.errors.full_messages.join("; ")
     redirect_to post_report_reasons_path
+  end
+
+  def destroy
+    @reason = PostReportReason.find(params[:id])
+    PostReportReason.transaction do
+      @reason.destroy
+      ModAction.log(:report_reason_delete, {reason: @reason.reason, user_id: @reason.creator_id})
+    end
+    respond_with(@reason)
   end
 
   private

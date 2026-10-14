@@ -61,6 +61,6 @@ class UserFeedbackComponent < ViewComponent::Base
 
   def show_add_feedback?
     return false if CurrentUser.user.nil?
-    CurrentUser.user.is_moderator? && user != CurrentUser.user && active == 0
+    CurrentUser.user.is_moderator? && user != CurrentUser.user && total == 0
   end
 end

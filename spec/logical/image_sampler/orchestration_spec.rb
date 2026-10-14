@@ -118,19 +118,9 @@ RSpec.describe ImageSampler do
     end
 
     context "when the image is large enough to require a sample (1000x1000)" do
-      let(:post) do
-        instance_double(
-          Post,
-          file_path:         file_path,
-          is_flash?:         false,
-          is_video?:         false,
-          is_gif?:           false,
-          is_animated_png?:  false,
-          is_animated_webp?: false,
-          image_width:       1000,
-          image_height:      1000,
-          bg_color:          "000000",
-        )
+      before do
+        # Dimensions are taken from the loaded image, not the post record.
+        allow(described_class).to receive(:image_from_path).and_return(Vips::Image.black(1000, 1000))
       end
 
       it "stores 2 thumbnail files and 2 sample files (4 store calls total)" do

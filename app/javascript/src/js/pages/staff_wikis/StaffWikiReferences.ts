@@ -1,3 +1,5 @@
+import Dialog from "@/utility/dialog";
+
 function bootstrapReferencesEdit () {
   const wrapper = document.getElementById("staff-wiki-references");
   if (!wrapper) return;
@@ -13,6 +15,18 @@ function bootstrapReferencesEdit () {
   });
 }
 
+function bootstrapBulkImport () {
+  const bulkButton = document.getElementById("staff-wiki-references-bulk");
+  if (!bulkButton) return;
+
+  let dialog = null;
+  bulkButton.addEventListener("click", () => {
+    if (!dialog) dialog = new Dialog("#bulk-import-dialog");
+    dialog.toggle();
+  });
+}
+
 $(() => {
   bootstrapReferencesEdit();
+  bootstrapBulkImport();
 });

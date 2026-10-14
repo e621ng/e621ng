@@ -1,3 +1,5 @@
+import ToastManager from "@/utility/Toast";
+
 class TOSWarning {
 
   static init () {
@@ -30,7 +32,7 @@ class TOSWarning {
     $("#tos-warning-decline").on("click", (event) => {
       event.preventDefault();
       this.toast?.dismiss();
-      this.toast = E621.Toast.create("You must accept the TOU and confirm that you are at least 18 years old to use this site.", { type: "alert" });
+      this.toast = ToastManager.create("You must accept the TOU and confirm that you are at least 18 years old to use this site.", { type: "alert" });
       return false;
     });
 

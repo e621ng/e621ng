@@ -25,8 +25,7 @@ Doorkeeper::OpenidConnect.configure do
   end
 
   reauthenticate_resource_owner do |_resource_owner, return_to|
-    session[:url] = return_to
-    redirect_to(new_session_path)
+    redirect_to(new_session_path(url: return_to))
   end
 
   subject do |resource_owner, _application|
@@ -77,7 +76,7 @@ Doorkeeper::OpenidConnect.configure do
 
     normal_claim :e621_permissions do |resource_owner|
       flags = %w[
-        can_approve_posts can_upload_free
+        can_approve_posts
         is_bd_staff is_bd_auditor
         can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries
       ] + UserLevel::ROLES.map { |role| "is_#{role}" }

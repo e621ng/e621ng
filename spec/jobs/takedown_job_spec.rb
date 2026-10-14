@@ -8,7 +8,7 @@ RSpec.describe TakedownJob do
   let(:approver) { create(:admin_user) }
 
   def perform(takedown, reason = "copyright infringement")
-    described_class.perform_now(takedown.id, approver.id, reason)
+    described_class.new.perform(takedown.id, approver.id, reason)
   end
 
   describe "#perform" do
@@ -81,6 +81,14 @@ RSpec.describe TakedownJob do
         expect { perform(takedown) }.not_to raise_error
         expect(post.reload.is_deleted?).to be true
       end
+
+      it "does not penalize the uploader's upload karma (takedowns are not the uploader's fault)" do
+        post = create(:post)
+        takedown = create(:takedown_with_post, post: post)
+        takedown.update_columns(del_post_ids: post.id.to_s)
+        expect { perform(takedown) }
+          .not_to(change { post.uploader.user_status.reload.upload_karma })
+      end
     end
 
     describe "post undeletion" do
@@ -96,6 +104,27 @@ RSpec.describe TakedownJob do
         post = create(:post)
         takedown = create(:takedown_with_post, post: post)
         expect { perform(takedown) }.not_to raise_error
+        expect(post.reload.is_deleted?).to be false
+      end
+
+      it "does not restore karma when reversing a takedown-caused deletion" do
+        post = create(:post, approver: create(:admin_user))
+        # Deleted by a (prior) takedown: no penalty was ever applied.
+        post.delete!("takedown #999: prior takedown", force: true, skip_karma: true)
+        takedown = create(:takedown_with_post, post: post)
+        expect { perform(takedown) }
+          .not_to(change { post.uploader.user_status.reload.upload_karma })
+        expect(post.reload.is_deleted?).to be false
+      end
+
+      it "restores karma when reversing a deletion that was not a takedown" do
+        post = create(:post, approver: create(:admin_user))
+        # Deleted for an unrelated reason: the deletion penalty (plus the reversed credit, for
+        # this credited post) was applied, and undeletion reverses it in full.
+        post.delete!("inferior quality", force: true)
+        takedown = create(:takedown_with_post, post: post)
+        expect { perform(takedown) }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_DELETION_PENALTY + UserStatus::KARMA_APPROVED_CREDIT)
         expect(post.reload.is_deleted?).to be false
       end
     end

@@ -11,8 +11,12 @@
   <%= f.input :min_level, collection: User.level_hash.to_a, include_blank: "Any" %>
   <%= f.input :max_level, collection: User.level_hash.to_a, include_blank: "Any" %>
 
-  <%= f.input :can_upload_free, label: "Unrestricted uploads?", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
   <%= f.input :can_approve_posts, label: "Approver?", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
+  <%= f.input :can_upload_free, label: "Unrestricted uploads?", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
 
-  <%= f.input :order, collection: [["Join date", "date"], ["Name", "name"], ["Upload count", "post_upload_count"], ["Note count", "note_count"], ["Post update count", "post_update_count"]] %>
+  <% unless Danbooru.config.upload_karma_free_threshold.nil? %>
+    <%= f.input :can_karma_free, label: "Karma approval bypass?", collection: [%w[Yes true], %w[No false]], include_blank: "Any" %>
+  <% end %>
+
+  <%= f.input :order, collection: [["Name", "name"], ["Upload count", "post_upload_count"], ["Note count", "note_count"], ["Post update count", "post_update_count"], ["Upload karma", "upload_karma"]], include_blank: "Join Date" %>
 <% end %>

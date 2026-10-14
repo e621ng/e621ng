@@ -1,8 +1,7 @@
 // bans
 
-import E621Type from "@/interfaces/E621";
-declare const E621: E621Type;
+import ModuleRegistry from "@/utility/ModuleRegistry";
 
 import "@/pages/bans/ban_form";
 
-E621.Registry.register("v_bans");
+ModuleRegistry.register("v_bans");

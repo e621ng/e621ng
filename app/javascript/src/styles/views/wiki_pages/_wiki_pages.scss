@@ -28,6 +28,19 @@
     }
   }
 
+  #wiki-page-toc {
+    li {
+      padding-inline-start: calc(var(--toc-depth, 0) * 0.75rem);
+    }
+
+    a {
+      display: block;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+  }
+
   .automated-tag-notice {
     max-width: 50rem;
     box-sizing: border-box;

@@ -6,7 +6,7 @@ RSpec.describe ApiKeyExpirationWarningJob do
   include_context "as admin"
 
   def perform
-    described_class.perform_now
+    described_class.new.perform
   end
 
   describe "#perform" do

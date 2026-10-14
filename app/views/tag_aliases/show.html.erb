@@ -27,7 +27,7 @@
 
       <li>
         <strong>Commands</strong>
-        <%= render "tag_relationships/command_buttons", tag_relation: @tag_alias, with_show_link: false %>
+        <%= render "tag_relationships/command_buttons", tag_relation: @tag_alias, with_show_link: false, show_undo: true %>
       </li>
 
       <% if @tag_alias.consequent_tag&.artist&.is_dnp? || @tag_alias.antecedent_tag&.artist&.is_dnp? %>

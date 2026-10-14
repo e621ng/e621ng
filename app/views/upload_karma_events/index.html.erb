@@ -1,0 +1,53 @@
+<div id="c-upload-karma-events">
+  <div id="a-index">
+    <h1>Upload Karma</h1>
+
+    <%= render "search" %>
+
+    <table class="striped autofit">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Change</th>
+          <th>Post</th>
+          <th>Reason</th>
+          <th>By</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @events.each do |event| %>
+          <tr>
+            <td>
+              <%= link_to_user event.user %>
+              <%= link_to "»", upload_karma_events_path(search: params[:search].merge(user_id: event.user_id)) %>
+            </td>
+            <td><%= format("%+d", event.delta) %> → <%= event.balance %></td>
+            <td>
+              <% if event.post_id.present? %>
+                <%= link_to "post ##{event.post_id}", post_path(event.post_id) %>
+                <%= link_to "»", upload_karma_events_path(search: params[:search].merge(post_id: event.post_id)) %>
+              <% end %>
+            </td>
+            <td class="col-expand">
+              <%= event.description %>
+              <%= link_to "»", upload_karma_events_path(search: params[:search].merge(reason: event.reason)) %>
+            </td>
+            <td>
+              <%= link_to_user event.creator %>
+              <%= link_to "»", upload_karma_events_path(search: params[:search].merge(creator_name: event.creator.name)) %>
+              <br><%= time_ago_in_words_tagged event.created_at %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render PaginatorComponent.new(records: @events) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Upload Karma
+<% end %>

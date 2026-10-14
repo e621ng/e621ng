@@ -17,8 +17,9 @@ class User < ApplicationRecord
   # ================================================================================================#
   # UNDER NO CIRCUMSTANCES should new boolean attributes be added or removed from the middle of the #
   # list. Deprecated / unused bitflags should be prefixed with an underscore, and left in place.    #
-  # Note: some users may still have the unused flags, so repurposing them can lead to unintended    #
-  # consequences. Proceed with extreme caution.                                                     #
+  #                                                                                                 #
+  # When deprecating a flag, make sure to run 138_zero_deprecated_user_bitflags.rb to clear them.   #
+  # Note: As of 2026-08-05, all currently deprecated flags were removed from users in production.   #
   # ================================================================================================#
 
   # ================================================================================================#
@@ -31,31 +32,35 @@ class User < ApplicationRecord
   # Renaming history (in order):                                                                    #
   # * _has_mail -> forum_notification_dot                                                           #
   # * _no_feedback -> no_uploading                                                                  #
+  # * _is_banned -> tag_warden                                                                      #
+  # * _disable_post_tooltips -> no_karma_free                                                       #
+  # * _can_upload_free -> can_upload_free (reinstated, same meaning)                                #
+  # * _has_saved_searches -> has_tracked_saved_searches                                             #
   # ================================================================================================#
 
   BOOLEAN_ATTRIBUTES = %w[
-    _show_avatars
-    _blacklist_avatars
+    raised_favorite_limit
+    totp_enabled
     blacklist_users
     description_collapsed_initially
     hide_comments
     show_hidden_comments
     show_post_statistics
-    _is_banned
+    tag_warden
     forum_notification_dot
     receive_email_notifications
     enable_keyboard_navigation
     enable_privacy_mode
-    style_usernames
+    _style_usernames
     enable_auto_complete
-    _has_saved_searches
+    has_tracked_saved_searches
     can_approve_posts
     can_upload_free
     _disable_cropped_thumbnails
     _disable_mobile_gestures
     enable_safe_mode
     disable_responsive_mode
-    _disable_post_tooltips
+    no_karma_free
     no_flagging
     no_uploading
     disable_user_dmails
@@ -68,6 +73,14 @@ class User < ApplicationRecord
 
   include Danbooru::HasBitFlags
   has_bit_flags BOOLEAN_ATTRIBUTES, field: "bit_prefs"
+
+  # Combined bitmask of every deprecated (underscore-prefixed) boolean attribute.
+  # Derived from the naming convention so it stays correct as flags are deprecated.
+  def self.deprecated_bit_prefs_mask
+    BOOLEAN_ATTRIBUTES.each_with_index.sum do |attr, i|
+      attr.start_with?("_") ? (1 << i) : 0
+    end
+  end
 
   attr_accessor :password, :old_password, :validate_email_format, :is_admin_edit
 
@@ -118,6 +131,7 @@ class User < ApplicationRecord
   has_many :api_keys, dependent: :destroy
   has_many :oauth_applications, class_name: "Doorkeeper::Application", as: :owner, dependent: :destroy
   has_one :dmail_filter
+  has_one :totp, class_name: "UserTotp", dependent: :destroy
   has_one :user_status
   has_one :recent_ban, -> { order("bans.id desc") }, class_name: "Ban"
   has_many :bans, -> { order("bans.id desc") }
@@ -133,6 +147,7 @@ class User < ApplicationRecord
   has_many :post_replacements, foreign_key: :creator_id
   has_many :post_sets, -> { order(name: :asc) }, foreign_key: :creator_id
   has_many :post_versions
+  has_many :saved_searches, -> { order(id: :asc) }, dependent: :destroy
   has_many :post_votes
   has_many :staff_notes, -> { active.order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }
@@ -152,7 +167,7 @@ class User < ApplicationRecord
 
     def unban!
       self.level = 20
-      save
+      save(validate: false) # Banned users may have malformed data
     end
 
     def ban_expired?
@@ -230,8 +245,19 @@ class User < ApplicationRecord
   end
 
   module PasswordMethods
+    # Validates sessions (session[:ph]) and remember cookies; changing its value logs
+    # out every existing session for the user. Folding in the TOTP ciphertext makes
+    # enabling/disabling/resetting 2FA do exactly that. The totp-less branch must keep
+    # the historical formula, or deploying this would log out the entire site.
+    #
+    # Gated on the totp_enabled bit pref (kept in sync by UserTotp callbacks) so the
+    # per-request session check doesn't query user_totps for users without 2FA.
     def password_token
-      Zlib.crc32(bcrypt_password_hash)
+      if totp_enabled?
+        Zlib.crc32("#{bcrypt_password_hash}:#{totp&.secret_ciphertext}")
+      else
+        Zlib.crc32(bcrypt_password_hash)
+      end
     end
 
     def bcrypt_password
@@ -312,7 +338,7 @@ class User < ApplicationRecord
 
     module ClassMethods
       def system
-        User.find_by!(name: Danbooru.config.system_user)
+        RequestStore[:system_user] ||= find_system_user
       end
 
       def anonymous
@@ -329,6 +355,13 @@ class User < ApplicationRecord
       def level_string(value)
         UserLevel::REVERSE_MAPPING[value] || ""
       end
+
+      private
+
+      def find_system_user
+        id = Danbooru.config.system_user_id
+        id ? User.find(id) : User.find_by!(name: Danbooru.config.system_user)
+      end
     end
 
     # Convenience methods for checking user levels
@@ -338,7 +371,10 @@ class User < ApplicationRecord
       normalized_name = UserLevel.normalize(name)
 
       define_method("is_#{normalized_name}?") do
-        is_verified? && level >= value && id.present?
+        return false unless is_verified?
+        return false if id.blank?
+        return false if requires_totp? && !totp_enabled?
+        level >= value
       end
     end
 
@@ -360,6 +396,12 @@ class User < ApplicationRecord
 
     def is_approver?
       can_approve_posts?
+    end
+
+    def requires_totp?
+      return false unless Danbooru.config.require_totp_for_staff?
+      return false if is_system?
+      level >= UserLevel::STAFF
     end
 
     ### Other ###
@@ -384,6 +426,10 @@ class User < ApplicationRecord
       @is_artist ||= artists.any?
     end
 
+    def is_system?
+      id == User.system.id
+    end
+
     def blank_out_nonexistent_avatars
       if avatar_id.present? && avatar.nil?
         self.avatar_id = nil
@@ -400,7 +446,7 @@ class User < ApplicationRecord
       flag = User.flag_value_for("has_cropped_avatar")
       update_columns(bit_prefs: bit_prefs & ~flag)
 
-      AvatarCleanupJob.perform_later(id)
+      AvatarCleanupJob.perform_async(id)
     end
 
     def staff_cant_disable_dmail
@@ -482,6 +528,20 @@ class User < ApplicationRecord
       bltags = blacklisted_tags.split("\n").map(&:downcase)
       strings = %W[user:#{user.name.downcase} user:!#{user.id} username:#{user.name.downcase} userid:#{user.id}]
       strings.any? { |str| bltags.include?(str) }
+    end
+  end
+
+  module SavedSearchMethods
+    # Total new-post count across tracked saved searches ({ count:, fresh: }), from cache
+    # only — the request path never queries OpenSearch. A stale or missing entry kicks off a
+    # background refresh (the sidekiq lock dedups concurrent kicks) while its last known count
+    # keeps being served; the page re-reads it via saved_searches#badge. Returns nil for
+    # users without tracked searches.
+    def saved_search_badge
+      return nil unless is_logged_in? && has_tracked_saved_searches
+      summary = SavedSearch.badge_summary(self)
+      SavedSearchBadgeJob.perform_async(id, CurrentUser.safe_mode? || false) unless summary[:fresh]
+      summary
     end
   end
 
@@ -683,13 +743,15 @@ class User < ApplicationRecord
         :REJ_UPLOAD_DISABLED
       elsif hourly_upload_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_HOURLY
-      elsif can_upload_free? || is_admin?
+      elsif upload_free?
+        true
+      elsif can_approve_posts?
         true
       elsif younger_than(7.days)
         :REJ_UPLOAD_NEWBIE
       elsif !is_privileged? && post_edit_limit <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_EDIT
-      elsif upload_limit <= 0 && !Danbooru.config.disable_throttles?
+      elsif upload_slots <= 0 && !Danbooru.config.disable_throttles?
         :REJ_UPLOAD_LIMIT
       else
         true
@@ -704,20 +766,29 @@ class User < ApplicationRecord
       end
     end
 
-    def upload_limit
-      return 0 if no_uploading
+    # Concurrent queued-upload budget for below-threshold users.
+    # Increases with approved uploads, decreases with pending and deleted uploads.
+    def upload_slots
+      return 0 if no_uploading?
 
-      pieces = upload_limit_pieces
-      base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4) - pieces[:pending]
+      pieces = upload_slots_pieces
+      [upload_slots_max - pieces[:pending], 0].max
     end
 
-    def upload_limit_max
-      pieces = upload_limit_pieces
-      base_upload_limit + (pieces[:approved] / 10) - (pieces[:deleted] / 4)
+    def upload_slots_max
+      return 0 if no_uploading?
+
+      pieces = upload_slots_pieces
+      slots = pieces[:base] + (pieces[:approved] / 10) - (pieces[:deleted] / 4)
+      slots.clamp(0, upload_slot_ceiling)
     end
 
-    def upload_limit_pieces
-      @upload_limit_pieces ||= begin
+    def upload_slot_ceiling
+      Danbooru.config.upload_slots_base * 5
+    end
+
+    def upload_slots_pieces
+      @upload_slots_pieces ||= begin
         deleted_count = Post.deleted.for_user(id).count
         rejected_replacement_count = post_replacement_rejected_count
         replaced_penalize_count = own_post_replaced_penalize_count
@@ -726,10 +797,11 @@ class User < ApplicationRecord
         approved_count = Post.for_user(id).where(is_flagged: false, is_deleted: false, is_pending: false).count
 
         {
+          base: base_upload_limit,
           deleted: deleted_count + replaced_penalize_count + rejected_replacement_count,
           deleted_ignore: own_post_replaced_count - replaced_penalize_count,
-          approved: approved_count,
           pending: unapproved_count + unapproved_replacements_count,
+          approved: approved_count,
         }
       end
     end
@@ -743,7 +815,8 @@ class User < ApplicationRecord
     end
 
     def favorite_limit
-      Danbooru.config.legacy_favorite_limit.fetch(id, 80_000)
+      return (Danbooru.config.default_favorite_limit * 2) if raised_favorite_limit?
+      Danbooru.config.default_favorite_limit
     end
 
     def api_regen_multiplier
@@ -785,6 +858,77 @@ class User < ApplicationRecord
     end
   end
 
+  module KarmaMethods
+    # Stored karma, may be negative.
+    def upload_karma
+      user_status&.upload_karma || 0
+    end
+
+    def upload_karma=(value)
+      value = value.to_i
+      old = upload_karma
+      delta = value - old
+      return if delta == 0
+
+      UserStatus.adjust_karma(id, delta, :staff_override, data: { old_karma: old, new_karma: value })
+      user_status&.reload
+    end
+
+    def upload_karma_level
+      User.level_from_karma(upload_karma)
+    end
+
+    def upload_karma_percent
+      level = upload_karma_level
+      return 0 if level >= User.max_karma_level
+      current_level_karma = User.required_karma_for_level(level)
+      next_level_karma = User.required_karma_for_level(level + 1)
+
+      # Ensure we don't divide by zero
+      return 100 if next_level_karma == current_level_karma
+
+      ((upload_karma - current_level_karma) / (next_level_karma - current_level_karma).to_f * 100).round.clamp(0, 100)
+    end
+
+    # Once the upload karma level reaches the free threshold, uploads bypass the review queue.
+    def upload_karma_free?
+      return false if Danbooru.config.upload_karma_free_threshold.nil?
+      return false if no_karma_free?
+      upload_karma_level >= Danbooru.config.upload_karma_free_threshold
+    end
+
+    # Effective queue bypass. The staff bypass-ban (no_karma_free) beats the manual
+    # staff grant (can_upload_free), which works even when
+    # upload_karma_free_threshold is nil (karma auto-bypass disabled site-wide).
+    def upload_free?
+      return false if no_karma_free?
+      can_upload_free? || upload_karma_free?
+    end
+  end
+
+  module GlobalKarmaMethods
+    def required_karma_for_level(level)
+      level = level.to_i
+      return 0 if level <= 0
+      (upload_karma_l1 * (10**((level - 1) / upload_karma_scale))).ceil
+    end
+
+    def level_from_karma(karma)
+      # Calculated from the `upload_karma` column. Threshold values pulled from the config file.
+      return 0 if karma < upload_karma_l1
+      level = (Math.log10(karma / upload_karma_l1) * upload_karma_scale).floor + 1
+      [level, max_karma_level].min
+    end
+
+    def max_karma_level = 10
+
+    private
+
+    def upload_karma_l1 = Danbooru.config.upload_karma_l1_threshold.to_f
+    def upload_karma_l10 = Danbooru.config.upload_karma_l10_threshold.to_f
+    def upload_karma_scale = (User.max_karma_level - 1) / Math.log10(upload_karma_l10 / upload_karma_l1)
+  end
+
   module ApiMethods
     # blacklist all attributes by default. whitelist only safe attributes.
     def hidden_attributes
@@ -793,7 +937,7 @@ class User < ApplicationRecord
 
     def method_attributes
       list = super + %i[
-        id created_at name level base_upload_limit
+        id created_at name level base_upload_limit upload_karma upload_karma_free?
         post_upload_count post_update_count note_update_count
         is_banned can_approve_posts can_upload_free
         level_string avatar_id is_verified?
@@ -806,7 +950,7 @@ class User < ApplicationRecord
           hide_comments show_hidden_comments show_post_statistics
           is_banned receive_email_notifications
           enable_keyboard_navigation enable_privacy_mode
-          style_usernames enable_auto_complete
+          enable_auto_complete
           can_approve_posts can_upload_free
           enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
@@ -835,7 +979,7 @@ class User < ApplicationRecord
         wiki_page_version_count artist_version_count pool_version_count
         forum_post_count comment_count flag_count favorite_count
         positive_feedback_count neutral_feedback_count negative_feedback_count
-        upload_limit profile_about profile_artinfo
+        upload_slots profile_about profile_artinfo
       ]
     end
   end
@@ -1049,8 +1193,17 @@ class User < ApplicationRecord
         q = q.where("(bit_prefs & :mask) = 0", mask: exclude_mask)
       end
 
+      if params[:can_karma_free].present? && Danbooru.config.upload_karma_free_threshold.present?
+        required_karma = User.required_karma_for_level(Danbooru.config.upload_karma_free_threshold)
+        if params[:can_karma_free].to_s.truthy?
+          q = q.joins(:user_status).where("user_statuses.upload_karma >= ?", required_karma)
+        elsif params[:can_karma_free].to_s.falsy?
+          q = q.joins(:user_status).where("user_statuses.upload_karma < ?", required_karma)
+        end
+      end
+
       # Check if the join is necessary
-      if params[:order].present? && %w[post_upload_count note_count post_update_count].include?(params[:order])
+      if params[:order].present? && %w[post_upload_count note_count post_update_count upload_karma].include?(params[:order])
         q = q.joins(:user_status)
       end
 
@@ -1063,6 +1216,8 @@ class User < ApplicationRecord
         q = q.order("user_statuses.note_count desc")
       when "post_update_count"
         q = q.order("user_statuses.post_update_count desc")
+      when "upload_karma"
+        q = q.order("user_statuses.upload_karma desc")
       else
         q = q.apply_basic_order(params)
       end
@@ -1087,11 +1242,14 @@ class User < ApplicationRecord
   include EmailMethods
   include BlacklistMethods
   include ForumMethods
+  include SavedSearchMethods
   include LimitMethods
+  include KarmaMethods
   include ApiMethods
   include CountMethods
   extend SearchMethods
   extend ThrottleMethods
+  extend GlobalKarmaMethods
 
   def has_mail?
     unread_dmail_count > 0
@@ -1146,7 +1304,7 @@ class User < ApplicationRecord
 
   def reload(options = nil)
     super
-    @upload_limit_pieces = nil
+    @upload_slots_pieces = nil
     @feedback_pieces = nil
     @is_artist = nil
     self
@@ -1155,14 +1313,12 @@ class User < ApplicationRecord
   private
 
   def enqueue_automod_user_check
-    AutomodUserCheckJob.perform_later(id, check_username: true, check_profile: false)
+    AutomodUserCheckJob.perform_async(id, true, false)
   end
 
   def enqueue_automod_user_update_check
-    AutomodUserCheckJob.perform_later(
-      id,
-      check_username: saved_change_to_name?,
-      check_profile:  saved_change_to_profile_about? || saved_change_to_profile_artinfo?,
-    )
+    check_username = saved_change_to_name?
+    check_profile = saved_change_to_profile_about? || saved_change_to_profile_artinfo?
+    AutomodUserCheckJob.perform_async(id, check_username, check_profile)
   end
 end

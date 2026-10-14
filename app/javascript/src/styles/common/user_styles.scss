@@ -10,7 +10,7 @@ $levels: (
 );
 
 @each $level in $levels {
-  a.user-#{$level}.with-style {
+  a.user-#{$level} {
     color: themed("color-user-#{$level}");
 
     &:hover {
@@ -19,7 +19,7 @@ $levels: (
   }
 }
 
-a.user-blocked.with-style {
+a.user-blocked {
   text-decoration: line-through;
 }
 

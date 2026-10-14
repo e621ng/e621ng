@@ -61,7 +61,7 @@ module Maintenance
           redirect_to edit_maintenance_user_avatar_path and return
         end
 
-        AvatarCropJob.perform_later(CurrentUser.id, post_id, x, y, w)
+        AvatarCropJob.perform_async(CurrentUser.id, post_id, x, y, w)
         flash[:notice] = "Crop is being processed. It may take a few minutes to complete"
         redirect_to user_path(CurrentUser.user)
       end

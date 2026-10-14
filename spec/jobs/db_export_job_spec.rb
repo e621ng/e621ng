@@ -33,7 +33,7 @@ RSpec.describe DbExportJob do
   end
 
   def perform
-    described_class.perform_now
+    described_class.new.perform
   end
 
   def export_csv(name)

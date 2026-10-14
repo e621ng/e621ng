@@ -58,7 +58,10 @@ export default abstract class Provider<T extends AutocompleteItem = Autocomplete
    */
   protected static async clampSearchResults<T extends AutocompleteItem> (query: string, fetchFn: AutocompleteFinder<T>): Promise<T[]> {
     query = query?.trim();
-    if (!query || query.length < Provider.MIN_QUERY_LENGTH)
+    if (!query) return [];
+
+    // Do not count wildcard characters towards the minimum query length
+    if (query.replace(/\*/g, "").length < Provider.MIN_QUERY_LENGTH)
       return [];
 
     const results = await fetchFn(query);

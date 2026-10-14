@@ -3,7 +3,7 @@
 # Each export is public: the SELECT projection lists only publicly visible
 # columns, and hidden/deleted rows are filtered out.
 class DbExportJob < ApplicationJob
-  queue_as :low_prio
+  sidekiq_options queue: "low_prio"
 
   def self.read_export_sql(name)
     contents = Rails.root.join("db", "exports", "#{name}.sql").read

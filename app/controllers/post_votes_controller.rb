@@ -14,7 +14,7 @@ class PostVotesController < ApplicationController
   def index
     # Only enable COUNT for searches that actually narrow results to avoid expensive queries
     search_params_for_count = search_count_params(
-      narrowing: %i[id post_id user_name user_id post_creator_id post_creator_name timeframe user_ip_addr],
+      narrowing: %i[id post_id user_name user_id user_ip_addr],
     )
 
     @post_votes = PostVote
@@ -24,7 +24,7 @@ class PostVotesController < ApplicationController
 
     if CurrentUser.is_staff? && request.format.html?
       ids = @post_votes&.map(&:id)
-      @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
+      @latest = { params: request.query_parameters.merge("page" => "b#{ids[0] + 1}") } if ids.present?
     end
 
     respond_with(@post_votes)

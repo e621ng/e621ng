@@ -1,0 +1,26 @@
+<% content_for(:page_title) do %>
+  Enable Two-Factor Authentication
+<% end %>
+
+<div id="c-totps"><div id="a-new">
+  <h1>Enable two-factor authentication</h1>
+
+  <p class="totp-explanation">Scan this QR code with your authenticator app:</p>
+  <div class="totp-qr-code">
+    <%# Raw output: the SVG is generated server-side from the provisioning URI; no user input is interpolated. %>
+    <%== RQRCode::QRCode.new(@pending_totp.provisioning_uri).as_svg(viewbox: true, use_path: true) %>
+  </div>
+
+  <p class="totp-explanation">Or enter this key manually:</p>
+  <div class="totp-secret-code">
+    <pre class="totp-secret"><%= @pending_totp.secret %></pre>
+  </div>
+
+  <br />
+
+  <p class="totp-explanation">Enter the 6-digit code from the app to confirm:</p>
+  <%= simple_form_for(:totp, url: totp_path, method: :post, html: { class: "totp-confirm-form" }) do |f| %>
+    <%= f.input(:code, label: "Code", input_html: { autocomplete: "one-time-code", inputmode: "numeric", autofocus: true }) %>
+    <%= f.submit("Enable") %>
+  <% end %>
+</div></div>

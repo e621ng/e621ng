@@ -19,7 +19,7 @@ gem "responders"
 if ENV["LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext")
   gem "dtext", path: "vendor/dtext", require: "dtext"
 else
-  gem "dtext", git: "https://github.com/e621ng/dtext.git", tag: "2.0.4", require: "dtext"
+  gem "dtext", "2.0.6", require: "dtext"
 end
 
 gem "bootsnap"
@@ -36,6 +36,8 @@ gem "redis"
 gem "request_store"
 gem "zxcvbn-ruby", require: "zxcvbn"
 gem "view_component"
+gem "rotp", "~> 6.3"
+gem "rqrcode", "~> 3.0"
 
 gem "diffy"
 gem "rugged"
@@ -69,6 +71,7 @@ group :development, :test do
 
   # Testing suite
   gem "rspec-rails", "~> 8.0.0", require: false
+  gem "rspec-sidekiq", "~> 5.3", require: false
   gem "parallel_tests", ">= 4.0"
   gem "factory_bot_rails", require: false
   gem "simplecov", require: false

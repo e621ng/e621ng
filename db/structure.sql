@@ -31,11 +31,31 @@ CREATE FUNCTION public.posts_trigger_change_seq() RETURNS trigger
     LANGUAGE plpgsql
     AS $$
 BEGIN
-  IF NEW.tag_string != OLD.tag_string OR NEW.parent_id != OLD.parent_id OR NEW.source != OLD.source OR NEW.approver_id != OLD.approver_id OR NEW.rating != OLD.rating OR NEW.description != OLD.description OR NEW.md5 != OLD.md5 OR NEW.is_deleted != OLD.is_deleted OR NEW.is_pending != OLD.is_pending OR NEW.is_flagged != OLD.is_flagged OR NEW.is_rating_locked != OLD.is_rating_locked OR NEW.is_status_locked != OLD.is_status_locked OR NEW.is_note_locked != OLD.is_note_locked OR NEW.bit_flags != OLD.bit_flags OR NEW.has_active_children != OLD.has_active_children OR NEW.last_noted_at != OLD.last_noted_at
-  THEN
-     NEW.change_seq = nextval('public.posts_change_seq_seq');
-  END IF;
-  RETURN NEW;
+    IF NEW.source IS DISTINCT FROM OLD.source
+        OR NEW.md5 IS DISTINCT FROM OLD.md5
+        OR NEW.rating IS DISTINCT FROM OLD.rating
+        OR NEW.is_note_locked IS DISTINCT FROM OLD.is_note_locked
+        OR NEW.is_rating_locked IS DISTINCT FROM OLD.is_rating_locked
+        OR NEW.is_status_locked IS DISTINCT FROM OLD.is_status_locked
+        OR NEW.is_pending IS DISTINCT FROM OLD.is_pending
+        OR NEW.is_flagged IS DISTINCT FROM OLD.is_flagged
+        OR NEW.is_deleted IS DISTINCT FROM OLD.is_deleted
+        OR NEW.uploader_id IS DISTINCT FROM OLD.uploader_id
+        OR NEW.approver_id IS DISTINCT FROM OLD.approver_id
+        OR NEW.parent_id IS DISTINCT FROM OLD.parent_id
+        OR NEW.tag_string IS DISTINCT FROM OLD.tag_string
+        OR NEW.locked_tags IS DISTINCT FROM OLD.locked_tags
+        OR NEW.description IS DISTINCT FROM OLD.description
+        OR NEW.bg_color IS DISTINCT FROM OLD.bg_color
+        OR NEW.last_noted_at IS DISTINCT FROM OLD.last_noted_at
+        OR NEW.has_active_children IS DISTINCT FROM OLD.has_active_children
+        OR NEW.bit_flags IS DISTINCT FROM OLD.bit_flags
+        OR NEW.video_samples IS DISTINCT FROM OLD.video_samples
+        OR NEW.pool_ids IS DISTINCT FROM OLD.pool_ids
+    THEN
+        NEW.change_seq = nextval('public.posts_change_seq_seq');
+    END IF;
+    RETURN NEW;
 END;
 $$;
 
@@ -249,6 +269,39 @@ ALTER SEQUENCE public.artists_id_seq OWNED BY public.artists.id;
 
 
 --
+-- Name: asn_ranges; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.asn_ranges (
+    id bigint NOT NULL,
+    first_ip inet NOT NULL,
+    last_ip inet NOT NULL,
+    asn bigint NOT NULL,
+    name character varying NOT NULL,
+    country character varying DEFAULT ''::character varying NOT NULL
+);
+
+
+--
+-- Name: asn_ranges_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.asn_ranges_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: asn_ranges_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.asn_ranges_id_seq OWNED BY public.asn_ranges.id;
+
+
+--
 -- Name: automod_rules; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -398,7 +451,7 @@ ALTER SEQUENCE public.bans_id_seq OWNED BY public.bans.id;
 --
 
 CREATE TABLE public.blips (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     creator_ip_addr inet NOT NULL,
     creator_id integer NOT NULL,
     body character varying NOT NULL,
@@ -658,7 +711,7 @@ ALTER SEQUENCE public.dmail_filters_id_seq OWNED BY public.dmail_filters.id;
 --
 
 CREATE TABLE public.dmails (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     owner_id integer NOT NULL,
     from_id integer NOT NULL,
     to_id integer NOT NULL,
@@ -767,7 +820,7 @@ ALTER SEQUENCE public.email_blacklists_id_seq OWNED BY public.email_blacklists.i
 --
 
 CREATE TABLE public.exception_logs (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     class_name character varying NOT NULL,
@@ -836,7 +889,7 @@ ALTER SEQUENCE public.favorites_id_seq OWNED BY public.favorites.id;
 --
 
 CREATE TABLE public.forum_categories (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     name character varying NOT NULL,
     description text,
     cat_order integer,
@@ -1050,7 +1103,7 @@ ALTER SEQUENCE public.forum_topics_id_seq OWNED BY public.forum_topics.id;
 --
 
 CREATE TABLE public.help_pages (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     name character varying NOT NULL,
@@ -1272,7 +1325,8 @@ CREATE TABLE public.notes (
     body text NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
-    version integer DEFAULT 0 NOT NULL
+    version integer DEFAULT 0 NOT NULL,
+    creator_ip_addr inet NOT NULL
 );
 
 
@@ -1730,7 +1784,9 @@ CREATE TABLE public.post_replacements2 (
     reason character varying NOT NULL,
     protected boolean DEFAULT false NOT NULL,
     uploader_id_on_approve integer,
-    penalize_uploader_on_approve boolean
+    penalize_uploader_on_approve boolean,
+    sequence_number integer NOT NULL,
+    CONSTRAINT post_replacements2_status_original_seq0 CHECK ((((status)::text = 'original'::text) = (sequence_number = 0)))
 );
 
 
@@ -1758,7 +1814,7 @@ ALTER SEQUENCE public.post_replacements2_id_seq OWNED BY public.post_replacement
 --
 
 CREATE TABLE public.post_report_reasons (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     reason character varying NOT NULL,
@@ -1792,7 +1848,7 @@ ALTER SEQUENCE public.post_report_reasons_id_seq OWNED BY public.post_report_rea
 --
 
 CREATE TABLE public.post_set_maintainers (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     post_set_id integer NOT NULL,
     user_id integer NOT NULL,
     status character varying DEFAULT 'pending'::character varying NOT NULL,
@@ -1825,7 +1881,7 @@ ALTER SEQUENCE public.post_set_maintainers_id_seq OWNED BY public.post_set_maint
 --
 
 CREATE TABLE public.post_sets (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     name character varying NOT NULL,
     shortname character varying NOT NULL,
     description text DEFAULT ''::text NOT NULL,
@@ -1998,7 +2054,8 @@ CREATE TABLE public.posts (
     is_comment_locked boolean DEFAULT false NOT NULL,
     tag_count_contributor integer DEFAULT 0 NOT NULL,
     video_samples jsonb DEFAULT '{}'::jsonb NOT NULL,
-    hotness double precision DEFAULT 0.0 NOT NULL
+    hotness double precision DEFAULT 0.0 NOT NULL,
+    pool_ids integer[] DEFAULT '{}'::integer[]
 );
 
 
@@ -2039,6 +2096,41 @@ CREATE SEQUENCE public.posts_id_seq
 --
 
 ALTER SEQUENCE public.posts_id_seq OWNED BY public.posts.id;
+
+
+--
+-- Name: saved_searches; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.saved_searches (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    query text NOT NULL,
+    name text,
+    is_tracked boolean DEFAULT false NOT NULL,
+    last_seen_post_id bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: saved_searches_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.saved_searches_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: saved_searches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.saved_searches_id_seq OWNED BY public.saved_searches.id;
 
 
 --
@@ -2513,7 +2605,7 @@ ALTER SEQUENCE public.tag_rel_undos_id_seq OWNED BY public.tag_rel_undos.id;
 --
 
 CREATE TABLE public.tag_type_versions (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     old_type integer NOT NULL,
@@ -2585,7 +2677,7 @@ ALTER SEQUENCE public.tags_id_seq OWNED BY public.tags.id;
 --
 
 CREATE TABLE public.takedowns (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     creator_id integer,
@@ -2629,7 +2721,7 @@ ALTER SEQUENCE public.takedowns_id_seq OWNED BY public.takedowns.id;
 --
 
 CREATE TABLE public.tickets (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     creator_id integer NOT NULL,
     creator_ip_addr inet NOT NULL,
     disp_id integer NOT NULL,
@@ -2666,11 +2758,47 @@ ALTER SEQUENCE public.tickets_id_seq OWNED BY public.tickets.id;
 
 
 --
+-- Name: upload_karma_events; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.upload_karma_events (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    creator_id bigint NOT NULL,
+    post_id bigint,
+    reason integer NOT NULL,
+    delta integer NOT NULL,
+    balance integer NOT NULL,
+    extra_data jsonb DEFAULT '{}'::jsonb NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: upload_karma_events_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.upload_karma_events_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: upload_karma_events_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.upload_karma_events_id_seq OWNED BY public.upload_karma_events.id;
+
+
+--
 -- Name: upload_whitelists; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.upload_whitelists (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     note character varying,
     reason character varying,
     allowed boolean DEFAULT true NOT NULL,
@@ -2706,7 +2834,7 @@ ALTER SEQUENCE public.upload_whitelists_id_seq OWNED BY public.upload_whitelists
 --
 
 CREATE TABLE public.uploads (
-    id integer NOT NULL,
+    id bigint NOT NULL,
     source text,
     rating character(1) NOT NULL,
     uploader_id integer NOT NULL,
@@ -2787,6 +2915,44 @@ ALTER SEQUENCE public.user_feedback_id_seq OWNED BY public.user_feedback.id;
 
 
 --
+-- Name: user_ip_addresses; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_ip_addresses (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    ip_addr inet NOT NULL,
+    subnet inet GENERATED ALWAYS AS (
+CASE
+    WHEN (family(ip_addr) = 4) THEN network(set_masklen(ip_addr, 24))
+    ELSE network(set_masklen(ip_addr, 64))
+END) STORED NOT NULL,
+    first_seen_at timestamp(6) without time zone NOT NULL,
+    last_seen_at timestamp(6) without time zone NOT NULL,
+    hit_count integer DEFAULT 1 NOT NULL
+);
+
+
+--
+-- Name: user_ip_addresses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_ip_addresses_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_ip_addresses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_ip_addresses_id_seq OWNED BY public.user_ip_addresses.id;
+
+
+--
 -- Name: user_name_change_requests; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2862,7 +3028,7 @@ ALTER SEQUENCE public.user_password_reset_nonces_id_seq OWNED BY public.user_pas
 --
 
 CREATE TABLE public.user_statuses (
-    id bigint NOT NULL,
+    id integer NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     user_id integer NOT NULL,
@@ -2883,7 +3049,8 @@ CREATE TABLE public.user_statuses (
     own_post_replaced_penalize_count integer DEFAULT 0,
     post_replacement_rejected_count integer DEFAULT 0,
     ticket_count integer DEFAULT 0 NOT NULL,
-    appeal_count integer DEFAULT 0 NOT NULL
+    appeal_count integer DEFAULT 0 NOT NULL,
+    upload_karma integer DEFAULT 0 NOT NULL
 );
 
 
@@ -2904,6 +3071,40 @@ CREATE SEQUENCE public.user_statuses_id_seq
 --
 
 ALTER SEQUENCE public.user_statuses_id_seq OWNED BY public.user_statuses.id;
+
+
+--
+-- Name: user_totps; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.user_totps (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    secret_ciphertext text NOT NULL,
+    backup_code_digests text[] DEFAULT '{}'::text[] NOT NULL,
+    last_used_step bigint,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: user_totps_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.user_totps_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: user_totps_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.user_totps_id_seq OWNED BY public.user_totps.id;
 
 
 --
@@ -3079,6 +3280,13 @@ ALTER TABLE ONLY public.artist_versions ALTER COLUMN id SET DEFAULT nextval('pub
 --
 
 ALTER TABLE ONLY public.artists ALTER COLUMN id SET DEFAULT nextval('public.artists_id_seq'::regclass);
+
+
+--
+-- Name: asn_ranges id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.asn_ranges ALTER COLUMN id SET DEFAULT nextval('public.asn_ranges_id_seq'::regclass);
 
 
 --
@@ -3411,6 +3619,13 @@ ALTER TABLE ONLY public.posts ALTER COLUMN change_seq SET DEFAULT nextval('publi
 
 
 --
+-- Name: saved_searches id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.saved_searches ALTER COLUMN id SET DEFAULT nextval('public.saved_searches_id_seq'::regclass);
+
+
+--
 -- Name: search_trend_blacklists id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3530,6 +3745,13 @@ ALTER TABLE ONLY public.tickets ALTER COLUMN id SET DEFAULT nextval('public.tick
 
 
 --
+-- Name: upload_karma_events id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.upload_karma_events ALTER COLUMN id SET DEFAULT nextval('public.upload_karma_events_id_seq'::regclass);
+
+
+--
 -- Name: upload_whitelists id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3551,6 +3773,13 @@ ALTER TABLE ONLY public.user_feedback ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: user_ip_addresses id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_ip_addresses ALTER COLUMN id SET DEFAULT nextval('public.user_ip_addresses_id_seq'::regclass);
+
+
+--
 -- Name: user_name_change_requests id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -3569,6 +3798,13 @@ ALTER TABLE ONLY public.user_password_reset_nonces ALTER COLUMN id SET DEFAULT n
 --
 
 ALTER TABLE ONLY public.user_statuses ALTER COLUMN id SET DEFAULT nextval('public.user_statuses_id_seq'::regclass);
+
+
+--
+-- Name: user_totps id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_totps ALTER COLUMN id SET DEFAULT nextval('public.user_totps_id_seq'::regclass);
 
 
 --
@@ -3638,6 +3874,14 @@ ALTER TABLE ONLY public.artist_versions
 
 ALTER TABLE ONLY public.artists
     ADD CONSTRAINT artists_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: asn_ranges asn_ranges_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.asn_ranges
+    ADD CONSTRAINT asn_ranges_pkey PRIMARY KEY (id);
 
 
 --
@@ -4019,6 +4263,14 @@ ALTER TABLE ONLY public.posts
 
 
 --
+-- Name: saved_searches saved_searches_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.saved_searches
+    ADD CONSTRAINT saved_searches_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4163,6 +4415,14 @@ ALTER TABLE ONLY public.tickets
 
 
 --
+-- Name: upload_karma_events upload_karma_events_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.upload_karma_events
+    ADD CONSTRAINT upload_karma_events_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: upload_whitelists upload_whitelists_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4187,6 +4447,14 @@ ALTER TABLE ONLY public.user_feedback
 
 
 --
+-- Name: user_ip_addresses user_ip_addresses_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_ip_addresses
+    ADD CONSTRAINT user_ip_addresses_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: user_name_change_requests user_name_change_requests_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4208,6 +4476,14 @@ ALTER TABLE ONLY public.user_password_reset_nonces
 
 ALTER TABLE ONLY public.user_statuses
     ADD CONSTRAINT user_statuses_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: user_totps user_totps_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_totps
+    ADD CONSTRAINT user_totps_pkey PRIMARY KEY (id);
 
 
 --
@@ -4382,6 +4658,13 @@ CREATE INDEX index_artists_on_other_names ON public.artists USING gin (other_nam
 
 
 --
+-- Name: index_asn_ranges_on_first_ip; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_asn_ranges_on_first_ip ON public.asn_ranges USING btree (first_ip);
+
+
+--
 -- Name: index_automod_rules_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4526,6 +4809,13 @@ CREATE INDEX index_comments_on_created_at_desc ON public.comments USING btree (c
 --
 
 CREATE INDEX index_comments_on_creator_id ON public.comments USING btree (creator_id);
+
+
+--
+-- Name: index_comments_on_creator_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_comments_on_creator_id_and_created_at ON public.comments USING btree (creator_id, created_at DESC);
 
 
 --
@@ -4694,6 +4984,13 @@ CREATE INDEX index_favorites_on_user_id ON public.favorites USING btree (user_id
 --
 
 CREATE INDEX index_favorites_on_user_id_and_created_at ON public.favorites USING btree (user_id, created_at);
+
+
+--
+-- Name: index_favorites_on_user_id_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_favorites_on_user_id_and_id ON public.favorites USING btree (user_id, id);
 
 
 --
@@ -5145,6 +5442,13 @@ CREATE INDEX index_post_replacements2_on_post_id ON public.post_replacements2 US
 
 
 --
+-- Name: index_post_replacements2_on_post_id_and_sequence_number; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_post_replacements2_on_post_id_and_sequence_number ON public.post_replacements2 USING btree (post_id, sequence_number);
+
+
+--
 -- Name: index_post_sets_on_post_ids; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5271,6 +5575,13 @@ CREATE INDEX index_posts_on_parent_id ON public.posts USING btree (parent_id);
 
 
 --
+-- Name: index_posts_on_pool_ids; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_posts_on_pool_ids ON public.posts USING gin (pool_ids);
+
+
+--
 -- Name: index_posts_on_pool_string_tokens; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5297,6 +5608,27 @@ CREATE INDEX index_posts_on_uploader_id ON public.posts USING btree (uploader_id
 --
 
 CREATE INDEX index_posts_on_uploader_ip_addr ON public.posts USING btree (uploader_ip_addr);
+
+
+--
+-- Name: index_saved_searches_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_saved_searches_on_user_id ON public.saved_searches USING btree (user_id);
+
+
+--
+-- Name: index_saved_searches_on_user_id_and_name; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_saved_searches_on_user_id_and_name ON public.saved_searches USING btree (user_id, name) WHERE (name IS NOT NULL);
+
+
+--
+-- Name: index_saved_searches_on_user_id_and_query; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_saved_searches_on_user_id_and_query ON public.saved_searches USING btree (user_id, query);
 
 
 --
@@ -5573,6 +5905,27 @@ CREATE INDEX index_tags_on_name_trgm ON public.tags USING gin (name public.gin_t
 
 
 --
+-- Name: index_upload_karma_events_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_upload_karma_events_on_creator_id ON public.upload_karma_events USING btree (creator_id);
+
+
+--
+-- Name: index_upload_karma_events_on_post_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_upload_karma_events_on_post_id ON public.upload_karma_events USING btree (post_id) WHERE (post_id IS NOT NULL);
+
+
+--
+-- Name: index_upload_karma_events_on_user_id_and_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_upload_karma_events_on_user_id_and_id ON public.upload_karma_events USING btree (user_id, id);
+
+
+--
 -- Name: index_uploads_on_source; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5636,6 +5989,41 @@ CREATE INDEX index_user_feedback_on_user_id ON public.user_feedback USING btree 
 
 
 --
+-- Name: index_user_ip_addresses_on_ip_addr_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_ip_addresses_on_ip_addr_and_user_id ON public.user_ip_addresses USING btree (ip_addr, user_id);
+
+
+--
+-- Name: index_user_ip_addresses_on_last_seen_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_ip_addresses_on_last_seen_at ON public.user_ip_addresses USING btree (last_seen_at);
+
+
+--
+-- Name: index_user_ip_addresses_on_subnet_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_ip_addresses_on_subnet_and_user_id ON public.user_ip_addresses USING btree (subnet, user_id);
+
+
+--
+-- Name: index_user_ip_addresses_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_ip_addresses_on_user_id ON public.user_ip_addresses USING btree (user_id);
+
+
+--
+-- Name: index_user_ip_addresses_on_user_id_and_ip_addr; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_ip_addresses_on_user_id_and_ip_addr ON public.user_ip_addresses USING btree (user_id, ip_addr);
+
+
+--
 -- Name: index_user_lower_email; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5661,6 +6049,13 @@ CREATE INDEX index_user_name_change_requests_on_user_id ON public.user_name_chan
 --
 
 CREATE UNIQUE INDEX index_user_statuses_on_user_id ON public.user_statuses USING btree (user_id);
+
+
+--
+-- Name: index_user_totps_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_user_totps_on_user_id ON public.user_totps USING btree (user_id);
 
 
 --
@@ -5922,11 +6317,35 @@ ALTER TABLE ONLY public.appeals
 
 
 --
+-- Name: user_totps fk_rails_55471fbc5f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_totps
+    ADD CONSTRAINT fk_rails_55471fbc5f FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: appeals fk_rails_570415b15f; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.appeals
     ADD CONSTRAINT fk_rails_570415b15f FOREIGN KEY (handler_id) REFERENCES public.users(id);
+
+
+--
+-- Name: user_ip_addresses fk_rails_5ea8388355; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.user_ip_addresses
+    ADD CONSTRAINT fk_rails_5ea8388355 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: saved_searches fk_rails_63c5382842; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.saved_searches
+    ADD CONSTRAINT fk_rails_63c5382842 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -6105,6 +6524,21 @@ SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260714184832'),
+('20261006134945'),
+('20260907205015'),
+('20260827214903'),
+('20260824220908'),
+('20260819154314'),
+('20260818231537'),
+('20260812223301'),
+('20260812223255'),
+('20260812223229'),
+('20260805155544'),
+('20260728160704'),
+('20260727195335'),
+('20260727191219'),
+('20260727160104'),
+('20260713192035'),
 ('20260707182943'),
 ('20260702120000'),
 ('20260624213023'),

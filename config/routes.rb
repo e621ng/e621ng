@@ -16,6 +16,7 @@ Rails.application.routes.draw do
   end
   require "sidekiq/web"
   require "sidekiq_unique_jobs/web"
+  require "sidekiq/cron/web"
 
   mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
 
@@ -23,7 +24,9 @@ Rails.application.routes.draw do
     # Staff wikis and files
     resources :files, only: %i[index show new create edit update destroy]
     resources :wikis do
-      resources :references, only: %i[create destroy], controller: "wiki_refs"
+      resources :references, only: %i[create destroy], controller: "wiki_refs" do
+        collection { post :bulk_create }
+      end
       member do
         put :revert
         post :claim
@@ -54,6 +57,7 @@ Rails.application.routes.draw do
         post :update_blacklist
         get :request_password_reset
         post :password_reset
+        post :totp_reset
         get :anonymize
         post :anonymize, action: :anonymize_confirm
       end
@@ -84,6 +88,7 @@ Rails.application.routes.draw do
     # Previously under /moderator/
     resource :moderator_dashboard, only: %i[show], controller: "moderator_dashboards"
     resource :post_diff, only: %i[show]
+    resource :user_alts, only: %i[show]
     resources :ip_addrs, only: %i[index] do
       collection do
         get :export
@@ -152,6 +157,9 @@ Rails.application.routes.draw do
     member do
       post :regenerate
     end
+  end
+  resource :totp, only: %i[show new create destroy], controller: "totps" do
+    post :regenerate_backup_codes, on: :collection
   end
 
   resources :avoid_postings, constraints: id_name_constraint do
@@ -323,6 +331,7 @@ Rails.application.routes.draw do
       put :reject
       post :promote
       put :toggle_penalize
+      put :transfer
     end
   end
   resources :deleted_posts, only: %i[index]
@@ -334,6 +343,7 @@ Rails.application.routes.draw do
     resources :favorites, controller: "post_favorites", only: %i[index]
     collection do
       get :random
+      get :count
     end
     member do
       get :update_iqdb
@@ -372,7 +382,11 @@ Rails.application.routes.draw do
   resource :related_tag, only: %i[show update]
   match "related_tag/bulk", to: "related_tags#bulk", via: %i[get post]
   resource :session, only: %i[new create destroy] do
-    get :confirm_password, on: :collection
+    collection do
+      get :confirm_password
+      get :totp
+      post :verify_totp
+    end
   end
   resources :stats, only: %i[index]
   resources :tags, constraints: id_name_constraint do
@@ -385,15 +399,18 @@ Rails.application.routes.draw do
   resources :tag_aliases do
     member do
       post :approve
+      post :undo
     end
   end
   resource :tag_alias_request, only: %i[new create]
   resources :tag_implications do
     member do
       post :approve
+      post :undo
     end
   end
   resource :tag_implication_request, only: %i[new create]
+  resources :upload_karma_events, only: :index
   resources :uploads
   resources :users do
     resource :password, only: %i[edit], controller: "maintenance/user/passwords"
@@ -401,7 +418,9 @@ Rails.application.routes.draw do
     member do
       get :upload_limit
       get :toggle_uploads
+      get :toggle_karma_free
       post :disable_uploads
+      post :disable_karma_free
       post :flush_favorites
       get :fix_counts
       get "/api_key", to: redirect("/api_keys")
@@ -415,6 +434,7 @@ Rails.application.routes.draw do
       get :me
 
       get :avatar_menu
+      get :upload_tags
     end
   end
   resources :user_feedbacks do
@@ -468,6 +488,15 @@ Rails.application.routes.draw do
       post :remove_posts
     end
   end
+  resources :saved_searches do
+    collection do
+      get :badge
+      post :mark_all_seen
+    end
+    member do
+      get :visit
+    end
+  end
   resources :post_set_maintainers do
     member do
       get :approve
@@ -494,6 +523,7 @@ Rails.application.routes.draw do
   resource :auth, only: [] do
     collection do
       get :login
+      get :totp
     end
   end
 

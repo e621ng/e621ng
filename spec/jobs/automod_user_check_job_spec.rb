@@ -8,7 +8,7 @@ RSpec.describe AutomodUserCheckJob do
   let(:user) { create(:user, name: "normaluser") }
 
   def perform(user_id = user.id, check_username: false, check_profile: false)
-    described_class.perform_now(user_id, check_username: check_username, check_profile: check_profile)
+    described_class.new.perform(user_id, check_username, check_profile)
   end
 
   describe "username checks" do

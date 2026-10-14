@@ -21,17 +21,6 @@ class ForumCategoriesController < ApplicationController
     redirect_to forum_categories_path
   end
 
-  def destroy
-    @cat = ForumCategory.find(params[:id])
-    if @cat.forum_topics.count > 100
-      flash[:notice] = "Category has too many posts and must be deleted manually"
-    else
-      @cat.destroy
-      ModAction.log(:forum_category_delete, { forum_category_id: @cat.id })
-      respond_with(@cat)
-    end
-  end
-
   def update
     @cat = ForumCategory.find(params[:id])
     @cat.update(category_params)
@@ -43,6 +32,17 @@ class ForumCategoriesController < ApplicationController
       flash[:notice] = @cat.errors.full_messages.join('; ')
     end
     redirect_to forum_categories_path
+  end
+
+  def destroy
+    @cat = ForumCategory.find(params[:id])
+    if @cat.forum_topics.count > 100
+      flash[:notice] = "Category has too many posts and must be deleted manually"
+    else
+      @cat.destroy
+      ModAction.log(:forum_category_delete, { forum_category_id: @cat.id })
+      respond_with(@cat)
+    end
   end
 
   private

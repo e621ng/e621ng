@@ -1,13 +1,20 @@
 <template>
-  <file-input @previewChanged="previewData = $event"
-    @uploadValueChanged="uploadValue = $event"></file-input>
+  <div class="box-section background-red" v-if="showErrors && noUpload">
+    You must provide a file or a URL to upload.
+  </div>
+  <file-input @change="onFileChange"></file-input>
   <br>
 
   <div class="input">
-    <label>
-      Additional Source
-      <sources :maxSources="1" :showErrors="showErrors" @missingSourceWarning="missingSourceWarning = $event" @nonUrlSourceWarning="nonUrlSourceWarning = $event" v-model:sources="sources"></sources>
-    </label>
+    <label>Additional Source</label>
+    <SourcesInput
+      :maxSources="1"
+      :showErrors="showErrors"
+      @missingSourceWarning="missingSourceWarning = $event"
+      @nonUrlSourceWarning="nonUrlSourceWarning = $event"
+      v-model:noSource="noSource"
+      v-model:sources="sources"
+    ></SourcesInput>
     <span class="hint">The submission page the replacement file came from</span>
   </div>
 
@@ -34,7 +41,7 @@
     </label>
   </div>
 
-  <div class="background-red error_message" v-if="showErrors && errorMessage !== undefined">
+  <div class="background-red error_message" v-if="errorMessage">
     {{ errorMessage }}
   </div>
 
@@ -45,87 +52,112 @@
   <file-preview :data="previewData"></file-preview>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import autocompletableInput from "@/components/autocompletable_input.vue";
-import filePreview from "@/pages/uploads/new/file_preview.vue";
-import fileInput from "@/pages/uploads/new/file_input.vue";
-import sources from "@/pages/uploads/new/sources.vue";
+import filePreview from "@/components/uploads/file_preview.vue";
+import fileInput from "@/components/uploads/file_input.vue";
+import SourcesInput from "@/components/uploads/sources.vue";
 import CurrentUser from "@/models/CurrentUser";
+import ToastManager from "@/utility/Toast";
+import { submitUploadForm } from "@/utility/UploadSubmission";
+import type { PreviewData, UploadChange } from "@/components/uploads/types";
 
-export default {
-  components: {
-    "autocompletable-input": autocompletableInput,
-    "file-preview": filePreview,
-    "file-input": fileInput,
-    "sources": sources,
-  },
-  data() {
-    return {
-      previewData: {
-        url: "",
-        isVideo: false,
-      },
-      sources: [""],
-      uploadValue: "",
-      reason: "",
-      errorMessage: undefined,
-      showErrors: false,
-      missingSourceWarning: false,
-      nonUrlSourceWarning: false,
-      submitting: false,
-      submittedReason: undefined,
-      canApprove: CurrentUser.can.approvePosts,
-      uploadAsPending: false,
-    };
-  },
-  mounted() {
-    const params = new URLSearchParams(window.location.search);
-    if (params.has("additional_source"))
-      this.sources = [params.get("additional_source")];
+// Immutable per-session config (read in the template).
+const canApprove = CurrentUser.can.approvePosts;
 
-    if (params.has("reason"))
-      this.reason = params.get("reason");
-  },
-  computed: {
-    preventUpload() {
-      return this.missingSourceWarning || this.nonUrlSourceWarning;
-    }
-  },
-  methods: {
-    submit: function() {
-      this.showErrors = true;
-      if(this.preventUpload || this.submitting) {
-        return;
-      }
-      this.submitting = true;
-      const formData = new FormData();
-      if (typeof this.uploadValue === "string") {
-        formData.append("post_replacement[replacement_url]", this.uploadValue);
-      } else {
-        formData.append("post_replacement[replacement_file]", this.uploadValue);
-      }
-      formData.append("post_replacement[source]", this.sources[0]);
-      formData.append("post_replacement[reason]", this.reason);
-      formData.append("post_replacement[as_pending]", this.uploadAsPending);
+const previewData = ref<PreviewData>({ url: "", isVideo: false });
+const uploadValue = ref<string | File>("");
+const invalidUploadValue = ref(false);
 
-      this.submittedReason = this.reason;
+const missingSourceWarning = ref(false);
+const nonUrlSourceWarning = ref(false);
+const noSource = ref(false);
+const sources = ref<string[]>([""]);
 
-      const postId = new URLSearchParams(window.location.search).get("post_id");
-      const self = this;
-      $.ajax("/post_replacements.json?post_id=" + postId, {
-        method: "POST",
-        data: formData,
-        processData: false,
-        contentType: false,
-        success(data) {
-          location.assign(data.location);
-        },
-        error(data) {
-          self.submitting = false;
-          self.errorMessage = data.responseJSON.reason || data.responseJSON.message;
-        }
-      });
-    }
+const reason = ref("");
+const submittedReason = ref<string | undefined>();
+const uploadAsPending = ref(false);
+
+const showErrors = ref(false);
+const submitting = ref(false);
+const errorMessage = ref<string | undefined>();
+
+// Not reactive: read only by the unload guard and submit.
+let allowNavigate = false;
+let postId: string | null = null;
+
+function unloadHandler () {
+  if (allowNavigate || (uploadValue.value === "" && reason.value === "")) {
+    return;
   }
-};
+  return true;
+}
+
+onMounted(() => {
+  window.onbeforeunload = unloadHandler;
+
+  const params = new URLSearchParams(window.location.search);
+  postId = params.get("post_id");
+
+  if (params.has("additional_source"))
+    sources.value = [params.get("additional_source")!];
+
+  if (params.has("reason"))
+    reason.value = params.get("reason")!;
+});
+
+onBeforeUnmount(() => {
+  // Release the unload guard, but only if it's still ours.
+  if (window.onbeforeunload === unloadHandler)
+    window.onbeforeunload = null;
+});
+
+// Empty string = nothing provided; a URL string or a File is truthy.
+const noUpload = computed(() => !uploadValue.value);
+const preventUpload = computed(() =>
+  missingSourceWarning.value || nonUrlSourceWarning.value || invalidUploadValue.value || noUpload.value);
+
+function onFileChange ({ value, preview, invalid }: UploadChange) {
+  uploadValue.value = value;
+  previewData.value = preview;
+  invalidUploadValue.value = invalid;
+}
+
+async function submit () {
+  showErrors.value = true;
+  errorMessage.value = undefined;
+  if (preventUpload.value || submitting.value) {
+    return;
+  }
+  submitting.value = true;
+  const formData = new FormData();
+  if (typeof uploadValue.value === "string") {
+    formData.append("post_replacement[replacement_url]", uploadValue.value);
+  } else {
+    formData.append("post_replacement[replacement_file]", uploadValue.value);
+  }
+  formData.append("post_replacement[source]", noSource.value ? "" : sources.value[0]);
+  formData.append("post_replacement[reason]", reason.value);
+  formData.append("post_replacement[as_pending]", String(uploadAsPending.value));
+
+  const url = postId ? `/post_replacements.json?post_id=${postId}` : "/post_replacements.json";
+  const outcome = await submitUploadForm(url, formData);
+
+  if (outcome.kind === "success") {
+    // Only a successful submission earns the reason a datalist entry.
+    submittedReason.value = reason.value;
+    allowNavigate = true;
+    ToastManager.notice("Replacement submitted successfully.");
+    location.assign(outcome.body.location);
+    return;
+  }
+
+  submitting.value = false;
+  if (outcome.kind === "blocked" || outcome.kind === "failed") {
+    errorMessage.value = outcome.message;
+    return;
+  }
+  errorMessage.value = outcome.json.reason || outcome.json.message;
+}
 </script>

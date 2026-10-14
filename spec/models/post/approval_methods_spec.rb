@@ -63,6 +63,20 @@ RSpec.describe Post do
 
         expect { post.reload.approve!(other) }.not_to change(PostApproval, :count)
       end
+
+      it "grants the approved credit to the uploader" do
+        approver = create(:admin_user)
+        post = create(:pending_post)
+        expect { post.approve!(approver) }
+          .to change { post.uploader.user_status.reload.upload_karma }.by(UserStatus::KARMA_APPROVED_CREDIT)
+      end
+
+      it "records an approved ledger row" do
+        approver = create(:admin_user)
+        post = create(:pending_post)
+        post.approve!(approver)
+        expect(UploadKarmaEvent.last).to have_attributes(user_id: post.uploader_id, post_id: post.id, reason: "approved", delta: UserStatus::KARMA_APPROVED_CREDIT)
+      end
     end
 
     describe "#unapprove!" do
@@ -78,6 +92,21 @@ RSpec.describe Post do
         post.update_columns(approver_id: approver.id)
         post.reload.unapprove!
         expect(post.reload.approver).to be_nil
+      end
+
+      it "rolls back the uploader's upload karma" do
+        approver = create(:admin_user)
+        post = create(:pending_post)
+        post.approve!(approver)
+        expect { post.unapprove! }.to change { post.uploader.user_status.reload.upload_karma }.by(-UserStatus::KARMA_APPROVED_CREDIT)
+      end
+
+      it "records an unapproved ledger row" do
+        approver = create(:admin_user)
+        post = create(:pending_post)
+        post.approve!(approver)
+        post.unapprove!
+        expect(UploadKarmaEvent.last).to have_attributes(user_id: post.uploader_id, post_id: post.id, reason: "unapproved", delta: -UserStatus::KARMA_APPROVED_CREDIT)
       end
     end
 
@@ -138,8 +167,9 @@ RSpec.describe Post do
       end
 
       it "resolves all open flags on the post" do
-        post = create(:flagged_post)
+        post = create(:post)
         flag = create(:post_flag, post: post)
+        expect(post.reload.is_flagged).to be true
         post.unflag!
         expect(flag.reload.is_resolved).to be true
       end

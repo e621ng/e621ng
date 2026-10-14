@@ -7,6 +7,8 @@
 
       <%= render "form" %>
 
+      <%= render "tag_category", tag: @wiki_page.tag %>
+
       <%= wiki_page_alias_and_implication_list(@wiki_page)%>
       <%= render "recent_posts" %>
       <div class="clearfix"></div>

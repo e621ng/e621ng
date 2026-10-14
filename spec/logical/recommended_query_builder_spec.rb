@@ -12,7 +12,6 @@ RSpec.describe RecommendedQueryBuilder do
     character_tags = opts.fetch(:character_tags, [])
     copyright_tags = opts.fetch(:copyright_tags, [])
     species_tags   = opts.fetch(:species_tags, [])
-    all_tags       = opts.fetch(:all_tags, {})
 
     post = instance_double(Post, id: id)
     allow(post).to receive_messages(
@@ -21,12 +20,7 @@ RSpec.describe RecommendedQueryBuilder do
     )
     allow(post).to receive(:tags_for_category) do |category|
       pairs = { "character" => character_tags, "copyright" => copyright_tags, "species" => species_tags }
-      (pairs[category] || []).map { |name, count| instance_double(Tag, name: name, post_count: count) }
-    end
-    allow(post).to receive(:categorized_tags) do
-      all_tags.each_with_object({}) do |(cat_name, tags_list), h|
-        h[cat_name] = tags_list.map { |name, count| instance_double(Tag, name: name, post_count: count, category_name: cat_name) }
-      end
+      (pairs[category] || []).map { |name, count| instance_double(Tag, name: name, post_count: count, category_name: category) }
     end
     post
   end
@@ -209,125 +203,125 @@ RSpec.describe RecommendedQueryBuilder do
   end
 
   describe "tags mode" do
-    def tags_function_score(post)
-      build_for(post, mode: :tags).instance_variable_get(:@function_score)
+    def tags_builder(post)
+      build_for(post, mode: :tags)
+    end
+
+    def selected_tag_names(builder)
+      builder.should.map { |clause| clause.dig(:constant_score, :filter, :term, :tags) }
     end
 
     describe "pool exclusion" do
       it "adds a must_not terms clause for the post's pool ids" do
-        builder = build_for(make_post(pool_ids: [10, 20]), mode: :tags)
+        builder = tags_builder(make_post(pool_ids: [10, 20]))
         expect(builder.must_not).to include({ terms: { pools: [10, 20] } })
       end
 
       it "does not add a pool must_not clause when the post has no pools" do
-        builder = build_for(make_post(pool_ids: []), mode: :tags)
+        builder = tags_builder(make_post(pool_ids: []))
         pool_clauses = builder.must_not.select { |clause| clause[:terms]&.key?(:pools) }
         expect(pool_clauses).to be_empty
       end
     end
 
-    describe "function_score structure" do
-      let(:post) { make_post(id: 7) }
-      let(:function_score) { tags_function_score(post) }
+    describe "artist exclusion" do
+      it "adds a must_not terms clause for the post's known artist tags" do
+        builder = tags_builder(make_post(known_artists: %w[artist_a artist_b]))
+        expect(builder.must_not).to include({ terms: { tags: %w[artist_a artist_b] } })
+      end
+
+      it "does not add an artist must_not clause when the post has no known artists" do
+        builder = tags_builder(make_post(known_artists: []))
+        artist_clauses = builder.must_not.select { |clause| clause[:terms]&.key?(:tags) }
+        expect(artist_clauses).to be_empty
+      end
+    end
+
+    describe "should clauses" do
+      it "adds a constant_score clause with the character boost for character tags" do
+        builder = tags_builder(make_post(character_tags: [["char_a", 10]]))
+        expect(builder.should).to include(
+          { constant_score: { filter: { term: { tags: "char_a" } }, boost: described_class::WEIGHTS_FOR_TAGS[:character] } },
+        )
+      end
+
+      it "adds a constant_score clause with the species boost for species tags" do
+        builder = tags_builder(make_post(species_tags: [["spec_a", 10]]))
+        expect(builder.should).to include(
+          { constant_score: { filter: { term: { tags: "spec_a" } }, boost: described_class::WEIGHTS_FOR_TAGS[:species] } },
+        )
+      end
+
+      it "ignores copyright tags" do
+        builder = tags_builder(make_post(copyright_tags: [["copy_a", 10]]))
+        expect(builder.should).to be_empty
+      end
+
+      it "keeps artist tags out of the should clauses" do
+        builder = tags_builder(make_post(known_artists: %w[some_artist]))
+        expect(builder.should).to be_empty
+      end
+    end
+
+    describe "least-common selection" do
+      it "caps at MAX_TAGS tags across character and species combined" do
+        character_tags = (1..8).map { |n| ["char_#{n}", n] }
+        species_tags = (1..8).map { |n| ["spec_#{n}", n + 8] }
+        builder = tags_builder(make_post(character_tags: character_tags, species_tags: species_tags))
+        expect(builder.should.size).to eq(described_class::MAX_TAGS)
+      end
+
+      it "selects the globally least common tags across both categories" do
+        character_tags = (1..8).map { |n| ["char_#{n}", n] }          # post_counts 1..8
+        species_tags = (1..8).map { |n| ["spec_#{n}", n + 99] }       # post_counts 100..107
+        builder = tags_builder(make_post(character_tags: character_tags, species_tags: species_tags))
+        selected = selected_tag_names(builder)
+        expect(selected).to include(*(1..8).map { |n| "char_#{n}" }, "spec_1", "spec_2")
+        expect(selected).not_to include("spec_3")
+      end
+
+      it "includes all tags when MAX_TAGS or fewer" do
+        builder = tags_builder(make_post(character_tags: [["char_a", 1]], species_tags: [["spec_a", 2], ["spec_b", 3]]))
+        expect(builder.should.size).to eq(3)
+      end
+    end
+
+    describe "function_score" do
+      let(:post) { make_post(id: 7, character_tags: [["char_a", 1]]) }
+      let(:function_score) { tags_builder(post).instance_variable_get(:@function_score) }
+
+      it "contains only the random_score function seeded with the post id" do
+        expect(function_score[:functions]).to eq([{ random_score: { seed: 7, field: "id" } }])
+      end
 
       it "uses sum score mode" do
         expect(function_score[:score_mode]).to eq(:sum)
       end
 
-      it "uses replace boost mode" do
-        expect(function_score[:boost_mode]).to eq(:replace)
-      end
-
-      it "always includes a random_score function seeded with the post id" do
-        expect(function_score[:functions]).to include({ random_score: { seed: 7, field: "id" } })
+      it "adds the random score to the query score as a tiebreak" do
+        expect(function_score[:boost_mode]).to eq(:sum)
       end
     end
 
-    describe "per-category tag weights" do
-      it "assigns the character weight to character tags" do
-        post = make_post(all_tags: { "character" => [["char_a", 10]] })
-        fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "char_a" }
-        expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:character])
+    describe "minimum_should_match" do
+      let(:post) { make_post(character_tags: [["char_a", 10]]) }
+
+      it "does not set an explicit minimum_should_match" do
+        builder = tags_builder(post)
+        expect(builder.instance_variable_get(:@minimum_should_match)).to be_nil
       end
 
-      it "assigns the species weight to species tags" do
-        post = make_post(all_tags: { "species" => [["spec_a", 10]] })
-        fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "spec_a" }
-        expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:species])
-      end
-
-      it "assigns the general weight to general tags" do
-        post = make_post(all_tags: { "general" => [["tag_a", 100]] })
-        fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "tag_a" }
-        expect(fn[:weight]).to eq(described_class::WEIGHTS_FOR_TAGS[:general])
-      end
-
-      it "does not assign weights to artist or copyright tags" do
-        post = make_post(all_tags: { "artist" => [["artist_a", 10]], "copyright" => [["copy_a", 10]] })
-        artist_fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "artist_a" }
-        copy_fn = tags_function_score(post)[:functions].find { |f| f.dig(:filter, :term, :tags) == "copy_a" }
-        expect(artist_fn).to be_nil
-        expect(copy_fn).to be_nil
-      end
-    end
-
-    describe "MAX_TAGS cap" do
-      it "includes all tags when the total equals MAX_TAGS" do
-        tags = (1..described_class::MAX_TAGS).map { |n| ["tag_#{n}", n] }
-        post = make_post(all_tags: { "general" => tags })
-        functions = tags_function_score(post)[:functions]
-        expect(functions.size).to eq(described_class::MAX_TAGS + 1) # tags + random_score
-      end
-
-      it "caps at MAX_TAGS tags and excludes the highest post_count tags when over the limit" do
-        tags = (1..described_class::MAX_TAGS + 5).map { |n| ["tag_#{n}", n] }
-        post = make_post(all_tags: { "general" => tags })
-        functions = tags_function_score(post)[:functions]
-        expect(functions.size).to eq(described_class::MAX_TAGS + 1)
-        tag_names_in_functions = functions.filter_map { |f| f.dig(:filter, :term, :tags) }
-        (described_class::MAX_TAGS + 1..described_class::MAX_TAGS + 5).each do |n|
-          expect(tag_names_in_functions).not_to include("tag_#{n}")
-        end
-      end
-    end
-
-    describe "rarest-first selection" do
-      it "excludes the tag with the highest post_count when trimming to MAX_TAGS" do
-        tags = (1..described_class::MAX_TAGS + 1).map { |n| ["tag_#{n}", n] }
-        post = make_post(all_tags: { "general" => tags })
-        tag_names = tags_function_score(post)[:functions].filter_map { |f| f.dig(:filter, :term, :tags) }
-        expect(tag_names).not_to include("tag_#{described_class::MAX_TAGS + 1}")
+      it "resolves to 1 in the built query" do
+        query = tags_builder(post).create_query_obj(return_nil_if_empty: false)
+        expect(query.dig(:function_score, :query, :bool, :minimum_should_match)).to eq(1)
       end
     end
 
     describe "empty tag set" do
-      it "produces only the random_score function when the post has no tags" do
-        post = make_post(all_tags: {})
-        functions = tags_function_score(post)[:functions]
-        expect(functions.size).to eq(1)
-        expect(functions.first).to have_key(:random_score)
-      end
-    end
-
-    describe "no artist should terms" do
-      it "does not add artist tags to the should clause" do
-        post = make_post(known_artists: %w[some_artist], all_tags: { "artist" => [["some_artist", 50]] })
-        builder = build_for(post, mode: :tags)
+      it "adds no should clauses and keeps only the random_score function when the post has no character or species tags" do
+        builder = tags_builder(make_post(copyright_tags: [["copy_a", 10]]))
         expect(builder.should).to be_empty
-      end
-    end
-
-    describe "no minimum_should_match" do
-      it "sets minimum_should_match to 1 when there are should clauses but no explicit minimum" do
-        post = make_post(all_tags: { "general" => [["tag_a", 10]] })
-        builder = build_for(post, mode: :tags)
-        expect(builder.instance_variable_get(:@minimum_should_match)).to eq(1)
-      end
-
-      it "sets minimum_should_match to 30% when there are 7+ should clauses" do
-        post = make_post(all_tags: { "general" => [["tag_a", 10], ["tag_b", 20], ["tag_c", 30], ["tag_d", 30], ["tag_e", 30], ["tag_f", 30], ["tag_g", 30]] })
-        builder = build_for(post, mode: :tags)
-        expect(builder.instance_variable_get(:@minimum_should_match)).to eq("30%")
+        expect(builder.instance_variable_get(:@function_score)[:functions].size).to eq(1)
       end
     end
   end

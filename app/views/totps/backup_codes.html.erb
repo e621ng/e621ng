@@ -1,0 +1,18 @@
+<% content_for(:page_title) do %>
+  Backup Codes
+<% end %>
+
+<div id="c-totps"><div id="a-backup-codes">
+  <h1>Backup codes</h1>
+  <p>
+    Store these somewhere safe — they are shown <strong>only once</strong>.<br />
+    Each code can be used a single time in place of an authenticator code if you lose access to your app.
+  </p>
+
+  <pre class="totp-backup-codes"><%= @backup_codes.join("\n") %></pre>
+
+  <p class="totp-backup-codes-actions">
+    <%= link_to "Download", "data:text/plain;charset=utf-8,#{ERB::Util.url_encode(@backup_codes.join("\n"))}", download: "#{Danbooru.config.app_name}-backup-codes.txt", class: "st-button" %>
+    <%= link_to "Done", settings_users_path, class: "st-button" %>
+  </p>
+</div></div>

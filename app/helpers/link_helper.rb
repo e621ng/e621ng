@@ -165,6 +165,7 @@ module LinkHelper
     "ibb.co" => "imgbb.com",
     "ib.metapix.net" => "inkbunny.net",
     "i.kym-cdn.com" => "knowyourmeme.com",
+    "media.tumblr.com" => "tumblr.com",
     "ngfiles.com" => "newgrounds.com",
     "patreonusercontent.com" => "patreon.com",
     "pximg.net" => "pixiv.net",

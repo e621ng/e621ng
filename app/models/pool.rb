@@ -310,7 +310,7 @@ class Pool < ApplicationRecord
   end
 
   def enqueue_destroy_cleanup
-    PostSetCleanupJob.perform_later(:pool, id)
+    PostSetCleanupJob.perform_async("pool", id)
   end
 
   def post_count

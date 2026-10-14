@@ -7,9 +7,9 @@ export default class ArtistProvider extends Provider<ArtistItem> {
   }
 
   public static async findArtists (term: string): Promise<ArtistItem[]> {
-    const searchTerm = term.trim().replace(/\s+/g, "_") + "*";
+    const searchTerm = term.trim().replace(/\s+/g, "_");
     const params = new URLSearchParams({
-      "search[name]": searchTerm,
+      "search[name]": searchTerm + (searchTerm.endsWith("*") ? "" : "*"),
       "search[order]": "post_count",
       "limit": "10",
       "expiry": "7",

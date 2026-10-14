@@ -1,3 +1,4 @@
+import ToastManager from "@/utility/Toast";
 import Post from "@/pages/posts/posts";
 import TaskQueue from "@/utility/TaskQueue";
 
@@ -38,7 +39,7 @@ PostVersion.undo_selected = function (event) {
   PostVersion.updated = 0;
   let selected_rows = $(".post-version-select:checked").parents(".post-version");
 
-  const toast = E621.Toast.create("Undoing changes...", { timeout: 0 });
+  const toast = ToastManager.create("Undoing changes...", { timeout: 0 });
   const promises = [];
   for (let row of selected_rows) {
     let id = $(row).data("post-version-id");
@@ -55,7 +56,7 @@ PostVersion.undo_selected = function (event) {
     toast.timeout = 3;
   }).catch(e => {
     toast.dismiss(true);
-    E621.Toast.alert("Failed to undo selected changes: " + (e.message || e.statusText || "unknown error"));
+    ToastManager.alert("Failed to undo selected changes: " + (e.message || e.statusText || "unknown error"));
   });
 };
 
@@ -65,16 +66,17 @@ PostVersion.tag_script_selected = function (event) {
   PostVersion.updated = 0;
   let selected_rows = $(".post-version-select:checked").parents(".post-version");
   const script = $("#update-tag-script").val();
+  const reason = $("#update-edit-reason").val();
   if (!script)
     return;
 
-  const toast = E621.Toast.create("Applying tag script...", { timeout: 0 });
+  const toast = ToastManager.create("Applying tag script...", { timeout: 0 });
   const promises = [];
   for (let row of selected_rows) {
     let id = $(row).data("post-id");
 
     promises.push(TaskQueue.add(() => {
-      Post.tagScript(id, script);
+      Post.tagScript(id, script, reason);
 
       toast.message = `${++PostVersion.updated} / ${selected_rows.length} changes applied.`;
     }, { name: "PostVersion.tag_script_selected" }));
@@ -84,7 +86,7 @@ PostVersion.tag_script_selected = function (event) {
     toast.timeout = 3;
   }).catch(e => {
     toast.dismiss(true);
-    E621.Toast.alert("Failed to apply tag script to selected changes: " + (e.message || e.statusText || "unknown error"));
+    ToastManager.alert("Failed to apply tag script to selected changes: " + (e.message || e.statusText || "unknown error"));
   });
 };
 

@@ -103,13 +103,7 @@ class PostSetsController < ApplicationController
         actually_removed = remove_ids.empty? ? [] : @post_set.process_posts_remove!(remove_ids)
         actually_added   = add_ids.empty?    ? [] : @post_set.process_posts_add!(add_ids)
 
-        # Sync posts inline for tiny changes, otherwise enqueue background sync
-        total_changes = actually_added.size + actually_removed.size
-        if total_changes <= 1
-          @post_set.sync_posts_for_delta(added_ids: actually_added, removed_ids: actually_removed)
-        else
-          PostSetPostsSyncJob.perform_later(@post_set.id)
-        end
+        @post_set.reindex_posts(actually_removed + actually_added)
       end
 
       @post_set.reload
@@ -191,7 +185,7 @@ class PostSetsController < ApplicationController
 
   def check_set_post_limit(set)
     if set.is_over_limit?
-      raise "This set contains too many posts and can no longer be edited."
+      raise PostSet::PostLimitError, "This set contains too many posts and can no longer be edited."
     end
   end
 
@@ -224,11 +218,8 @@ class PostSetsController < ApplicationController
   end
 
   def check_set_modify_rate_limit
-    key = "post_set.modify.#{CurrentUser.id}"
-    if RateLimiter.check_limit(key, 30, 1.minute)
+    if RateLimiter.throttle!("post_set.modify.#{CurrentUser.id}", limit: 30, period: 1.minute)
       render_expected_error(429, "You are modifying sets too quickly. Wait a bit and try again.")
-    else
-      RateLimiter.hit(key, 1.minute)
     end
   end
 end

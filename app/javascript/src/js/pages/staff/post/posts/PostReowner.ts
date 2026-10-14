@@ -1,9 +1,7 @@
-import E621Type from "@/interfaces/E621";
 import Post from "@/pages/posts/posts";
 import TaskQueue from "@/utility/TaskQueue";
+import ToastManager from "@/utility/Toast";
 import Dialog from "@/utility/dialog";
-
-declare const E621: E621Type;
 
 interface PreviousOwner {
   id: number;
@@ -34,6 +32,7 @@ export default class PostReowner {
       const reownerInput = $("#reowner-dialog-input");
       const reownerReownerVersions = $("#reowner-dialog-reowner-versions");
       const reownerPostEvents = $("#reowner-dialog-post-events");
+      const reownerKarma = $("#reowner-dialog-karma");
       const reownerOkButton = $("#reowner-dialog-ok");
 
       const inputElement = reownerInput[0] as HTMLInputElement;
@@ -93,7 +92,8 @@ export default class PostReowner {
         const newOwner = reownerInput.val() as string;
         const reownerVersions = reownerReownerVersions?.prop("checked") as boolean | undefined;
         const postEvents = reownerPostEvents?.prop("checked") as boolean | undefined;
-        PostReowner.reowner(postId, newOwner, reownerVersions, postEvents);
+        const karma = reownerKarma?.prop("checked") as boolean | undefined;
+        PostReowner.reowner(postId, newOwner, reownerVersions, postEvents, karma);
         return false;
       });
 
@@ -131,12 +131,12 @@ export default class PostReowner {
       const apiError = error as ApiResponseError;
       const errors = apiError?.responseJSON?.errors || [apiError?.responseJSON?.reason] || ["Unknown error"];
       const message = $.map(errors, (msg: string) => msg).join("; ");
-      E621.Toast.alert("Error: " + message);
+      ToastManager.alert("Error: " + message);
       return [];
     }
   }
 
-  private static reowner (post_id: string, new_owner: string, reowner_versions: boolean = false, post_events: boolean = true): void {
+  private static reowner (post_id: string, new_owner: string, reowner_versions: boolean = false, post_events: boolean = true, karma: boolean = true): void {
     Post.notice_update("inc");
     let hasError = false;
     TaskQueue.add(async () => {
@@ -149,16 +149,17 @@ export default class PostReowner {
               new_owner: new_owner,
               reowner_versions: reowner_versions,
               post_events: post_events,
+              karma: karma,
             },
           },
         });
-        E621.Toast.notice("Reownered post.");
+        ToastManager.notice("Reownered post.");
         location.reload();
       } catch (error: any) {
         const apiError = error as ApiResponseError;
         const errors = apiError?.responseJSON?.errors || [apiError?.responseJSON?.reason] || ["Unknown error"];
         const message = $.map(errors, (msg: string) => msg).join("; ");
-        E621.Toast.alert("Error: " + message);
+        ToastManager.alert("Error: " + message);
         hasError = true;
       } finally {
         if (!hasError) {

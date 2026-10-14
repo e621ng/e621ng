@@ -82,6 +82,28 @@ RSpec.describe ModActionDecorator do
       end
     end
 
+    context "with search trend actions" do
+      it "search_trend_blacklist_create includes tag" do
+        desc = decorate(:search_trend_blacklist_create, { "tag" => "testtag" }).format_description
+        expect(desc).to include("testtag")
+      end
+
+      it "search_trend_blacklist_update includes tag" do
+        desc = decorate(:search_trend_blacklist_update, { "tag" => "testtag" }).format_description
+        expect(desc).to include("testtag")
+      end
+
+      it "search_trend_blacklist_delete includes tag" do
+        desc = decorate(:search_trend_blacklist_delete, { "tag" => "testtag" }).format_description
+        expect(desc).to include("testtag")
+      end
+
+      it "search_trend_blacklist_purge includes tag and deleted count" do
+        desc = decorate(:search_trend_blacklist_purge, { "tag" => "testtag", "deleted_count" => 5 }).format_description
+        expect(desc).to include("testtag", "5")
+      end
+    end
+
     context "with ticket actions" do
       it "ticket_claim includes ticket id" do
         desc = decorate(:ticket_claim, { "ticket_id" => 12 }).format_description
@@ -300,6 +322,16 @@ RSpec.describe ModActionDecorator do
       it "user_upload_limit_change includes old and new limit" do
         desc = decorate(:user_upload_limit_change, { "user_id" => target_user.id, "old_upload_limit" => 10, "new_upload_limit" => 20 }).format_description
         expect(desc).to include("10", "20")
+      end
+
+      it "user_karma_change includes old and new karma" do
+        desc = decorate(:user_karma_change, { "user_id" => target_user.id, "old_karma" => 5, "new_karma" => -20 }).format_description
+        expect(desc).to include("karma", "5", "-20")
+      end
+
+      it "user_karma_free_toggle includes disabled state" do
+        desc = decorate(:user_karma_free_toggle, { "user_id" => target_user.id, "disabled" => true }).format_description
+        expect(desc).to include("Disabled", target_user.name)
       end
 
       it "user_custom_title_change includes old and new title" do

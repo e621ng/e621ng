@@ -1,10 +1,7 @@
-import E621Type from "@/interfaces/E621";
 import Dialog from "@/utility/dialog";
 import LStorage from "@/utility/storage/Local";
 import TaskQueue from "@/utility/TaskQueue";
-import { Toast } from "@/utility/Toast";
-
-declare const E621: E621Type;
+import ToastManager, { Toast } from "@/utility/Toast";
 
 export default class PostSet {
 
@@ -20,10 +17,10 @@ export default class PostSet {
    * @param {number} post_id Post ID
    */
   static add_post (set_id: number, post_id: number) {
-    if (!set_id) return E621.Toast.alert("Error: No set specified");
+    if (!set_id) return ToastManager.alert("Error: No set specified");
 
     if (!this.postUpdateToast)
-      this.postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
+      this.postUpdateToast = ToastManager.create("Updating posts...", { timeout: 0 });
 
     let cache = this.addPostCache[set_id];
     if (!cache) {
@@ -50,8 +47,8 @@ export default class PostSet {
    * @param {number[]} posts Array of post IDs
    */
   static add_many_posts (set_id: number, posts: number[] = []) {
-    if (!set_id) return E621.Toast.alert("Error: No set specified");
-    if (typeof set_id !== "number") return E621.Toast.alert("Error: Invalid set specified");
+    if (!set_id) return ToastManager.alert("Error: No set specified");
+    if (typeof set_id !== "number") return ToastManager.alert("Error: Invalid set specified");
 
     TaskQueue.add(() => {
       $.ajax({
@@ -62,11 +59,11 @@ export default class PostSet {
         const data = response.responseJSON;
         const errors = $.map(data.errors, (msg) => msg).join("; "),
           message = data.message;
-        E621.Toast.alert("Error: " + (message || errors || `${response.status} ${response.statusText}`));
+        ToastManager.alert("Error: " + (message || errors || `${response.status} ${response.statusText}`));
         this.postUpdateToast?.dismiss(true);
         this.postUpdateToast = null;
       }).done(() => {
-        if (!this.postUpdateToast) this.postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
+        if (!this.postUpdateToast) this.postUpdateToast = ToastManager.create("Updating posts...", { timeout: 0 });
         this.postUpdateToast.message = `Added ${posts.length > 1 ? (posts.length + " posts") : "post"} to <a href="/post_sets/${set_id}">set #${set_id}</a>`;
         this.postUpdateToast.timeout = 3;
         this.postUpdateToast = null;
@@ -85,10 +82,10 @@ export default class PostSet {
    * @param {number} post_id Post ID
    */
   static remove_post (set_id: number, post_id: number) {
-    if (!set_id) return E621.Toast.alert("Error: No set specified");
+    if (!set_id) return ToastManager.alert("Error: No set specified");
 
     if (!this.postUpdateToast)
-      this.postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
+      this.postUpdateToast = ToastManager.create("Updating posts...", { timeout: 0 });
 
     let cache = this.removePostCache[set_id];
     if (!cache) {
@@ -115,8 +112,8 @@ export default class PostSet {
    * @param {number[]} posts Array of post IDs
    */
   static remove_many_posts (set_id: number, posts: number[] = []) {
-    if (!set_id) return E621.Toast.alert("Error: No set specified");
-    if (typeof set_id !== "number") return E621.Toast.alert("Error: Invalid set specified");
+    if (!set_id) return ToastManager.alert("Error: No set specified");
+    if (typeof set_id !== "number") return ToastManager.alert("Error: Invalid set specified");
 
     TaskQueue.add(() => {
       $.ajax({
@@ -127,11 +124,11 @@ export default class PostSet {
         const data = response.responseJSON;
         const errors = $.map(data.errors, (msg) => msg).join("; "),
           message = data.message;
-        E621.Toast.alert("Error: " + (message || errors || `${response.status} ${response.statusText}`));
+        ToastManager.alert("Error: " + (message || errors || `${response.status} ${response.statusText}`));
         this.postUpdateToast?.dismiss(true);
         this.postUpdateToast = null;
       }).done(() => {
-        if (!this.postUpdateToast) this.postUpdateToast = E621.Toast.create("Updating posts...", { timeout: 0 });
+        if (!this.postUpdateToast) this.postUpdateToast = ToastManager.create("Updating posts...", { timeout: 0 });
         this.postUpdateToast.message = `Removed ${posts.length > 1 ? (posts.length + " posts") : "post"} from <a href="/post_sets/${set_id}">set #${set_id}</a>`;
         this.postUpdateToast.timeout = 3;
         this.postUpdateToast = null;
@@ -170,12 +167,12 @@ export default class PostSet {
         type: "GET",
         url: "/post_sets/for_select.json",
       }).fail(function (data) {
-        E621.Toast.alert("Error getting sets list: " + data["message"]);
+        ToastManager.alert("Error getting sets list: " + data["message"]);
       }).done(function (data) {
         target.on("change", function (e) {
           const value = Number(e.target.value);
           if (isNaN(value)) {
-            E621.Toast.alert("Error: Invalid set specified");
+            ToastManager.alert("Error: Invalid set specified");
             return;
           }
           LStorage.Posts.Set = value;

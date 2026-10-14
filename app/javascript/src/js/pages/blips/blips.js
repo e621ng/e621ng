@@ -1,3 +1,4 @@
+import ToastManager from "@/utility/Toast";
 import TextUtils from "../../utility/TextUtils";
 
 let Blip = {};
@@ -30,7 +31,7 @@ Blip.quote = function (e) {
 
     $("#blip_response_to")[0].value = blipId;
   }).fail(function (data) {
-    E621.Toast.alert(data.responseText);
+    ToastManager.alert(data.responseText);
   });
 };
 

@@ -4,19 +4,24 @@ module PostSets
   class Recommended < PostSets::Base
     attr_reader :limit, :mode
 
+    def self.available_for?(post, mode)
+      return false unless Danbooru.config.post_recommendations_enabled?[mode]
+      case mode
+      when :tags
+        post.tags_for_category("character").any? || post.tags_for_category("species").any?
+      else
+        post.known_artist_tags.any?
+      end
+    end
+
     def initialize(post, limit: 6, mode: :artist)
       super()
       @original_post = post
       @limit = limit.to_i.clamp(1, 20)
       @original_post.categorized_tags # Preload categorized tags to avoid duplicate queries later
 
-      @mode = mode
-      if mode == :tags
-        @no_results = post.tag_count <= 1 # only has tagme
-      else
-        @mode = :artist
-        @no_results = post.known_artist_tags.empty?
-      end
+      @mode = mode == :tags ? :tags : :artist
+      @no_results = !self.class.available_for?(post, @mode)
     end
 
     def post_ids

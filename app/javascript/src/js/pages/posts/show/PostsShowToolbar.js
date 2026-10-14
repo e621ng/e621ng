@@ -1,20 +1,12 @@
 import Hotkeys from "@/core/hotkeys";
 import Favorite from "@/models/Favorite";
-import PostVote from "@/models/PostVote";
 import NoteManager from "@/pages/posts/show/notes";
-import Post from "@/pages/posts/posts";
 import Offclick from "@/utility/Offclick";
 import Page from "@/utility/Page";
 import ToastManager from "@/utility/Toast";
+import CurrentPost from "@/models/CurrentPost";
 
 export default class PostsShowToolbar {
-
-  static _currentPost = null;
-  static get currentPost () {
-    if (!this._currentPost) this._currentPost = Post.currentPost();
-    if (!PostsShowToolbar._currentPost) PostsShowToolbar._currentPost = Post.currentPost();
-    return PostsShowToolbar._currentPost;
-  }
 
 
   init () {
@@ -58,9 +50,9 @@ export default class PostsShowToolbar {
       const button = $(event.currentTarget);
       const value = button.data("value");
       navigator.clipboard.writeText(value).then(() => {
-        E621.Toast.notice("Link copied to clipboard.");
+        ToastManager.notice("Link copied to clipboard.");
       }).catch((e) => {
-        E621.Toast.alert("Failed to copy link to clipboard.", e);
+        ToastManager.alert("Failed to copy link to clipboard.", e);
       });
     });
   }
@@ -101,26 +93,47 @@ export default class PostsShowToolbar {
   initVotingHotkeys () {
     Hotkeys.register("upvote", () => {
       ToastManager.dismiss("Post upvoted.", "Post downvoted.");
-      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
-      PostsShowToolbar.vote(1).then(() => {
+      const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
+      PostsShowToolbar.vote(1).then((data) => {
         toast.type = "notice";
-        toast.message = "Post upvoted.";
+
+        // If the user has already upvoted, we want to show a different message.
+        switch (data.our_score) {
+          case 1:
+            toast.message = "Post upvoted.";
+            break;
+          case 0:
+            toast.message = "Upvote removed.";
+            break;
+          default:
+            toast.message = "This should not happen.";
+        }
         toast.timeout = 1;
       });
     });
     Hotkeys.register("downvote", () => {
       ToastManager.dismiss("Post upvoted.", "Post downvoted.");
-      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
-      PostsShowToolbar.vote(-1).then(() => {
+      const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
+      PostsShowToolbar.vote(-1).then((data) => {
         toast.type = "notice";
-        toast.message = "Post downvoted.";
+        // If the user has already downvoted, we want to show a different message.
+        switch (data.our_score) {
+          case -1:
+            toast.message = "Post downvoted.";
+            break;
+          case 0:
+            toast.message = "Downvote removed.";
+            break;
+          default:
+            toast.message = "This should not happen.";
+        }
         toast.timeout = 1;
       });
     });
   }
 
   static async vote (direction) {
-    return PostVote.vote(PostsShowToolbar.currentPost.id, direction).then((data) => {
+    return CurrentPost.vote(direction).then((data) => {
       // Update Score in Information
       $(".post-score").text(data.score)
         .removeClass("score-negative score-neutral score-positive")
@@ -165,7 +178,7 @@ export default class PostsShowToolbar {
 
     Hotkeys.register("favorite", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
-      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
       if (imageEl.attr("data-is-favorited") == "true")
         PostsShowToolbar.deleteFavorite().then(() => {
           toast.type = "notice";
@@ -182,7 +195,7 @@ export default class PostsShowToolbar {
     Hotkeys.register("favorite-add", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (imageEl.attr("data-is-favorited") == "true") return;
-      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
       PostsShowToolbar.addFavorite().then(() => {
         toast.type = "notice";
         toast.message = "Favorite added.";
@@ -193,7 +206,7 @@ export default class PostsShowToolbar {
     Hotkeys.register("favorite-del", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (imageEl.attr("data-is-favorited") == "false") return;
-      const toast = E621.Toast.create("Updating post...", { type: "info", timeout: 10 });
+      const toast = ToastManager.create("Updating post...", { type: "info", timeout: 10 });
       PostsShowToolbar.deleteFavorite().then(() => {
         toast.type = "notice";
         toast.message = "Favorite removed.";
@@ -203,7 +216,10 @@ export default class PostsShowToolbar {
   }
 
   static async addFavorite () {
-    return Favorite.create(PostsShowToolbar.currentPost.id, 500)
+    if (!CurrentPost.exists)
+      throw new Error("No current post available for favoriting.");
+
+    return Favorite.create(CurrentPost.id, 500)
       .then(
         () => {
           $(".ptbr-favorite-button").attr("favorited", "true");
@@ -218,7 +234,10 @@ export default class PostsShowToolbar {
   }
 
   static async deleteFavorite () {
-    return Favorite.destroy(PostsShowToolbar.currentPost.id, 500)
+    if (!CurrentPost.exists)
+      throw new Error("No current post available for favoriting.");
+
+    return Favorite.destroy(CurrentPost.id, 500)
       .then(() => {
         $(".ptbr-favorite-button").attr("favorited", "false");
         $("#image-container").attr("data-is-favorited", "false");

@@ -10,7 +10,17 @@ module Staff
     def index
       search = Moderator::IpAddrSearch.new(params[:search] || {})
       @results = search.execute
-      respond_with(@results)
+      respond_with(@results) do |format|
+        format.json do
+          if params.dig(:search, :user_id).present? || params.dig(:search, :user_name).present?
+            render(json: @results)
+          elsif params.dig(:search, :ip_addr).present?
+            render(json: @results[:sums])
+          else
+            render(json: [])
+          end
+        end
+      end
     end
 
     def export

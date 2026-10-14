@@ -58,10 +58,17 @@ module Danbooru
         real_count > 0
       end
 
-      def count_only
+      def count_only(max_count: nil)
         search.definition[:body]&.delete(:sort)
-        search.definition.update(from: 0, size: 0, sort: "_doc", _source: false, track_total_hits: true)
+        search.definition.update(from: 0, size: 0, sort: "_doc", _source: false, track_total_hits: max_count || true)
         real_count
+      end
+
+      # Whether the last count was capped by track_total_hits (OpenSearch reports the
+      # total as a lower bound). Reads the same memoized response as real_count.
+      def count_capped?
+        total = response["hits"]["total"]
+        total.respond_to?(:keys) && total["relation"] == "gte"
       end
     end
   end

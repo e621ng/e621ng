@@ -40,6 +40,13 @@ RSpec.describe UserDeletion do
         expect(user.level).to eq(UserLevel::MEMBER)
       end
 
+      it "does not change the user's level if they are blocked" do
+        user.update_columns(level: UserLevel::BLOCKED)
+        create(:ban, user: user, prevent_login: false)
+        deletion.delete!
+        expect(user.reload.level).to eq(UserLevel::BLOCKED)
+      end
+
       it "invalidates the password hash" do
         deletion.delete!
         user.reload
@@ -54,11 +61,11 @@ RSpec.describe UserDeletion do
       end
 
       it "enqueues FlushFavoritesJob with the user's id" do
-        expect { deletion.delete! }.to have_enqueued_job(FlushFavoritesJob).with(user.id)
+        expect { deletion.delete! }.to enqueue_sidekiq_job(FlushFavoritesJob).with(user.id)
       end
 
-      it "enqueues AvatarCleanupJob with force: true" do
-        expect { deletion.delete! }.to have_enqueued_job(AvatarCleanupJob).with(user.id, force: true)
+      it "enqueues AvatarCleanupJob with force" do
+        expect { deletion.delete! }.to enqueue_sidekiq_job(AvatarCleanupJob).with(user.id, true)
       end
     end
 
@@ -96,7 +103,7 @@ RSpec.describe UserDeletion do
       end
 
       it "enqueues FlushFavoritesJob" do
-        expect { deletion.delete! }.to have_enqueued_job(FlushFavoritesJob).with(user.id)
+        expect { deletion.delete! }.to enqueue_sidekiq_job(FlushFavoritesJob).with(user.id)
       end
     end
 

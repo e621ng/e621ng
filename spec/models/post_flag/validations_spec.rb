@@ -109,6 +109,43 @@ RSpec.describe PostFlag do
   end
 
   # -------------------------------------------------------------------------
+  # validate_post_is_not_flagged (on: :create)
+  # -------------------------------------------------------------------------
+  describe "validate_post_is_not_flagged" do
+    let(:post) { create(:post) }
+
+    before do
+      as_user(create(:user)) do
+        create(:post_flag, post: post)
+      end
+    end
+
+    it "is invalid when the post is already flagged, even for staff outside the cooldown period" do
+      travel_to((PostFlag::COOLDOWN_PERIOD + 1.hour).from_now) do
+        # CurrentUser is admin via include_context, which bypasses the cooldown check
+        flag = build(:post_flag, post: post.reload)
+        expect(flag).not_to be_valid(:create)
+        expect(flag.errors[:post]).to include("is already flagged")
+      end
+    end
+
+    it "allows deletion flags on an already-flagged post" do
+      flag = build(:deletion_post_flag, post: post.reload)
+      flag.valid?(:create)
+      expect(flag.errors[:post]).not_to include("is already flagged")
+    end
+
+    it "allows flagging again after the post has been unflagged" do
+      post.reload.unflag!
+      travel_to((PostFlag::COOLDOWN_PERIOD + 1.hour).from_now) do
+        flag = build(:post_flag, post: post.reload)
+        flag.valid?(:create)
+        expect(flag.errors[:post]).not_to include("is already flagged")
+      end
+    end
+  end
+
+  # -------------------------------------------------------------------------
   # validate_reason (on: :create)
   # -------------------------------------------------------------------------
   describe "validate_reason" do

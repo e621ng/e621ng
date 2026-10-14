@@ -171,6 +171,22 @@ RSpec.describe WikiPagesController do
       get new_wiki_page_path
       expect(response).to have_http_status(:ok)
     end
+
+    it "renders the tag category form when the prefilled title matches an existing tag" do
+      tag = create(:tag, name: "wikiless_tag")
+      sign_in_as user
+      get new_wiki_page_path, params: { wiki_page: { title: "wikiless_tag" } }
+      expect(response.body).to include(tag_path(tag))
+      expect(response.body).to include("tag[from_wiki]")
+    end
+
+    it "normalizes the prefilled title before looking up the tag" do
+      tag = create(:tag, name: "wikiless_tag")
+      sign_in_as user
+      get new_wiki_page_path, params: { wiki_page: { title: "Species:Wikiless Tag" } }
+      expect(response.body).to include(tag_path(tag))
+      expect(response.body).to include("tag[from_wiki]")
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -205,6 +221,20 @@ RSpec.describe WikiPagesController do
       sign_in_as janitor
       get edit_wiki_page_path(locked_wiki_page)
       expect(response).to have_http_status(:ok)
+    end
+
+    it "renders the tag category form when the wiki's tag exists and is editable" do
+      tag = create(:tag, name: wiki_page.title)
+      sign_in_as user
+      get edit_wiki_page_path(wiki_page)
+      expect(response.body).to include(tag_path(tag))
+      expect(response.body).to include("tag[from_wiki]")
+    end
+
+    it "does not render the tag category form when the wiki has no tag" do
+      sign_in_as user
+      get edit_wiki_page_path(wiki_page)
+      expect(response.body).not_to include("tag[from_wiki]")
     end
   end
 
@@ -246,6 +276,18 @@ RSpec.describe WikiPagesController do
         end.not_to change(WikiPage, :count)
       end
 
+      it "does not create a page with a blank body" do
+        expect do
+          post wiki_pages_path, params: { wiki_page: { title: "blank_body_page", body: "" } }
+        end.not_to change(WikiPage, :count)
+      end
+
+      it "does not create a tag as a side effect" do
+        expect do
+          post wiki_pages_path, params: { wiki_page: { title: "no_tag_side_effect", body: "body", category_id: 1 } }
+        end.not_to change(Tag, :count)
+      end
+
       it "allows setting featured posts" do
         posts = create_list(:post, 2)
         post wiki_pages_path, params: { wiki_page: { title: "featured_member_page", body: "body", featured_posts_string: posts.map(&:id).join(" ") } }
@@ -269,6 +311,13 @@ RSpec.describe WikiPagesController do
         post wiki_pages_path, params: { wiki_page: { title: "child_page_privileged", body: "body", parent: parent_page.title } }
         expect(WikiPage.titled("child_page_privileged").parent).to eq(parent_page.title)
       end
+
+      it "allows creating a redirect page with a blank body" do
+        parent_page = create(:wiki_page)
+        expect do
+          post wiki_pages_path, params: { wiki_page: { title: "blank_redirect_page", body: "", parent: parent_page.title } }
+        end.to change(WikiPage, :count).by(1)
+      end
     end
 
     context "as a janitor" do
@@ -283,10 +332,13 @@ RSpec.describe WikiPagesController do
     context "as an admin" do
       before { sign_in_as admin }
 
-      it "accepts the category_is_locked param without error" do
+      it "accepts and ignores the deprecated category params" do
+        tag = create(:tag, name: "catlock_wiki_page")
         expect do
-          post wiki_pages_path, params: { wiki_page: { title: "catlock_wiki_page", body: "body", category_is_locked: true } }
+          post wiki_pages_path, params: { wiki_page: { title: "catlock_wiki_page", body: "body", category_id: 1, category_is_locked: true } }
         end.to change(WikiPage, :count).by(1)
+        expect(tag.reload.category).to eq(0)
+        expect(tag.is_locked).to be false
       end
     end
   end

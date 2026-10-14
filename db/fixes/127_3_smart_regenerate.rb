@@ -29,7 +29,7 @@ Post.without_timeout do
       end
 
       scheduled += 1
-      PostImageSamplerJob.perform_later(post.id)
+      PostImageSamplerJob.perform_async(post.id)
       sm.delete_crop_file(post.md5)
     end
 

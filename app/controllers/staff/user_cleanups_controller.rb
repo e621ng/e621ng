@@ -32,8 +32,8 @@ module Staff
 
       note_body = "Cleared profile fields for #{@user.name}."
       if about || artinfo
-        note_body += "\n\n[section=About]\n#{about}[/section]" if about
-        note_body += "\n\n[section=Art Info]\n#{artinfo}[/section]" if artinfo
+        note_body += "\n\n[section=About]\n#{about}\n[/section]" if about
+        note_body += "\n\n[section=Art Info]\n#{artinfo}\n[/section]" if artinfo
       end
 
       StaffNote.create!(user_id: @user.id, body: note_body)
@@ -43,19 +43,19 @@ module Staff
     end
 
     def hide_comments
-      HideUserCommentsJob.perform_later(@user.id, CurrentUser.id)
+      HideUserCommentsJob.perform_async(@user.id, CurrentUser.id)
       ModAction.log(:user_comments_hide, { user_id: @user.id })
       redirect_to staff_user_cleanup_path(@user), notice: "Comment hide job scheduled."
     end
 
     def hide_forum_posts
-      HideUserForumPostsJob.perform_later(@user.id, CurrentUser.id)
+      HideUserForumPostsJob.perform_async(@user.id, CurrentUser.id)
       ModAction.log(:user_forum_posts_hide, { user_id: @user.id })
       redirect_to staff_user_cleanup_path(@user), notice: "Forum post hide job scheduled."
     end
 
     def hide_blips
-      HideUserBlipsJob.perform_later(@user.id, CurrentUser.id)
+      HideUserBlipsJob.perform_async(@user.id, CurrentUser.id)
       ModAction.log(:user_blips_delete, { user_id: @user.id })
       redirect_to staff_user_cleanup_path(@user), notice: "Blip delete job scheduled."
     end

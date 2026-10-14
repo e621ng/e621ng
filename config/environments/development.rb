@@ -63,9 +63,6 @@ Rails.application.configure do # rubocop:disable Metrics/BlockLength
   # Highlight code that triggered database queries in logs.
   config.active_record.verbose_query_logs = true
 
-  # Highlight code that enqueued background job in logs.
-  config.active_job.verbose_enqueue_logs = true
-
   # Raises error for missing translations.
   # config.i18n.raise_on_missing_translations = true
 
@@ -77,6 +74,9 @@ Rails.application.configure do # rubocop:disable Metrics/BlockLength
 
   # Disable request forgery protection to simplify local development.
   config.action_controller.allow_forgery_protection = ENV.fetch("DISABLE_CSRF_PROTECTION", "true") == "true"
+
+  # Treat all requests as HTTPS, for dev setups behind an SSL-terminating reverse proxy.
+  config.assume_ssl = ENV.fetch("RAILS_ASSUME_SSL", "false") == "true"
 
   config.hosts << "e621ng.local"
 

@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class HideUserCommentsJob < ApplicationJob
-  queue_as :default
-  sidekiq_options lock: :until_executing
+  sidekiq_options queue: "default", lock: :until_executing, lock_ttl: 1.hour.to_i
 
   def perform(user_id, initiator_id)
     user = User.find(user_id)

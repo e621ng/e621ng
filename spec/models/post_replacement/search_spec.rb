@@ -190,6 +190,18 @@ RSpec.describe PostReplacement do
         ids = PostReplacement.search(post_id: post.id.to_s).ids
         expect(ids).to eq([newer.id, older.id, original.id])
       end
+
+      it "stays deterministic across multiple posts (id breaks sequence_number ties)" do
+        post_a = create(:post)
+        post_b = create(:post)
+        a0 = create(:original_post_replacement, post: post_a) # seq 0
+        a1 = make_replacement(post: post_a)                   # seq 1
+        b0 = create(:original_post_replacement, post: post_b) # seq 0
+        b1 = make_replacement(post: post_b)                   # seq 1
+        # sequence_number desc, then id desc: seq-1 rows (b1, a1) then seq-0 rows (b0, a0)
+        ids = PostReplacement.search(post_id: "#{post_a.id},#{post_b.id}").ids
+        expect(ids).to eq([b1.id, a1.id, b0.id, a0.id])
+      end
     end
 
     context "with an explicit order" do

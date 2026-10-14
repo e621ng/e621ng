@@ -2,6 +2,11 @@
 
 class PostReplacement < ApplicationRecord
   self.table_name = "post_replacements2"
+
+  # Raised inside #transfer when ensuring the destination's original backup fails, so the
+  # transfer transaction rolls back and the controller reports the failure instead of 500ing.
+  class TransferError < StandardError; end
+
   belongs_to :post
   belongs_to :creator, class_name: "User"
   belongs_to :approver, class_name: "User", optional: true
@@ -25,8 +30,9 @@ class PostReplacement < ApplicationRecord
     end
   end
   validate on: :create do |replacement|
-    next if replacement_file.nil?
-    FileValidator.new(replacement, replacement_file.path, test_resolution: !is_backup).validate
+    # The backup holds the post's current file, which may predate newer validation rules.
+    next if replacement_file.nil? || is_backup
+    FileValidator.new(replacement, replacement_file.path).validate
     throw :abort if errors.any?
   end
   validate :no_pending_duplicates, on: :create
@@ -34,12 +40,13 @@ class PostReplacement < ApplicationRecord
   validates :reason, length: { in: 5..150 }, presence: true, on: :create
 
   before_create :create_original_backup
+  before_create :fill_sequence_number
   before_create :set_previous_uploader
   after_create -> { post.update_index }
   before_destroy :remove_files
   after_destroy -> { post.update_index }
 
-  TAGS_TO_REMOVE_AFTER_ACCEPT = ["better_version_at_source"].freeze
+  TAGS_TO_REMOVE_AFTER_ACCEPT = %w[better_version_at_source fake_png].freeze
   HIGHLIGHTED_TAGS = %w[better_version_at_source avoid_posting conditional_dnp].freeze
 
   def replacement_url_parsed
@@ -95,10 +102,16 @@ class PostReplacement < ApplicationRecord
     @uploader_linked_artists ||= post.artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == creator.id }.map(&:name)
   end
 
-  def sequence_number
-    return 0 if status == "original"
-    siblings = PostReplacement.where(post_id: post_id).where.not(status: "original").order(:id).ids
-    1 + siblings.index(id)
+  def self.calculate_sequence_number(post_id)
+    1 + where(post_id: post_id).maximum(:sequence_number).to_i
+  end
+
+  # Runs before_create (after create_original_backup, so the backup already holds
+  # 0) rather than before_validation, so it also fires on the factory's
+  # save!(validate: false) path. The original is numbered by its status marker,
+  # which keeps it in lockstep with the check constraint (status 'original' <=> 0).
+  def fill_sequence_number
+    self.sequence_number = status == "original" ? 0 : self.class.calculate_sequence_number(post_id)
   end
 
   def user_is_not_limited
@@ -239,8 +252,12 @@ class PostReplacement < ApplicationRecord
 
       if penalize_uploader_on_approve
         UserStatus.for_user(uploader_on_approve).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count - 1")
+        # Reverse the karma penalty when the penalty is toggled off.
+        UserStatus.adjust_karma(uploader_id_on_approve, UserStatus::KARMA_REPLACEMENT_PENALTY, :replacement_penalty_reversed, post_id: post_id, data: { replacement_id: id })
       else
         UserStatus.for_user(uploader_on_approve).update_all("own_post_replaced_penalize_count = own_post_replaced_penalize_count + 1")
+        # Apply the karma penalty when the penalty is toggled on.
+        UserStatus.adjust_karma(uploader_id_on_approve, -UserStatus::KARMA_REPLACEMENT_PENALTY, :replacement_penalty, post_id: post_id, data: { replacement_id: id })
       end
       update_attribute(:penalize_uploader_on_approve, !penalize_uploader_on_approve)
     end
@@ -276,6 +293,79 @@ class PostReplacement < ApplicationRecord
       update_attribute(:approver_id, CurrentUser.user.id)
       UserStatus.for_user(creator_id).update_all("post_replacement_rejected_count = post_replacement_rejected_count + 1")
       post.update_index
+    end
+
+    # Moves this replacement to another post, preserving its status (a rejected replacement
+    # stays rejected). Only pending/rejected replacements move; the destination must be a
+    # different, non-deleted post that doesn't already hold this file.
+    def transfer(new_post)
+      unless is_pending? || is_rejected?
+        errors.add(:status, "must be pending or rejected to transfer")
+        return
+      end
+      if new_post.nil? || new_post.id == post_id
+        errors.add(:post, "must be a different post")
+        return
+      end
+      if new_post.is_deleted?
+        errors.add(:post, "is deleted")
+        return
+      end
+      if new_post.md5 == md5
+        errors.add(:md5, "identical to the destination post's current file")
+        return
+      end
+      if new_post.replacements.where(md5: md5).exists?
+        errors.add(:md5, "duplicate of existing replacement on post ##{new_post.id}")
+        return
+      end
+
+      source_post = post
+
+      transaction do
+        # Reassign the post AND recompute the sequence number in one write: the record's
+        # number is unique-per-old-post and would collide on the destination.
+        update_columns(
+          post_id: new_post.id,
+          sequence_number: self.class.calculate_sequence_number(new_post.id),
+          uploader_id_on_approve: nil,
+        )
+        reload # so `post` and the callbacks below resolve to the destination
+        set_previous_uploader
+        update_columns(
+          uploader_id_on_approve: uploader_on_approve&.id,
+          penalize_uploader_on_approve: penalize_uploader_on_approve,
+        )
+
+        ensure_destination_backup! # raises TransferError on failure -> rolls back
+
+        PostEvent.add(new_post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: source_post.id, new_post: new_post.id })
+        PostEvent.add(source_post.id, CurrentUser.user, :replacement_moved, { replacement_id: id, old_post: source_post.id, new_post: new_post.id })
+      end
+
+      # OpenSearch, not the DB — run after the transaction commits, like promote!.
+      source_post.update_index
+      new_post.update_index
+    rescue ActiveRecord::RecordNotUnique
+      errors.add(:base, "Another replacement was transferred to that post at the same time; please retry") if errors.none?
+    rescue TransferError => e
+      errors.add(:base, e.message) if errors.none?
+    end
+
+    # Imperative wrapper around create_original_backup for #transfer. That callback signals
+    # failure two ways that are hostile outside a before_create chain -- `throw :abort` (which
+    # would escape as UncaughtThrowError) and a raised ProcessingError -- so translate both
+    # into a TransferError that rolls the transfer transaction back.
+    def ensure_destination_backup!
+      outcome = catch(:abort) do
+        create_original_backup # no-op if the destination already has an `original`
+        :ok
+      end
+      return if outcome == :ok && errors.none?
+
+      raise TransferError, errors.full_messages.to_sentence.presence || "Failed to create backup on the destination post"
+    rescue ProcessingError => e
+      raise TransferError, "Failed to create backup on the destination post: #{e.message}"
     end
 
     def create_original_backup
@@ -370,16 +460,10 @@ class PostReplacement < ApplicationRecord
         if params[:order].present?
           q.apply_basic_order(params)
         elsif params[:post_id].present?
-          # Backups are created before the first replacement, so id DESC already
-          # sorts them last. This pin only matters for legacy posts whose backup
-          # was created afterwards and thus has a higher id; it keeps the backup
-          # anchored below the replacements in that single-post view.
-          q.order(Arel.sql("
-            CASE status
-              WHEN 'original' THEN 0
-              ELSE #{table_name}.id
-            END DESC
-          "))
+          # Legacy backup can have a higher ID than the replacement it backed up.
+          # sequence_number is 0 for the original backup and 1..N for replacements in creation
+          # order, so this always anchors the original below its replacements.
+          q.order(sequence_number: :desc, id: :desc)
         else
           q.default_order
         end

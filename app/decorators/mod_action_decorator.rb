@@ -43,6 +43,16 @@ class ModActionDecorator < ApplicationDecorator
       end
       msg
 
+      ### Search Trend ###
+    when "search_trend_blacklist_create"
+      "Created search trend blacklist entry for \"#{vals['tag']}\""
+    when "search_trend_blacklist_update"
+      "Updated search trend blacklist entry for \"#{vals['tag']}\""
+    when "search_trend_blacklist_delete"
+      "Deleted search trend blacklist entry for \"#{vals['tag']}\""
+    when "search_trend_blacklist_purge"
+      "Purged #{vals['deleted_count']} search trend entries matching \"#{vals['tag']}\""
+
       ### Ticket ###
     when "ticket_update"
       text = "Modified ticket ##{vals['ticket_id']}"
@@ -172,6 +182,14 @@ class ModActionDecorator < ApplicationDecorator
       "Hid all blips by #{user}"
     when "user_blacklist_changed"
       "Edited blacklist of #{user}"
+    when "totp_reset"
+      "Removed two-factor authentication from #{user}"
+    when "password_reset"
+      if vals["invalidated"]
+        "Reset password for #{user} and invalidated their old password"
+      else
+        "Reset password for #{user}"
+      end
     when "user_text_change"
       "Changed profile text of #{user}"
     when "user_custom_title_change"
@@ -186,6 +204,10 @@ class ModActionDecorator < ApplicationDecorator
       end
     when "user_upload_limit_change"
       "Changed upload limit of #{user} from #{vals['old_upload_limit']} to #{vals['new_upload_limit']}"
+    when "user_karma_change"
+      "Changed upload karma of #{user} from #{vals['old_karma']} to #{vals['new_karma']}"
+    when "user_karma_free_toggle"
+      "#{vals['disabled'] ? 'Disabled' : 'Enabled'} karma-enabled free uploads for #{user}"
     when "user_uploads_toggle"
       "#{vals['disabled'] ? 'Disabled' : 'Enabled'} uploading for #{user}"
     when "user_name_change"
@@ -324,6 +346,8 @@ class ModActionDecorator < ApplicationDecorator
       else
         "Updated tag alias #{vals['alias_desc']}\n#{vals['change_desc']}"
       end
+    when "tag_alias_undo"
+      "Undid tag alias #{vals['alias_desc']}"
 
       ### Implication ###
 
@@ -347,6 +371,8 @@ class ModActionDecorator < ApplicationDecorator
       else
         "Updated tag implication #{vals['implication_desc']}\n#{vals['change_desc']}"
       end
+    when "tag_implication_undo"
+      "Undid tag implication #{vals['implication_desc']}"
 
       ### BURs ###
 

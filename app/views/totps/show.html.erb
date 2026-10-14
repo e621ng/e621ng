@@ -1,0 +1,25 @@
+<% content_for(:page_title) do %>
+  Two-Factor Authentication
+<% end %>
+
+<div id="c-totps"><div id="a-show">
+  <h1>Two-factor authentication</h1>
+  <p>Two-factor authentication is <strong>enabled</strong>. A code from your authenticator app is required to log in.</p>
+
+  <h2>Backup codes</h2>
+  <% if @user_totp.backup_code_digests.empty? %>
+    <p>You have <strong>no backup codes left</strong>. Generate new ones now — without them, losing your authenticator locks you out.</p>
+  <% else %>
+    <p>You have <%= @user_totp.backup_code_digests.size %> unused backup <%= "code".pluralize(@user_totp.backup_code_digests.size) %>.</p>
+  <% end %>
+  <%= simple_form_for(:totp, url: regenerate_backup_codes_totp_path, method: :post) do |f| %>
+    <%= f.input(:code, label: "Current code", hint: "Enter a code from your authenticator app to generate new backup codes. This replaces all existing backup codes.", input_html: { autocomplete: "one-time-code" }) %>
+    <%= f.submit("Generate new backup codes") %>
+  <% end %>
+
+  <h2>Disable</h2>
+  <%= simple_form_for(:totp, url: totp_path, method: :delete) do |f| %>
+    <%= f.input(:code, label: "Current code", hint: "Enter a code from your authenticator app or a backup code to disable two-factor authentication.", input_html: { autocomplete: "one-time-code" }) %>
+    <%= f.submit("Disable two-factor authentication") %>
+  <% end %>
+</div></div>

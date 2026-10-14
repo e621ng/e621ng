@@ -6,7 +6,9 @@ RSpec.describe Downloads::File do
   include_context "as member"
 
   before do
-    allow(Resolv).to receive(:getaddress).and_return("1.2.3.4")
+    # #validate_uri_allowed! / #pin_connection! resolve via Resolv.getaddresses (plural);
+    # #is_cloudflare? still uses Resolv.getaddress (singular).
+    allow(Resolv).to receive_messages(getaddresses: ["1.2.3.4"], getaddress: "1.2.3.4")
     allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, nil])
     allow(CloudflareService).to receive(:ips).and_return([])
   end
@@ -35,46 +37,53 @@ RSpec.describe Downloads::File do
     end
 
     describe "blank URL" do
-      it "raises ActiveModel::ValidationError for nil" do
+      it "raises Downloads::File::Error for nil" do
         expect { described_class.new(nil) }
-          .to raise_error(ActiveModel::ValidationError, /URL must not be blank/)
+          .to raise_error(Downloads::File::Error, /URL must not be blank/)
       end
 
-      it "raises ActiveModel::ValidationError for empty string" do
+      it "raises Downloads::File::Error for empty string" do
         expect { described_class.new("") }
-          .to raise_error(ActiveModel::ValidationError, /URL must not be blank/)
+          .to raise_error(Downloads::File::Error, /URL must not be blank/)
       end
     end
 
     describe "invalid scheme" do
-      it "raises ActiveModel::ValidationError for ftp:// scheme with hint" do
-        expect { described_class.new("ftp://example.com/file") }
-          .to raise_error(ActiveModel::ValidationError, /Did you mean/)
+      it "raises Downloads::File::Error for ftp:// scheme without the http hint" do
+        expect { described_class.new("ftp://example.com/file") }.to raise_error(Downloads::File::Error) do |e|
+          expect(e.message).to include("Only http and https are supported")
+          expect(e.message).not_to include("Did you mean")
+        end
+      end
+
+      it "raises Downloads::File::Error with the http hint when the scheme is absent" do
+        expect { described_class.new("example.com/file.jpg") }
+          .to raise_error(Downloads::File::Error, %r{Did you mean 'http://})
       end
     end
 
     describe "blank host" do
-      it "raises ActiveModel::ValidationError when host is missing" do
+      it "raises Downloads::File::Error when host is missing" do
         expect { described_class.new("http:///path/to/file") }
-          .to raise_error(ActiveModel::ValidationError, /not a valid url/)
+          .to raise_error(Downloads::File::Error, /not a valid URL/)
       end
     end
 
     describe "IP address validation" do
       it "raises Downloads::File::Error for a private IP (10.x.x.x)" do
-        allow(Resolv).to receive(:getaddress).and_return("10.0.0.1")
+        allow(Resolv).to receive(:getaddresses).and_return(["10.0.0.1"])
         expect { described_class.new("https://example.com/image.jpg") }
           .to raise_error(Downloads::File::Error, /not allowed/)
       end
 
       it "raises Downloads::File::Error for a loopback IP (127.0.0.1)" do
-        allow(Resolv).to receive(:getaddress).and_return("127.0.0.1")
+        allow(Resolv).to receive(:getaddresses).and_return(["127.0.0.1"])
         expect { described_class.new("https://example.com/image.jpg") }
           .to raise_error(Downloads::File::Error, /not allowed/)
       end
 
       it "raises Downloads::File::Error for a link-local IP (169.254.x.x)" do
-        allow(Resolv).to receive(:getaddress).and_return("169.254.1.1")
+        allow(Resolv).to receive(:getaddresses).and_return(["169.254.1.1"])
         expect { described_class.new("https://example.com/image.jpg") }
           .to raise_error(Downloads::File::Error, /not allowed/)
       end
@@ -97,6 +106,16 @@ RSpec.describe Downloads::File do
     it "returns Sources::Strategies::PixivSlim for a Pixiv URL" do
       expect(make_downloader("https://www.pixiv.net/artworks/12345678").strategy)
         .to be_a(Sources::Strategies::PixivSlim)
+    end
+
+    it "returns Sources::Strategies::InkbunnySlim for an Inkbunny image URL" do
+      expect(make_downloader("https://us.ib.metapix.net/files/screen/5604/5604180_ColdBloodedTwilight_2025_474.png").strategy)
+        .to be_a(Sources::Strategies::InkbunnySlim)
+    end
+
+    it "sends the Inkbunny referer for metapix.net downloads" do
+      strategy = make_downloader("https://us.ib.metapix.net/files/full/5604/5604180_ColdBloodedTwilight_2025.png").strategy
+      expect(strategy.headers).to eq(referer: "https://inkbunny.net")
     end
   end
 
@@ -163,21 +182,71 @@ RSpec.describe Downloads::File do
     end
 
     it "raises Downloads::File::Error for a private IP (10.x.x.x)" do
-      allow(Resolv).to receive(:getaddress).and_return("10.0.0.1")
+      allow(Resolv).to receive(:getaddresses).and_return(["10.0.0.1"])
       expect { call("https://example.com/image.jpg") }
         .to raise_error(Downloads::File::Error, /not allowed/)
     end
 
     it "raises Downloads::File::Error for a loopback IP (127.0.0.1)" do
-      allow(Resolv).to receive(:getaddress).and_return("127.0.0.1")
+      allow(Resolv).to receive(:getaddresses).and_return(["127.0.0.1"])
       expect { call("https://example.com/image.jpg") }
         .to raise_error(Downloads::File::Error, /not allowed/)
     end
 
     it "raises Downloads::File::Error for a link-local IP (169.254.x.x)" do
-      allow(Resolv).to receive(:getaddress).and_return("169.254.1.1")
+      allow(Resolv).to receive(:getaddresses).and_return(["169.254.1.1"])
       expect { call("https://example.com/image.jpg") }
         .to raise_error(Downloads::File::Error, /not allowed/)
+    end
+
+    it "raises when ANY resolved record is blocked, even if the first is public" do
+      # Multi-record bypass: getaddress would only inspect the first (public) record.
+      allow(Resolv).to receive(:getaddresses).and_return(["1.2.3.4", "10.0.0.1"])
+      expect { call("https://example.com/image.jpg") }
+        .to raise_error(Downloads::File::Error, /not allowed/)
+    end
+
+    it "raises when the host resolves to no addresses (fail closed)" do
+      allow(Resolv).to receive(:getaddresses).and_return([])
+      expect { call("https://example.com/image.jpg") }
+        .to raise_error(Downloads::File::Error, /could not resolve/i)
+    end
+
+    it "raises when resolution fails (fail closed)" do
+      allow(Resolv).to receive(:getaddresses).and_raise(Resolv::ResolvError)
+      expect { call("https://example.com/image.jpg") }
+        .to raise_error(Downloads::File::Error, /could not resolve/i)
+    end
+
+    it "raises a clean error (not a 500) when a resolved record is unparseable by IPAddr" do
+      allow(Resolv).to receive(:getaddresses).and_return(["not-an-ip-address"])
+      expect { call("https://example.com/image.jpg") }
+        .to raise_error(Downloads::File::Error, /could not resolve/i)
+    end
+
+    it "validates an IP-literal host directly without DNS resolution" do
+      expect { call("https://127.0.0.1/image.jpg") }
+        .to raise_error(Downloads::File::Error, /not allowed/)
+      expect(Resolv).not_to have_received(:getaddresses).with("127.0.0.1")
+    end
+
+    # IPv6 transition and IPv4-mapped addresses embed a blocked IPv4 target but are
+    # invisible to IPAddr#private?/#loopback?/#link_local? (SSRF guard bypass).
+    {
+      "NAT64 loopback (64:ff9b::7f00:1)" => "64:ff9b::7f00:1",
+      "NAT64 cloud metadata (64:ff9b::a9fe:a9fe)" => "64:ff9b::a9fe:a9fe",
+      "6to4 loopback (2002:7f00:0001::)" => "2002:7f00:0001::",
+      "6to4 cloud metadata (2002:a9fe:a9fe::)" => "2002:a9fe:a9fe::",
+      "IPv4-mapped loopback (::ffff:127.0.0.1)" => "::ffff:127.0.0.1",
+      "IPv4-compatible loopback (::7f00:1)" => "::7f00:1",
+      "unspecified address (0.0.0.0)" => "0.0.0.0",
+      "unspecified IPv6 address (::)" => "::",
+    }.each do |description, address|
+      it "raises Downloads::File::Error for #{description}" do
+        allow(Resolv).to receive(:getaddresses).and_return([address])
+        expect { call("https://example.com/image.jpg") }
+          .to raise_error(Downloads::File::Error, /not allowed/)
+      end
     end
 
     it "raises Downloads::File::Error when the URL is not whitelisted" do
@@ -188,6 +257,51 @@ RSpec.describe Downloads::File do
 
     it "returns nil for a public IP with a whitelisted URL" do
       expect(call("https://example.com/image.jpg")).to be_nil
+    end
+  end
+
+  describe "#pin_connection!" do
+    let(:downloader) { make_downloader }
+
+    def pin(host, port = 443)
+      http = Net::HTTP.new(host, port)
+      downloader.send(:pin_connection!, http)
+      http
+    end
+
+    it "pins the connection to the validated IP while preserving the hostname" do
+      allow(Resolv).to receive(:getaddresses).and_return(["1.2.3.4"])
+      http = pin("example.com")
+      expect(http.ipaddr).to eq("1.2.3.4")
+      expect(http.address).to eq("example.com") # Host header / TLS SNI unchanged
+    end
+
+    it "refuses to pin when the host rebinds to a blocked address" do
+      allow(Resolv).to receive(:getaddresses).and_return(["1.2.3.4", "10.0.0.1"])
+      expect { pin("example.com") }.to raise_error(Downloads::File::Error, /not allowed/)
+    end
+
+    it "prefers an IPv4 record when both families resolve (keeps v6-only pins from breaking downloads)" do
+      allow(Resolv).to receive(:getaddresses).and_return(["2606:4700::1111", "1.2.3.4"])
+      expect(pin("example.com").ipaddr).to eq("1.2.3.4")
+    end
+
+    it "pins a resolved IPv6 address in unbracketed form" do
+      allow(Resolv).to receive(:getaddresses).and_return(["2606:4700::1111"])
+      http = pin("example.com")
+      expect(http.ipaddr).to eq("2606:4700::1111")
+    end
+
+    it "refuses a blocked IPv6 literal host" do
+      expect { pin("[::1]") }.to raise_error(Downloads::File::Error, /not allowed/)
+    end
+
+    it "re-validates on every call (covers redirects and retries)" do
+      allow(Resolv).to receive(:getaddresses).and_return(["1.2.3.4"])
+      expect { pin("example.com") }.not_to raise_error
+
+      allow(Resolv).to receive(:getaddresses).and_return(["169.254.169.254"])
+      expect { pin("example.com") }.to raise_error(Downloads::File::Error, /not allowed/)
     end
   end
 
@@ -224,6 +338,18 @@ RSpec.describe Downloads::File do
         .and_raise(Faraday::FollowRedirects::RedirectLimitReached.new({ url: "https://example.com/" }))
       expect { downloader.download! }
         .to raise_error(Downloads::File::Error, /too many redirects/)
+    end
+
+    it "raises Downloads::File::Error when the connection fails" do
+      allow(conn).to receive(:get).and_raise(Faraday::ConnectionFailed, "boom")
+      expect { downloader.download! }
+        .to raise_error(Downloads::File::Error, /Couldn't download the file/)
+    end
+
+    it "raises Downloads::File::Error when the request times out" do
+      allow(conn).to receive(:get).and_raise(Faraday::TimeoutError)
+      expect { downloader.download! }
+        .to raise_error(Downloads::File::Error, /Couldn't download the file/)
     end
 
     # FIXME: The on_data streaming callback (which enforces max_size) is never invoked

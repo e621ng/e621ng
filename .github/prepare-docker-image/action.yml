@@ -10,6 +10,7 @@ runs:
     - name: Build
       uses: docker/build-push-action@v7
       with:
+        target: development
         cache-from: type=gha
         load: true
         tags: e621

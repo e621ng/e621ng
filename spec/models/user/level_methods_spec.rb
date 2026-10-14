@@ -49,9 +49,37 @@ RSpec.describe User do
     # .system
     # -------------------------------------------------------------------------
     describe ".system" do
+      before do
+        allow(Danbooru.config.custom_configuration).to receive_messages(system_user: "System", system_user_id: nil)
+        create(:user, name: "System", level: UserLevel::MODERATOR)
+        RequestStore[:system_user] = nil
+      end
+
+      after do
+        RequestStore[:system_user] = nil
+      end
+
       it "returns the system user" do
         system_user = User.find_by!(name: Danbooru.config.system_user)
+        expect(User.system.id).to eq(system_user.id)
+      end
+
+      it "returns the system user if ID is set" do
+        system_user = User.find_by!(name: Danbooru.config.system_user)
+        allow(Danbooru.config.custom_configuration).to receive(:system_user_id).and_return(system_user.id)
         expect(User.system).to eq(system_user)
+      end
+
+      it "raises an error if the system user does not exist" do
+        allow(Danbooru.config.custom_configuration).to receive(:system_user).and_return("Nonexistent")
+        expect { User.system }.to raise_error(ActiveRecord::RecordNotFound)
+      end
+
+      it "returns the system user if the ID is set but the name is changed" do
+        system_user = User.find_by!(name: Danbooru.config.system_user)
+        allow(Danbooru.config.custom_configuration).to receive(:system_user_id).and_return(system_user.id)
+        system_user.update!(name: "NewName")
+        expect(User.system.id).to eq(system_user.id)
       end
     end
 
@@ -166,6 +194,32 @@ RSpec.describe User do
         # is_<level>? requires id.present? — build does not persist, so id is nil
         user = build(:admin_user)
         expect(user.is_admin?).to be(false)
+      end
+    end
+
+    describe "dynamic is_<level>? methods with TOTP requirement" do
+      before do
+        allow(Danbooru.config.custom_configuration).to receive(:require_totp_for_staff?).and_return(true)
+      end
+
+      it "returns true for a member without TOTP" do
+        user = create(:user)
+        expect(user.is_member?).to be(true)
+      end
+
+      it "returns false for a staff member without TOTP" do
+        user = create(:staff_user, totp_enabled: false)
+        expect(user.is_staff?).to be(false)
+      end
+
+      it "returns true for a staff member with TOTP" do
+        user = create(:staff_user, totp_enabled: true)
+        expect(user.is_staff?).to be(true)
+      end
+
+      it "returns true for the system user without TOTP" do
+        system_user = User.system
+        expect(system_user.is_staff?).to be(true)
       end
     end
 

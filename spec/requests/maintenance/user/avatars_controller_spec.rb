@@ -148,7 +148,7 @@ RSpec.describe Maintenance::User::AvatarsController do
         it "enqueues an AvatarCropJob with the correct arguments" do
           expect do
             patch maintenance_user_avatar_path, params: valid_params
-          end.to have_enqueued_job(AvatarCropJob).with(user.id, post.id, 0, 0, 256)
+          end.to enqueue_sidekiq_job(AvatarCropJob).with(user.id, post.id, 0, 0, 256)
         end
 
         it "redirects to the user's profile" do

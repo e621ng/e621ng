@@ -9,7 +9,7 @@ Post.without_timeout do
   Post.in_batches(load: true, order: :desc).each_with_index do |group, index|
     puts "batch #{index}"
     group.each do |post|
-      PostImageSamplerJob.perform_later(post.id)
+      PostImageSamplerJob.perform_async(post.id)
       sm.delete_crop_file(post.md5)
     end
   end

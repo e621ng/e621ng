@@ -370,7 +370,7 @@ RSpec.describe Staff::Post::PostsController do
       end
 
       it "calls reowner! and redirects if the user is found" do
-        allow_any_instance_of(Post).to receive(:reowner!).with(new_owner, post_events: true, reowner_versions: false).and_return(9999) # rubocop:disable RSpec/AnyInstance
+        allow_any_instance_of(Post).to receive(:reowner!).with(new_owner, post_events: true, reowner_versions: false, karma: true).and_return(9999) # rubocop:disable RSpec/AnyInstance
         expect do
           post reowner_staff_post_post_path(post_record), params: { reowner: { new_owner: new_owner.name } }
         end.not_to change(StaffAuditLog, :count)
@@ -378,13 +378,19 @@ RSpec.describe Staff::Post::PostsController do
       end
 
       it "creates a staff audit log entry when disabling reowner post events" do
-        allow_any_instance_of(Post).to receive(:reowner!).with(new_owner, post_events: false, reowner_versions: false).and_return(9999) # rubocop:disable RSpec/AnyInstance
+        allow_any_instance_of(Post).to receive(:reowner!).with(new_owner, post_events: false, reowner_versions: false, karma: true).and_return(9999) # rubocop:disable RSpec/AnyInstance
         expect do
           post reowner_staff_post_post_path(post_record), params: { reowner: { new_owner: new_owner.name, post_events: false } }
         end.to change(StaffAuditLog, :count).by(1)
         expect(response).to redirect_to(post_path(post_record))
         expect(StaffAuditLog.last.action).to eq("post_owner_reassign")
         expect(StaffAuditLog.last[:values]).to include("old_user_id" => 9999, "new_user_id" => new_owner.id, "query" => "", "post_ids" => [post_record.id])
+      end
+
+      it "passes karma: false through to reowner!" do
+        allow_any_instance_of(Post).to receive(:reowner!).with(new_owner, post_events: true, reowner_versions: false, karma: false).and_return(9999) # rubocop:disable RSpec/AnyInstance
+        post reowner_staff_post_post_path(post_record), params: { reowner: { new_owner: new_owner.name, karma: "false" } }
+        expect(response).to redirect_to(post_path(post_record))
       end
     end
   end

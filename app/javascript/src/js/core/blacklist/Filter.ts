@@ -1,9 +1,7 @@
-import E621Type from "@/interfaces/E621";
+import Blacklist from "@/core/blacklist";
 import PostCache, { CachedPost } from "@/models/PostCache";
 import LStorage from "@/utility/storage/Local";
 import FilterToken from "./FilterToken";
-
-declare const E621: E621Type;
 
 /**
  * Represents an individual line in the blacklist.
@@ -80,7 +78,7 @@ export default class Filter {
     if (this._enabled) LStorage.Blacklist.FilterState.delete(this.text);
     else LStorage.Blacklist.FilterState.add(this.text);
 
-    E621.Blacklist.updatePostVisibility();
+    Blacklist.updatePostVisibility();
   }
 
   public setEnabledWithoutSaving (value: boolean) {

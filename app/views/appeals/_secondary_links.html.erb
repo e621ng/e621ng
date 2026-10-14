@@ -6,4 +6,7 @@
   <% if CurrentUser.user.is_janitor? %>
   <%= subnav_link_to "Claimed", appeals_path(search: { claimant_id: CurrentUser.user.id }) %>
   <% end %>
+
+  <li class="divider"></li>
+  <%= subnav_link_to "Help", help_page_path(id: "appeals") %>
 <% end %>

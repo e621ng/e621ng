@@ -34,7 +34,7 @@ class TagCorrection
   end
 
   def fix!
-    TagPostCountJob.perform_later(tag.id)
+    TagPostCountJob.perform_async(tag.id)
     tag.update_category_cache
   end
 end

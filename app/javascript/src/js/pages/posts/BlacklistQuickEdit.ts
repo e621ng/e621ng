@@ -1,7 +1,5 @@
-import E621Type from "@/interfaces/E621";
+import CurrentUser from "@/models/CurrentUser";
 import Dialog from "@/utility/dialog";
-
-declare const E621: E621Type;
 
 $(() => {
   const dialogEl = $("#blacklist-edit-dialog");
@@ -22,13 +20,13 @@ $(() => {
   $("#blacklist-save").on("click", function () {
     const blacklist_content = $("#blacklist-edit").val() + "";
     const blacklist_json = blacklist_content.split(/\n\r?/);
-    E621.CurrentUser.blacklist = blacklist_json;
+    CurrentUser.blacklist = blacklist_json;
     dialog.close();
   });
 
   $("#blacklist-edit-link").on("click", function (event) {
     event.preventDefault();
-    $("#blacklist-edit").val(E621.CurrentUser.blacklist.join("\n"));
+    $("#blacklist-edit").val(CurrentUser.blacklist.join("\n"));
     dialog.open();
   });
 

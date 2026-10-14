@@ -9,7 +9,7 @@ RSpec.describe TransferFavoritesJob do
   let(:child_post)  { create(:post, parent_id: parent_post.id) }
 
   def perform(post_id = child_post.id, user_id = CurrentUser.id)
-    described_class.perform_now(post_id, user_id)
+    described_class.new.perform(post_id, user_id)
   end
 
   # Creates a Favorite and keeps post.fav_count consistent.

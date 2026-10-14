@@ -15,6 +15,7 @@ RSpec.describe Setting do
     # -------------------------------------------------------------------------
     describe "lockdown" do
       it { expect(Setting.uploads_disabled).to be(false) }
+      it { expect(Setting.post_replacements_disabled).to be(false) }
       it { expect(Setting.pools_disabled).to be(false) }
       it { expect(Setting.post_sets_disabled).to be(false) }
       it { expect(Setting.comments_disabled).to be(false) }

@@ -148,7 +148,7 @@ RSpec.describe UploadService::Utils do
       end
 
       it "enqueues UploadDeleteFilesJob" do
-        expect { described_class.process_file(upload, file) }.to have_enqueued_job(UploadDeleteFilesJob)
+        expect { described_class.process_file(upload, file) }.to enqueue_sidekiq_job(UploadDeleteFilesJob)
       end
     end
 

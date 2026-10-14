@@ -9,4 +9,5 @@ RSpec.describe PostVote do
   it_behaves_like "user_vote search: timeframe",    :post_vote, PostVote
   it_behaves_like "user_vote search: user_ip_addr", :post_vote, PostVote
   it_behaves_like "user_vote search: order",        :post_vote, PostVote
+  it_behaves_like "user_vote search: creator",      :post_vote, PostVote
 end

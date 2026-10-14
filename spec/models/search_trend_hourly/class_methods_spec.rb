@@ -101,8 +101,7 @@ RSpec.describe SearchTrendHourly do
         trends_tag_window: 60,
       )
       allow(SearchTrendBlacklist).to receive(:blacklisted?).and_return(false)
-      allow(RateLimiter).to receive(:check_limit).and_return(false)
-      allow(RateLimiter).to receive(:hit)
+      allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
     end
 
     it "does not write to the DB when data is blank" do
@@ -156,14 +155,14 @@ RSpec.describe SearchTrendHourly do
     end
 
     it "returns early without any DB writes when the IP rate limit is exceeded" do
-      allow(RateLimiter).to receive(:check_limit).with("trends:ip:1.2.3.4", anything, anything).and_return(true)
+      allow(RateLimiter).to receive(:new).with("trends:ip:1.2.3.4", any_args).and_return(instance_double(RateLimiter, throttled?: true))
       expect { SearchTrendHourly.bulk_increment!([{ tag: "fox", hour: fixed_hour }], ip: "1.2.3.4") }
         .not_to change(SearchTrendHourly, :count)
     end
 
     it "skips rate-limited tags but still writes other tags in the same batch" do
-      allow(RateLimiter).to receive(:check_limit).with("trends:tag:slow_tag", anything, anything).and_return(true)
-      allow(RateLimiter).to receive(:check_limit).with("trends:tag:fast_tag", anything, anything).and_return(false)
+      allow(RateLimiter).to receive(:new).with("trends:tag:slow_tag", any_args).and_return(instance_double(RateLimiter, throttled?: true))
+      allow(RateLimiter).to receive(:new).with("trends:tag:fast_tag", any_args).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
 
       data = [
         { tag: "slow_tag", hour: fixed_hour },

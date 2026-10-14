@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class IqdbRemoveJob < ApplicationJob
-  queue_as :iqdb
+  sidekiq_options queue: "iqdb"
 
   def perform(post_id)
     IqdbProxy.remove_post(post_id)

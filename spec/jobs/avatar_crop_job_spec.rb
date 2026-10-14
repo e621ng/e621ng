@@ -14,7 +14,7 @@ RSpec.describe AvatarCropJob do
   end
 
   def perform(user_id: user.id, post_id: post.id, pos_x: 0, pos_y: 0, width: 256)
-    described_class.perform_now(user_id, post_id, pos_x, pos_y, width)
+    described_class.new.perform(user_id, post_id, pos_x, pos_y, width)
   end
 
   describe "#perform" do

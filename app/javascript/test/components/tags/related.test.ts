@@ -1,0 +1,96 @@
+import Related from "@/components/tags/related.vue";
+import { mount, VueWrapper } from "@vue/test-utils";
+import { afterEach, describe, expect, it } from "vitest";
+
+const wrappers: VueWrapper[] = [];
+afterEach(() => {
+  for (const w of wrappers.splice(0)) w.unmount();
+});
+
+function make (props: Record<string, unknown> = {}) {
+  const wrapper = mount(Related, {
+    props: { tags: [], related: [], loading: false, ...props },
+  });
+  wrappers.push(wrapper);
+  return wrapper;
+}
+
+const titles = (w: VueWrapper) => w.findAll(".related-title").map((t) => t.text());
+const itemText = (w: VueWrapper) => w.findAll(".related-item a").map((a) => a.text());
+
+describe("uploads/related", () => {
+  it("renders Quick Tags and Recent groups from props, recent sorted by name", async () => {
+    const w = make({
+      uploadedTags: [{ name: "fav", category_id: 0 }],
+      recentTags: [{ name: "zzz", category_id: 0 }, { name: "aaa", category_id: 0 }],
+    });
+    expect(titles(w)).toEqual(["Quick Tags", "Recent"]);
+    // Recent is sorted; Quick Tags keeps its given order.
+    expect(itemText(w)).toEqual(["fav", "aaa", "zzz"]);
+  });
+
+  it("renders no Quick Tags or Recent groups when the props are absent", async () => {
+    const w = make(); // no uploadedTags/recentTags props
+    expect(titles(w)).not.toContain("Quick Tags");
+    expect(titles(w)).not.toContain("Recent");
+  });
+
+  it("renders server-provided related groups", () => {
+    const w = make({ related: [{ title: "Related: artist", tags: [{ name: "picasso", category_id: 1 }] }] });
+    expect(titles(w)).toContain("Related: artist");
+    expect(itemText(w)).toContain("picasso");
+  });
+
+  it("shows a loading placeholder group while loading", () => {
+    const w = make({ loading: true });
+    expect(titles(w)).toContain("Loading Related Tags");
+  });
+
+  it("renders the loading row inert: no anchor, no emit on click", async () => {
+    const w = make({ loading: true });
+    const section = w.findAll(".related-section")
+      .find((s) => s.find(".related-title").text() === "Loading Related Tags")!;
+    expect(section.find("a").exists()).toBe(false);
+
+    await section.find(".related-item").trigger("click");
+    expect(w.emitted("tag-active")).toBeUndefined();
+  });
+
+  it("follows prop updates to the group sources after mount", async () => {
+    const w = make(); // no uploadedTags/recentTags
+    expect(titles(w)).toEqual([]);
+
+    await w.setProps({ recentTags: [{ name: "zzz", category_id: 0 }, { name: "aaa", category_id: 0 }] });
+    expect(titles(w)).toContain("Recent");
+    expect(itemText(w)).toEqual(["aaa", "zzz"]);
+  });
+
+  it("splits a group into rows of 25", () => {
+    const tags = Array.from({ length: 30 }, (_, i) => ({ name: `t${i}`, category_id: 0 }));
+    const w = make({ related: [{ title: "Big", tags }] });
+    expect(w.findAll(".related-section .related-items").length).toBe(2);
+  });
+
+  it("marks active tags and applies the category class", () => {
+    const w = make({
+      tags: ["picasso"],
+      related: [{ title: "Related: artist", tags: [{ name: "picasso", category_id: 1 }, { name: "monet", category_id: 1 }] }],
+    });
+    const picasso = w.findAll(".related-item a").find((a) => a.text() === "picasso")!;
+    expect(picasso.classes()).toContain("tag-active");
+    expect(picasso.classes()).toContain("tag-type-1");
+    expect(w.findAll(".related-item a").find((a) => a.text() === "monet")!.classes()).not.toContain("tag-active");
+  });
+
+  it("emits tag-active with the toggled state on click", async () => {
+    const w = make({
+      tags: ["picasso"],
+      related: [{ title: "Related: artist", tags: [{ name: "picasso", category_id: 1 }, { name: "monet", category_id: 1 }] }],
+    });
+    await w.findAll(".related-item a").find((a) => a.text() === "monet")!.trigger("click");
+    expect(w.emitted("tag-active")!.at(-1)).toEqual(["monet", true]); // not active → add
+
+    await w.findAll(".related-item a").find((a) => a.text() === "picasso")!.trigger("click");
+    expect(w.emitted("tag-active")!.at(-1)).toEqual(["picasso", false]); // active → remove
+  });
+});

@@ -1,9 +1,7 @@
 import Hotkeys from "@/core/hotkeys";
 import HotkeysConfig from "@/core/hotkeys/HotkeysConfig";
 import * as Types from "@/core/hotkeys/Types";
-import E621Type from "@/interfaces/E621";
-
-declare const E621: E621Type;
+import CurrentUser from "@/models/CurrentUser";
 
 export default class StaticShortcuts {
 
@@ -106,8 +104,8 @@ export default class StaticShortcuts {
     const resetIcon = $(".hotkey-reset-icon").clone().removeClass("hotkey-reset-icon");
 
     buildDefs(StaticShortcuts.Definitions);
-    if (E621.CurrentUser.is.privileged) buildDefs(StaticShortcuts.PrivilegedDefs);
-    if (E621.CurrentUser.is.janitor) buildDefs(StaticShortcuts.JanitorDefs);
+    if (CurrentUser.is.privileged) buildDefs(StaticShortcuts.PrivilegedDefs);
+    if (CurrentUser.is.janitor) buildDefs(StaticShortcuts.JanitorDefs);
 
     function buildDefs (list: Record<string, Types.HotkeyBindingsList>) {
       for (const [category, definitions] of Object.entries(list)) {

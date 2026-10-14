@@ -1,6 +1,5 @@
-import E621Type from "@/interfaces/E621";
-
-declare const E621: E621Type;
+import ToastManager from "@/utility/Toast";
+import CurrentUser from "@/models/CurrentUser";
 
 interface VoteResponse {
   id: number;
@@ -15,6 +14,7 @@ function scoreToStr (score: number): string {
     case 1: return "up";
     case 0: return "meh";
     case -1: return "down";
+    case 2: return "flip";
     default: throw new Error(`Unknown score: ${score}`);
   }
 }
@@ -35,7 +35,7 @@ export default class ForumPostVote {
     buttons.on("click", (event) => {
       event.preventDefault();
       if (this.state !== "ready") {
-        E621.Toast.alert("Please wait for the current vote to finish processing.");
+        ToastManager.alert("Please wait for the current vote to finish processing.");
         return;
       }
       this.state = "loading";
@@ -95,7 +95,7 @@ export default class ForumPostVote {
       this.addVoteToDOM(data);
     }).fail((xhr) => {
       const message: string = xhr?.responseJSON?.reason ?? "Failed to vote on forum post.";
-      E621.Toast.alert(message);
+      ToastManager.alert(message);
     });
   }
 
@@ -108,7 +108,7 @@ export default class ForumPostVote {
       this.removeVoteFromDOM();
     }).fail((xhr) => {
       const message: string = xhr?.responseJSON?.reason ?? "Failed to remove vote.";
-      E621.Toast.alert(message);
+      ToastManager.alert(message);
     });
   }
 
@@ -126,7 +126,7 @@ export default class ForumPostVote {
         "href": `/users/${vote.creator_id}`,
         "rel": "nofollow",
       })
-      .addClass("with-style user-" + E621.CurrentUser.levelString.replace(/ /g, "-").toLowerCase())
+      .addClass("user-" + CurrentUser.levelString.replace(/ /g, "-").toLowerCase())
       .text(vote.creator_name.replace(/_+/g, " "));
     const $li = $("<li>").addClass("forum-post-vote own-forum-vote").append($link);
     $votesList.append($li);

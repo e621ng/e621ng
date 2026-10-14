@@ -1,8 +1,7 @@
 // post-favorites
 
-import E621Type from "@/interfaces/E621";
-declare const E621: E621Type;
+import ModuleRegistry from "@/utility/ModuleRegistry";
 
 import "@/pages/posts/BlacklistQuickEdit";
 
-E621.Registry.register("v_post-favorites");
+ModuleRegistry.register("v_post-favorites");

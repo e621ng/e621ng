@@ -12,7 +12,7 @@ RSpec.describe IqdbConcurrencyResetJob do
       end
 
       it "deletes all matching keys" do
-        described_class.perform_now
+        described_class.new.perform
         expect(Cache.redis).to have_received(:del).with("iqdb:concurrent:e621", "iqdb:concurrent:e926")
         expect(Cache.redis).to have_received(:del).with("iqdb:concurrent:keys")
       end
@@ -25,7 +25,7 @@ RSpec.describe IqdbConcurrencyResetJob do
       end
 
       it "does not call DEL" do
-        described_class.perform_now
+        described_class.new.perform
         expect(Cache.redis).not_to have_received(:del)
       end
     end

@@ -11,7 +11,7 @@ RSpec.describe TagAliasJob do
     it "calls process! on the tag alias" do
       allow(TagAlias).to receive(:find).with(tag_alias.id).and_return(tag_alias)
       allow(tag_alias).to receive(:process!)
-      described_class.perform_now(tag_alias.id, false)
+      described_class.new.perform(tag_alias.id, false)
       expect(tag_alias).to have_received(:process!).with(update_topic: false)
     end
   end

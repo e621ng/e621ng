@@ -49,8 +49,7 @@ RSpec.describe Maintenance::User::EmailChangesController do
     context "as a member" do
       before do
         sign_in_as user
-        allow(RateLimiter).to receive(:check_limit).and_return(false)
-        allow(RateLimiter).to receive(:hit)
+        allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
       end
 
       context "with a correct password and valid email" do
@@ -82,7 +81,7 @@ RSpec.describe Maintenance::User::EmailChangesController do
       end
 
       context "when rate-limited" do
-        before { allow(RateLimiter).to receive(:check_limit).and_return(true) }
+        before { allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: true)) }
 
         it "redirects to the new page with an error notice" do
           post maintenance_user_email_change_path, params: { email_change: { email: "new@example.com", password: "hexerade" } }

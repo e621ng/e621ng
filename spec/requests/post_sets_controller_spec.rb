@@ -13,7 +13,7 @@ RSpec.describe PostSetsController do
   let(:public_set)   { create(:public_post_set, creator: owner) }
 
   before do
-    allow(RateLimiter).to receive(:check_limit).and_return(false)
+    allow(RateLimiter).to receive_messages(throttle!: false, new: instance_double(RateLimiter, throttled?: false, hit!: 1))
   end
 
   # ---------------------------------------------------------------------------
@@ -397,21 +397,13 @@ RSpec.describe PostSetsController do
         expect(response).to redirect_to(post_list_post_set_path(private_set))
       end
 
-      it "performs inline sync and does not enqueue a job when only one post changes" do
-        new_post = create(:post)
-        expect do
-          post update_posts_post_set_path(private_set),
-               params: { post_set: { post_ids_string: new_post.id.to_s } }
-        end.not_to have_enqueued_job(PostSetPostsSyncJob)
-        expect(private_set.reload.post_ids).to include(new_post.id)
-      end
-
-      it "enqueues PostSetPostsSyncJob when more than one post changes" do
+      it "applies the change and enqueues a reindex for the delta" do
         posts = create_list(:post, 2)
         expect do
           post update_posts_post_set_path(private_set),
                params: { post_set: { post_ids_string: posts.map(&:id).join(" ") } }
-        end.to have_enqueued_job(PostSetPostsSyncJob)
+        end.to enqueue_sidekiq_job(BulkIndexUpdateJob).with("Post", match_array(posts.map(&:id)))
+        expect(private_set.reload.post_ids).to match_array(posts.map(&:id))
       end
     end
   end
@@ -461,6 +453,17 @@ RSpec.describe PostSetsController do
         post add_posts_post_set_path(public_set, format: :json), params: { post_ids: post_ids }
         expect(response).to have_http_status(:bad_request)
         expect(response.parsed_body["message"]).to match(/only add up to/)
+      end
+    end
+
+    context "when the set is over the post limit" do
+      before { sign_in_as owner }
+
+      it "returns a 422 error" do
+        public_set.update_columns(post_count: Danbooru.config.post_set_post_limit.to_i + 101)
+        post add_posts_post_set_path(public_set, format: :json), params: { post_ids: [new_post.id] }
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body["message"]).to match(/too many posts/i)
       end
     end
   end
@@ -516,6 +519,17 @@ RSpec.describe PostSetsController do
         post remove_posts_post_set_path(public_set, format: :json), params: { post_ids: post_ids }
         expect(response).to have_http_status(:bad_request)
         expect(response.parsed_body["message"]).to match(/only remove up to/)
+      end
+    end
+
+    context "when the set is over the post limit" do
+      before { sign_in_as owner }
+
+      it "returns a 422 error" do
+        public_set.update_columns(post_count: Danbooru.config.post_set_post_limit.to_i + 101)
+        post remove_posts_post_set_path(public_set, format: :json), params: { post_ids: [existing_post.id] }
+        expect(response).to have_http_status(:unprocessable_entity)
+        expect(response.parsed_body["message"]).to match(/too many posts/i)
       end
     end
   end
@@ -585,7 +599,7 @@ RSpec.describe PostSetsController do
 
     before do
       sign_in_as owner
-      allow(RateLimiter).to receive(:check_limit).and_return(true)
+      allow(RateLimiter).to receive(:throttle!).and_return(true)
     end
 
     it "returns 429 when the rate limit is exceeded while adding posts" do

@@ -43,6 +43,17 @@
         <% else %>
           <%= link_to "Enabled", toggle_uploads_user_path(user) %>
         <% end %>
+        <% if user.can_upload_free? %>
+          | <span class="text-bold" title="Unrestricted uploads manually granted by an admin. Change via the staff edit page.">Unrestricted</span>
+        <% end %>
+        <% if !Danbooru.config.upload_karma_free_threshold.nil? && (user.upload_karma_level >= Danbooru.config.upload_karma_free_threshold || user.no_karma_free) %>
+          | 
+          <% if user.no_karma_free %>
+            <%= link_to "Limited", toggle_karma_free_user_path(user), class: "text-red text-bold" %>
+          <% else %>
+            <%= link_to "Unlimited", toggle_karma_free_user_path(user) %>
+          <% end %>
+        <% end %>
         | <%= link_to "Refresh counts", fix_counts_user_path(user) %>
       </span>
     <% end %>
@@ -51,6 +62,11 @@
       <h4>Cleanup</h4>
       <span>
         <%= link_to "Cleanup Page", staff_user_cleanup_path(user) %>
+      </span>
+
+      <h4>Alts</h4>
+      <span>
+        <%= link_to "Search", staff_user_alts_path(user_id: user.id) %>
       </span>
     <% end %>
 

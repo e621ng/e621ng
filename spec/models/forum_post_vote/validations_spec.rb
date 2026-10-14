@@ -25,8 +25,12 @@ RSpec.describe ForumPostVote do
       expect(build(:forum_post_vote, score: 0)).to be_valid
     end
 
-    it "is invalid with score 2" do
-      record = build(:forum_post_vote, score: 2)
+    it "is valid with score 2" do
+      expect(build(:forum_post_vote, score: 2)).to be_valid
+    end
+
+    it "is invalid with score 3" do
+      record = build(:forum_post_vote, score: 3)
       expect(record).not_to be_valid
       expect(record.errors[:score]).to be_present
     end

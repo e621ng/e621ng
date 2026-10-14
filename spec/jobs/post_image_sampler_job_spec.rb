@@ -10,7 +10,7 @@ RSpec.describe PostImageSamplerJob do
 
     it "calls ImageSampler.generate_post_images with the post" do
       allow(ImageSampler).to receive(:generate_post_images)
-      described_class.perform_now(post.id)
+      described_class.new.perform(post.id)
       expect(ImageSampler).to have_received(:generate_post_images).with(post).at_least(:once)
     end
   end

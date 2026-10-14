@@ -9,6 +9,7 @@
     <%= f.input(:search, label: "Search Query", input_html: { size: 40 }) %>
     <%= f.input(:reowner_versions, label: "Reowner post versions", as: :boolean, input_html: { checked: true }) %>
     <%= f.input(:post_events, label: "Create post events", as: :boolean) %>
+    <%= f.input(:karma, label: "Adjust upload karma", as: :boolean, input_html: { checked: true }) %>
     <%= f.submit("Submit") %>
   <% end %>
 </div>

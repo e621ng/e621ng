@@ -59,6 +59,16 @@ RSpec.describe FileMethods, type: :model do
       end
     end
 
+    context "with a JPEG rotated via EXIF orientation" do
+      # exif-orientation.jpg: 40x30 raster with orientation=8 (90° CCW),
+      # so it displays as 30x40.
+      it "returns the displayed [width, height]" do
+        upload = build(:upload, file_ext: "jpg")
+        path = file_fixture("exif-orientation.jpg").to_s
+        expect(upload.calculate_dimensions(path)).to eq([30, 40])
+      end
+    end
+
     context "with an MP4 video" do
       it "returns the correct [width, height]" do
         upload = build(:upload, file_ext: "mp4")

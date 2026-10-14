@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class IndexUpdateJob < ApplicationJob
-  queue_as :high_prio
-  sidekiq_options lock: :until_executing
+  sidekiq_options queue: "high_prio", lock: :until_executing, lock_ttl: 1.hour.to_i
 
   def perform(klass, id)
     obj = klass.constantize.find(id)

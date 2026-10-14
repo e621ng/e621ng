@@ -1,4 +1,5 @@
 <aside id="sidebar">
   <%= render partial: "application/blacklist" %>
+  <%= render "wiki_pages/table_of_contents", wiki_outline: local_assigns[:wiki_outline] %>
   <%= render "wiki_pages/recent_changes" %>
 </aside>

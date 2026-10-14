@@ -89,7 +89,7 @@ module ApplicationHelper
 
   def time_tag(content, time)
     datetime = time.strftime("%Y-%m-%dT%H:%M%:z")
-    tag.time(content || datetime, datetime: datetime, title: time.to_fs)
+    tag.time(content || datetime, datetime: datetime, title: time.to_fs, class: "time-waiting")
   end
 
   def time_ago_in_words_tagged(time, compact: false)
@@ -132,16 +132,14 @@ module ApplicationHelper
 
     user_class = user.level_css_class
     user_class += " user-post-approver" if user.can_approve_posts?
-    user_class += " user-post-uploader" if user.can_upload_free?
     user_class += " user-banned" if user.is_restricted?
-    user_class += " with-style" if CurrentUser.user.style_usernames?
     html = link_to(user.pretty_name.presence || "<blank>", user_path(user), class: user_class, rel: "nofollow")
     html << " (Unactivated)" if include_activation && !user.is_verified?
     html
   end
 
   def body_attributes(user = CurrentUser.user)
-    attributes = %i[id name level level_string can_approve_posts? can_upload_free? per_page]
+    attributes = %i[id name level level_string can_approve_posts? per_page]
     attributes += UserLevel::BODY_ATTRIBUTE_ROLES.map { |role| :"is_#{role}?" }
     attributes += %i[is_anonymous? is_restricted?]
 
@@ -183,6 +181,15 @@ module ApplicationHelper
       processed_body = replace_cross_domain_links(wiki.body)
       format_text(processed_body, allow_color: true)
     end
+  end
+
+  def safe_new_session_path
+    return new_session_path if request.path == new_session_path
+    url = request.fullpath[0, 2000]
+    path = new_session_path(url: url)
+    max = 2000 + new_session_path(url: "").length
+    return path if path.length <= max
+    new_session_path(url: url[0, url.length - (path.length - max)])
   end
 
   protected

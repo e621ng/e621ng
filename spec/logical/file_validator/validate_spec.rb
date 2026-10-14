@@ -8,8 +8,8 @@ require "rails_helper"
 #
 # Integration-level smoke tests that call the top-level `validate` method so
 # that SimpleCov registers coverage for the orchestration logic: the call
-# sites, the `if record.is_video?` branch, and the `if @test_resolution`
-# guard. Edge-case assertions are left to the focused unit spec files.
+# sites and the `if record.is_video?` branch. Edge-case assertions are left
+# to the focused unit spec files.
 
 RSpec.describe FileValidator, type: :model do
   describe "#validate" do
@@ -38,17 +38,6 @@ RSpec.describe FileValidator, type: :model do
         expect(upload.errors[:file_ext]).to be_present
         # validate_file_size would have added a 'too small' error if :abort hadn't fired
         expect(upload.errors[:file_size]).to be_empty
-      end
-    end
-
-    context "with test_resolution: false" do
-      it "skips the resolution check" do
-        path   = file_fixture("sample.jpg").to_s
-        # Deliberately out-of-range dimensions that would normally trigger an error
-        upload = build(:upload, file_ext: "jpg", file_size: File.size(path), image_width: 100, image_height: 100)
-        FileValidator.new(upload, path, test_resolution: false).validate
-        expect(upload.errors[:image_width]).to be_empty
-        expect(upload.errors[:image_height]).to be_empty
       end
     end
   end

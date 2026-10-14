@@ -102,6 +102,19 @@ RSpec.describe IqdbProxy do
     end
   end
 
+  describe ".query_url" do
+    it "downloads without retries" do
+      file = instance_double(Tempfile)
+      downloader = instance_double(Downloads::File, download!: file)
+      allow(Downloads::File).to receive(:new).and_return(downloader)
+      allow(described_class).to receive(:query_file).and_return([])
+
+      described_class.query_url("https://example.com/image.jpg", 60)
+      expect(downloader).to have_received(:download!).with(retries: 0)
+      expect(described_class).to have_received(:query_file).with(file, 60, v2_format: false)
+    end
+  end
+
   describe "concurrency semaphore" do
     describe ".query_hash" do
       it "increments the Redis counter before querying IQDB" do

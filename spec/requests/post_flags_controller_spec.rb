@@ -70,6 +70,17 @@ RSpec.describe PostFlagsController do
       get post_flags_path(search: { ip_addr: "127.0.0.1" })
       expect(response).to have_http_status(:ok)
     end
+
+    it "redirects anonymous users to login if post_tag_match is used" do
+      get post_flags_path(search: { post_tags_match: "tag" })
+      expect(response).to redirect_to(new_session_path(url: post_flags_path(search: { post_tags_match: "tag" })))
+    end
+
+    it "accepts the post_tags_match search param as a member without error" do
+      sign_in_as member
+      get post_flags_path(search: { post_tags_match: "tag" })
+      expect(response).to have_http_status(:ok)
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -194,6 +205,25 @@ RSpec.describe PostFlagsController do
         sign_in_as janitor
         delete "/posts/#{post_record.id}/flag", params: { approval: "approve" }
         expect(post_record.reload.is_pending).to be false
+      end
+    end
+
+    context "when a post is not flagged" do
+      let(:pending_not_flagged) { create(:pending_post) }
+
+      it "flashes a notice" do
+        sign_in_as janitor
+        delete "/posts/#{pending_not_flagged.id}/flag"
+        expect(response).to redirect_to(post_path(pending_not_flagged))
+        expect(flash[:notice]).to match(/is already unflagged/)
+      end
+
+      it "also approves with approval=approve" do
+        sign_in_as janitor
+        delete "/posts/#{pending_not_flagged.id}/flag", params: { approval: "approve" }
+        expect(flash[:notice]).to match(/is already unflagged/)
+        expect(response).to redirect_to(post_path(pending_not_flagged))
+        expect(pending_not_flagged.reload.is_pending).to be false
       end
     end
   end

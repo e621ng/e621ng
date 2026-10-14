@@ -1,0 +1,11 @@
+<% outline = local_assigns[:wiki_outline] %>
+<% if outline && outline.entries.present? %>
+  <section id="wiki-page-toc">
+    <h1>Contents</h1>
+    <ul>
+      <% outline.entries.each do |entry| %>
+        <li style="--toc-depth: <%= [entry[:depth], 6].min %>"><%= link_to entry[:text], "##{entry[:slug]}" %></li>
+      <% end %>
+    </ul>
+  </section>
+<% end %>

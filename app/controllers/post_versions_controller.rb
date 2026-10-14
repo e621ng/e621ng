@@ -10,7 +10,7 @@ class PostVersionsController < ApplicationController
     PostVersion.preload_tag_categories!(@post_versions)
     if CurrentUser.is_staff?
       ids = @post_versions&.map(&:id)
-      @latest = request.params.merge(page: "b#{ids[0] + 1}") if ids.present?
+      @latest = { params: request.query_parameters.merge("page" => "b#{ids[0] + 1}") } if ids.present?
     end
     respond_with(@post_versions)
   end
@@ -27,21 +27,37 @@ class PostVersionsController < ApplicationController
     raise User::PrivilegeError unless CurrentUser.is_bd_staff?
 
     @post_version = PostVersion.find(params[:id])
-    @post_version.is_hidden = true
-    @post_version.save!
+    if @post_version.is_hidden?
+      flash[:notice] = "Post version #{@post_version.id} is already hidden."
+      redirect_to_versions_for(@post_version)
+      return
+    end
+
+    @post_version.update_columns(is_hidden: true)
     ModAction.log(:post_version_hide, { version: @post_version.version, post_id: @post_version.post_id })
 
-    redirect_back fallback_location: post_versions_path(search: { post_id: @post_version.post_id })
+    redirect_to_versions_for(@post_version)
   end
 
   def unhide
     raise User::PrivilegeError unless CurrentUser.is_bd_staff?
 
     @post_version = PostVersion.find(params[:id])
-    @post_version.is_hidden = false
-    @post_version.save!
+    unless @post_version.is_hidden?
+      flash[:notice] = "Post version #{@post_version.id} is not hidden."
+      redirect_to_versions_for(@post_version)
+      return
+    end
+
+    @post_version.update_columns(is_hidden: false)
     ModAction.log(:post_version_unhide, { version: @post_version.version, post_id: @post_version.post_id })
 
-    redirect_back fallback_location: post_versions_path(search: { post_id: @post_version.post_id })
+    redirect_to_versions_for(@post_version)
+  end
+
+  private
+
+  def redirect_to_versions_for(post_version)
+    redirect_back fallback_location: post_versions_path(search: { post_id: post_version.post_id })
   end
 end

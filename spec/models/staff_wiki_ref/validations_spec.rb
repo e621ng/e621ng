@@ -40,4 +40,24 @@ RSpec.describe StaffWikiRef do
       ]).to all(be_valid)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # related_id — uniqueness
+  # -------------------------------------------------------------------------
+  describe "related_id — uniqueness" do
+    include_context "as member"
+
+    it "is invalid when the same target is referenced twice on one wiki" do
+      existing = create(:staff_wiki_ref)
+      dup = build(:staff_wiki_ref, staff_wiki: existing.staff_wiki, related: existing.related)
+      expect(dup).not_to be_valid
+      expect(dup.errors[:related_id]).to be_present
+    end
+
+    it "allows the same target on a different wiki" do
+      existing = create(:staff_wiki_ref)
+      other = build(:staff_wiki_ref, staff_wiki: create(:staff_wiki), related: existing.related)
+      expect(other).to be_valid
+    end
+  end
 end

@@ -5,7 +5,7 @@ module Staff
     before_action :admin_only, except: %i[edit_blacklist]
     before_action :moderator_only, only: %i[edit_blacklist]
     before_action :is_bd_staff_only, only: %i[anonymize anonymize_confirm]
-    before_action :requires_reauthentication, only: %i[anonymize_confirm]
+    before_action :requires_reauthentication, only: %i[anonymize_confirm totp_reset request_password_reset password_reset]
     respond_to :html, :json
 
     def alt_list
@@ -43,6 +43,16 @@ module Staff
       end
       if @user.saved_change_to_custom_title
         ModAction.log(:user_custom_title_change, { user_id: @user.id, old_custom_title: @user.custom_title_before_last_save, new_custom_title: @user.custom_title })
+      end
+
+      if params[:user][:upload_karma].present?
+        new_karma = params[:user][:upload_karma].to_i
+        old_karma = @user.upload_karma
+        if new_karma != old_karma
+          karma_delta = new_karma - old_karma
+          UserStatus.adjust_karma(@user.id, karma_delta, :staff_override, data: { old_karma: old_karma, new_karma: new_karma })
+          ModAction.log(:user_karma_change, { user_id: @user.id, old_karma: old_karma, new_karma: new_karma })
+        end
       end
 
       if CurrentUser.is_bd_staff?
@@ -97,13 +107,36 @@ module Staff
         return redirect_to user_path(@user), alert: "Only BD staff can request password resets for staff accounts"
       end
 
-      unless User.authenticate(CurrentUser.name, params[:admin][:password])
-        return redirect_to request_password_reset_staff_user_path(@user), notice: "Password wrong"
+      invalidate_old_password = params.dig(:admin, :invalidate_old_password)&.truthy? || false
+      @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if invalidate_old_password
+      @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
+      ModAction.log(:password_reset, { user_id: @user.id, invalidated: invalidate_old_password })
+    end
+
+    def totp_reset
+      @user = User.find(params[:id])
+
+      if @user.is_staff? && !CurrentUser.user.is_bd_staff?
+        return redirect_to user_path(@user), alert: "Only BD staff can remove 2FA from staff accounts"
       end
 
-      @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if params[:admin][:invalidate_old_password]&.truthy?
+      # The totp_enabled bit and the row should never drift apart.
+      # If they do, this action is the recovery tool.
+      unless @user.totp_enabled? || @user.totp.present?
+        return redirect_to user_path(@user), notice: "User does not have two-factor authentication enabled"
+      end
 
-      @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
+      if @user.totp.present?
+        # Destroying the totp row syncs the bit pref and changes the user's password_token
+        @user.totp.destroy
+      else
+        # Stale flag with no backing row: clear it so the account stops rendering
+        # 2FA UI and challenging logins.
+        UserTotp.set_user_flag(@user.id, false)
+      end
+      ModAction.log(:totp_reset, { user_id: @user.id })
+      Maintenance::User::TotpMailer.totp_disabled(@user).deliver_now
+      redirect_to user_path(@user), notice: "Two-factor authentication removed from '#{@user.name}'"
     end
 
     def anonymize

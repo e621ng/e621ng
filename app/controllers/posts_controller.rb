@@ -3,9 +3,9 @@
 class PostsController < ApplicationController
   include JsonResponseHelper
 
-  before_action :member_only, except: %i[show show_seq index random]
+  before_action :member_only, except: %i[show show_seq index random count]
   before_action :admin_only, only: [:update_iqdb]
-  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random]
+  before_action :ensure_lockdown_disabled, except: %i[index show show_seq random count]
   respond_to :html, :json
 
   def index
@@ -59,6 +59,19 @@ class PostsController < ApplicationController
         format.atom
       end
     end
+  end
+
+  def count
+    query = tag_query
+    unless query.is_a?(String)
+      render_expected_error(400, "Invalid tags parameter", format: :json)
+      return
+    end
+
+    max_count = (Danbooru.config.max_numbered_pages * Danbooru.config.max_per_page) + 1
+    search = Post.tag_match(query)
+    total = search.count_only(max_count: max_count)
+    render json: { count: total, capped: search.count_capped? }
   end
 
   def show

@@ -11,7 +11,7 @@ RSpec.describe TagImplicationJob do
     it "calls process! on the tag implication" do
       allow(TagImplication).to receive(:find).with(tag_implication.id).and_return(tag_implication)
       allow(tag_implication).to receive(:process!)
-      described_class.perform_now(tag_implication.id, false)
+      described_class.new.perform(tag_implication.id, false)
       expect(tag_implication).to have_received(:process!).with(update_topic: false)
     end
   end

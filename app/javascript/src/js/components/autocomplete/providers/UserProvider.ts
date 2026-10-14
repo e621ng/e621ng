@@ -1,6 +1,5 @@
 import Provider from "@/components/autocomplete/Provider";
 import { UserItem } from "@/components/autocomplete/Types";
-import Utility from "@/utility/utility";
 
 export default class UserProvider extends Provider<UserItem> {
   public async search (query: string) {
@@ -14,8 +13,6 @@ export default class UserProvider extends Provider<UserItem> {
       const link = li.querySelector("a");
       const levelClass = `user-${item.level.replace(/ /g, "-").toLowerCase()}`;
       link.classList.add(levelClass);
-      if (Utility.meta("style-usernames") === "true")
-        link.classList.add("with-style");
     }
 
     return li;

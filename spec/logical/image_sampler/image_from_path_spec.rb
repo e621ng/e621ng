@@ -25,6 +25,19 @@ RSpec.describe ImageSampler do
       end
     end
 
+    context "with a JPEG rotated via EXIF orientation" do
+      # exif-orientation.jpg: 40x30 raster with orientation=8 (90° CCW).
+      let(:image) { described_class.image_from_path(file_fixture("exif-orientation.jpg").to_s) }
+
+      it "applies the rotation" do
+        expect([image.width, image.height]).to eq([30, 40])
+      end
+
+      it "removes the orientation tag" do
+        expect(image.get_typeof("orientation")).to eq(0)
+      end
+    end
+
     context "with is_video: true" do
       context "when ffmpeg succeeds" do
         it "returns a Vips::Image loaded from the video snapshot" do

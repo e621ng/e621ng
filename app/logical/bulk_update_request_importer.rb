@@ -232,10 +232,10 @@ class BulkUpdateRequestImporter
           tag_implication.reject!(update_topic: false)
 
         when :mass_update
-          TagBatchJob.perform_later(token[1], token[2], CurrentUser.id, CurrentUser.ip_addr)
+          TagBatchJob.perform_async(token[1], token[2], CurrentUser.id, CurrentUser.ip_addr)
 
         when :nuke_tag
-          TagNukeJob.perform_later(token[1], CurrentUser.id, CurrentUser.ip_addr)
+          TagNukeJob.perform_async(token[1], CurrentUser.id, CurrentUser.ip_addr)
 
         when :change_category
           tag = Tag.find_by(name: token[1])

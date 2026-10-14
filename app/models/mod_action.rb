@@ -7,6 +7,7 @@ class ModAction < ApplicationRecord
 
   KnownActions = {
     admin_user_delete: { user_id: :integer },
+    artist_delete: { artist_id: :integer, artist_name: :string },
     artist_page_rename: { old_name: :string, new_name: :string },
     artist_page_lock: { artist_page: :string },
     artist_page_unlock: { artist_page: :string },
@@ -72,8 +73,10 @@ class ModAction < ApplicationRecord
     tag_destroy: { name: :string },
     tag_alias_create: { alias_id: :integer, alias_desc: :string },
     tag_alias_update: { alias_id: :integer, alias_desc: :string, change_desc: :string },
+    tag_alias_undo: { alias_id: :integer, alias_desc: :string },
     tag_implication_create: { implication_id: :integer, implication_desc: :string },
     tag_implication_update: { implication_id: :integer, implication_desc: :string, change_desc: :string },
+    tag_implication_undo: { implication_id: :integer, implication_desc: :string },
     ticket_claim: { ticket_id: :integer },
     ticket_unclaim: { ticket_id: :integer },
     ticket_update: { ticket_id: :integer, status: :string, response: :string, status_was: :string, response_was: :string },
@@ -92,10 +95,14 @@ class ModAction < ApplicationRecord
     user_text_change: { user_id: :integer },
     user_custom_title_change: { user_id: :integer, old_custom_title: :string, new_custom_title: :string },
     user_upload_limit_change: { user_id: :integer, old_upload_limit: :integer, new_upload_limit: :integer },
+    user_karma_change: { user_id: :integer, old_karma: :integer, new_karma: :integer },
+    user_karma_free_toggle: { user_id: :integer, disabled: :boolean },
     user_uploads_toggle: { user_id: :integer, disabled: :boolean },
     user_flags_change: { user_id: :integer, added: :string, removed: :string },
     user_level_change: { user_id: :integer, level: :string, level_was: :string },
     user_name_change: { user_id: :integer },
+    totp_reset: { user_id: :integer },
+    password_reset: { user_id: :integer, invalidated: :boolean },
     user_delete: { user_id: :integer },
     user_ban: { user_id: :integer, duration: :integer, reason: :string },
     user_ban_update: { user_id: :integer, ban_id: :integer, expires_at: :datetime, expires_at_was: :datetime, reason: :string, reason_was: :string },
@@ -123,6 +130,8 @@ class ModAction < ApplicationRecord
     staff_file_create staff_file_update staff_file_delete
     ip_ban_create ip_ban_delete
     post_version_hide post_version_unhide
+    totp_reset password_reset
+    search_trend_blacklist_create search_trend_blacklist_update search_trend_blacklist_delete search_trend_blacklist_purge
   ].freeze
 
   KnownActionKeys = KnownActions.keys.freeze

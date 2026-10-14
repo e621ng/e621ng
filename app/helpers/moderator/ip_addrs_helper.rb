@@ -11,6 +11,14 @@ module Moderator
       end
     end
 
+    def format_asn(info)
+      return "—" if info.nil?
+
+      text = "AS#{info[:asn]} #{info[:name]}"
+      text += " (#{info[:country]})" if info[:country].present?
+      text
+    end
+
     def link_to_user_id_search(type, user_id, count)
       path = user_id_search_path type, user_id
       if path.present?

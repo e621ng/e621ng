@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 class TagAliasFinalizeJob < ApplicationJob
-  queue_as :tags
-  sidekiq_options lock: :until_executed, lock_args_method: :lock_args
+  sidekiq_options queue: "tags", lock: :until_executed, lock_args_method: :lock_args, lock_ttl: 24.hours.to_i
 
   def self.lock_args(args)
     [args[0]]
@@ -12,7 +11,7 @@ class TagAliasFinalizeJob < ApplicationJob
     ta = TagAlias.find_by(id: alias_id)
     return unless ta
 
-    post_ids = ta.tag_rel_undos.flat_map(&:undo_data).uniq
+    post_ids = ta.tag_rel_undos.flat_map(&:post_ids).uniq
 
     Post.without_timeout do
       Post.document_store.import(query: { id: post_ids }) if post_ids.any?

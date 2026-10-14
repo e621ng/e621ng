@@ -99,6 +99,12 @@ RSpec.describe PostReplacement do
       second = create(:post_replacement, post: post)
       expect(second.sequence_number).to eq(2)
     end
+
+    it "rejects a second original on the same post (both fill to 0)" do
+      post = create(:post)
+      create(:original_post_replacement, post: post)
+      expect { create(:original_post_replacement, post: post) }.to raise_error(ActiveRecord::RecordNotUnique)
+    end
   end
 
   # --------------------------------------------------------------------------

@@ -7,8 +7,7 @@ Doorkeeper.configure do
     if session[:user_id]
       User.find_by(id: session[:user_id])
     else
-      session[:url] = request.fullpath
-      redirect_to(new_session_path)
+      redirect_to(new_session_path(url: request.fullpath))
       nil
     end
   end

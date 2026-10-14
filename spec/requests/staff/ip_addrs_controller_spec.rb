@@ -103,6 +103,47 @@ RSpec.describe Staff::IpAddrsController do
           expect(response).to have_http_status(:unprocessable_content)
         end
       end
+
+      context "with ASN data loaded" do
+        before do
+          create(:asn_range, first_ip: "203.0.113.0", last_ip: "203.0.113.255", asn: 64_500, name: "EXAMPLE-NET-3", country: "US")
+          create(:comment, creator: target, creator_ip_addr: "203.0.113.5")
+        end
+
+        it "includes resolved ASNs in user search JSON" do
+          get staff_ip_addrs_path(format: :json), params: { search: { user_id: target.id } }
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body["asns"]).to include("203.0.113.5" => { "asn" => 64_500, "name" => "EXAMPLE-NET-3", "country" => "US" })
+        end
+
+        it "shows the ASN in the user search HTML" do
+          get staff_ip_addrs_path, params: { search: { user_id: target.id } }
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("AS64500 EXAMPLE-NET-3 (US)")
+        end
+
+        it "shows the ASN of the searched IP in the IP search HTML" do
+          get staff_ip_addrs_path, params: { search: { ip_addr: "203.0.113.5" } }
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("AS64500 EXAMPLE-NET-3 (US)")
+        end
+
+        it "skips ASN annotations for a masked search" do
+          get staff_ip_addrs_path, params: { search: { ip_addr: "203.0.113.5", add_ip_mask: "true" } }
+          expect(response).to have_http_status(:ok)
+          expect(response.body).not_to include("AS64500")
+        end
+      end
+
+      context "without ASN data" do
+        it "returns nil ASNs and still renders" do
+          create(:comment, creator: target, creator_ip_addr: "127.0.0.1")
+          get staff_ip_addrs_path(format: :json), params: { search: { user_id: target.id } }
+          expect(response).to have_http_status(:ok)
+          expect(response.parsed_body).to include("asns")
+          expect(response.parsed_body["asns"]).to include("127.0.0.1" => nil)
+        end
+      end
     end
   end
 

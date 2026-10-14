@@ -1,6 +1,6 @@
 x-environment: &common-env
   DANBOORU_HOSTNAME: localhost:${EXPOSED_SERVER_PORT:-3000}
-  DANBOORU_REDIS_URL: redis://redis
+  DANBOORU_REDIS_URL: redis://redis:${EXPOSED_REDIS_PORT:-6379}/0
   DANBOORU_OPENSEARCH_HOST: opensearch
   DANBOORU_MEMCACHED_SERVERS: memcached
   DANBOORU_IQDB_SERVER: http://iqdb:5588
@@ -30,6 +30,7 @@ services:
   e621:
     build:
       context: ./
+      target: development
       args:
         HOST_UID: ${HOST_UID:-1000}
         HOST_GID: ${HOST_GID:-1000}
@@ -40,7 +41,6 @@ services:
       - node_modules:/app/node_modules
       - ./.danbooru:/root/.danbooru
       - post_data:/app/public/data
-      - ./docker/cron_tasks/daily:/etc/periodic/daily
     environment:
       <<: *common-env
       RAILS_ENV: development
@@ -92,6 +92,7 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=trust
     volumes:
       - db_data:/var/lib/postgresql/data
+      - ./docker/create_eris_db.sql:/docker-entrypoint-initdb.d/create_eris_db.sql
     ports:
       - "${EXPOSED_POSTGRES_PORT:-34517}:5432"
   
@@ -100,6 +101,8 @@ services:
     command: redis-server --save 10 1 --loglevel warning
     volumes:
       - redis_data_v2:/data
+    ports:
+      - "${EXPOSED_REDIS_PORT:-6379}:6379"
 
   memcached:
     image: memcached:1.5.22-alpine
@@ -121,10 +124,12 @@ services:
       test: curl "opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=2s"
 
   iqdb:
-    image: ghcr.io/e621ng/iqdb:b988f000f17008677c7546c0c13623bc956b585d
-    command: iqdb http 0.0.0.0 5588 /iqdb/e621_v2.db
-    volumes:
-      - iqdb_data:/iqdb
+    image: ghcr.io/e621ng/eris:1.0.0
+    environment:
+      ERIS_DATABASE_URL: postgres://e621@postgres:5432/eris
+    depends_on:
+      postgres:
+        condition: service_started
   
   datadog-agent:
     image: datadog/agent:7.52.0
@@ -159,7 +164,7 @@ services:
 
   # Useful for development
 
-  tests:
+  rspec: &rspec
     image: e621
     environment:
       <<: *common-env
@@ -172,6 +177,12 @@ services:
     depends_on:
       <<: *common-depends-on
     entrypoint: bundle exec parallel_rspec --serialize-stdout --runtime-log tmp/spec_runtime.log
+    profiles:
+      - rspec
+
+  # Deprecated alias for `rspec`, kept for existing muscle memory and CI
+  tests:
+    <<: *rspec
     profiles:
       - tests
 
@@ -230,18 +241,44 @@ services:
     profiles: 
       - rubocop
 
-  linter:
+  eslint: &eslint
     image: e621
     volumes:
       - .:/app
       - node_modules:/app/node_modules
     entrypoint: npm run lint
-    profiles: 
+    profiles:
+      - eslint
+
+  # Deprecated alias for `eslint`, kept for existing muscle memory and CI
+  linter:
+    <<: *eslint
+    profiles:
       - linter
+
+  vitest: &vitest
+    image: e621
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    entrypoint: npm test
+    profiles:
+      - vitest
+
+  # Deprecated alias for `vitest`, kept for existing muscle memory and CI
+  jstests:
+    <<: *vitest
+    profiles:
+      - jstests
+
+  typecheck:
+    <<: *eslint
+    entrypoint: npm run typecheck
+    profiles:
+      - typecheck
 
 volumes:
   post_data:
-  iqdb_data:
   opensearch_data:
   db_data:
   redis_data_v2:

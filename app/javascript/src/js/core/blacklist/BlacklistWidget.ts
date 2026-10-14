@@ -1,8 +1,6 @@
+import Blacklist from "@/core/blacklist";
 import Hotkeys from "@/core/hotkeys";
-import E621Type from "@/interfaces/E621";
 import LStorage from "@/utility/storage/Local";
-
-declare const E621: E621Type;
 
 /**
  * Represents the list of toggles for the blacklist filters.
@@ -82,12 +80,12 @@ export default class BlacklistWidget {
       .off("click.blacklistWidget")
       .on("click.blacklistWidget", () => {
         if (this.$toggle.attr("is-enabling") == "true") {
-          for (const filter of Object.values(E621.Blacklist.filters))
+          for (const filter of Object.values(Blacklist.filters))
             filter.setEnabledWithoutSaving(true);
           LStorage.Blacklist.FilterState.clear();
         } else {
           const filterList = new Set<string>();
-          for (const filter of Object.values(E621.Blacklist.filters)) {
+          for (const filter of Object.values(Blacklist.filters)) {
             filter.setEnabledWithoutSaving(false);
             filterList.add(filter.text);
           }
@@ -95,7 +93,7 @@ export default class BlacklistWidget {
         }
 
         $(document).trigger("e621:blacklist:state-changed");
-        E621.Blacklist.updatePostVisibility();
+        Blacklist.updatePostVisibility();
       });
 
     // Filters
@@ -126,7 +124,7 @@ export default class BlacklistWidget {
 
     let activeFilters = 0,
       inactiveFilters = 0;
-    for (const [name, filter] of Object.entries(E621.Blacklist.filters)) {
+    for (const [name, filter] of Object.entries(Blacklist.filters)) {
       if (filter.matchIDs.size == 0) continue;
 
       // Special case for the posts/show page sidebar
@@ -161,7 +159,7 @@ export default class BlacklistWidget {
 
     // Update the total blacklist size
     this.$wrapper.attr("filters", activeFilters);
-    this.$counter.text("(" + E621.Blacklist.hiddenPosts.size + ")");
+    this.$counter.text("(" + Blacklist.hiddenPosts.size + ")");
 
     // Change the toggle state accordingly
     const text = inactiveFilters ? "Enable All Filters" : "Disable All Filters";

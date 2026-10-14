@@ -106,6 +106,38 @@ RSpec.describe UserNameValidator, type: :model do
     end
   end
 
+  describe "reserved staff names" do
+    let(:name_set) { UserNameValidator::RESERVED_STAFF_NAMES }
+
+    it "is invalid with reserved staff names" do
+      name_set.each do |name|
+        user = build(:user, name: "some#{name}user")
+        expect(user).not_to be_valid
+        expect(user.errors[:name]).to include("cannot contain \"#{name}\""), "expected '#{name}' to be invalid"
+      end
+    end
+
+    it "is invalid when changing to a reserved staff name" do
+      member_user = create(:user)
+      CurrentUser.scoped(member_user) do
+        name_set.each do |name|
+          user_name_change_request = build(:user_name_change_request, user: member_user, desired_name: "some#{name}user")
+          expect(user_name_change_request).not_to be_valid, "expected '#{name}' to be invalid for member user"
+        end
+      end
+    end
+
+    it "is valid with reserved staff names when the user is actually staff" do
+      staff_user = create(:staff_user)
+      CurrentUser.scoped(staff_user) do
+        name_set.each do |name|
+          user_name_change_request = build(:user_name_change_request, user: staff_user, desired_name: "some#{name}user")
+          expect(user_name_change_request).to be_valid, "expected '#{name}' to be valid for staff user"
+        end
+      end
+    end
+  end
+
   describe "on: :create only" do
     it "does not revalidate name format on update" do
       user = create(:user)

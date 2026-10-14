@@ -9,4 +9,5 @@ RSpec.describe CommentVote do
   it_behaves_like "user_vote search: timeframe",    :comment_vote, CommentVote
   it_behaves_like "user_vote search: user_ip_addr", :comment_vote, CommentVote
   it_behaves_like "user_vote search: order",        :comment_vote, CommentVote
+  it_behaves_like "user_vote search: creator",      :comment_vote, CommentVote
 end
