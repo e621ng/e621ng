@@ -5,7 +5,7 @@ class TagAliasesController < ApplicationController
   respond_to :html, :json, :js
 
   def index
-    @tag_aliases = TagAlias.includes(:antecedent_tag, :consequent_tag, :creator, :approver).search(search_params).paginate(params[:page], :limit => params[:limit])
+    @tag_aliases = TagAlias.includes(:antecedent_tag, :consequent_tag, :creator, :approver, forum_post: :votes).search(search_params).paginate(params[:page], :limit => params[:limit])
     TagAlias.preload_transitives(@tag_aliases) if CurrentUser.is_member?
     respond_with(@tag_aliases)
   end
@@ -31,12 +31,6 @@ class TagAliasesController < ApplicationController
     end
 
     respond_with(@tag_alias)
-  end
-
-  def index
-    @tag_aliases = TagAlias.includes(:antecedent_tag, :consequent_tag, :creator, :approver, forum_post: :votes).search(search_params).paginate(params[:page], :limit => params[:limit])
-    TagAlias.preload_transitives(@tag_aliases) if CurrentUser.is_member?
-    respond_with(@tag_aliases)
   end
 
   def destroy
