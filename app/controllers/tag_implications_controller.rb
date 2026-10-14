@@ -5,7 +5,7 @@ class TagImplicationsController < ApplicationController
   respond_to :html, :json, :js
 
   def index
-    @tag_implications = TagImplication.includes(:antecedent_tag, :consequent_tag, :creator, :approver).search(search_params).paginate(params[:page], :limit => params[:limit])
+    @tag_implications = TagImplication.includes(:antecedent_tag, :consequent_tag, :creator, :approver, forum_post: :votes).search(search_params).paginate(params[:page], :limit => params[:limit])
     respond_with(@tag_implications)
   end
 

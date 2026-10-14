@@ -209,6 +209,11 @@ class ForumPost < ApplicationRecord
       BulkUpdateRequest.where(forum_post_id: id).exists?
   end
 
+  def vote_score_calculation
+    return 0.0 unless votable? && votes.count > 0
+    ((votes.up.count - votes.down.count) / votes.count.to_d).to_d
+  end
+
   def update_topic_updated_at_on_create
     if topic
       # need to do this to bypass the topic's original post from getting touched
@@ -277,6 +282,11 @@ class ForumPost < ApplicationRecord
     return if current_body.lstrip.start_with?(label)
     normalized_body = current_body.sub(Regexp.new(Regexp.escape(label)), "").lstrip
     self.body = normalized_body.present? ? "#{label}\n\n#{normalized_body}" : label
+  end
+
+  def update_vote_score
+    new_score = vote_score_calculation
+    update_column(:vote_score, new_score)
   end
 
   def method_attributes
