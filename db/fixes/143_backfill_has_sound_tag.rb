@@ -3,17 +3,22 @@
 module Fixes
   class BackfillHasSoundTag
     def self.run
-      Post.in_batches(load: true, order: :desc).each_with_index do |group, index|
-        group.each do |post|
-          post.has_sound = post.video_has_sound?(post.file_path)
+      posts = Post.where(file_ext: FileMethods::VIDEO_FILE_TYPES)
+      puts "Updating has_sound for #{posts.size} video posts."
 
-          if post.has_sound && !post.has_tag?("sound") then
-            post.add_tag("sound")
-          elsif post.has_tag("sound") then
-            post.remove_tag("sound")
-          end
+      posts.find_each do |post|
+        post.has_sound = post.video_has_sound?(post.file_path)
+
+        if post.has_sound && !post.has_tag?("sound") then
+          post.add_tag("sound")
+        elsif post.has_tag?("sound") then
+          post.remove_tag("sound")
         end
+
+        post.save!
       end
+
+      puts "Done."
     end
   end
 end
