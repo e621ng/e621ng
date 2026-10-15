@@ -818,7 +818,6 @@ class Post < ApplicationRecord
         flash video
         long_playtime short_playtime
         animated_gif animated_png animated_webp
-        sound
       ] + FileMethods::FILE_TYPE.values
 
       # NOTE: when adding, removing, or changing any of these values, make sure to also
@@ -845,7 +844,12 @@ class Post < ApplicationRecord
 
       tags << "flash" if is_flash?
       tags << "video" if is_video?
-      tags << "sound" if has_sound
+
+      # let the sound tag behave as a manual tag for flash files
+      unless is_flash? then
+        tags -= "sound"
+        tags << "sound" if has_sound
+      end
 
       tags << "animated_gif" if is_gif? && is_animated?
       tags << "animated_png" if is_png? && is_animated?
