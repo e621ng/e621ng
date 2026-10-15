@@ -818,6 +818,7 @@ class Post < ApplicationRecord
         flash video
         long_playtime short_playtime
         animated_gif animated_png animated_webp
+        sound
       ] + FileMethods::FILE_TYPE.values
 
       # NOTE: when adding, removing, or changing any of these values, make sure to also
@@ -844,6 +845,7 @@ class Post < ApplicationRecord
 
       tags << "flash" if is_flash?
       tags << "video" if is_video?
+      tags << "sound" if has_sound
 
       tags << "animated_gif" if is_gif? && is_animated?
       tags << "animated_png" if is_png? && is_animated?
@@ -1942,6 +1944,10 @@ class Post < ApplicationRecord
         attributes[:preview_height] = preview_dimensions[1]
       end
 
+      if is_video?
+        attributes[:has_sound] = has_sound
+      end
+
       attributes
     end
 
@@ -2239,6 +2245,7 @@ class Post < ApplicationRecord
     favorites_transfer_in_progress
     hide_favorites_list
     is_animated
+    has_sound
   ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 
