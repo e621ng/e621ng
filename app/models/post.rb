@@ -845,6 +845,12 @@ class Post < ApplicationRecord
       tags << "flash" if is_flash?
       tags << "video" if is_video?
 
+      # let the sound tag behave as a manual tag for flash files
+      unless is_flash?
+        tags -= %w[sound]
+        tags << "sound" if has_sound
+      end
+
       tags << "animated_gif" if is_gif? && is_animated?
       tags << "animated_png" if is_png? && is_animated?
       tags << "animated_webp" if is_webp? && is_animated?
@@ -1942,6 +1948,10 @@ class Post < ApplicationRecord
         attributes[:preview_height] = preview_dimensions[1]
       end
 
+      if is_video?
+        attributes[:has_sound] = has_sound
+      end
+
       attributes
     end
 
@@ -2239,6 +2249,7 @@ class Post < ApplicationRecord
     favorites_transfer_in_progress
     hide_favorites_list
     is_animated
+    has_sound
   ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 

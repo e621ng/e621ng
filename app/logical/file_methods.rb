@@ -174,6 +174,11 @@ module FileMethods
     true
   end
 
+  def video_has_sound?(file_path)
+    return false unless is_video?
+    FFMPEG::Movie.new(file_path).audio_streams.any?
+  end
+
   # Verify whether the file at the provided path is corrupt.
   # * Regular images: attempt to load the image with libvips.
   # * GIFs: attempt to load each frame with libvips.
