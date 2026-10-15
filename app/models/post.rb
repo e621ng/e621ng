@@ -846,7 +846,7 @@ class Post < ApplicationRecord
       tags << "video" if is_video?
 
       # let the sound tag behave as a manual tag for flash files
-      unless is_flash? then
+      unless is_flash?
         tags -= %w[sound]
         tags << "sound" if has_sound
       end

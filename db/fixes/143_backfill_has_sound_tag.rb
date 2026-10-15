@@ -9,9 +9,9 @@ module Fixes
       posts.find_each do |post|
         post.has_sound = post.video_has_sound?(post.file_path)
 
-        if post.has_sound && !post.has_tag?("sound") then
+        if post.has_sound && !post.has_tag?("sound")
           post.add_tag("sound")
-        elsif post.has_tag?("sound") then
+        elsif post.has_tag?("sound")
           post.remove_tag("sound")
         end
 
