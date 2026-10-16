@@ -25,7 +25,6 @@ async function importVideoJS () {
     import("@videojs/html/ui/pip-button"),
     import("@videojs/html/ui/playback-rate-button"),
     import("@videojs/html/ui/seek-indicator"),
-    // @ts-expect-error this thing doesn't have any d.ts file defined.
     import("@videojs/html/ui/popover"),
   ]);
 }
