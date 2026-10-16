@@ -87,7 +87,7 @@
     display: flex;
     justify-content: space-between;
 
-    .toggleable-time {
+    .time-switcher {
       z-index: 1; // this is to let the user click on it, since the seekbar "hitbox" is in the way
     }
   }
@@ -185,7 +185,7 @@
     --kinetic-shadow-color: #{palette("background-gold-d30")};
     color: black;
 
-    &:hover {
+    &:hover, &:focus-visible {
       background-color: palette("background-gold");
       --kinetic-shadow-color: #{palette("background-gold-d20")};
     }
@@ -273,6 +273,11 @@
       aspect-ratio: 1;
       display: grid;
       place-items: center;
+
+      &:hover, &:focus-visible {
+        background: var(--color-section-lighten-5);
+        outline: none;
+      }
     }
 
     // remove ugly default styles
