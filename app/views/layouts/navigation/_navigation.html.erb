@@ -1,3 +1,9 @@
+<% notif_badge = CurrentUser.user.saved_search_badge
+  notif_count = [notif_badge&.dig(:count).to_i, 100].min
+  # Tells SavedSearchBadge.ts to re-read the count once the background refresh lands
+  notif_stale = (true if notif_badge && !notif_badge[:fresh])
+%>
+
 <nav class="navigation" role="navigation">
   <menu class="nav-logo">
     <a href="/" class="nav-logo-link" aria-label="Home Page"></a>
@@ -18,6 +24,7 @@
         <%= svg_icon(:times, class: "on") %>
       </span>
     </a>
+
     <% if CurrentUser.user.is_logged_out? %>
       <a href="<%= safe_new_session_path %>" class="simple-avatar nav-controls-profile auth-login-link">
         <span class="avatar-name">
@@ -30,9 +37,24 @@
     <% else %>
       <%= render "/layouts/navigation/avatar_menu" %>
     <% end %>
+
+    <% if CurrentUser.user.is_logged_in? && CurrentUser.user.has_tracked_saved_searches? %>
+      <a
+        href="<%= saved_searches_path %>"
+        class="nav-controls-notifications"
+        aria-label="Notifications"
+      >
+        <%= tag.span(data: { notif_count: notif_count, notif_stale: notif_stale }) do %>
+          <%= svg_icon(:bell) %>
+        <% end %>
+      </a>
+    <% end %>
   </menu>
 
   <menu class="nav-tools desktop <%= CurrentUser.user.is_logged_out? ? "anonymous" : "" %>">
+    <% if CurrentUser.user.is_logged_in? && CurrentUser.user.has_tracked_saved_searches? %>
+      <%= decorated_nav_link_to("Notifications", :bell, saved_searches_path, class: "nav-tools-notifications", title: "Notifications", aria: { label: "Notifications" }, data: { notif_count: notif_count, notif_stale: notif_stale }) %>
+    <% end %>
     <%= decorated_nav_link_to("Themes", :swatch, theme_path, class: "nav-tools-themes", title: "Site Themes", aria: { label: "Themes" }) %>
     <% unless CurrentUser.user.is_logged_out? %>
       <%= decorated_nav_link_to("Settings", :settings, settings_users_path, class: "nav-tools-settings", title: "User Settings", aria: { label: "Settings" }) %>

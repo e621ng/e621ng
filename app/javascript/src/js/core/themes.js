@@ -69,10 +69,19 @@ Theme.initialize_buttons = function () {
   }
 };
 
+Theme.update_meta_theme_color = function () {
+  const metaTag = document.querySelector('meta[name="theme-color"]');
+  if (!metaTag) return;
+  const color = getComputedStyle(document.body).backgroundColor;
+  if (color) metaTag.content = color;
+};
+
 $(() => {
-  if (!Page.matches("static", "theme")) return;
-  Theme.initialize_selector();
-  Theme.initialize_buttons();
+  Theme.update_meta_theme_color();
+  if (Page.matches("static", "theme")) {
+    Theme.initialize_selector();
+    Theme.initialize_buttons();
+  }
 });
 
 export default Theme;
