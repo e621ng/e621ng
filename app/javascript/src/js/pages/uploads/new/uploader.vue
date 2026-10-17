@@ -292,9 +292,19 @@
         <div class="box-section background-red" v-show="duplicateId">
           Post is a duplicate of <a :href="duplicatePath">post #{{duplicateId}}.</a>
         </div>
+        <div class="box-section background-yellow" v-if="tagCount < 10">
+          <p>
+            <strong>You haven't added enough tags.</strong>
+          </p>
+          <p>
+            You must add at least 10 general category tags, with <i>very few</i> exceptions.
+            Read the <a href="/wiki_pages/howto:upload" target="_blank" rel="noopener">Uploading Guide</a> before posting.
+          </p>
+        </div>
         <button
           class="st-button submit"
-          @click="submit"
+          ref="uploadButton"
+          @click="submit()"
           :disabled="(showErrors && preventUpload) || submitting"
           accesskey="s"
         >
@@ -308,6 +318,40 @@
   <div class="uploader-column column-right" id="preview-sidebar">
     <file-preview classes="in-sidebar" :data="previewData"></file-preview>
   </div>
+
+  <dialog id="upload-tag-confirmation" ref="tagWarningDialog" aria-labelledby="upload-tag-confirmation-title"
+    @close="!tagWarningDialog?.open && uploadButton?.focus()">
+    <button type="button" class="st-button close-dialog" aria-label="Close dialog" @click="tagWarningDialog?.close()">&times;</button>
+    <h3 id="upload-tag-confirmation-title" tabindex="-1" autofocus><strong>Warning:</strong> You're trying to upload with less than 10 tags.</h3>
+    <p>
+      <strong>Posts must have at least 10 non-implied general category tags at the time of upload.</strong>
+      This <u>excludes</u> other tag types, such as
+      <span style="color: var(--color-tag-artist)">Artist</span>,
+      <span style="color: var(--color-tag-species)">Species</span>,
+      <span style="color: var(--color-tag-copyright)">Copyright</span>,
+      and <span style="color: var(--color-tag-meta)">Meta</span>.
+      Ensure all contentious topics are fully tagged.
+    </p>
+    <p class="styled-dtext" style="font-size: inherit; line-height: inherit">
+      An exception to this requirement applies only when you cannot achieve 10 tags due to the lack of content.
+      For example: A comic
+      <span class="inline-code" style="font-style: normal">title_page</span>
+      with
+      <span class="inline-code" style="font-style: normal">zero_pictured</span>
+      characters, such as
+      <a href="/posts/6282019" target="_blank" rel="noopener">post 6282019</a>.
+    </p>
+    <p><strong>
+      Intentionally uploading with less than 10 tags may lead to account action, such as a record, or removal of your ability to upload.
+    </strong></p>
+    <p>
+      If you understand the above and wish to continue uploading your post, confirm your upload below.
+    </p>
+    <div class="dialog-actions">
+      <button type="button" class="st-button" @click="tagWarningDialog?.close()">Cancel</button>
+      <button type="button" class="st-button submit" @click="confirmUpload" :disabled="submitting">Confirm Upload</button>
+    </div>
+  </dialog>
 </template>
 
 <script setup lang="ts">
@@ -359,6 +403,9 @@
 
   const showErrors = ref(false);
   const submitting = ref(false);
+  const uploadButton = ref<HTMLButtonElement | null>(null);
+  const tagWarningDialog = ref<HTMLDialogElement | null>(null);
+  let warningTags = '';
 
   const previewData = ref<PreviewData>({ url: '', isVideo: false });
   const uploadValue = ref<string | File>('');
@@ -506,12 +553,29 @@
   function routeByRole(role: string) {
     return registry.sources.find(s => s.role === role) || findSink();
   }
-  async function submit() {
+  function showTagWarning() {
+    if (!tagWarningDialog.value || tagWarningDialog.value.open) return;
+    warningTags = tags.value;
+    tagWarningDialog.value.showModal();
+  }
+
+  function confirmUpload() {
+    if (!tagWarningDialog.value?.open) return;
+    const unchanged = warningTags === tags.value;
+    tagWarningDialog.value.close();
+    void submit(unchanged);
+  }
+
+  async function submit(confirmed = false) {
     showErrors.value = true;
     error.value = '';
     duplicateId.value = 0;
     if (preventUpload.value || submitting.value)
       return;
+    if (tagCount.value < 10 && !confirmed) {
+      showTagWarning();
+      return;
+    }
     submitting.value = true;
     const data = new FormData();
     if (typeof uploadValue.value === "string") {
