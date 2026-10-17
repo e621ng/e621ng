@@ -86,6 +86,17 @@ RSpec.describe UploadService do
         service.start!
         expect(Upload.last.tag_string).to include("tagme")
       end
+
+      it "completes uploads below ten tags without a UI confirmation parameter" do
+        params[:tag_string] = "a b c d"
+
+        result = service.start!
+
+        expect(result.status).to eq("completed")
+        expect(service.post).to be_persisted
+        expect(service.post.tag_count_general).to be < 10
+        expect(service.warnings).to include(a_string_including("at least 10 general tags"))
+      end
     end
 
     context "when the Upload is invalid (bad rating)" do

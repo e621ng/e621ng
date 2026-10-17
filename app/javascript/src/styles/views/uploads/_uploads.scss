@@ -1,1 +1,43 @@
 @import "new/new";
+
+#upload-tag-confirmation {
+  position: fixed;
+  inset: 0;
+  width: 600px;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+  color: themed("color-text");
+  background: themed("color-section");
+  border: 1px solid themed("color-section-darken-5");
+  @include st-radius;
+  box-shadow: 0 1rem 3rem #0008;
+
+  &::backdrop {
+    background: #000a;
+  }
+
+  h3 {
+    margin: 0 1.5rem 1rem 0;
+    outline: none;
+  }
+
+  p { margin-bottom: 1rem; }
+
+  .close-dialog {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: transparent;
+  }
+
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
