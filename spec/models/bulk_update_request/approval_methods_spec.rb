@@ -94,6 +94,28 @@ RSpec.describe BulkUpdateRequest do
   end
 
   # ---------------------------------------------------------------------------
+  # forum updates should not bump the topic
+  # ---------------------------------------------------------------------------
+  describe "forum updates" do
+    let(:bur) { create(:bulk_update_request, skip_forum: false, reason: "A valid reason for this BUR") }
+    let(:topic) { ForumTopic.find(bur.forum_topic_id) }
+
+    before { topic.update_columns(last_bumped_at: 1.day.ago) }
+
+    it "does not bump the topic when approved" do
+      expect { bur.approve!(approver) }.to change { topic.reload.response_count }.by(1)
+      expect(topic.last_bumped_at).to be < 1.hour.ago
+      expect(topic.title).to start_with("[APPROVED]")
+    end
+
+    it "does not bump the topic when rejected" do
+      expect { bur.reject! }.to change { topic.reload.response_count }.by(1)
+      expect(topic.last_bumped_at).to be < 1.hour.ago
+      expect(topic.title).to start_with("[REJECTED]")
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # #create_forum_topic (after_create callback)
   # ---------------------------------------------------------------------------
   describe "#create_forum_topic" do

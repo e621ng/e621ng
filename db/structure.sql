@@ -1073,7 +1073,8 @@ CREATE TABLE public.forum_topics (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     category_id integer DEFAULT 0 NOT NULL,
-    creator_ip_addr inet NOT NULL
+    creator_ip_addr inet NOT NULL,
+    last_bumped_at timestamp(6) without time zone NOT NULL
 );
 
 
@@ -6607,9 +6608,9 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
-('20261026161409'),
 ('20261026161404'),
 ('20261020150541'),
+('20261018195809'),
 ('20261006134945'),
 ('20260907205015'),
 ('20260827214903'),

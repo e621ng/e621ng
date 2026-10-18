@@ -92,8 +92,8 @@ class ForumPostsController < ApplicationController
   end
 
   def forum_post_params(context)
-    permitted_params = [:body]
-    permitted_params += [:topic_id] if context == :create
+    permitted_params = %i[body]
+    permitted_params += %i[topic_id do_not_bump_topic] if context == :create
 
     params.fetch(:forum_post, {}).permit(permitted_params)
   end
