@@ -281,11 +281,19 @@ RSpec.describe ForumTopicsController do
       expect(forum_topic.reload.last_bumped_at).to be_within(5.seconds).of(Time.current)
     end
 
-    it "does not bump the topic when an admin edits only the original post" do
+    it "bumps the topic when an admin edits only the original post" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as admin
+      put forum_topic_path(forum_topic), params: { forum_topic: { original_post_attributes: { id: forum_topic.original_post.id, body: "admin edit" } } }
+      expect(forum_topic.reload.original_post.body).to eq("admin edit")
+      expect(forum_topic.last_bumped_at).to be_within(5.seconds).of(Time.current)
+    end
+
+    it "does not bump the topic when an admin edits only the original post with do_not_bump" do
       forum_topic.update_columns(last_bumped_at: 1.hour.ago)
       sign_in_as admin
       expect do
-        put forum_topic_path(forum_topic), params: { forum_topic: { original_post_attributes: { id: forum_topic.original_post.id, body: "admin edit" } } }
+        put forum_topic_path(forum_topic), params: { forum_topic: { do_not_bump: "1", original_post_attributes: { id: forum_topic.original_post.id, body: "admin edit" } } }
       end.not_to(change { forum_topic.reload.last_bumped_at })
       expect(forum_topic.original_post.body).to eq("admin edit")
     end
