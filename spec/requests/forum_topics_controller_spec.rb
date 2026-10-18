@@ -91,6 +91,36 @@ RSpec.describe ForumTopicsController do
       normal_pos = response.body.index("normal topic title")
       expect(sticky_pos).to be < normal_pos
     end
+
+    it "links to recently updated topics by default" do
+      sign_in_as user
+      get forum_topics_path
+      assert_select "a[href=?]", forum_topics_path(search: { order: "sticky_updated" }), text: "Show all recently updated topics »"
+      assert_select "a", text: "Show only recently bumped topics »", count: 0
+    end
+
+    it "links to recently updated topics when ordering by bumped" do
+      sign_in_as user
+      get forum_topics_path, params: { search: { order: "bumped" } }
+      assert_select "a[href=?]", forum_topics_path(search: { order: "sticky_updated" }), text: "Show all recently updated topics »"
+    end
+
+    it "links to recently bumped topics when ordering by sticky_updated" do
+      sign_in_as user
+      get forum_topics_path, params: { search: { order: "sticky_updated" } }
+      assert_select "a[href=?]", forum_topics_path, text: "Show only recently bumped topics »"
+      assert_select "a", text: "Show all recently updated topics »", count: 0
+    end
+
+    it "keeps other search params in the links" do
+      category = create(:forum_category)
+      sign_in_as user
+      get forum_topics_path, params: { search: { category_id: category.id } }
+      assert_select "a[href=?]", forum_topics_path(search: { category_id: category.id, order: "sticky_updated" })
+
+      get forum_topics_path, params: { search: { category_id: category.id, order: "sticky_updated" } }
+      assert_select "a[href=?]", forum_topics_path(search: { category_id: category.id })
+    end
   end
 
   # forum_topic GET /forum_topics/:id(.:format) forum_topics#show
@@ -167,6 +197,12 @@ RSpec.describe ForumTopicsController do
       post forum_topics_path, params: valid_params
       expect(response).to redirect_to(new_session_path)
     end
+
+    it "sets last_bumped_at" do
+      sign_in_as user
+      post forum_topics_path, params: valid_params
+      expect(ForumTopic.last.last_bumped_at).to be_within(5.seconds).of(Time.current)
+    end
   end
 
   # edit_forum_topic GET /forum_topics/:id/edit(.:format) forum_topics#edit
@@ -236,6 +272,49 @@ RSpec.describe ForumTopicsController do
       sign_in_as mod
       put forum_topic_path(forum_topic), params: { forum_topic: { title: "mod title" } }
       expect(forum_topic.reload.updated_at).to be > old_updated_at
+    end
+
+    it "bumps the topic by default" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as user
+      put forum_topic_path(forum_topic), params: { forum_topic: { title: "new title", do_not_bump: "0" } }
+      expect(forum_topic.reload.last_bumped_at).to be_within(5.seconds).of(Time.current)
+    end
+
+    it "does not bump the topic when an admin edits only the original post" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as admin
+      expect do
+        put forum_topic_path(forum_topic), params: { forum_topic: { original_post_attributes: { id: forum_topic.original_post.id, body: "admin edit" } } }
+      end.not_to(change { forum_topic.reload.last_bumped_at })
+      expect(forum_topic.original_post.body).to eq("admin edit")
+    end
+
+    it "bumps the topic when a moderator edits the title and original post" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as mod
+      put forum_topic_path(forum_topic), params: { forum_topic: { title: "mod title", original_post_attributes: { id: forum_topic.original_post.id, body: "mod edit" } } }
+      expect(forum_topic.reload.last_bumped_at).to be_within(5.seconds).of(Time.current)
+      expect(forum_topic.original_post.body).to eq("mod edit")
+    end
+
+    it "does not bump the topic when a moderator edits the title and original post with do_not_bump" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as mod
+      expect do
+        put forum_topic_path(forum_topic), params: { forum_topic: { title: "mod title", do_not_bump: "1", original_post_attributes: { id: forum_topic.original_post.id, body: "mod edit" } } }
+      end.not_to(change { forum_topic.reload.last_bumped_at })
+      expect(forum_topic.title).to eq("mod title")
+      expect(forum_topic.original_post.body).to eq("mod edit")
+    end
+
+    it "does not bump the topic when do_not_bump is set" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as user
+      expect do
+        put forum_topic_path(forum_topic), params: { forum_topic: { title: "new title", do_not_bump: "1" } }
+      end.not_to(change { forum_topic.reload.last_bumped_at })
+      expect(forum_topic.title).to eq("new title")
     end
   end
 

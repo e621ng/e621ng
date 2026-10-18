@@ -57,8 +57,8 @@ class ForumTopicsController < ApplicationController
   end
 
   def new
-    @forum_topic = ForumTopic.new(forum_topic_params)
-    @forum_topic.original_post = ForumPost.new(forum_topic_params[:original_post_attributes])
+    @forum_topic = ForumTopic.new(forum_topic_params(:create))
+    @forum_topic.original_post = ForumPost.new(forum_topic_params(:create)[:original_post_attributes])
     respond_with(@forum_topic)
   end
 
@@ -67,12 +67,12 @@ class ForumTopicsController < ApplicationController
   end
 
   def create
-    @forum_topic = ForumTopic.create(forum_topic_params)
+    @forum_topic = ForumTopic.create(forum_topic_params(:create))
     respond_with(@forum_topic)
   end
 
   def update
-    @forum_topic.assign_attributes(forum_topic_params)
+    @forum_topic.assign_attributes(forum_topic_params(:update))
     @forum_topic.save
     respond_with(@forum_topic)
   end
@@ -142,9 +142,10 @@ class ForumTopicsController < ApplicationController
     end
   end
 
-  def forum_topic_params
+  def forum_topic_params(context)
     permitted_params = [:title, :category_id, { original_post_attributes: %i[id body] }]
     permitted_params += %i[is_sticky is_locked] if CurrentUser.is_moderator?
+    permitted_params += %i[do_not_bump] if context == :update
 
     params.fetch(:forum_topic, {}).permit(permitted_params)
   end
