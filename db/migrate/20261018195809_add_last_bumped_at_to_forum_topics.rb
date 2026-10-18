@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddLastBumpedAtToForumTopics < ActiveRecord::Migration[8.1]
   def change
     add_column(:forum_topics, :last_bumped_at, :datetime)
