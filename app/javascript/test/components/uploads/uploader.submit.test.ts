@@ -6,7 +6,7 @@ vi.mock("@/utility/Toast", () => ({ default: { notice: vi.fn(), alert: vi.fn() }
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
-import { flushPromises, VueWrapper } from "@vue/test-utils";
+import { DOMWrapper, flushPromises, VueWrapper } from "@vue/test-utils";
 import { htmlResponse, jsonResponse } from "../../helpers";
 import { mountUploader, MountUploaderOptions, unmountAll } from "./mountUploader";
 
@@ -17,7 +17,7 @@ beforeEach(() => {
 afterEach(unmountAll);
 
 async function fillValidForm (wrapper: VueWrapper): Promise<void> {
-  await wrapper.find("#post_tags").setValue("a b c d");
+  await wrapper.find("#post_tags").setValue("a b c d e f g h i j");
   await wrapper.find(".rating-s").trigger("click");
   await wrapper.find("#no_source").setValue(true); // suppresses the missing-source warning
   (wrapper.vm as any).uploadValue = "https://example.com/image.png"; // an upload must be provided
@@ -93,7 +93,7 @@ describe("uploads/uploader — submit payload", () => {
 
   it("includes the core fields", async () => {
     const mounted = await mountUploader();
-    await mounted.wrapper.find("#post_tags").setValue("a b c d");
+    await mounted.wrapper.find("#post_tags").setValue("a b c d e f g h i j");
     await mounted.wrapper.find(".rating-e").trigger("click");
     await mounted.wrapper.find("#post_description").setValue("a description");
     (mounted.wrapper.vm as any).sources = ["https://example.com/a", "https://example.com/b"];
@@ -103,7 +103,7 @@ describe("uploads/uploader — submit payload", () => {
     await clickSubmit(mounted.wrapper);
 
     const data = mounted.fetchSpy.mock.calls.at(-1)![1].body as FormData;
-    expect(data.get("upload[tag_string]")).toBe("a b c d");
+    expect(data.get("upload[tag_string]")).toBe("a b c d e f g h i j");
     expect(data.get("upload[rating]")).toBe("e");
     expect(data.get("upload[source]")).toBe("https://example.com/a\nhttps://example.com/b");
     expect(data.get("upload[description]")).toBe("a description");
@@ -138,6 +138,165 @@ describe("uploads/uploader — submit payload", () => {
     expect(data.get("upload[locked_tags]")).not.toBeNull();
     expect(data.get("upload[locked_rating]")).not.toBeNull();
     expect(data.get("upload[as_pending]")).not.toBeNull();
+  });
+});
+
+describe("uploads/uploader — low-tag confirmation", () => {
+  const dialog = () => new DOMWrapper(document.querySelector<HTMLDialogElement>("#upload-tag-confirmation")!);
+  const confirm = async () => {
+    await dialog().find("button.submit").trigger("click");
+    await flushPromises();
+  };
+  async function prepare (opts: MountUploaderOptions = {}, tags = "a b c d") {
+    const mounted = await mountUploader(opts);
+    // jsdom doesn't provide showModal() or close(), so supply them for these tests.
+    const element = dialog().element;
+    element.showModal = vi.fn(() => { element.open = true; });
+    element.close = vi.fn(() => {
+      if (!element.open) return;
+      element.open = false;
+      element.dispatchEvent(new Event("close"));
+    });
+    await fillValidForm(mounted.wrapper);
+    await mounted.wrapper.find("#post_tags").setValue(tags);
+    mounted.fetchSpy.mockResolvedValue(jsonResponse({ reason: "invalid", message: "Test response." }, { status: 422 }));
+    mounted.fetchSpy.mockClear();
+    await clickSubmit(mounted.wrapper);
+    return mounted;
+  }
+
+  it("still uploads when showModal is unavailable", async () => {
+    const { wrapper, fetchSpy } = await mountUploader();
+    await fillValidForm(wrapper);
+    await wrapper.find("#post_tags").setValue("a b c d");
+    Object.defineProperty(dialog().element, "showModal", { value: undefined });
+    fetchSpy.mockResolvedValue(jsonResponse({ location: "/posts/999" }));
+    fetchSpy.mockClear();
+
+    await clickSubmit(wrapper);
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledWith("/uploads.json", expect.objectContaining({
+      method: "POST",
+    }));
+    const data = fetchSpy.mock.calls[0][1].body as FormData;
+    expect(data.get("upload[tag_string]")).toBe("a b c d");
+  });
+
+  it.each([false, true])("requires confirmation in compact mode %s and keeps the upload payload unchanged", async (compactMode) => {
+    const { fetchSpy } = await prepare({ compactMode });
+    expect(dialog().isVisible()).toBe(true);
+    expect(dialog().element.showModal).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    await confirm();
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchSpy.mock.calls[0];
+    expect(url).toBe("/uploads.json");
+    expect(Array.from((init.body as FormData).entries())).toEqual([
+      ["upload[direct_url]", "https://example.com/image.png"],
+      ["upload[tag_string]", "a b c d"],
+      ["upload[rating]", "s"],
+      ["upload[source]", ""],
+      ["upload[description]", ""],
+    ]);
+    expect(dialog().element.open).toBe(false);
+  });
+
+  it("requires confirmation at nine tags", async () => {
+    const { fetchSpy } = await prepare({}, "a b c d e f g h i");
+    expect(dialog().isVisible()).toBe(true);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it.each(["cancel", "close", "escape"])("cancels with %s, restores focus, and requires confirmation again", async (action) => {
+    const { wrapper, fetchSpy } = await prepare();
+    if (action === "escape") {
+      // Simulate pressing Escape: send the cancel event, then close the dialog.
+      const event = new Event("cancel", { cancelable: true });
+      if (dialog().element.dispatchEvent(event)) {
+        dialog().element.close();
+      }
+      await nextTick();
+    } else {
+      const button = action === "close" ? ".close-dialog" : ".dialog-actions button:not(.submit)";
+      await dialog().find(button).trigger("click");
+    }
+    expect(dialog().element.open).toBe(false);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(wrapper.find('button[accesskey="s"]').element);
+    await clickSubmit(wrapper);
+    expect(dialog().isVisible()).toBe(true);
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
+  it("reuses the dialog and submits only once on repeated clicks", async () => {
+    const { wrapper, fetchSpy } = await prepare();
+    await clickSubmit(wrapper);
+    expect(document.querySelectorAll("#upload-tag-confirmation")).toHaveLength(1);
+    expect(dialog().element.showModal).toHaveBeenCalledTimes(1);
+    fetchSpy.mockReturnValue(new Promise(() => {}));
+    await confirm();
+    await confirm();
+    await clickSubmit(wrapper);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("asks again if the tags changed while the dialog was open", async () => {
+    const { wrapper, fetchSpy } = await prepare();
+    await wrapper.find("#post_tags").setValue("a b c e");
+    await confirm();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(dialog().isVisible()).toBe(true);
+    await confirm();
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect((fetchSpy.mock.calls[0][1].body as FormData).get("upload[tag_string]")).toBe("a b c e");
+  });
+
+  it("rechecks the hard minimum and other validation on confirmation", async () => {
+    const { wrapper, fetchSpy } = await prepare();
+    await wrapper.find("#post_tags").setValue("a b c");
+    await confirm();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(dialog().element.open).toBe(false);
+    await wrapper.find("#post_tags").setValue("a b c d");
+    await clickSubmit(wrapper);
+    (wrapper.vm as any).uploadValue = "";
+    await nextTick();
+    await confirm();
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(errorBox(wrapper, "provide a file")?.isVisible()).toBe(true);
+  });
+
+  it("requires a fresh confirmation after a failed upload", async () => {
+    const { wrapper, fetchSpy } = await prepare();
+    await confirm();
+    expect(errorBox(wrapper, "Test response.")?.isVisible()).toBe(true);
+    await clickSubmit(wrapper);
+    expect(dialog().isVisible()).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    await confirm();
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses the normal success redirect and releases the unload guard after confirmation", async () => {
+    const { fetchSpy, locationAssign } = await prepare();
+    fetchSpy.mockResolvedValue(jsonResponse({ location: "/posts/999" }));
+    await confirm();
+    expect(locationAssign).toHaveBeenCalledWith("/posts/999");
+    const unload = new Event("beforeunload", { cancelable: true });
+    window.dispatchEvent(unload);
+    expect(unload.defaultPrevented).toBe(false);
+  });
+
+  it("opens the guide and examples separately and removes the dialog on unmount", async () => {
+    const { wrapper } = await prepare();
+    const links = [wrapper.find(".box-section.background-yellow a"), ...dialog().findAll("a")];
+    for (const link of links) {
+      expect(link.attributes("target")).toBe("_blank");
+      expect(link.attributes("rel")).toBe("noopener");
+    }
+    wrapper.unmount();
+    expect(document.querySelector("#upload-tag-confirmation")).toBeNull();
   });
 });
 
