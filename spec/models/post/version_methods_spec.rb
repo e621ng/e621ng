@@ -116,6 +116,26 @@ RSpec.describe Post do
         post.update!(rating: "e")
         expect(post.versions.last.original_tags).to eq([])
       end
+
+      it "does not carry over to a later non-tag edit on the same instance" do
+        post = create(:post, tag_string: "tagme foo")
+        post.update!(tag_string: "tagme foo new_tag")
+        expect(post.versions.last.original_tags).to eq(%w[new_tag])
+
+        post.update!(rating: "e")
+        expect(post.versions.last.original_tags).to eq([])
+      end
+
+      it "does not carry over to a later tag_string_diff edit on the same instance" do
+        post = create(:post, tag_string: "tagme foo")
+        post.tag_string_diff = "first_tag"
+        post.save!
+        expect(post.versions.last.original_tags).to eq(%w[first_tag])
+
+        post.tag_string_diff = "second_tag"
+        post.save!
+        expect(post.versions.last.original_tags).to eq(%w[second_tag])
+      end
     end
 
     describe "#saved_change_to_watched_attributes?" do

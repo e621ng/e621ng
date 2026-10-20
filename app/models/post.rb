@@ -28,6 +28,7 @@ class Post < ApplicationRecord
   # post_sets.post_ids). Dropped in a follow-up migration after the rollback window.
   self.ignored_columns += %w[pool_string]
 
+  before_validation :reset_tag_caches
   before_validation :initialize_uploader, :on => :create
   before_validation :merge_old_changes
   before_validation :apply_source_diff
@@ -679,6 +680,11 @@ class Post < ApplicationRecord
       if old_description == description.to_s
         self.description = description_before_last_save || description_was
       end
+    end
+
+    def reset_tag_caches
+      reset_tag_array_cache
+      @tags_before_parse = nil
     end
 
     def apply_tag_diff
