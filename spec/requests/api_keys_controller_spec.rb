@@ -140,10 +140,17 @@ RSpec.describe ApiKeysController do
       end.not_to change(ApiKey, :count)
     end
 
+    # The controller computes the expiry inside the user's time zone (see
+    # ApplicationController#set_time_zone), so a DST transition within the
+    # duration shifts the absolute time by an hour compared to a UTC offset.
+    def expected_expiry(days)
+      Time.use_zone(user.time_zone) { days.days.from_now }
+    end
+
     it "creates a new API key active for the given number of days" do
       freeze_time do
         relation = do_with_success({ name: "TestKey", expires_at: "Shouldn't be used", duration: 14 })
-        expect(relation.first.expires_at).to match(Time.now.advance(days: 14))
+        expect(relation.first.expires_at).to eq(expected_expiry(14))
       end
     end
 
@@ -164,7 +171,7 @@ RSpec.describe ApiKeysController do
     it "coerces the duration to the number of days until expiration" do
       freeze_time do
         relation = do_with_success({ name: "TestKey", expires_at: "Shouldn't be used", duration: "1 more time" })
-        expect(relation.first.expires_at).to match(Time.now.advance(days: 1))
+        expect(relation.first.expires_at).to eq(expected_expiry(1))
       end
     end
 
