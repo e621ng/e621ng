@@ -137,10 +137,13 @@
   }
 }
 
+#ptbr-wrapper .ptbr-row > * {
+  display: flex;
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
+}
 
 // Favorite button
 #ptbr-wrapper .ptbr-favorite-button {
-  font-family: "Roboto", Verdana, Geneva, sans-serif;
   color: palette("background-gold-d10");
 
   &[favorited="true"] {
@@ -150,22 +153,6 @@
       stroke-width: 0;
     }
   }
-}
-
-// Edit button
-#ptbr-wrapper .ptbr-edit {
-  display: flex;
-}
-#ptbr-wrapper .ptbr-edit-button {
-  font-family: "Roboto", Verdana, Geneva, sans-serif;
-}
-
-// Fullscreen button
-#ptbr-wrapper .ptbr-fullscreen {
-  display: flex;
-}
-#ptbr-wrapper .ptbr-fullscreen-button {
-  font-family: "Roboto", Verdana, Geneva, sans-serif;
 }
 
 
