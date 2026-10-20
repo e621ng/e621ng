@@ -117,6 +117,14 @@ RUN apk --no-cache add vips \
   postgresql15-client \
   jemalloc tzdata gcompat
 
+# Distrust the roots behind the compromised eMudhra intermediates
+# (we-have-a-problem.com, 2026-10-20). Alpine 3.20 is EOL and won't get the
+# fixed ca-certificates; drop this once the base moves to a patched Alpine.
+RUN sed -i -e 's|^mozilla/emSign_ECC_Root_CA_-_G3.crt|!&|' \
+  -e 's|^mozilla/Comodo_AAA_Services_root.crt|!&|' \
+  /etc/ca-certificates.conf \
+  && update-ca-certificates
+
 COPY --from=mwader/static-ffmpeg:8.1.2 /ffmpeg /ffprobe /usr/bin/
 
 WORKDIR /app
