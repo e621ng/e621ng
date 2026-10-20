@@ -10,8 +10,9 @@ module DocumentStore
       test_suffix = Rails.env.test? ? ENV["TEST_ENV_NUMBER"].presence : nil
       klass.document_store.index_name = "#{klass.model_name.plural}_#{Rails.env}#{test_suffix}"
 
-      # Create and destroy write inline, so a rejected write would fail the request after the
-      # record was already committed. Defer those; IndexUpdateJob/IndexDeleteJob retry with backoff.
+      # If failing with TooManyRequets, defer to IndexUpdateJob/IndexDeleteJob retry with backoff.
+      # Doesn't apply to :update since it's already deferred.
+
       klass.after_commit on: [:create] do
         document_store.update_index(refresh: Rails.env.test?.to_s)
       rescue OpenSearch::Transport::Transport::Errors::TooManyRequests => e

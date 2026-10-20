@@ -51,5 +51,13 @@ RSpec.describe DocumentStore::Model do
         expect(IndexDeleteJob).to have_enqueued_sidekiq_job("Post", post.id).in(DocumentStore::DEFERRED_WRITE_DELAY)
       end
     end
+
+    context "when the index write fails for another reason" do
+      before { allow(client).to receive(:delete).and_raise(OpenSearch::Transport::Transport::Errors::InternalServerError) }
+
+      it "raises" do
+        expect { post.destroy! }.to raise_error(OpenSearch::Transport::Transport::Errors::InternalServerError)
+      end
+    end
   end
 end
