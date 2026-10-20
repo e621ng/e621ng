@@ -26,6 +26,20 @@
     }
   }
 
+  .ticket-extra-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+
+    background: themed("color-section-lighten-5");
+    @include st-radius;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+
+    svg { color: palette("text-red"); }
+  }
+
   
   // Error messages
   .report-errors {
