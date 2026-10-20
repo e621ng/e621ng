@@ -77,6 +77,13 @@ RSpec.describe Post do
         expect(post.versions.last.original_tags).to match_array(%w[bar_artist baz_artist])
       end
 
+      it "strips category prefixes from negated tags while keeping the sign" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "-art:foo bar"
+        post.save!
+        expect(post.versions.last.original_tags).to match_array(%w[-foo bar])
+      end
+
       it "does not strip tags that only start with a category name" do
         post = Post.find(create(:post, tag_string: "tagme foo").id)
         post.tag_string_diff = "general_store"
