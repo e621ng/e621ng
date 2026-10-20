@@ -23,19 +23,6 @@ RSpec.describe DocumentStore::Model do
         post = create(:post)
         expect(IndexUpdateJob).to have_enqueued_sidekiq_job("Post", post.id).in(DocumentStore::DEFERRED_WRITE_DELAY)
       end
-
-      context "when the record is deleted before the retry" do
-        before do
-          allow(client).to receive(:delete).with(hash_including(ignore: 404))
-          allow(client).to receive(:delete).with(hash_excluding(ignore: 404)).and_raise(not_found)
-        end
-
-        it "ignores the missing record" do
-          post = create(:post)
-          expect(IndexUpdateJob).to have_enqueued_sidekiq_job("Post", post.id).in(DocumentStore::DEFERRED_WRITE_DELAY)
-          post.destroy!
-        end
-      end
     end
 
     context "when the index write fails for another reason" do
@@ -66,7 +53,18 @@ RSpec.describe DocumentStore::Model do
       end
     end
 
-    context "when the index write fails for another reason" do
+    context "when the document is missing, e.g. its deferred create never succeeded" do
+      before do
+        allow(client).to receive(:delete).with(hash_including(ignore: 404)).and_return({ "result" => "not_found" })
+        allow(client).to receive(:delete).with(hash_excluding(ignore: 404)).and_raise(not_found)
+      end
+
+      it "destroys the record without raising" do
+        expect { post.destroy! }.not_to raise_error
+      end
+    end
+
+    context "when the index delete fails for another reason" do
       before { allow(client).to receive(:delete).and_raise(OpenSearch::Transport::Transport::Errors::InternalServerError) }
 
       it "raises" do
