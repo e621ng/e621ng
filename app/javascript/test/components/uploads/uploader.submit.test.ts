@@ -165,6 +165,24 @@ describe("uploads/uploader — low-tag confirmation", () => {
     return mounted;
   }
 
+  it("still uploads when showModal is unavailable", async () => {
+    const { wrapper, fetchSpy } = await mountUploader();
+    await fillValidForm(wrapper);
+    await wrapper.find("#post_tags").setValue("a b c d");
+    Object.defineProperty(dialog().element, "showModal", { value: undefined });
+    fetchSpy.mockResolvedValue(jsonResponse({ location: "/posts/999" }));
+    fetchSpy.mockClear();
+
+    await clickSubmit(wrapper);
+
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledWith("/uploads.json", expect.objectContaining({
+      method: "POST",
+    }));
+    const data = fetchSpy.mock.calls[0][1].body as FormData;
+    expect(data.get("upload[tag_string]")).toBe("a b c d");
+  });
+
   it.each([false, true])("requires confirmation in compact mode %s and keeps the upload payload unchanged", async (compactMode) => {
     const { fetchSpy } = await prepare({ compactMode });
     expect(dialog().isVisible()).toBe(true);

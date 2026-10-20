@@ -335,11 +335,10 @@
     <p class="styled-dtext" style="font-size: inherit; line-height: inherit">
       An exception to this requirement applies only when you cannot achieve 10 tags due to the lack of content.
       For example: A comic
-      <span class="inline-code" style="font-style: normal">title_page</span>
+      <span class="inline-code" style="font-style: normal">cover_page</span>
       with
       <span class="inline-code" style="font-style: normal">zero_pictured</span>
-      characters, such as
-      <a href="/posts/6282019" target="_blank" rel="noopener">post 6282019</a>.
+      characters.
     </p>
     <p><strong>
       Intentionally uploading with less than 10 tags may lead to account action, such as a record, or removal of your ability to upload.
@@ -573,8 +572,12 @@
     if (preventUpload.value || submitting.value)
       return;
     if (tagCount.value < 10 && !confirmed) {
-      showTagWarning();
-      return;
+      try {
+        showTagWarning();
+        return;
+      } catch {
+        // Prevent blocking the upload if the browser doesn't support the modal.
+      }
     }
     submitting.value = true;
     const data = new FormData();
