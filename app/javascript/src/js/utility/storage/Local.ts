@@ -91,6 +91,7 @@ class LStorage extends StorageObject {
       Muted: false,
       PlaybackRate: 1,
       Loop: true,
+      TimeSwitchMode: "duration" as "duration" | "remaining",
     },
 
     TagScript: {
@@ -300,6 +301,7 @@ const StorageKeys: StorageConfig<LStorage> = {
       Muted: "e6.posts.video.muted",
       PlaybackRate: "e6.posts.video.playback_rate",
       Loop: "e6.posts.video.loop",
+      TimeSwitchMode: "e6.posts.video.time_switch_mode",
     },
 
     TagScript: {
