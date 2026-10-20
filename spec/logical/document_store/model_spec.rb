@@ -6,6 +6,7 @@ RSpec.describe DocumentStore::Model do
   include_context "as admin"
 
   let(:rejected) { OpenSearch::Transport::Transport::Errors::TooManyRequests.new("cluster_block_exception") }
+  let(:not_found) { OpenSearch::Transport::Transport::Errors::NotFound.new("not_found") }
   let(:client) { instance_double(OpenSearch::Client) }
 
   before { allow(Post.document_store).to receive(:client).and_return(client) }
@@ -21,6 +22,19 @@ RSpec.describe DocumentStore::Model do
       it "retries the write later via IndexUpdateJob" do
         post = create(:post)
         expect(IndexUpdateJob).to have_enqueued_sidekiq_job("Post", post.id).in(DocumentStore::DEFERRED_WRITE_DELAY)
+      end
+
+      context "when the record is deleted before the retry" do
+        before do
+          allow(client).to receive(:delete).with(hash_including(ignore: 404))
+          allow(client).to receive(:delete).with(hash_excluding(ignore: 404)).and_raise(not_found)
+        end
+
+        it "ignores the missing record" do
+          post = create(:post)
+          expect(IndexUpdateJob).to have_enqueued_sidekiq_job("Post", post.id).in(DocumentStore::DEFERRED_WRITE_DELAY)
+          post.destroy!
+        end
       end
     end
 

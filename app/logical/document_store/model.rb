@@ -24,7 +24,7 @@ module DocumentStore
       end
 
       klass.after_commit on: [:destroy] do
-        document_store.delete_document(refresh: Rails.env.test?.to_s)
+        self.class.document_store.delete_document(id, refresh: Rails.env.test?.to_s)
       rescue OpenSearch::Transport::Transport::Errors::TooManyRequests => e
         DocumentStore.defer_rejected_write(IndexDeleteJob, self, e)
       end
