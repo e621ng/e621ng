@@ -901,7 +901,7 @@ class Post < ApplicationRecord
 
     def remove_metatags(tags)
       tags = tags.grep_v(ORIGINAL_TAGS_REMOVED_METATAGS)
-      category_prefix = /\A(?:#{Tag.categories.regexp}):/
+      category_prefix = /\A(?:#{Tag.categories.regexp.source}):/i # tags are downcased during normalization
       prefixed, unprefixed = tags.partition { |x| x =~ category_prefix }
       prefixed.map! { |tag| tag.sub(category_prefix, "") }
       prefixed + unprefixed
