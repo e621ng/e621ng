@@ -18,7 +18,11 @@ module DocumentStore
     def update_index(refresh: "false")
       version = index_version
       body = as_indexed_json
-      return client.index(index: index_name, id: id, body: body, refresh: refresh) if version.nil?
+      if version.nil?
+        response = client.index(index: index_name, id: id, body: body, refresh: refresh, ignore: 429)
+        return handle_indexing_failure(response) if too_many_requests?(response)
+        return response
+      end
 
       # Optimistic concurrency control.
       # Any indexer that reads a record and writes the document some time later can otherwise
@@ -26,7 +30,9 @@ module DocumentStore
       # the record's own version makes OpenSearch reject it (409) instead.
       (MAX_CONFLICT_RETRIES + 1).times do
         response = client.index(index: index_name, id: id, body: body, refresh: refresh,
-                                version: version, version_type: "external_gte", ignore: 409)
+                                version: version, version_type: "external_gte", ignore: [409, 429])
+
+        return handle_indexing_failure(response) if too_many_requests?(response)
         return response unless conflict?(response)
 
         # The document is ahead of the record, typically after an unstamped write bumped
@@ -44,13 +50,27 @@ module DocumentStore
     end
 
     def delete_document(refresh: "false")
-      client.delete(index: index_name, id: id, refresh: refresh)
+      response = client.delete(index: index_name, id: id, refresh: refresh, ignore: 429)
+      return handle_indexing_failure(response) if too_many_requests?(response)
+      response
     end
 
     private
 
     def conflict?(response)
       response.is_a?(Hash) && response["status"] == 409
+    end
+
+    def too_many_requests?(response)
+      response.is_a?(Hash) && response["status"] == 429
+    end
+
+    def handle_indexing_failure(response)
+      error_message = response["error"]
+      Rails.logger.error("[DocumentStore] Indexing delayed for #{index_name}/#{id} due to 429: #{error_message.inspect}")
+      DocumentStore::ReindexWorker.perform_in(1.minute, @target.class.name, @target.id)
+      Thread.current[:document_store_warning] = "Your upload was saved successfully, but search indexing is temporarily delayed. It will appear in search shortly."
+      response
     end
 
     def current_document_version

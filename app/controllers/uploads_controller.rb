@@ -59,6 +59,12 @@ class UploadsController < ApplicationController
       end
     end
 
+    indexing_warning = Thread.current[:document_store_warning]
+    Thread.current[:document_store_warning] = nil
+    if indexing_warning.present?
+      flash[:notice] = flash[:notice].present? ? "#{flash[:notice]}\n\n#{indexing_warning}" : indexing_warning
+    end
+
     respond_to do |format|
       format.json do
         return render json: {success: false, reason: 'duplicate', location: post_path(@upload.duplicate_post_id), post_id: @upload.duplicate_post_id}, status: 412 if @upload.is_duplicate?
