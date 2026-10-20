@@ -33,6 +33,7 @@
     .controls-backdrop {
       position: absolute;
       inset: 0;
+      bottom: .5px;
       pointer-events: none;
       background: linear-gradient(to top, var(--color-background), transparent 10rem);
     }
