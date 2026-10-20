@@ -25,12 +25,7 @@ RSpec.describe DocumentStore::InstanceMethodProxy do
 
       it "tolerates the resulting conflict rather than raising" do
         update_index
-        expect(client).to have_received(:index).with(hash_including(ignore: array_including(409)))
-      end
-
-      it "tolerates rate limits rather than raising" do
-        update_index
-        expect(client).to have_received(:index).with(hash_including(ignore: array_including(429)))
+        expect(client).to have_received(:index).with(hash_including(ignore: 409))
       end
 
       context "when the write is rejected" do
@@ -86,9 +81,9 @@ RSpec.describe DocumentStore::InstanceMethodProxy do
     end
 
     context "when the record has no index version" do
-      it "sends no version metadata but allows ignoring 429s" do
+      it "sends no version metadata" do
         update_index
-        expect(client).to have_received(:index).with(hash_excluding(:version, :version_type)).with(hash_including(ignore: 429))
+        expect(client).to have_received(:index).with(hash_excluding(:version, :version_type, :ignore))
       end
     end
   end
