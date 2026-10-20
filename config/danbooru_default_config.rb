@@ -1042,7 +1042,7 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
 
         video: "This tag is added automatically to posts containing videos.",
         flash: "This tag is added automatically to posts containing Flash files.",
-        sound: "This tag is added automatically to video posts containing any sound."
+        sound: "This tag is added automatically to video posts containing any sound.",
 
         animated: "This tag is added automatically to posts containing animated images.",
         animated_gif: "This tag is added automatically to posts containing animated GIFs.",
