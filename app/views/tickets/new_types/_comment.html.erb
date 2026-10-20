@@ -6,7 +6,11 @@
 <div class="dtext-container">
   <%= format_text(@comment.body) %>
 </div>
-<h4 class="ticket-warning" style="font-weight: normal;">
-  ⚠️ This form is to <strong>report</strong> a comment. If you're looking to <i>reply</i> to a comment, you've selected the wrong option!
-</h4>
+<div class="ticket-extra-warning">
+  <%= svg_icon(:octagon_alert, width: 24, height: 24) %>
+  <span>
+  This form is to <strong>report</strong> a comment.<br />
+  If you're looking to <i>reply</i> to a comment, you've selected the wrong option!
+  </span>
+</div>
 <%= render "tickets/partials/create_notice", message: @comment %>
