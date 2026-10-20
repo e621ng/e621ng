@@ -49,6 +49,7 @@ module DocumentStore
   def self.defer_rejected_write(job, record, error)
     Rails.logger.warn("[DocumentStore] #{record.class.document_store.index_name}/#{record.id} rejected, retrying via #{job.name}: #{error.message.truncate(300)}")
     job.perform_in(DEFERRED_WRITE_DELAY, record.class.to_s, record.id)
+    RequestStore[:index_update_delayed] = true
   end
 
   def self.client

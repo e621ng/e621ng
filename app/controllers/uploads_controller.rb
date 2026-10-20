@@ -59,6 +59,11 @@ class UploadsController < ApplicationController
       end
     end
 
+    if RequestStore[:index_update_delayed] && !@upload.is_errored? && !@upload.is_duplicate?
+      notice = "Search indexing is temporarily delayed. The post will appear in searches shortly."
+      flash[:notice] = [flash[:notice].presence, notice].compact.join("\n\n")
+    end
+
     respond_to do |format|
       format.json do
         return render json: {success: false, reason: 'duplicate', location: post_path(@upload.duplicate_post_id), post_id: @upload.duplicate_post_id}, status: 412 if @upload.is_duplicate?
