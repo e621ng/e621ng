@@ -7,7 +7,15 @@ module Fixes
         posts = Post.where(file_ext: FileMethods::VIDEO_FILE_TYPES)
         puts "Updating has_sound for #{posts.size} video posts."
 
+        skipped = 0
+        errors = 0
+
         posts.find_each do |post|
+          if post.respond_to?(:has_sound)
+            skipped += 1;
+            next
+          end
+
           post.has_sound = post.video_has_sound?(post.file_path)
 
           if post.has_sound && !post.has_tag?("sound")
@@ -20,9 +28,10 @@ module Fixes
           post.save!
         rescue StandardError => e
           puts "Error processing post #{post.id}: #{e.message}"
+          errors += 1
         end
 
-        puts "Done."
+        puts "Done. Skipped: #{skipped}, Errors: #{errors}, Updated: #{posts.size - skipped - errors}"
       end
     end
   end
