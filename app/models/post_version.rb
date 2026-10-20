@@ -36,6 +36,7 @@ class PostVersion < ApplicationRecord
                     updater_id: CurrentUser.id,
                     updater_ip_addr: CurrentUser.ip_addr,
                     tags: post.tag_string,
+                    original_tags: post.tags_before_parse || [],
                     locked_tags: post.locked_tags,
                     description: post.description,
                     reason: post.edit_reason
@@ -306,7 +307,7 @@ class PostVersion < ApplicationRecord
 
       if !is_hidden || CurrentUser.is_staff?
         list += %i[
-          tags added_tags removed_tags
+          tags added_tags removed_tags original_tags
           locked_tags added_locked_tags removed_locked_tags
           rating rating_changed
           parent_id parent_changed
