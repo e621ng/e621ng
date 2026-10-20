@@ -6,27 +6,37 @@ import type { VideoPlayerElement } from "@videojs/html/video";
 
 const seekingUpdateDelay = 50;
 
-
-async function importVideoJS () {
-  // player must be loaded first
-  await import("@videojs/html/video/player");
-
-  await Promise.all([
+// lambdas are used here to prevent the imports from being resolved immediately when importing this module
+const videoJSImportModules = {
+  base: () => [
     import("@videojs/html/ui/container"),
     import("@videojs/html/ui/controls"),
     import("@videojs/html/ui/gesture"),
     import("@videojs/html/ui/play-button"),
     import("@videojs/html/ui/time"),
+    import("@videojs/html/ui/time-slider"),
+    import("@videojs/html/ui/fullscreen-button"),
+    import("@videojs/html/ui/seek-indicator"),
+    import("@videojs/html/ui/popover"),
+  ],
+  sound: () => [
     import("@videojs/html/ui/volume-popover"),
     import("@videojs/html/ui/volume-slider"),
     import("@videojs/html/ui/mute-button"),
-    import("@videojs/html/ui/time-slider"),
-    import("@videojs/html/ui/fullscreen-button"),
+  ],
+  extraOptions: () => [
     import("@videojs/html/ui/pip-button"),
     import("@videojs/html/ui/playback-rate-button"),
-    import("@videojs/html/ui/seek-indicator"),
-    import("@videojs/html/ui/popover"),
-  ]);
+  ],
+};
+
+
+async function importVideoJS (extraModules: (Exclude<keyof typeof videoJSImportModules, "base">)[]) {
+  // player must be loaded first
+  await import("@videojs/html/video/player");
+
+  // resolves all the requested imports for the base group and any other one supplied
+  await Promise.all(["base", ...extraModules].flatMap(m => videoJSImportModules[m]()));
 }
 
 class VideoPlayer {
@@ -60,6 +70,7 @@ class VideoPlayer {
 
 class CustomVideoPlayer extends VideoPlayer {
   private loadingVideoJsPromise: Promise<void>;
+  private hasVolumeControls: boolean;
 
   private timeSliderElement: TimeSliderElement;
   private loopButton: HTMLButtonElement;
@@ -88,6 +99,10 @@ class CustomVideoPlayer extends VideoPlayer {
       this.videoElement.loop = !this.videoElement.loop;
       this.updateLoopState(true);
     });
+
+    this.hasVolumeControls = this.containerElement.querySelector("media-mute-button") !== null;
+
+    if (!this.hasVolumeControls) return; // nothing to do from here
 
     // fixes the volume popup not opening on mobile
     const volumePopup = containerElement.querySelector<VolumePopoverElement>(".volume-popup");
@@ -123,7 +138,8 @@ class CustomVideoPlayer extends VideoPlayer {
   }
 
   private async loadVideoJS () {
-    await importVideoJS();
+    // do not import sound controls related modules if there's no sound to control
+    await importVideoJS(this.hasVolumeControls ? ["extraOptions", "sound"] : ["extraOptions"]);
 
     // only do these after videojs has completely finished importing
     this.videoElement.controls = false;
