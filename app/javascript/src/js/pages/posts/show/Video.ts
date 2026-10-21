@@ -42,13 +42,6 @@ class VideoPlayer {
     this.storeSettings();
   };
 
-  protected togglePlayback = () => {
-    if (this.videoElement.paused)
-      this.videoElement.play();
-    else
-      this.videoElement.pause();
-  };
-
   public storeSettings () {
     // muted != volume set to 0. we store both states to allow muting and unmuting while retaining vol.
     LStorage.Posts.Video.Volume = this.videoElement.volume;
