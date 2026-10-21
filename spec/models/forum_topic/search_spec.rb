@@ -119,4 +119,55 @@ RSpec.describe ForumTopic do
       expect(ids.index(sticky.id)).to be < ids.index(normal.id)
     end
   end
+
+  describe "order: sticky_updated param" do
+    it "places stickied topics first, then orders by updated_at descending" do
+      sticky = make_topic
+      older = make_topic
+      newer = make_topic
+      sticky.update_columns(is_sticky: true, updated_at: 3.days.ago, last_bumped_at: 3.days.ago)
+      older.update_columns(updated_at: 2.days.ago, last_bumped_at: 1.day.ago)
+      newer.update_columns(updated_at: 1.day.ago, last_bumped_at: 2.days.ago)
+
+      ids = ForumTopic.search(order: "sticky_updated").ids & [sticky.id, older.id, newer.id]
+      expect(ids).to eq([sticky.id, newer.id, older.id])
+    end
+  end
+
+  describe "order param" do
+    # each column sorts the topics differently
+    let!(:topic_a) { make_topic.tap { |t| t.update_columns(created_at: 3.days.ago, updated_at: 1.day.ago, last_bumped_at: 2.days.ago) } }
+    let!(:topic_b) { make_topic.tap { |t| t.update_columns(created_at: 2.days.ago, updated_at: 3.days.ago, last_bumped_at: 1.day.ago) } }
+    let!(:topic_c) { make_topic.tap { |t| t.update_columns(created_at: 1.day.ago, updated_at: 2.days.ago, last_bumped_at: 3.days.ago) } }
+
+    def ordered_ids(order)
+      ForumTopic.search(order: order).ids & [topic_a.id, topic_b.id, topic_c.id]
+    end
+
+    it "orders by created_at descending for created_at and created_at_desc" do
+      expect(ordered_ids("created_at")).to eq([topic_c.id, topic_b.id, topic_a.id])
+      expect(ordered_ids("created_at_desc")).to eq([topic_c.id, topic_b.id, topic_a.id])
+    end
+
+    it "orders by created_at ascending for created_at_asc" do
+      expect(ordered_ids("created_at_asc")).to eq([topic_a.id, topic_b.id, topic_c.id])
+    end
+
+    it "orders by updated_at descending for updated_at and updated_at_desc" do
+      expect(ordered_ids("updated_at")).to eq([topic_a.id, topic_c.id, topic_b.id])
+      expect(ordered_ids("updated_at_desc")).to eq([topic_a.id, topic_c.id, topic_b.id])
+    end
+
+    it "orders by updated_at ascending for updated_at_asc" do
+      expect(ordered_ids("updated_at_asc")).to eq([topic_b.id, topic_c.id, topic_a.id])
+    end
+
+    it "orders by last_bumped_at descending for bumped" do
+      expect(ordered_ids("bumped")).to eq([topic_b.id, topic_a.id, topic_c.id])
+    end
+
+    it "orders by last_bumped_at descending by default" do
+      expect(ordered_ids(nil)).to eq([topic_b.id, topic_a.id, topic_c.id])
+    end
+  end
 end
