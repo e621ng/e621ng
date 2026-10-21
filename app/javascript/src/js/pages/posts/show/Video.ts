@@ -139,8 +139,10 @@ class CustomVideoPlayer extends VideoPlayer {
     // store.state is a fresh immutable snapshot on each access, so read it inside the handler
     const { store } = this.containerElement;
     createTapGesture(container, () => {
-      if (store.state.controlsVisible) store.state.togglePaused();
-      else store.state.toggleControls();
+      const state = store.state;
+      if (!state.controlsVisible) state.toggleControls();
+      else if (state.paused) state.play().catch(() => {});
+      else state.pause();
     }, { pointer: "touch", action: "toggleControls" });
   }
 
