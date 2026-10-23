@@ -149,3 +149,239 @@
   align-items: center;
   margin-top: 10rem;
 }
+
+
+@keyframes otp-caret-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes otp-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+
+// One-shot pop when a digit changes.
+@keyframes otp-cell-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+// Six-cell TOTP / backup-code field (OtpCodeInput).
+// Cells and the mode toggle stay hidden until JS marks the field enhanced, so a
+// JS failure just leaves the plain dual-purpose field, styled by .otp-code-input-box
+// below (independent of .st-immersive-input — the label/field are siblings here,
+// not a label wrapping the field, since the enhanced version has two real inputs
+// and a label must not wrap more than one labelable control).
+.otp-code-input {
+  --otp-code-control-height: 3rem;
+  $spacing: 0.25rem;
+
+  // Baseline (no-JS) box: recreates .st-immersive-input's look without relying on
+  // being a <label> — the visible label and the field are plain siblings instead.
+  .otp-code-input-box {
+    display: flex;
+    flex-flow: column;
+    background: white;
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+    box-sizing: border-box;
+  }
+
+  .otp-code-input-label {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 0.85rem;
+    color: black;
+    font-weight: normal;
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
+  }
+
+  .otp-code-input-field {
+    position: relative;
+    display: block;
+  }
+
+  .otp-code-input-real, .otp-code-input-backup {
+    // Baseline input reset, previously inherited from `.st-immersive-input input`.
+    border-radius: unset;
+    padding: 0;
+    line-height: 1rem;
+    font-size: 1rem !important;
+    height: 1rem;
+    background: transparent !important;
+    border: none !important;
+    width: 100% !important;
+  }
+
+  // No-JS field keeps the standard focus glow; enhanced modes handle focus themselves.
+  &:not(.is-enhanced) .otp-code-input-box:focus-within {
+    box-shadow: 0 0 0.25rem themed("color-link-active") inset;
+  }
+
+  .otp-code-input-cells {
+    display: none;
+  }
+
+  .otp-code-input-backup {
+    display: none;
+  }
+
+  .otp-code-input-toggle {
+    display: none;
+
+    // Button reset so it reads as a plain link, matching the unstyled
+    // `.hint-link` anchors used elsewhere in this flow.
+    margin-top: $spacing;
+    align-self: flex-start;
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+    color: themed("color-link");
+    &:hover { color: themed("color-link-hover"); }
+  }
+
+  &.is-enhanced {
+    .otp-code-input-toggle {
+      display: inline-block;
+    }
+
+    // Kill the plate: the dialog background shows through the gaps between cells
+    // and around the row instead.
+    .otp-code-input-box {
+      background: transparent;
+      padding: 0;
+    }
+
+    .otp-code-input-label {
+      color: themed("color-text");
+      font-weight: bold;
+      margin-block: $spacing;
+    }
+
+    .otp-code-input-field {
+      height: var(--otp-code-control-height);
+    }
+  }
+
+  &.is-enhanced[data-mode="totp"] {
+    .otp-code-input-cells {
+      display: flex;
+      gap: 0.35rem;
+      height: 100%;
+    }
+
+    .otp-code-input-cell {
+      position: relative;
+      flex: 1 1 0;
+      height: 100%;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      background: white;
+      color: black;
+      font-family: monospace;
+      font-size: 1.25rem;
+      border-radius: 0.25rem;
+      // Without this, adjacent white cells on the (now transparent) box
+      // background are visually indistinguishable from one another.
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    .otp-code-input-cell.digit-pop {
+      animation: otp-cell-pop 160ms ease-out;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+
+    // Draw the visible caret in the presentation cells while the real input stays hidden.
+    .otp-code-input-field:focus-within .otp-code-input-cell.active::after {
+      content: "";
+      position: absolute;
+      background: black;
+      animation: otp-caret-blink 1s step-end infinite;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+
+    .otp-code-input-field:focus-within .otp-code-input-cell.active.empty::after {
+      left: 50%;
+      top: 50%;
+      width: 1px;
+      height: 60%;
+      transform: translate(-50%, -50%);
+    }
+
+    .otp-code-input-field:focus-within .otp-code-input-cell.active.occupied::after {
+      left: 50%;
+      bottom: 15%;
+      width: 55%;
+      height: 1px;
+      transform: translateX(-50%);
+    }
+
+    // Transparent overlay preserves native focus, selection, paste, and autofill.
+    .otp-code-input-real {
+      position: absolute;
+      inset: 0;
+      // Keep the overlay above the presentational cells so it receives pointer input.
+      z-index: 1;
+      height: 100% !important;
+      color: transparent !important;
+      caret-color: transparent;
+    }
+  }
+
+  &.is-enhanced[data-mode="backup"] {
+    .otp-code-input-cells {
+      display: none;
+    }
+
+    .otp-code-input-real {
+      display: none;
+    }
+
+    .otp-code-input-backup {
+      display: block;
+      height: 100%;
+      width: 100% !important;
+      box-sizing: border-box;
+      background: white !important;
+      color: black;
+      border: 1px solid rgba(0, 0, 0, 0.2) !important;
+      border-radius: 0.25rem;
+      padding: 0 0.5rem;
+
+      &:focus {
+        outline: none;
+        box-shadow: 0 0 0.25rem themed("color-link-active") inset;
+      }
+    }
+  }
+
+  // Briefly marks the active OTP control after an inline auth error.
+  &.otp-code-input-error {
+    .otp-code-input-field {
+      animation: otp-shake 0.4s ease-in-out;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+
+    .otp-code-input-cell, &[data-mode="backup"] .otp-code-input-backup {
+      border: 2px solid palette("text-red") !important;
+    }
+  }
+}
