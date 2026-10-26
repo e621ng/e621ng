@@ -322,7 +322,6 @@ GEM
       erb
       psych (>= 4.0.0)
       tsort
-    recaptcha (5.16.0)
     redis (5.2.0)
       redis-client (>= 0.22.0)
     redis-client (0.28.0)
@@ -507,7 +506,6 @@ DEPENDENCIES
   rack-mini-profiler
   rails (~> 8.1.0)
   rails-settings-cached (~> 2.9)
-  recaptcha
   redis
   request_store
   responders

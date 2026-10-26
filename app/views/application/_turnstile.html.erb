@@ -1,0 +1,4 @@
+<% if Danbooru.config.enable_turnstile? %>
+  <%= javascript_include_tag "https://challenges.cloudflare.com/turnstile/v0/api.js", async: true, defer: true, nonce: true %>
+  <div class="cf-turnstile" data-sitekey="<%= Danbooru.config.turnstile_site_key %>" data-theme="dark"></div>
+<% end %>

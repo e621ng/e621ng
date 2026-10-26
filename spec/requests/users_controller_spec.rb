@@ -92,6 +92,30 @@ RSpec.describe UsersController do
       expect(response).to have_http_status(:ok)
     end
 
+    context "when turnstile is enabled" do
+      before do
+        allow(Danbooru.config.custom_configuration).to receive_messages(
+          enable_turnstile?: true,
+          turnstile_site_key: "test-site-key",
+        )
+      end
+
+      it "renders the widget and its nonced script" do
+        get new_user_path
+        expect(response.body).to include('class="cf-turnstile" data-sitekey="test-site-key"')
+        expect(response.body).to match(%r{<script[^>]+src="https://challenges\.cloudflare\.com/turnstile/v0/api\.js"[^>]+nonce=})
+      end
+    end
+
+    context "when turnstile is disabled" do
+      before { allow(Danbooru.config.custom_configuration).to receive(:enable_turnstile?).and_return(false) }
+
+      it "does not render the widget" do
+        get new_user_path
+        expect(response.body).not_to include("cf-turnstile")
+      end
+    end
+
     context "when already logged in" do
       before { sign_in_as create(:user) }
 
@@ -314,7 +338,7 @@ RSpec.describe UsersController do
 
     before do
       allow(Danbooru.config.custom_configuration).to receive_messages(
-        enable_recaptcha?: false,
+        enable_turnstile?: false,
         enable_sock_puppet_validation?: false,
       )
     end
@@ -324,6 +348,28 @@ RSpec.describe UsersController do
         expect { post users_path, params: valid_params }
           .to change(User, :count).by(1)
         expect(response).to have_http_status(:found)
+      end
+    end
+
+    context "when turnstile is enabled" do
+      let(:turnstile_params) { valid_params.merge("cf-turnstile-response": "turnstile-token") }
+
+      before do
+        allow(Danbooru.config.custom_configuration).to receive(:enable_turnstile?).and_return(true)
+      end
+
+      it "creates the user when the challenge passes" do
+        allow(TurnstileVerifier).to receive(:verify).and_return(true)
+        expect { post users_path, params: turnstile_params }
+          .to change(User, :count).by(1)
+        expect(TurnstileVerifier).to have_received(:verify).with("turnstile-token", "127.0.0.1")
+      end
+
+      it "does not create the user when the challenge fails" do
+        allow(TurnstileVerifier).to receive(:verify).and_return(false)
+        expect { post users_path, params: turnstile_params }
+          .not_to change(User, :count)
+        expect(flash[:notice]).to eq("Sign up failed")
       end
     end
 
