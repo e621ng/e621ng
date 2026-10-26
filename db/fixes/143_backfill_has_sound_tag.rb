@@ -12,17 +12,15 @@ module Fixes
 
         posts.find_each do |post|
           post.has_sound = post.video_has_sound?(post.file_path)
-          changed = false
 
           if post.has_sound && !post.has_tag?("sound")
             post.add_tag("sound")
-            changed = true
           elsif !post.has_sound && post.has_tag?("sound")
             post.remove_tag("sound")
-            changed = true
           end
 
-          next unless changed
+          # covers both the flag (bit_flags) and the tag (tag_string)
+          next unless post.changed?
 
           post.do_not_version_changes = true
           post.save!
@@ -38,4 +36,4 @@ module Fixes
   end
 end
 
-Fixes::BackfillHasSoundTag.run
+Fixes::BackfillHasSoundTag.run unless Rails.env.test?
