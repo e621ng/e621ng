@@ -69,7 +69,7 @@ class PostPresenter < Presenter
       controls: "controls",
     }
 
-    if !@post.has_sound
+    unless @post.has_sound
       attributes["muted"] = "true"
     end
 
