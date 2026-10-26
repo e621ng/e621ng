@@ -43,10 +43,6 @@ module DocumentStore
       raise VersionConflictError, "#{index_name}/#{id} still conflicts after #{MAX_CONFLICT_RETRIES} retries at version #{version}"
     end
 
-    def delete_document(refresh: "false")
-      client.delete(index: index_name, id: id, refresh: refresh)
-    end
-
     private
 
     def conflict?(response)

@@ -52,6 +52,7 @@ class UploadService
   def convert_to_post(upload)
     Post.new.tap do |p|
       p.tag_string = upload.tag_string
+      p.submitted_tag_string = upload.submitted_tag_string
       p.locked_tags = upload.locked_tags
       p.is_rating_locked = upload.locked_rating if upload.locked_rating.present?
       p.description = upload.description.strip

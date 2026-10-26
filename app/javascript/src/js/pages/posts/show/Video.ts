@@ -1,7 +1,7 @@
 import LStorage from "@/utility/storage/Local";
 import TimingUtils from "@/utility/TimingUtils";
 import { createTapGesture } from "@videojs/core/dom";
-import { TimeSliderElement, VolumePopoverElement } from "@videojs/html";
+import { TimeElement, TimeSliderElement, VolumePopoverElement } from "@videojs/html";
 import type { VideoPlayerElement } from "@videojs/html/video";
 
 const seekingUpdateDelay = 50;
@@ -25,7 +25,6 @@ async function importVideoJS () {
     import("@videojs/html/ui/pip-button"),
     import("@videojs/html/ui/playback-rate-button"),
     import("@videojs/html/ui/seek-indicator"),
-    // @ts-expect-error this thing doesn't have any d.ts file defined.
     import("@videojs/html/ui/popover"),
   ]);
 }
@@ -64,6 +63,7 @@ class CustomVideoPlayer extends VideoPlayer {
 
   private timeSliderElement: TimeSliderElement;
   private loopButton: HTMLButtonElement;
+  private timeSwitchElement: TimeElement;
 
 
   public constructor (protected containerElement: VideoPlayerElement) {
@@ -71,6 +71,13 @@ class CustomVideoPlayer extends VideoPlayer {
     containerElement.classList.add("custom-player");
 
     this.loadingVideoJsPromise = this.loadVideoJS();
+
+    this.timeSwitchElement = containerElement.querySelector(".time-switcher");
+    // this is a bit hacky, but makes sure we give the custom element enough time to update its stuff
+    // sadly it has no custom events we can listen to
+    this.timeSwitchElement.addEventListener("click", () => setTimeout(() => {
+      this.storeSettings();
+    }, 10));
 
     this.timeSliderElement = containerElement.querySelector(".time-slider");
     this.timeSliderElement.addEventListener("drag-start", () => this.handleDraggingChange("start"));
@@ -92,6 +99,7 @@ class CustomVideoPlayer extends VideoPlayer {
 
   private updateLoopState = (save: boolean = false) => {
     this.loopButton.classList.toggle("enabled", this.videoElement.loop);
+    this.loopButton.ariaLabel = `${this.videoElement.loop ? "Disable" : "Enable"} looping`;
     if (save) this.storeSettings();
   };
 
@@ -131,17 +139,25 @@ class CustomVideoPlayer extends VideoPlayer {
     // store.state is a fresh immutable snapshot on each access, so read it inside the handler
     const { store } = this.containerElement;
     createTapGesture(container, () => {
-      if (store.state.controlsVisible) store.state.togglePaused();
-      else store.state.toggleControls();
+      const state = store.state;
+      if (!state.controlsVisible) state.toggleControls();
+      else if (state.paused) state.play().catch(() => {});
+      else state.pause();
     }, { pointer: "touch", action: "toggleControls" });
   }
 
-  public loadSettings (): void {
+  public loadSettings () {
     // load settings after initializing videojs since it does override some previously set stuff
     this.loadingVideoJsPromise.then(() => {
       super.loadSettings();
       this.updateLoopState();
+      this.timeSwitchElement.type = LStorage.Posts.Video.TimeSwitchMode;
     });
+  }
+
+  public storeSettings () {
+    super.storeSettings();
+    LStorage.Posts.Video.TimeSwitchMode = this.timeSwitchElement.dataset.type as "duration" | "remaining";
   }
 }
 

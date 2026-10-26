@@ -29,6 +29,183 @@ RSpec.describe Post do
       end
     end
 
+    describe "original tags" do
+      it "stores the submitted tags on the first version" do
+        post = create(:post, tag_string: "tagme foo")
+        expect(post.versions.last.original_tags).to match_array(%w[tagme foo])
+      end
+
+      it "stores only the tags that were added on a tag_string edit" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.update!(tag_string: "tagme foo bar")
+        expect(post.versions.last.original_tags).to eq(%w[bar])
+      end
+
+      it "stores removals as negated tags on a tag_string edit" do
+        post = Post.find(create(:post, tag_string: "tagme foo bar").id)
+        post.update!(tag_string: "tagme foo baz")
+        expect(post.versions.last.original_tags).to contain_exactly("baz", "-bar")
+      end
+
+      it "stores removals made through the edit form" do
+        post = Post.find(create(:post, tag_string: "tagme foo bar").id)
+        post.update!(old_tag_string: "tagme foo bar", tag_string: "tagme foo")
+        expect(post.versions.last.original_tags).to eq(%w[-bar])
+      end
+
+      it "does not store a removal when an existing tag is resubmitted in a different case" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.update!(old_tag_string: "tagme foo", tag_string: "tagme Foo bar")
+        expect(post.tag_array).to include("foo")
+        expect(post.versions.last.original_tags).to eq(%w[bar])
+      end
+
+      it "does not attribute a concurrent edit to the user" do
+        post = create(:post, tag_string: "tagme foo")
+        Post.find(post.id).update!(tag_string: "tagme foo other")
+
+        post = Post.find(post.id)
+        post.update!(old_tag_string: "tagme foo", tag_string: "tagme foo bar")
+        expect(post.tag_array).to include("other", "bar")
+        expect(post.versions.last.original_tags).to eq(%w[bar])
+      end
+
+      it "stores only the added tags on an additive edit" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.update!(old_tag_string: "", tag_string: "baz")
+        expect(post.tag_array).to include("foo", "baz")
+        expect(post.versions.last.original_tags).to eq(%w[baz])
+      end
+
+      it "does not store a removal when a category prefix is added to an existing tag" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.update!(tag_string: "tagme artist:foo")
+        expect(post.tags_before_parse).to eq([])
+      end
+
+      it "stores the raw tag_string_diff on a diff edit" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "bar -foo"
+        post.save!
+        expect(post.versions.last.original_tags).to eq(%w[bar -foo])
+      end
+
+      it "strips post metatags and category prefixes" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "fav:me artist:bar_artist baz"
+        post.save!
+        expect(post.versions.last.original_tags).to match_array(%w[bar_artist baz])
+      end
+
+      it "keeps whitelisted metatags" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = 'rating:e -parent:none locked:rating source:"a b" +source:c baz'
+        post.save!
+        expect(post.versions.last.original_tags).to contain_exactly("rating:e", "-parent:none", "locked:rating", 'source:"a b"', "+source:c", "baz")
+      end
+
+      it "strips non-whitelisted metatags" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "set:1 -fav:me upvote:me downvote:me baz"
+        post.save!
+        expect(post.versions.last.original_tags).to eq(%w[baz])
+      end
+
+      it "strips category prefixes regardless of case" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "Artist:bar_artist ART:baz_artist"
+        post.save!
+        expect(post.tag_array).to include("bar_artist", "baz_artist")
+        expect(post.versions.last.original_tags).to match_array(%w[bar_artist baz_artist])
+      end
+
+      it "strips category prefixes from negated tags while keeping the sign" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "-art:foo bar"
+        post.save!
+        expect(post.versions.last.original_tags).to match_array(%w[-foo bar])
+      end
+
+      it "does not strip tags that only start with a category name" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "general_store"
+        post.save!
+        expect(post.versions.last.original_tags).to eq(%w[general_store])
+      end
+
+      it "keeps aliased tags as typed instead of resolving them" do
+        create(:active_tag_alias, antecedent_name: "old_name", consequent_name: "new_name")
+        post = create(:post, tag_string: "tagme old_name")
+        version = post.versions.last
+        expect(post.tag_array).to include("new_name")
+        expect(version.original_tags).to include("old_name")
+        expect(version.original_tags).not_to include("new_name")
+      end
+
+      it "keeps aliased tags as typed on a tag_string_diff edit" do
+        create(:active_tag_alias, antecedent_name: "old_name", consequent_name: "new_name")
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.tag_string_diff = "old_name"
+        post.save!
+        expect(post.tag_array).to include("new_name")
+        expect(post.versions.last.original_tags).to eq(%w[old_name])
+      end
+
+      it "does not include tags added by implications" do
+        create(:active_tag_implication, antecedent_name: "child_tag", consequent_name: "parent_tag")
+        post = create(:post, tag_string: "tagme child_tag")
+        version = post.versions.last
+        expect(post.tag_array).to include("child_tag", "parent_tag")
+        expect(version.original_tags).to include("child_tag")
+        expect(version.original_tags).not_to include("parent_tag")
+      end
+
+      it "does not include tags added by implications on an edit" do
+        create(:active_tag_implication, antecedent_name: "child_tag", consequent_name: "parent_tag")
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.update!(tag_string: "tagme foo child_tag")
+        expect(post.tag_array).to include("parent_tag")
+        expect(post.versions.last.original_tags).to eq(%w[child_tag])
+      end
+
+      it "is empty when the tags did not change" do
+        post = Post.find(create(:post).id)
+        post.update!(rating: "e")
+        expect(post.versions.last.original_tags).to eq([])
+      end
+
+      it "prefers the submitted tag string over the tag string when set" do
+        post = create(:post, tag_string: "tagme foo auto_tag", submitted_tag_string: "tagme foo")
+        expect(post.versions.last.original_tags).to match_array(%w[tagme foo])
+      end
+
+      it "does not reuse the submitted tag string on a later edit" do
+        post = create(:post, tag_string: "tagme foo auto_tag", submitted_tag_string: "tagme foo")
+        post.update!(tag_string: "tagme foo auto_tag bar")
+        expect(post.versions.last.original_tags).to eq(%w[bar])
+      end
+
+      it "does not carry over to a later non-tag edit on the same instance" do
+        post = create(:post, tag_string: "tagme foo")
+        post.update!(tag_string: "tagme foo new_tag")
+        expect(post.versions.last.original_tags).to eq(%w[new_tag])
+
+        post.update!(rating: "e")
+        expect(post.versions.last.original_tags).to eq([])
+      end
+
+      it "does not carry over to a later tag_string_diff edit on the same instance" do
+        post = create(:post, tag_string: "tagme foo")
+        post.tag_string_diff = "first_tag"
+        post.save!
+        expect(post.versions.last.original_tags).to eq(%w[first_tag])
+
+        post.tag_string_diff = "second_tag"
+        post.save!
+        expect(post.versions.last.original_tags).to eq(%w[second_tag])
+      end
+    end
+
     describe "#saved_change_to_watched_attributes?" do
       it "returns true after a rating change" do
         post = create(:post, rating: "s")

@@ -39,6 +39,10 @@ module DocumentStore
       client.delete_by_query(index: index_name, q: query, body: body)
     end
 
+    def delete_document(id, refresh: "false")
+      client.delete(index: index_name, id: id, refresh: refresh, ignore: 404)
+    end
+
     def client
       DocumentStore.client
     end

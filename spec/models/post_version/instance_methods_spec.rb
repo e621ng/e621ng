@@ -163,6 +163,26 @@ RSpec.describe PostVersion do
       expect(v2.diff_tag_names).to include("cub")
       expect(v2.diff_tag_names).not_to include("-cub")
     end
+
+    it "includes original tags with any leading sign stripped" do
+      post = create(:post)
+      v2 = create(:post_version, post: post, original_tags: %w[foo -bar])
+      expect(v2.diff_tag_names).to include("foo", "bar")
+      expect(v2.diff_tag_names).not_to include("-bar")
+    end
+
+    it "downcases original tag names" do
+      post = create(:post)
+      v2 = create(:post_version, post: post, original_tags: %w[Foo -Bar])
+      expect(v2.diff_tag_names).to include("foo", "bar")
+    end
+
+    it "excludes metatags in the original tags" do
+      post = create(:post)
+      v2 = create(:post_version, post: post, original_tags: %w[foo rating:e -parent:none])
+      expect(v2.diff_tag_names).to include("foo")
+      expect(v2.diff_tag_names).not_to include("rating:e", "parent:none", "-parent:none")
+    end
   end
 
   # ------------------------------------------------------------------ #

@@ -86,6 +86,53 @@ RSpec.describe UploadService do
         service.start!
         expect(Upload.last.tag_string).to include("tagme")
       end
+
+      it "completes uploads below ten tags without a UI confirmation parameter" do
+        params[:tag_string] = "a b c d"
+
+        result = service.start!
+
+        expect(result.status).to eq("completed")
+        expect(service.post).to be_persisted
+        expect(service.post.tag_count_general).to be < 10
+        expect(service.warnings).to include(a_string_including("at least 10 general tags"))
+      end
+    end
+
+    context "with an animated gif" do
+      let(:file) do
+        Tempfile.new(["animated", ".gif"]).tap do |f|
+          f.binmode
+          f.write(File.binread(file_fixture("animated.gif").to_s))
+          f.rewind
+        end
+      end
+      let(:service) { described_class.new({ uploader: uploader, uploader_ip_addr: "127.0.0.1", rating: "s", file: file, tag_string: tag_string }) }
+
+      after do
+        file.close!
+      rescue StandardError
+        nil
+      end
+
+      context "when the uploader did not type the automatic tags" do
+        let(:tag_string) { "tagme foo" }
+
+        it "does not attribute them to the uploader" do
+          service.start!
+          expect(service.post.tag_array).to include("animated_gif", "animated")
+          expect(service.post.versions.first.original_tags).to contain_exactly("tagme", "foo")
+        end
+      end
+
+      context "when the uploader typed an automatic tag" do
+        let(:tag_string) { "tagme animated" }
+
+        it "keeps it" do
+          service.start!
+          expect(service.post.versions.first.original_tags).to contain_exactly("tagme", "animated")
+        end
+      end
     end
 
     context "when the Upload is invalid (bad rating)" do
@@ -197,6 +244,14 @@ RSpec.describe UploadService do
     it "sets upload.post_id to the new post id" do
       post = service.create_post_from_upload(upload)
       expect(upload.reload.post_id).to eq(post.id)
+    end
+
+    it "saves the submitted tags as the first version's original tags" do
+      create(:active_tag_alias, antecedent_name: "old_name", consequent_name: "new_name")
+      upload.update!(tag_string: "tagme old_name")
+      post = service.create_post_from_upload(upload)
+      expect(post.tag_array).to include("new_name")
+      expect(post.versions.first.original_tags).to match_array(%w[tagme old_name])
     end
 
     context "upload karma" do

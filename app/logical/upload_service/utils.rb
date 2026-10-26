@@ -45,6 +45,8 @@ class UploadService
 
       upload.validate!(:file)
 
+      upload.submitted_tag_string = upload.tag_string
+
       # Combine existing tags with automatic tags and deduplicate
       # Mostly needed for promoted replacements, which copy tags from the original post
       existing_tags = upload.tag_string.split

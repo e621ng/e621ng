@@ -66,7 +66,7 @@ describe("uploads/uploader — validation guards", () => {
 
   it("lets a fully-satisfied form submit (preventUpload clears)", async () => {
     const { wrapper, fetchSpy } = await mountUploader();
-    await wrapper.find("#post_tags").setValue("a b c d");
+    await wrapper.find("#post_tags").setValue("a b c d e f g h i j");
     await wrapper.find(".rating-s").trigger("click");
     await wrapper.find("#no_source").setValue(true); // suppresses the missing-source warning
     (wrapper.vm as any).uploadValue = "https://example.com/image.png"; // an upload must be provided
@@ -74,6 +74,31 @@ describe("uploads/uploader — validation guards", () => {
     await clickSubmit(wrapper);
     // Reached the network layer → all guards passed.
     expect(fetchSpy).toHaveBeenCalledWith("/uploads.json", expect.anything());
+  });
+
+  it("shows the soft warning below ten unique tags, including before submission", async () => {
+    const { wrapper } = await mountUploader();
+    const warning = () => wrapper.find(".box-section.background-yellow");
+    expect(warning().isVisible()).toBe(true);
+    await wrapper.find("#post_tags").setValue("a b c d e f g h i i");
+    expect(warning().isVisible()).toBe(true);
+    await wrapper.find("#post_tags").setValue("a b c d e f g h i j");
+    expect(warning().exists()).toBe(false);
+    await wrapper.find("#post_tags").setValue("a b c d");
+    expect(warning().isVisible()).toBe(true);
+  });
+
+  it.each(["", "a", "a b", "a b c"])("still blocks %j without opening confirmation", async (tags) => {
+    const { wrapper, fetchSpy } = await mountUploader();
+    await wrapper.find("#post_tags").setValue(tags);
+    await wrapper.find(".rating-s").trigger("click");
+    await wrapper.find("#no_source").setValue(true);
+    (wrapper.vm as any).uploadValue = "https://example.com/image.png";
+    await nextTick();
+    await clickSubmit(wrapper);
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(document.querySelector("#upload-tag-confirmation[open]")).toBeNull();
+    expect(submitButton(wrapper).attributes("disabled")).toBeDefined();
   });
 
   describe("beforeunload warning", () => {
