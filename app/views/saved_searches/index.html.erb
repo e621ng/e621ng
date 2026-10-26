@@ -26,7 +26,7 @@
               <% end %>
             </div>
             <% if ss.is_subscription? %>
-              <div class="ss-query"><%= link_to pluralize(ss.user.tag_subscriptions.count, "subscribed tag"), visit_saved_search_path(ss) %></div>
+              <div class="ss-query"><%= link_to pluralize(TagSubscription.where(user_id: ss.user_id).count, "subscribed tag"), visit_saved_search_path(ss) %></div>
             <% else %>
               <div class="ss-query"><%= link_to ss.query, visit_saved_search_path(ss), title: ss.query %></div>
             <% end %>
