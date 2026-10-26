@@ -67,6 +67,8 @@ module PostVersionsHelper
     categories = post_version.tag_categories
 
     links = post_version.original_tags.map do |tag_name|
+      next tag.span(tag_name) if PostVersion.original_metatag?(tag_name)
+
       tag.span(category_tag_link(tag_name, tag_name.sub(/\A[-+~]/, ""), categories))
     end
 

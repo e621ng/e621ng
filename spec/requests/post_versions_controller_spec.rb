@@ -58,7 +58,7 @@ RSpec.describe PostVersionsController do
     context "with original tags" do
       before { create(:artist_tag, name: "some_artist") }
 
-      let!(:version) { CurrentUser.scoped(member) { create(:post_version, post: post_record, original_tags: %w[some_artist -edited_tag]) } }
+      let!(:version) { CurrentUser.scoped(member) { create(:post_version, post: post_record, original_tags: %w[some_artist -edited_tag rating:e]) } }
 
       it "renders them from the preloaded tag categories" do
         allow(TagSetPresenter).to receive(:new).and_call_original
@@ -68,6 +68,8 @@ RSpec.describe PostVersionsController do
         row = Nokogiri::HTML(response.body).at_css("#post-version-#{version.id} .pv-original-tag-string")
         expect(row.at_css("a.tag-type-#{Tag.categories.artist}").text).to eq("some_artist")
         expect(row.at_css("a[href*='title=edited_tag']").text).to eq("-edited_tag")
+        expect(row.text).to include("rating:e")
+        expect(row.at_css("a[href*='title=rating']")).to be_nil
       end
     end
 

@@ -80,6 +80,12 @@ class PostVersion < ApplicationRecord
     (locked_tags || "").split
   end
 
+  # Metatags kept in original_tags (see Post#remove_metatags), not tag names
+  def self.original_metatag?(token)
+    name, value = token.sub(/\A[-+~]/, "").split(":", 2)
+    !value.nil? && name.match?(Post::TagMethods::ORIGINAL_TAGS_METATAG_WHITELIST)
+  end
+
   # Bulk-populate tag category lookups for a collection of post versions so
   # subsequent #tag_categories calls reuse one round-trip instead of one per version.
   def self.preload_tag_categories!(versions)
@@ -103,7 +109,7 @@ class PostVersion < ApplicationRecord
     d = diff(previous)
     (d[:added_tags] + d[:removed_tags] + d[:unchanged_tags] +
       (d[:added_locked_tags] + d[:removed_locked_tags] + d[:unchanged_locked_tags]).map { |t| t.start_with?("-") ? t[1..] : t } +
-      original_tags.map { |t| t.sub(/\A[-+~]/, "") }).uniq
+      original_tags.reject { |t| PostVersion.original_metatag?(t) }.map { |t| t.sub(/\A[-+~]/, "") }).uniq
   end
 
   def presenter
