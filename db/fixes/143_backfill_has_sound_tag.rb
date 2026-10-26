@@ -12,7 +12,7 @@ module Fixes
 
         posts.find_each do |post|
           if post.respond_to?(:has_sound)
-            skipped += 1;
+            skipped += 1
             next
           end
 
