@@ -163,6 +163,13 @@ RSpec.describe PostVersion do
       expect(v2.diff_tag_names).to include("cub")
       expect(v2.diff_tag_names).not_to include("-cub")
     end
+
+    it "includes original tags with any leading sign stripped" do
+      post = create(:post)
+      v2 = create(:post_version, post: post, original_tags: %w[foo -bar])
+      expect(v2.diff_tag_names).to include("foo", "bar")
+      expect(v2.diff_tag_names).not_to include("-bar")
+    end
   end
 
   # ------------------------------------------------------------------ #
