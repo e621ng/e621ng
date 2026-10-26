@@ -373,6 +373,11 @@ RSpec.describe Post do
     end
 
     describe "add_automatic_tags" do
+      it "adds sound tag for video posts with sound" do
+        post = create(:post, file_ext: "mp4", is_animated: true, has_sound: true)
+        expect(post.tag_array).to include("sound")
+      end
+
       it "adds wide_image and long_image for very wide posts" do
         post = create(:post, image_width: 4096, image_height: 512)
         expect(post.tag_array).to include("wide_image", "long_image")
