@@ -24,12 +24,20 @@ RSpec.describe SavedSearch do
       expect(SavedSearch.where(user_id: user.id, is_subscription: true).count).to eq(1)
     end
 
-    it "re-reads when a concurrent create wins the unique index" do
+    # The losing insert must not abort an enclosing transaction, or the re-read fails with
+    # PG::InFailedSqlTransaction. A real colliding INSERT makes Postgres abort it.
+    it "re-reads inside a transaction when a concurrent create wins the unique index" do
       existing = anchor
       allow(SavedSearch).to receive(:find_by).and_call_original
       allow(SavedSearch).to receive(:find_by).with(user_id: user.id, is_subscription: true).and_return(nil)
-      allow(SavedSearch).to receive(:create!).and_raise(ActiveRecord::RecordNotUnique)
-      expect(SavedSearch.subscription_for!(user)).to eq(existing)
+      allow(SavedSearch).to receive(:create!) do
+        SavedSearch.connection.execute(<<~SQL.squish)
+          INSERT INTO saved_searches (user_id, query, is_subscription, created_at, updated_at)
+          VALUES (#{user.id}, 'lost_race', true, now(), now())
+        SQL
+      end
+      result = SavedSearch.transaction { SavedSearch.subscription_for!(user) }
+      expect(result).to eq(existing)
     end
 
     it "sets the user's tracked flag" do

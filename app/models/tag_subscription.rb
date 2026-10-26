@@ -44,12 +44,12 @@ class TagSubscription < ApplicationRecord
     skipped.concat(overflow.map { |name| { name: name, reason: "too many tags in one request" } })
     return { added: [], skipped: skipped } if to_add.empty?
 
-    transaction do
-      SavedSearch.subscription_for!(user)
-      now = Time.current
-      # Concurrent requests can race past the limit check by a few rows; accepted.
-      insert_all(to_add.keys.map { |tag_id| { user_id: user.id, tag_id: tag_id, created_at: now } }, unique_by: %i[user_id tag_id])
-    end
+    # No enclosing transaction: an anchor left behind by a failed insert is harmless (it is
+    # kept when empty anyway).
+    SavedSearch.subscription_for!(user)
+    now = Time.current
+    # Concurrent requests can race past the limit check by a few rows; accepted.
+    insert_all(to_add.keys.map { |tag_id| { user_id: user.id, tag_id: tag_id, created_at: now } }, unique_by: %i[user_id tag_id])
     expire_badge_counts(user.id)
     { added: where(user_id: user.id, tag_id: to_add.keys).includes(:tag).to_a, skipped: skipped }
   end

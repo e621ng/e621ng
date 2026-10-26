@@ -49,9 +49,10 @@ class SavedSearch < ApplicationRecord
 
   # Finds or creates the user's subscription anchor. The partial unique index on
   # (user_id) WHERE is_subscription settles concurrent creates; the loser re-reads.
+  # The savepoint keeps a lost race from aborting the caller's transaction.
   def self.subscription_for!(user)
     find_by(user_id: user.id, is_subscription: true) ||
-      create!(user: user, is_subscription: true, name: SUBSCRIPTION_NAME, query: "", is_tracked: true)
+      transaction(requires_new: true) { create!(user: user, is_subscription: true, name: SUBSCRIPTION_NAME, query: "", is_tracked: true) }
   rescue ActiveRecord::RecordNotUnique
     find_by!(user_id: user.id, is_subscription: true)
   end
