@@ -28,8 +28,16 @@ RSpec.describe SavedSearch do
     # PG::InFailedSqlTransaction. A real colliding INSERT makes Postgres abort it.
     it "re-reads inside a transaction when a concurrent create wins the unique index" do
       existing = anchor
-      allow(SavedSearch).to receive(:find_by).and_call_original
-      allow(SavedSearch).to receive(:find_by).with(user_id: user.id, is_subscription: true).and_return(nil)
+      # Only the initial lookup misses; the re-read after the failed insert must see the row
+      conditions = { user_id: user.id, is_subscription: true }
+      missed = false
+      allow(SavedSearch).to receive(:find_by).and_wrap_original do |original, *args, **kwargs|
+        if !missed && (args.first == conditions || kwargs == conditions)
+          missed = true
+          next nil
+        end
+        original.call(*args, **kwargs)
+      end
       allow(SavedSearch).to receive(:create!) do
         SavedSearch.connection.execute(<<~SQL.squish)
           INSERT INTO saved_searches (user_id, query, is_subscription, created_at, updated_at)
@@ -38,6 +46,27 @@ RSpec.describe SavedSearch do
       end
       result = SavedSearch.transaction { SavedSearch.subscription_for!(user) }
       expect(result).to eq(existing)
+    end
+
+    # The other request commits between our lookup and our name uniqueness check, so create!
+    # fails validation instead of hitting the index. The raw insert stands in for that commit
+    # without going through AR, inside a query cache as during a real request.
+    it "re-reads when a concurrent create wins the name validation" do
+      SavedSearch.cache do
+        expect(SavedSearch.find_by(user_id: user.id, is_subscription: true)).to be_nil
+        SavedSearch.connection.raw_connection.exec(<<~SQL.squish)
+          INSERT INTO saved_searches (user_id, query, name, is_subscription, is_tracked, created_at, updated_at)
+          VALUES (#{user.id}, '', 'subscriptions', true, true, now(), now())
+        SQL
+        loser = SavedSearch.new(name: "subscriptions").tap { |ss| ss.errors.add(:name, "is already taken") }
+        allow(SavedSearch).to receive(:create!).and_raise(ActiveRecord::RecordInvalid.new(loser))
+        expect(SavedSearch.subscription_for!(user)).to have_attributes(user_id: user.id, is_subscription: true)
+      end
+    end
+
+    it "still raises for a regular saved search holding the reserved name" do
+      create(:saved_search, user: user).update_column(:name, "subscriptions")
+      expect { SavedSearch.subscription_for!(user) }.to raise_error(ActiveRecord::RecordInvalid, /already taken/)
     end
 
     it "sets the user's tracked flag" do

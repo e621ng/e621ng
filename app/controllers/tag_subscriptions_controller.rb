@@ -48,10 +48,26 @@ class TagSubscriptionsController < ApplicationController
     params[:tag_names].present? ? params[:tag_names].to_s.split : Array(params[:tag_name].presence&.to_s)
   end
 
+  NOTICE_NAME_LIMIT = 10
+
+  # The flash lives in the session cookie (~4 KB), so long lists are summarized
   def create_notice(result)
     parts = []
-    parts << "Subscribed to #{result[:added].map { |sub| sub.tag.name }.join(', ')}" if result[:added].any?
-    parts << "Skipped #{result[:skipped].map { |s| "#{s[:name]} (#{s[:reason]})" }.join(', ')}" if result[:skipped].any?
+    if result[:added].any?
+      parts << "Subscribed to #{pluralize_tags(result[:added].size)}: #{summarize(result[:added].map { |sub| sub.tag.name })}"
+    end
+    if result[:skipped].any?
+      parts << "Skipped #{result[:skipped].size}: #{summarize(result[:skipped].map { |s| "#{s[:name]} (#{s[:reason]})" })}"
+    end
     parts.presence&.join(". ") || "No tags given"
+  end
+
+  def summarize(items)
+    shown = items.first(NOTICE_NAME_LIMIT).join(", ")
+    items.size > NOTICE_NAME_LIMIT ? "#{shown} and #{items.size - NOTICE_NAME_LIMIT} more" : shown
+  end
+
+  def pluralize_tags(count)
+    count == 1 ? "1 tag" : "#{count} tags"
   end
 end

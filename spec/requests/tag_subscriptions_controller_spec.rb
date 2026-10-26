@@ -41,6 +41,20 @@ RSpec.describe TagSubscriptionsController do
       expect(owner.tag_subscriptions.pluck(:tag_id)).to eq([fox.id])
     end
 
+    it "says what it subscribed to" do
+      post tag_subscriptions_path, params: { tag_name: "fox" }
+      expect(flash[:notice]).to eq("Subscribed to 1 tag: fox")
+    end
+
+    # Sessions live in a ~4 KB cookie; listing every name used to raise CookieOverflow
+    it "keeps the notice short for a large bulk request" do
+      names = Array.new(500) { |i| format("watched_tag_%03d", i) }
+      post tag_subscriptions_path, params: { tag_names: names.join(" ") }
+      expect(response).to have_http_status(:redirect)
+      expect(flash[:notice]).to start_with("Skipped 500: watched_tag_000 (does not exist)")
+      expect(flash[:notice]).to end_with("and 490 more")
+    end
+
     it "subscribes to several tags and reports skips in JSON" do
       post tag_subscriptions_path(format: :json), params: { tag_names: "fox cat nope" }
       expect(response).to have_http_status(:ok)
