@@ -903,16 +903,16 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     def opensearch_host
     end
 
-    # Use a recaptcha on the signup page to protect against spambots creating new accounts.
-    # https://developers.google.com/recaptcha/intro
-    def enable_recaptcha?
-      Rails.env.production? && Danbooru.config.recaptcha_site_key.present? && Danbooru.config.recaptcha_secret_key.present?
+    # Use Cloudflare Turnstile on the signup page to protect against spambots creating new accounts.
+    # https://developers.cloudflare.com/turnstile/
+    def enable_turnstile?
+      Rails.env.production? && Danbooru.config.turnstile_site_key.present? && Danbooru.config.turnstile_secret_key.present?
     end
 
-    def recaptcha_site_key
+    def turnstile_site_key
     end
 
-    def recaptcha_secret_key
+    def turnstile_secret_key
     end
 
     def enable_image_cropping?

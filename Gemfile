@@ -24,7 +24,6 @@ end
 
 gem "bootsnap"
 gem "addressable"
-gem "recaptcha", require: "recaptcha/rails"
 gem "vite_rails"
 gem "sidekiq", "~> 8.1"
 gem "marcel"

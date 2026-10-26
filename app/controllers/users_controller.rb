@@ -215,7 +215,7 @@ class UsersController < ApplicationController
       @user = User.new(user_params(:create).merge({ last_ip_addr: request.remote_ip }))
       @user.validate_email_format = true
       @user.email_verification_key = "1" if Danbooru.config.enable_email_verification?
-      if !Danbooru.config.enable_recaptcha? || verify_recaptcha(model: @user)
+      if !Danbooru.config.enable_turnstile? || TurnstileVerifier.verify(params["cf-turnstile-response"], request.remote_ip)
         @user.save
         if @user.errors.empty?
           session[:user_id] = @user.id
@@ -228,6 +228,7 @@ class UsersController < ApplicationController
         end
         set_current_user
       else
+        @user.errors.add(:base, "Captcha verification failed, please try again")
         flash[:notice] = "Sign up failed"
       end
       respond_with(@user)
