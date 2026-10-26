@@ -176,7 +176,9 @@ module FileMethods
 
   def video_has_sound?(file_path)
     return false unless is_video?
-    video(file_path).audio_streams.any?
+    movie = video(file_path)
+    raise ArgumentError, "unreadable video: #{file_path}" unless movie.valid?
+    movie.audio_streams.any?
   end
 
   # Verify whether the file at the provided path is corrupt.
