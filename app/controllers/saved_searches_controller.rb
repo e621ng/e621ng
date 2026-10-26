@@ -27,6 +27,7 @@ class SavedSearchesController < ApplicationController
 
   def edit
     @saved_search = CurrentUser.user.saved_searches.find(params[:id])
+    redirect_to tag_subscriptions_path if @saved_search.is_subscription?
   end
 
   def create
@@ -46,6 +47,7 @@ class SavedSearchesController < ApplicationController
 
   def update
     @saved_search = CurrentUser.user.saved_searches.find(params[:id])
+    return refuse_subscription_edit if @saved_search.is_subscription?
     @saved_search.update(permitted_params)
     # Failure re-renders the form, which displays the errors itself
     flash[:notice] = "Search updated" if @saved_search.valid?
@@ -92,6 +94,14 @@ class SavedSearchesController < ApplicationController
   end
 
   private
+
+  # The subscription anchor's content is managed through tag_subscriptions only.
+  def refuse_subscription_edit
+    respond_to do |format|
+      format.html { redirect_to tag_subscriptions_path }
+      format.json { render_expected_error(403, "Subscriptions are managed through tag subscriptions") }
+    end
+  end
 
   def permitted_params
     params.fetch(:saved_search, {}).permit(%i[query name is_tracked])

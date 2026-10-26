@@ -22,6 +22,8 @@
             <%= svg_icon(:copy, width: 16, height: 16) %>
           </button>
         <% end %>
+
+        <%= render "subscribe_button", tag: wiki_content.tag %>
       </h1>
       <% if @wiki_redirect.present? %>
         <div class="wiki-page-redirect"><%= svg_icon(:corner_down_right, width: 12, height: 12) %> <%= @wiki_page.title %></div>

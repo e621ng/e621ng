@@ -497,6 +497,7 @@ Rails.application.routes.draw do
       get :visit
     end
   end
+  resources :tag_subscriptions, only: %i[index create destroy]
   resources :post_set_maintainers do
     member do
       get :approve

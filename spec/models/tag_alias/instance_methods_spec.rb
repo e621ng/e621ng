@@ -230,6 +230,34 @@ RSpec.describe TagAlias do
   end
 
   # ---------------------------------------------------------------------------
+  # #move_tag_subscriptions
+  # ---------------------------------------------------------------------------
+
+  describe "#move_tag_subscriptions" do
+    let(:ta) { create(:tag_alias, antecedent_name: "sub_ant_#{SecureRandom.hex(4)}", consequent_name: "sub_con_#{SecureRandom.hex(4)}") }
+    let(:antecedent) { Tag.find_or_create_by_name(ta.antecedent_name) }
+    let(:consequent) { Tag.find_or_create_by_name(ta.consequent_name) }
+
+    it "moves subscriptions from the antecedent to the consequent" do
+      sub = create(:tag_subscription, tag: antecedent)
+      ta.move_tag_subscriptions
+      expect(sub.reload.tag_id).to eq(consequent.id)
+    end
+
+    it "drops the antecedent row for users already subscribed to the consequent" do
+      user = create(:user)
+      create(:tag_subscription, user: user, tag: antecedent)
+      kept = create(:tag_subscription, user: user, tag: consequent)
+      ta.move_tag_subscriptions
+      expect(user.tag_subscriptions.pluck(:id)).to eq([kept.id])
+    end
+
+    it "is a no-op without subscriptions" do
+      expect { ta.move_tag_subscriptions }.not_to change(TagSubscription, :count)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # #update_posts_locked_tags
   # ---------------------------------------------------------------------------
 

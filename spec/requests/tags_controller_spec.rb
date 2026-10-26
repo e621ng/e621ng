@@ -321,6 +321,13 @@ RSpec.describe TagsController do
         expect(Tag.find_by(id: tag.id)).to be_nil
       end
 
+      it "removes the tag's subscriptions along with it" do
+        sub = create(:tag_subscription, tag: tag)
+        delete tag_path(tag)
+        expect(Tag.find_by(id: tag.id)).to be_nil
+        expect(TagSubscription.find_by(id: sub.id)).to be_nil
+      end
+
       context "when the tag has posts" do
         before { allow(Post).to receive(:tag_match).and_return(post_query_one) }
 

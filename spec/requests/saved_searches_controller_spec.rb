@@ -239,4 +239,39 @@ RSpec.describe SavedSearchesController do
       expect(response).not_to have_http_status(:ok)
     end
   end
+
+  describe "subscription anchor" do
+    let(:anchor) { SavedSearch.subscription_for!(owner) }
+
+    it "redirects edit to the tag subscriptions page" do
+      get edit_saved_search_path(anchor)
+      expect(response).to redirect_to(tag_subscriptions_path)
+    end
+
+    it "refuses JSON updates" do
+      patch saved_search_path(anchor, format: :json), params: { saved_search: { query: "fox" } }
+      expect(response).to have_http_status(:forbidden)
+      expect(anchor.reload.query).to eq("")
+    end
+
+    it "cannot be created through the saved searches endpoint" do
+      post saved_searches_path(format: :json), params: { saved_search: { query: "fox", is_subscription: true } }
+      expect(SavedSearch.where(user_id: owner.id, is_subscription: true)).to be_empty
+    end
+
+    it "serializes is_subscription and tag_count" do
+      create(:tag_subscription, user: owner)
+      anchor
+      get saved_searches_path(format: :json)
+      expect(response.parsed_body.first).to include("is_subscription" => true, "tag_count" => 1)
+    end
+
+    it "renders the anchor row with a Manage link" do
+      anchor
+      get saved_searches_path
+      expect(response.body).to include(%(id="saved-search-#{anchor.id}"))
+      expect(response.body).to include(tag_subscriptions_path)
+      expect(response.body).not_to include(edit_saved_search_path(anchor))
+    end
+  end
 end

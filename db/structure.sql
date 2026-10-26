@@ -2110,7 +2110,8 @@ CREATE TABLE public.saved_searches (
     is_tracked boolean DEFAULT false NOT NULL,
     last_seen_post_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
-    updated_at timestamp(6) without time zone NOT NULL
+    updated_at timestamp(6) without time zone NOT NULL,
+    is_subscription boolean DEFAULT false NOT NULL
 );
 
 
@@ -2598,6 +2599,37 @@ CREATE SEQUENCE public.tag_rel_undos_id_seq
 --
 
 ALTER SEQUENCE public.tag_rel_undos_id_seq OWNED BY public.tag_rel_undos.id;
+
+
+--
+-- Name: tag_subscriptions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.tag_subscriptions (
+    id bigint NOT NULL,
+    user_id bigint NOT NULL,
+    tag_id integer NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: tag_subscriptions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.tag_subscriptions_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: tag_subscriptions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.tag_subscriptions_id_seq OWNED BY public.tag_subscriptions.id;
 
 
 --
@@ -3717,6 +3749,13 @@ ALTER TABLE ONLY public.tag_rel_undos ALTER COLUMN id SET DEFAULT nextval('publi
 
 
 --
+-- Name: tag_subscriptions id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tag_subscriptions ALTER COLUMN id SET DEFAULT nextval('public.tag_subscriptions_id_seq'::regclass);
+
+
+--
 -- Name: tag_type_versions id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4380,6 +4419,14 @@ ALTER TABLE ONLY public.tag_implications
 
 ALTER TABLE ONLY public.tag_rel_undos
     ADD CONSTRAINT tag_rel_undos_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: tag_subscriptions tag_subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tag_subscriptions
+    ADD CONSTRAINT tag_subscriptions_pkey PRIMARY KEY (id);
 
 
 --
@@ -5632,6 +5679,13 @@ CREATE UNIQUE INDEX index_saved_searches_on_user_id_and_query ON public.saved_se
 
 
 --
+-- Name: index_saved_searches_on_user_id_subscription; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_saved_searches_on_user_id_subscription ON public.saved_searches USING btree (user_id) WHERE is_subscription;
+
+
+--
 -- Name: index_search_trend_blacklists_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5860,6 +5914,20 @@ CREATE INDEX index_tag_implications_on_forum_post_id ON public.tag_implications 
 --
 
 CREATE INDEX index_tag_rel_undos_on_tag_rel_type_and_tag_rel_id ON public.tag_rel_undos USING btree (tag_rel_type, tag_rel_id);
+
+
+--
+-- Name: index_tag_subscriptions_on_tag_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_tag_subscriptions_on_tag_id ON public.tag_subscriptions USING btree (tag_id);
+
+
+--
+-- Name: index_tag_subscriptions_on_user_id_and_tag_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_tag_subscriptions_on_user_id_and_tag_id ON public.tag_subscriptions USING btree (user_id, tag_id);
 
 
 --
@@ -6381,6 +6449,22 @@ ALTER TABLE ONLY public.staff_files
 
 
 --
+-- Name: tag_subscriptions fk_rails_8ba8be4046; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tag_subscriptions
+    ADD CONSTRAINT fk_rails_8ba8be4046 FOREIGN KEY (tag_id) REFERENCES public.tags(id);
+
+
+--
+-- Name: tag_subscriptions fk_rails_92d1059dcd; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.tag_subscriptions
+    ADD CONSTRAINT fk_rails_92d1059dcd FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: user_feedback fk_rails_9329a36823; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6523,6 +6607,8 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261026161409'),
+('20261026161404'),
 ('20261020150541'),
 ('20261006134945'),
 ('20260907205015'),
