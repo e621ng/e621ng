@@ -26,7 +26,7 @@ module Fixes
 
           post.do_not_version_changes = true
           post.save!
-          changed += 1
+          changes += 1
         rescue StandardError => e
           puts "Error processing post #{post.id}: #{e.message}"
           errors += 1
