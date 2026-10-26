@@ -41,10 +41,14 @@ async function importVideoJS (extraModules: (Exclude<keyof typeof videoJSImportM
 
 class VideoPlayer {
   protected videoElement: HTMLVideoElement;
+  protected hasVolumeControls: boolean;
 
   public constructor (protected containerElement: VideoPlayerElement) {
     this.videoElement = containerElement.querySelector("video");
-    this.videoElement.addEventListener("volumechange", this.onSettingChange);
+    this.hasVolumeControls = !this.videoElement.defaultMuted; // check if video has the "muted" attribute
+
+    if (this.hasVolumeControls)
+      this.videoElement.addEventListener("volumechange", this.onSettingChange);
     this.videoElement.addEventListener("ratechange", this.onSettingChange);
   }
 
@@ -70,8 +74,6 @@ class VideoPlayer {
 
 class CustomVideoPlayer extends VideoPlayer {
   private loadingVideoJsPromise: Promise<void>;
-  private hasVolumeControls: boolean;
-
   private timeSliderElement: TimeSliderElement;
   private loopButton: HTMLButtonElement;
   private timeSwitchElement: TimeElement;
@@ -80,7 +82,6 @@ class CustomVideoPlayer extends VideoPlayer {
   public constructor (protected containerElement: VideoPlayerElement) {
     super(containerElement);
     containerElement.classList.add("custom-player");
-    this.hasVolumeControls = this.containerElement.querySelector("media-mute-button") !== null;
 
     this.loadingVideoJsPromise = this.loadVideoJS();
 
