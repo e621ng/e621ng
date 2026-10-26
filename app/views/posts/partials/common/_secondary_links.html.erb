@@ -8,6 +8,7 @@
   <li><a href="#" id="blacklist-edit-link">Blacklist</a></li>
   <% if CurrentUser.user.is_member? %>
     <%= subnav_link_to "Saved", saved_searches_path %>
+    <%= subnav_link_to "Subscriptions", tag_subscriptions_path %>
   <% end %>
   <%= subnav_link_to "Help", help_page_path(id: "posts") %>
   <% if CurrentUser.can_approve_posts? && @post.present? && @post.is_pending? %>

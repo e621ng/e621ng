@@ -11,6 +11,8 @@
             <%= svg_icon(:copy, width: 16, height: 16) %>
           </button>
         <% end %>
+
+        <%= render "subscribe_button", tag: @wiki_page.tag %>
       </h1>
 
       <%= render partial: "automated_tag", locals: { tag: @wiki_page.title } %>

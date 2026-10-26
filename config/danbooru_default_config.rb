@@ -393,6 +393,12 @@ module Danbooru
       50
     end
 
+    # Maximum tags a user can subscribe to. Evaluated as one `terms` clause, so cost scales
+    # with this rather than with tag_query_limit.
+    def tag_subscription_limit
+      500
+    end
+
     # How long cached saved-search badge counts stay fresh.
     def saved_search_badge_ttl
       15.minutes

@@ -127,6 +127,46 @@ RSpec.describe WikiPagesController do
     end
   end
 
+  describe "subscribe button" do
+    let(:tag) { Tag.find_or_create_by_name(wiki_page.title) }
+
+    before { tag }
+
+    it "offers Subscribe to a signed-in member on a tag's page" do
+      sign_in_as user
+      get wiki_page_path(wiki_page)
+      expect(response.body).to include(%(id="tag-subscription-toggle"))
+      expect(response.body).to include(tag_subscriptions_path(tag_name: tag.name))
+    end
+
+    it "offers Unsubscribe when already subscribed" do
+      sub = create(:tag_subscription, user: user, tag: tag)
+      sign_in_as user
+      get wiki_page_path(wiki_page)
+      expect(response.body).to include(tag_subscription_path(sub))
+      expect(response.body).to include(">Unsubscribe<")
+    end
+
+    it "is hidden from anonymous users" do
+      get wiki_page_path(wiki_page)
+      expect(response.body).not_to include("tag-subscription-toggle")
+    end
+
+    it "is hidden on pages that are not tags" do
+      page = create(:wiki_page, title: "help:subscribe_test")
+      sign_in_as user
+      get wiki_page_path(page)
+      expect(response.body).not_to include("tag-subscription-toggle")
+    end
+
+    it "is shown on a tag without a wiki page" do
+      bare = Tag.find_or_create_by_name("bare_tag_#{SecureRandom.hex(4)}")
+      sign_in_as user
+      get show_or_new_wiki_pages_path(title: bare.name)
+      expect(response.body).to include(tag_subscriptions_path(tag_name: bare.name))
+    end
+  end
+
   # ---------------------------------------------------------------------------
   # GET /wiki_pages/:id — featured posts rendering
   # ---------------------------------------------------------------------------

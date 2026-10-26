@@ -1,0 +1,114 @@
+# frozen_string_literal: true
+
+require "rails_helper"
+
+RSpec.describe SavedSearch do
+  include_context "as member"
+
+  let(:user) { CurrentUser.user }
+
+  def anchor
+    SavedSearch.subscription_for!(user)
+  end
+
+  describe ".subscription_for!" do
+    it "creates a tracked anchor with a seeded watermark" do
+      post = create(:post)
+      ss = anchor
+      expect(ss).to have_attributes(is_subscription: true, is_tracked: true, name: "subscriptions", query: "", last_seen_post_id: post.id)
+    end
+
+    it "returns the existing anchor" do
+      first = anchor
+      expect(anchor.id).to eq(first.id)
+      expect(SavedSearch.where(user_id: user.id, is_subscription: true).count).to eq(1)
+    end
+
+    it "re-reads when a concurrent create wins the unique index" do
+      existing = anchor
+      allow(SavedSearch).to receive(:find_by).and_call_original
+      allow(SavedSearch).to receive(:find_by).with(user_id: user.id, is_subscription: true).and_return(nil)
+      allow(SavedSearch).to receive(:create!).and_raise(ActiveRecord::RecordNotUnique)
+      expect(SavedSearch.subscription_for!(user)).to eq(existing)
+    end
+
+    it "sets the user's tracked flag" do
+      anchor
+      expect(user.reload.has_tracked_saved_searches).to be(true)
+    end
+  end
+
+  describe "validations" do
+    it "exempts the anchor from saved_search_limit" do
+      allow(Danbooru.config.custom_configuration).to receive(:saved_search_limit).and_return(1)
+      create(:saved_search, user: user)
+      expect { anchor }.not_to raise_error
+    end
+
+    it "does not count the anchor against saved_search_limit" do
+      allow(Danbooru.config.custom_configuration).to receive(:saved_search_limit).and_return(1)
+      anchor
+      expect(build(:saved_search, user: user)).to be_valid
+    end
+
+    it "exempts the anchor from tracked_saved_search_limit and excludes it from the count" do
+      allow(Danbooru.config.custom_configuration).to receive(:tracked_saved_search_limit).and_return(1)
+      create(:saved_search, user: user, is_tracked: true)
+      expect { anchor }.not_to raise_error
+      other = create(:saved_search, user: user)
+      expect(other.update(is_tracked: true)).to be(false)
+    end
+
+    it "reserves the subscriptions name for the anchor" do
+      ss = build(:saved_search, user: user, name: "subscriptions")
+      expect(ss).not_to be_valid
+      expect(ss.errors[:name]).to include("is reserved")
+    end
+
+    it "cannot have is_subscription changed after creation" do
+      ss = create(:saved_search, user: user)
+      ss.update!(is_subscription: true)
+      expect(ss.reload.is_subscription).to be(false)
+    end
+  end
+
+  describe "#destroy" do
+    it "removes the user's tag subscriptions" do
+      ss = anchor
+      create(:tag_subscription, user: user)
+      ss.destroy!
+      expect(user.tag_subscriptions.count).to eq(0)
+    end
+  end
+
+  describe ".new_post_count" do
+    it "is zero for an empty list without querying OpenSearch" do
+      allow(ElasticPostQueryBuilder).to receive(:new)
+      expect(SavedSearch.new_post_count(anchor)).to eq(0)
+      expect(ElasticPostQueryBuilder).not_to have_received(:new)
+    end
+
+    # Unique tag names: the test index keeps documents from earlier runs, and post ids get
+    # reused once a test database is reloaded, so shared names could match stale documents.
+    it "counts new posts with any subscribed tag" do
+      fox, cat, dog = %w[fox cat dog].map { |name| "#{name}_#{SecureRandom.hex(4)}" }
+      create(:post, tag_string: fox)
+      ss = anchor
+      [fox, cat].each { |name| create(:tag_subscription, user: user, tag: Tag.find_or_create_by_name(name)) }
+      create(:post, tag_string: "#{fox} solo")
+      create(:post, tag_string: cat)
+      create(:post, tag_string: dog)
+      expect(SavedSearch.new_post_count(ss, safe_mode: false)).to eq(2)
+    end
+
+    it "evaluates lists longer than tag_query_limit" do
+      prefix = "bulk_#{SecureRandom.hex(4)}"
+      create(:post)
+      ss = anchor
+      Array.new(Danbooru.config.tag_query_limit + 5) { |i| Tag.find_or_create_by_name("#{prefix}_#{i}") }
+           .each { |tag| create(:tag_subscription, user: user, tag: tag) }
+      create(:post, tag_string: "#{prefix}_44")
+      expect(SavedSearch.new_post_count(ss, safe_mode: false)).to eq(1)
+    end
+  end
+end

@@ -1264,6 +1264,18 @@ class TagQuery
     TagAlias.active.where(antecedent_name: (tag = Tag.normalize_name(tag)))&.first&.consequent_name || tag
   end
 
+  # Adds a set of tags matched as one any-of clause (`terms`). Used for tag subscriptions,
+  # which are bounded by `tag_subscription_limit` instead of `tag_query_limit` and
+  # deliberately bypass `check_opensearch_clause_count`. An empty set matches nothing.
+  def add_tag_set(type, names)
+    if names.empty?
+      q[:tags][type] << "~~not_found~~" unless type == :must_not
+      return
+    end
+    q[:tag_sets] ||= {}
+    (q[:tag_sets][type] ||= []) << names
+  end
+
   private
 
   TAG_SEARCH_TYPE = Hash.new(:must).merge({
@@ -1721,6 +1733,11 @@ class TagQuery
     if saved_search.nil?
       # Resolution failure matches nothing rather than erroring, like set:/fav: resolving to -1.
       q[:tags][type] << "~~not_found~~"
+      return
+    end
+
+    if saved_search.is_subscription?
+      add_tag_set(type, TagSubscription.tag_names_for(saved_search.user))
       return
     end
 

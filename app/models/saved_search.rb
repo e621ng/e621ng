@@ -2,6 +2,8 @@
 
 class SavedSearch < ApplicationRecord
   QUERY_LENGTH_LIMIT = 500
+  # The per-user tag subscription anchor; its tags live in tag_subscriptions, not in `query`.
+  SUBSCRIPTION_NAME = "subscriptions"
   # count_only caps track_total_hits here; the badge never needs exact large numbers.
   BADGE_COUNT_CAP = 100
   # How long a badge entry outlives its freshness window (saved_search_badge_ttl), so the
@@ -19,26 +21,40 @@ class SavedSearch < ApplicationRecord
 
   belongs_to :user
 
+  attr_readonly :is_subscription
+
   before_validation :normalize_name
-  before_validation :normalize_query, if: :query_changed?
-  validates :query, presence: true, length: { maximum: QUERY_LENGTH_LIMIT }
-  validates :query, uniqueness: { scope: :user_id, message: "is already saved" }, if: :query_changed?
+  before_validation :normalize_query, if: -> { query_changed? && !is_subscription? }
+  validates :query, presence: true, length: { maximum: QUERY_LENGTH_LIMIT }, unless: :is_subscription?
+  validates :query, uniqueness: { scope: :user_id, message: "is already saved" }, if: -> { query_changed? && !is_subscription? }
   validates :name, length: { in: 3..100 }, allow_nil: true
   validates :name, format: { with: /\A[\w]+\z/, message: "must only contain numbers, lowercase letters, and underscores" }, allow_nil: true
   # No all-digit names: they would shadow search:<id> resolution.
   validates :name, format: { with: /\A\d*[a-z_][\w]*\z/, message: "must contain at least one lowercase letter or underscore" }, allow_nil: true
   validates :name, uniqueness: { scope: :user_id, message: "is already taken" }, allow_nil: true, if: :name_changed?
-  validate :validate_query_parses, if: :query_changed?
-  validate :validate_saved_search_limit, on: :create
-  validate :validate_tracked_limit, if: :is_tracked_changed?
+  validates :name, exclusion: { in: [SUBSCRIPTION_NAME], message: "is reserved" }, unless: :is_subscription?
+  validate :validate_query_parses, if: -> { query_changed? && !is_subscription? }
+  validate :validate_saved_search_limit, on: :create, unless: :is_subscription?
+  validate :validate_tracked_limit, if: -> { is_tracked_changed? && !is_subscription? }
 
   before_save :reset_watermark, if: :is_tracked_changed?
   # Not after_commit: matches UserTotp, and commit callbacks never fire under transactional specs
   after_create :sync_user_flag, if: :is_tracked?
   after_update :sync_user_flag, if: :saved_change_to_is_tracked?
   after_destroy :sync_user_flag, if: :is_tracked?
+  after_destroy :clear_tag_subscriptions, if: :is_subscription?
 
   scope :tracked, -> { where(is_tracked: true) }
+  scope :regular, -> { where(is_subscription: false) }
+
+  # Finds or creates the user's subscription anchor. The partial unique index on
+  # (user_id) WHERE is_subscription settles concurrent creates; the loser re-reads.
+  def self.subscription_for!(user)
+    find_by(user_id: user.id, is_subscription: true) ||
+      create!(user: user, is_subscription: true, name: SUBSCRIPTION_NAME, query: "", is_tracked: true)
+  rescue ActiveRecord::RecordNotUnique
+    find_by!(user_id: user.id, is_subscription: true)
+  end
 
   # Resolves a `search:` metatag value to a saved search id. Scoped to the given
   # user: another user's id or name fails resolution (returns nil) rather than erroring.
@@ -68,6 +84,7 @@ class SavedSearch < ApplicationRecord
       # past validation fails closed instead of expanding wildcards.
       # Returns nil when the query can't be evaluated, so one bad search never takes down the rest.
       def new_post_count(saved_search, safe_mode: CurrentUser.safe_mode?)
+        return subscription_post_count(saved_search, safe_mode: safe_mode) if saved_search.is_subscription?
         ElasticPostQueryBuilder.new(
           "#{saved_search.query} id:>#{saved_search.last_seen_post_id.to_i}",
           enable_safe_mode: safe_mode,
@@ -79,6 +96,19 @@ class SavedSearch < ApplicationRecord
         ).search.count_only(max_count: BADGE_COUNT_CAP)
       rescue *QUERY_ERRORS
         nil
+      rescue OpenSearch::Transport::Transport::Error => e
+        Rails.logger.warn("SavedSearch ##{saved_search.id} count failed: #{e.class}: #{e.message.truncate(200)}")
+        nil
+      end
+
+      # The subscribed tags go in as one `terms` set rather than through query syntax,
+      # so the list never meets tag_query_limit. An empty list costs no OpenSearch call.
+      def subscription_post_count(saved_search, safe_mode:)
+        names = TagSubscription.tag_names_for(saved_search.user)
+        return 0 if names.empty?
+        query = TagQuery.new("id:>#{saved_search.last_seen_post_id.to_i}", allow_saved_search_metatag: false)
+        query.add_tag_set(:must, names)
+        ElasticPostQueryBuilder.new(query, enable_safe_mode: safe_mode).search.count_only(max_count: BADGE_COUNT_CAP)
       rescue OpenSearch::Transport::Transport::Error => e
         Rails.logger.warn("SavedSearch ##{saved_search.id} count failed: #{e.class}: #{e.message.truncate(200)}")
         nil
@@ -188,15 +218,19 @@ class SavedSearch < ApplicationRecord
   end
 
   def validate_saved_search_limit
-    if user.saved_searches.count >= Danbooru.config.saved_search_limit
+    if user.saved_searches.regular.count >= Danbooru.config.saved_search_limit
       errors.add(:base, "You can only have up to #{Danbooru.config.saved_search_limit} saved searches")
     end
   end
 
   def validate_tracked_limit
-    if is_tracked? && user.saved_searches.tracked.where.not(id: id).count >= Danbooru.config.tracked_saved_search_limit
+    if is_tracked? && user.saved_searches.regular.tracked.where.not(id: id).count >= Danbooru.config.tracked_saved_search_limit
       errors.add(:base, "You can only track up to #{Danbooru.config.tracked_saved_search_limit} saved searches")
     end
+  end
+
+  def clear_tag_subscriptions
+    TagSubscription.where(user_id: user_id).delete_all
   end
 
   def reset_watermark
