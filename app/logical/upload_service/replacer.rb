@@ -68,6 +68,7 @@ class UploadService
         post.uploader_id = replacement.creator_id
         post.uploader_ip_addr = replacement.creator_ip_addr
 
+        post.submitted_tag_string = upload.tag_string
         post.normalize_tags
         post.save!
 
