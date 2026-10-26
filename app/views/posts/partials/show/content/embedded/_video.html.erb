@@ -19,7 +19,7 @@
             <%= svg_icon(:play, class: "icon play") %>
             <%= svg_icon(:pause, class: "icon pause") %>
           </media-play-button>
-          <% if post.tag_array.include? "sound" %>
+          <% if post.has_sound %>
             <media-mute-button class="st-button kinetic volume-button" commandfor="volume-popup">
               <%= svg_icon(:volume_low, class: "icon low") %>
               <%= svg_icon(:volume_high, class: "icon high medium") %>
