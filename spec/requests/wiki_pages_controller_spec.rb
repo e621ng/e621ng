@@ -159,6 +159,26 @@ RSpec.describe WikiPagesController do
       expect(response.body).not_to include("tag-subscription-toggle")
     end
 
+    context "on an alias antecedent's page" do
+      let(:consequent) { Tag.find_or_create_by_name("con_#{SecureRandom.hex(4)}") }
+
+      before { create(:active_tag_alias, antecedent_name: tag.name, consequent_name: consequent.name) }
+
+      it "shows Unsubscribe when subscribed to the consequent" do
+        sub = create(:tag_subscription, user: user, tag: consequent)
+        sign_in_as user
+        get wiki_page_path(wiki_page)
+        expect(response.body).to include(tag_subscription_path(sub))
+        expect(response.body).to include("is aliased to #{consequent.name}")
+      end
+
+      it "shows Subscribe when not subscribed to the consequent" do
+        sign_in_as user
+        get wiki_page_path(wiki_page)
+        expect(response.body).to include(tag_subscriptions_path(tag_name: tag.name))
+      end
+    end
+
     it "is shown on a tag without a wiki page" do
       bare = Tag.find_or_create_by_name("bare_tag_#{SecureRandom.hex(4)}")
       sign_in_as user
