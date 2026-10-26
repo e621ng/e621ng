@@ -174,6 +174,17 @@ RSpec.describe Post do
         expect(post.versions.last.original_tags).to eq([])
       end
 
+      it "prefers the submitted tag string over the tag string when set" do
+        post = create(:post, tag_string: "tagme foo auto_tag", submitted_tag_string: "tagme foo")
+        expect(post.versions.last.original_tags).to match_array(%w[tagme foo])
+      end
+
+      it "does not reuse the submitted tag string on a later edit" do
+        post = create(:post, tag_string: "tagme foo auto_tag", submitted_tag_string: "tagme foo")
+        post.update!(tag_string: "tagme foo auto_tag bar")
+        expect(post.versions.last.original_tags).to eq(%w[bar])
+      end
+
       it "does not carry over to a later non-tag edit on the same instance" do
         post = create(:post, tag_string: "tagme foo")
         post.update!(tag_string: "tagme foo new_tag")

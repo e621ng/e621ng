@@ -84,7 +84,8 @@ class Post < ApplicationRecord
   has_many :replacements, class_name: "PostReplacement", :dependent => :destroy
 
   attr_accessor :old_tag_string, :old_parent_id, :old_source, :old_rating, :old_description,
-                :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason, :tags_before_parse
+                :do_not_version_changes, :tag_string_diff, :source_diff, :edit_reason, :tags_before_parse,
+                :submitted_tag_string
 
   has_many :versions, -> {order("post_versions.id ASC")}, :class_name => "PostVersion", :dependent => :destroy
 
@@ -691,7 +692,9 @@ class Post < ApplicationRecord
     def record_submitted_tags
       return if tag_string_diff.present? # recorded in apply_tag_diff
 
-      submitted = remove_metatags(tag_array)
+      # Uploads pass the user's tags from before automatic tags were added
+      submitted = remove_metatags(submitted_tag_string.nil? ? tag_array : TagQuery.scan(submitted_tag_string))
+      self.submitted_tag_string = nil
       # Diff against what the user saw, so concurrent edits by others aren't attributed to them
       seen = (old_tag_string.nil? ? tag_array_was : TagQuery.scan(old_tag_string)).map(&:downcase)
       added = submitted.reject { |tag| seen.include?(tag.downcase) }

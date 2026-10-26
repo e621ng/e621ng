@@ -88,6 +88,42 @@ RSpec.describe UploadService do
       end
     end
 
+    context "with an animated gif" do
+      let(:file) do
+        Tempfile.new(["animated", ".gif"]).tap do |f|
+          f.binmode
+          f.write(File.binread(file_fixture("animated.gif").to_s))
+          f.rewind
+        end
+      end
+      let(:service) { described_class.new({ uploader: uploader, uploader_ip_addr: "127.0.0.1", rating: "s", file: file, tag_string: tag_string }) }
+
+      after do
+        file.close!
+      rescue StandardError
+        nil
+      end
+
+      context "when the uploader did not type the automatic tags" do
+        let(:tag_string) { "tagme foo" }
+
+        it "does not attribute them to the uploader" do
+          service.start!
+          expect(service.post.tag_array).to include("animated_gif", "animated")
+          expect(service.post.versions.first.original_tags).to contain_exactly("tagme", "foo")
+        end
+      end
+
+      context "when the uploader typed an automatic tag" do
+        let(:tag_string) { "tagme animated" }
+
+        it "keeps it" do
+          service.start!
+          expect(service.post.versions.first.original_tags).to contain_exactly("tagme", "animated")
+        end
+      end
+    end
+
     context "when the Upload is invalid (bad rating)" do
       let(:params)  { { uploader: uploader, uploader_ip_addr: "127.0.0.1", rating: "z" } }
       let(:service) { described_class.new(params) }
