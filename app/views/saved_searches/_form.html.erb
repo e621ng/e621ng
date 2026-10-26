@@ -1,6 +1,6 @@
 <%= custom_form_for(@saved_search) do |f| %>
   <%= error_messages_for :saved_search %>
-  <%= f.input :query, as: :string, hint: "A post search. Wildcard tags (e.g. tag_*) and search: references are not allowed." %>
+  <%= f.input :query, as: :text, hint: "A post search. Wildcard tags (e.g. tag_*) and search: references are not allowed." %>
 
   <%= f.input :name, as: :string, hint: "Optional. Can only contain letters, numbers, and underscores and must contain at least one
       letter or underscore. Lets you reference this search as search:example in post searches." %>
