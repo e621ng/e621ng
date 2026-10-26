@@ -56,6 +56,10 @@ module Sources
           query_values.delete_if { |key, _| key.start_with?("utm_") }
           @parsed_url.query_values = query_values.empty? ? nil : query_values
         end
+        # Remove nitter's main-tweet anchor
+        if @parsed_url.domain == "x.com" && @parsed_url.fragment == "m"
+          @parsed_url.fragment = nil
+        end
         # Remove photo specifier from links
         split_path = @parsed_url.path.split("/")
         if @parsed_url.domain == "x.com" && split_path.length == 6 && split_path[-2] == "photo"
