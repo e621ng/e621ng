@@ -80,6 +80,7 @@ class CustomVideoPlayer extends VideoPlayer {
   public constructor (protected containerElement: VideoPlayerElement) {
     super(containerElement);
     containerElement.classList.add("custom-player");
+    this.hasVolumeControls = this.containerElement.querySelector("media-mute-button") !== null;
 
     this.loadingVideoJsPromise = this.loadVideoJS();
 
@@ -100,7 +101,6 @@ class CustomVideoPlayer extends VideoPlayer {
       this.updateLoopState(true);
     });
 
-    this.hasVolumeControls = this.containerElement.querySelector("media-mute-button") !== null;
 
     if (!this.hasVolumeControls) return; // nothing to do from here
 
