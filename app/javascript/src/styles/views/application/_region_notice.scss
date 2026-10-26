@@ -1,0 +1,34 @@
+#region-notice {
+  position: fixed;
+  inset: 0;
+  width: 500px;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100dvh - 2rem);
+  margin: auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  overflow-y: auto;
+  color: themed("color-text");
+  background: themed("color-section");
+  border: 1px solid themed("color-section-darken-5");
+  @include st-radius;
+  box-shadow: 0 1rem 3rem #0008;
+
+  &::backdrop {
+    background: #000a;
+  }
+
+  &:not([open]) {
+    display: none;
+  }
+
+  h2 {
+    margin: 0 0 0.75rem;
+  }
+
+  .region-notice-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+}

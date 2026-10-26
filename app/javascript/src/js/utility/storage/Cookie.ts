@@ -45,6 +45,7 @@ class CStorage extends StorageObject {
   Site = {
     MascotID: 0,
     HideDmailNotice: false,
+    HideRegionNotice: false,
   };
 
   Posts = {
@@ -58,6 +59,7 @@ const StorageKeys: StorageConfig<CStorage> = {
   Site: {
     MascotID: "mascot",
     HideDmailNotice: "hide_dmail_notice",
+    HideRegionNotice: "hide_region_notice",
   },
 
   Posts: {

@@ -36,6 +36,10 @@
     <%= render "static/tos_warning" %>
   <% end %>
 
+  <% if show_region_notice? %>
+    <%= render "static/region_notice" %>
+  <% end %>
+
   <%= render "static/footer" %>
   <%= render "ads/revive" %>
   <% if Danbooru.config.fsc_modal_enabled? %>

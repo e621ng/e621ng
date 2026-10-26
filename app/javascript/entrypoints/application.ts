@@ -17,6 +17,7 @@ import { getE621Instance } from "@/core/E621Global";
 import "@/core/Navigation";
 import "@/core/news_updates";
 import "@/core/PaginatorFastTravel";
+import "@/core/RegionNotice";
 import "@/core/SavedSearchBadge";
 import "@/core/themes";
 import "@/core/tos_warning";

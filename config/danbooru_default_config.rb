@@ -1005,6 +1005,12 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       false
     end
 
+    # ISO 3166-1 alpha-2 codes, as provided by Cloudflare's CF-IPCountry header.
+    # Visitors from these countries are shown the region notice modal.
+    def region_notice_countries
+      %w[GB]
+    end
+
     def janitor_reports_discord_webhook_url
       nil
     end
