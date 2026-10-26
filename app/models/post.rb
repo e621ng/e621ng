@@ -1982,10 +1982,6 @@ class Post < ApplicationRecord
         attributes[:preview_height] = preview_dimensions[1]
       end
 
-      if is_video?
-        attributes[:has_sound] = has_sound
-      end
-
       attributes
     end
 
