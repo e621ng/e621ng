@@ -32,7 +32,7 @@ module Fixes
           errors += 1
         end
 
-        puts "Done. Errors: #{errors}, Updated: #{changes}".
+        puts "Done. Errors: #{errors}, Updated: #{changes}."
       end
     end
   end
