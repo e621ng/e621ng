@@ -167,6 +167,32 @@ RSpec.describe Sources::Alternates::Twitter do
   end
 
   # -------------------------------------------------------------------------
+  # #original_url — #m fragment removal
+  # -------------------------------------------------------------------------
+  describe "#original_url — #m fragment removal" do
+    it "removes #m from an x.com status URL" do
+      expect(transform("https://x.com/Likethisevenma1/status/2038961572245021137#m")).to eq("https://x.com/Likethisevenma1/status/2038961572245021137")
+    end
+
+    it "removes #m from a nitter status URL" do
+      expect(transform("https://nitter.net/user/status/123456789#m")).to eq("https://x.com/user/status/123456789")
+    end
+
+    it "removes #m from an xcancel status URL" do
+      expect(transform("https://xcancel.com/user/status/123456789#m")).to eq("https://x.com/user/status/123456789")
+    end
+
+    it "removes #m alongside tracking params" do
+      expect(transform("https://x.com/user/status/123456789?s=20#m")).to eq("https://x.com/user/status/123456789")
+    end
+
+    it "preserves other fragments" do
+      url = "https://x.com/user/status/123456789#foo"
+      expect(transform(url)).to eq(url)
+    end
+  end
+
+  # -------------------------------------------------------------------------
   # #original_url — /photo/N path suffix removal
   # -------------------------------------------------------------------------
   describe "#original_url — /photo/N path suffix removal" do
