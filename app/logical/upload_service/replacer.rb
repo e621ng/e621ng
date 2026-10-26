@@ -60,6 +60,7 @@ class UploadService
         post.file_size = upload.file_size
         animated = upload.is_animated_file?(upload.file.path)
         post.is_animated = animated
+        post.has_sound = upload.video_has_sound?(upload.file.path)
         post.duration = upload.video_duration(upload.file.path, animated: animated)
         post.source = "#{replacement.source}\n" + post.source
         post.tag_string = upload.tag_string
