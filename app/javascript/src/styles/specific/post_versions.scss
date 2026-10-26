@@ -165,6 +165,7 @@ div#c-post-versions {
     .pv-original-tag-string {
       grid-row: 6;
       @include grid-col(2, 14);
+      overflow-wrap: anywhere;
     }
 
     .pv-sources {

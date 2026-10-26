@@ -693,8 +693,10 @@ class Post < ApplicationRecord
 
       submitted = remove_metatags(tag_array)
       # Diff against what the user saw, so concurrent edits by others aren't attributed to them
-      seen = old_tag_string.nil? ? tag_array_was : TagQuery.scan(old_tag_string)
-      @tags_before_parse = ((submitted - seen) + (seen - submitted).map { |tag| "-#{tag}" }).uniq
+      seen = (old_tag_string.nil? ? tag_array_was : TagQuery.scan(old_tag_string)).map(&:downcase)
+      added = submitted.reject { |tag| seen.include?(tag.downcase) }
+      removed = (seen - submitted.map(&:downcase)).map { |tag| "-#{tag}" }
+      @tags_before_parse = (added + removed).uniq(&:downcase)
     end
 
     def apply_tag_diff

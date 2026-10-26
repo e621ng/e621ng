@@ -109,7 +109,7 @@ class PostVersion < ApplicationRecord
     d = diff(previous)
     (d[:added_tags] + d[:removed_tags] + d[:unchanged_tags] +
       (d[:added_locked_tags] + d[:removed_locked_tags] + d[:unchanged_locked_tags]).map { |t| t.start_with?("-") ? t[1..] : t } +
-      original_tags.reject { |t| PostVersion.original_metatag?(t) }.map { |t| t.sub(/\A[-+~]/, "") }).uniq
+      original_tags.reject { |t| PostVersion.original_metatag?(t) }.map { |t| t.sub(/\A[-+~]/, "").downcase }).uniq
   end
 
   def presenter

@@ -53,6 +53,13 @@ RSpec.describe Post do
         expect(post.versions.last.original_tags).to eq(%w[-bar])
       end
 
+      it "does not store a removal when an existing tag is resubmitted in a different case" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.update!(old_tag_string: "tagme foo", tag_string: "tagme Foo bar")
+        expect(post.tag_array).to include("foo")
+        expect(post.versions.last.original_tags).to eq(%w[bar])
+      end
+
       it "does not attribute a concurrent edit to the user" do
         post = create(:post, tag_string: "tagme foo")
         Post.find(post.id).update!(tag_string: "tagme foo other")
