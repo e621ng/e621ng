@@ -373,9 +373,44 @@ RSpec.describe Post do
     end
 
     describe "add_automatic_tags" do
-      it "adds sound tag for video posts with sound" do
-        post = create(:post, file_ext: "mp4", is_animated: true, has_sound: true)
-        expect(post.tag_array).to include("sound")
+      describe "sound" do
+        it "adds sound for videos with sound" do
+          post = create(:post, file_ext: "mp4", is_animated: true, has_sound: true)
+          expect(post.tag_array).to include("sound")
+        end
+
+        it "removes a manual sound tag from videos without sound" do
+          post = create(:post, file_ext: "mp4", is_animated: true, has_sound: false, tag_string: "sound tagme")
+          expect(post.tag_array).not_to include("sound")
+        end
+
+        it "re-adds sound a user removed from a video with sound" do
+          post = create(:post, file_ext: "mp4", is_animated: true, has_sound: true, tag_string: "tagme")
+          post.update!(tag_string: (post.tag_array - ["sound"]).join(" "))
+          expect(post.reload.tag_array).to include("sound")
+        end
+
+        it "keeps sound as a manual tag for flash" do
+          post = create(:post, file_ext: "swf", tag_string: "sound tagme")
+          expect(post.tag_array).to include("sound")
+        end
+
+        it "does not add sound to flash automatically" do
+          post = create(:post, file_ext: "swf", tag_string: "tagme")
+          expect(post.tag_array).not_to include("sound")
+        end
+
+        # Pins current behaviour: only flash keeps a manual sound tag.
+        it "removes a manual sound tag from images" do
+          post = create(:post, file_ext: "png", tag_string: "sound tagme")
+          expect(post.tag_array).not_to include("sound")
+        end
+
+        it "leaves a manual sound tag alone when autotagging is disabled" do
+          allow(Danbooru.config.custom_configuration).to receive(:enable_dimension_autotagging?).and_return(false)
+          post = create(:post, file_ext: "mp4", is_animated: true, has_sound: false, tag_string: "sound tagme")
+          expect(post.tag_array).to include("sound")
+        end
       end
 
       it "adds wide_image and long_image for very wide posts" do

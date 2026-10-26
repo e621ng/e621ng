@@ -143,4 +143,42 @@ RSpec.describe FileMethods, type: :model do
       end
     end
   end
+
+  # ----------------------------------------------------------------------- #
+  describe "#video_has_sound?" do
+    it "returns true for an MP4 with an audio track" do
+      upload = build(:upload, file_ext: "mp4")
+      path = file_fixture("file_validator/animated-h264-aac.mp4").to_s
+      expect(upload.video_has_sound?(path)).to be true
+    end
+
+    it "returns true for a WebM with an audio track" do
+      upload = build(:upload, file_ext: "webm")
+      path = file_fixture("file_validator/animated-av1-vorbis.webm").to_s
+      expect(upload.video_has_sound?(path)).to be true
+    end
+
+    it "returns false for videos without an audio track" do
+      %w[mp4 webm].each do |ext|
+        upload = build(:upload, file_ext: ext)
+        path = file_fixture("animated.#{ext}").to_s
+        expect(upload.video_has_sound?(path)).to be false
+      end
+    end
+
+    it "returns false for non-video files without reading them" do
+      upload = build(:upload, file_ext: "gif")
+      expect(upload.video_has_sound?("/nonexistent/path.gif")).to be false
+    end
+
+    # ffprobe accepts still images as one-frame videos, so use bytes it can't parse at all.
+    it "raises for an unreadable video" do
+      upload = build(:upload, file_ext: "mp4")
+      Tempfile.create(["junk", ".mp4"]) do |f|
+        f.write("not a video")
+        f.flush
+        expect { upload.video_has_sound?(f.path) }.to raise_error(ArgumentError, /unreadable video/)
+      end
+    end
+  end
 end
