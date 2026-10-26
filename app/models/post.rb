@@ -30,6 +30,7 @@ class Post < ApplicationRecord
 
   before_validation :reset_tag_caches
   before_validation :initialize_uploader, :on => :create
+  before_validation :record_submitted_tags, if: :should_process_tags?
   before_validation :merge_old_changes
   before_validation :apply_source_diff
   before_validation :apply_tag_diff, if: :should_process_tags?
@@ -687,6 +688,15 @@ class Post < ApplicationRecord
       @tags_before_parse = nil
     end
 
+    def record_submitted_tags
+      return if tag_string_diff.present? # recorded in apply_tag_diff
+
+      submitted = remove_metatags(tag_array)
+      # Diff against what the user saw, so concurrent edits by others aren't attributed to them
+      seen = old_tag_string.nil? ? tag_array_was : TagQuery.scan(old_tag_string)
+      @tags_before_parse = ((submitted - seen) + (seen - submitted).map { |tag| "-#{tag}" }).uniq
+    end
+
     def apply_tag_diff
       return unless tag_string_diff.present?
 
@@ -727,7 +737,6 @@ class Post < ApplicationRecord
     end
 
     def normalize_tags
-      @tags_before_parse = remove_metatags(tag_array - tag_array_was) if tag_string_diff.blank?
       if !locked_tags.nil? && locked_tags.strip.blank?
         self.locked_tags = nil
       elsif locked_tags.present?

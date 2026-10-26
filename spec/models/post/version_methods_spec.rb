@@ -41,6 +41,41 @@ RSpec.describe Post do
         expect(post.versions.last.original_tags).to eq(%w[bar])
       end
 
+      it "stores removals as negated tags on a tag_string edit" do
+        post = Post.find(create(:post, tag_string: "tagme foo bar").id)
+        post.update!(tag_string: "tagme foo baz")
+        expect(post.versions.last.original_tags).to contain_exactly("baz", "-bar")
+      end
+
+      it "stores removals made through the edit form" do
+        post = Post.find(create(:post, tag_string: "tagme foo bar").id)
+        post.update!(old_tag_string: "tagme foo bar", tag_string: "tagme foo")
+        expect(post.versions.last.original_tags).to eq(%w[-bar])
+      end
+
+      it "does not attribute a concurrent edit to the user" do
+        post = create(:post, tag_string: "tagme foo")
+        Post.find(post.id).update!(tag_string: "tagme foo other")
+
+        post = Post.find(post.id)
+        post.update!(old_tag_string: "tagme foo", tag_string: "tagme foo bar")
+        expect(post.tag_array).to include("other", "bar")
+        expect(post.versions.last.original_tags).to eq(%w[bar])
+      end
+
+      it "stores only the added tags on an additive edit" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.update!(old_tag_string: "", tag_string: "baz")
+        expect(post.tag_array).to include("foo", "baz")
+        expect(post.versions.last.original_tags).to eq(%w[baz])
+      end
+
+      it "does not store a removal when a category prefix is added to an existing tag" do
+        post = Post.find(create(:post, tag_string: "tagme foo").id)
+        post.update!(tag_string: "tagme artist:foo")
+        expect(post.tags_before_parse).to eq([])
+      end
+
       it "stores the raw tag_string_diff on a diff edit" do
         post = Post.find(create(:post, tag_string: "tagme foo").id)
         post.tag_string_diff = "bar -foo"
