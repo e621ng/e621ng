@@ -69,6 +69,7 @@ class UploadService
       animated = upload.is_animated_file?(upload.file.path)
       p.is_animated = animated
       p.duration = upload.video_duration(upload.file.path, animated: animated)
+      p.has_sound = upload.video_has_sound?(upload.file.path)
 
       p.is_pending = true if should_set_pending?(upload, p)
     end

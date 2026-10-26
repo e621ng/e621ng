@@ -53,6 +53,7 @@ class UploadService
         previous_pending = post.is_pending? # Drives the replacer's +1 credit
         reverting = replacement.status.in?(%w[approved original]) # Drives revert logic
 
+        post.tag_string = upload.tag_string
         post.md5 = upload.md5
         post.file_ext = upload.file_ext
         post.image_width = upload.image_width
@@ -60,12 +61,15 @@ class UploadService
         post.file_size = upload.file_size
         animated = upload.is_animated_file?(upload.file.path)
         post.is_animated = animated
+        post.has_sound = upload.video_has_sound?(upload.file.path)
         post.duration = upload.video_duration(upload.file.path, animated: animated)
         post.source = "#{replacement.source}\n" + post.source
-        post.tag_string = upload.tag_string
         # Reset ownership information on post.
         post.uploader_id = replacement.creator_id
         post.uploader_ip_addr = replacement.creator_ip_addr
+
+        post.submitted_tag_string = upload.tag_string
+        post.normalize_tags
         post.save!
 
         # rescaling notes reloads the post, be careful when accessing previous values

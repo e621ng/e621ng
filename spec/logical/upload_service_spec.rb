@@ -135,6 +135,46 @@ RSpec.describe UploadService do
       end
     end
 
+    context "with a video" do
+      let(:file) do
+        Tempfile.new(["video", ".mp4"]).tap do |f|
+          f.binmode
+          f.write(File.binread(file_fixture(fixture).to_s))
+          f.rewind
+        end
+      end
+      let(:service) { described_class.new({ uploader: uploader, uploader_ip_addr: "127.0.0.1", rating: "s", file: file, tag_string: tag_string }) }
+
+      after do
+        file.close!
+      rescue StandardError
+        nil
+      end
+
+      context "when it has an audio track" do
+        let(:fixture)    { "file_validator/animated-h264-aac.mp4" }
+        let(:tag_string) { "tagme foo" }
+
+        it "sets has_sound and adds sound without attributing it to the uploader" do
+          service.start!
+          expect(service.post.has_sound).to be true
+          expect(service.post.tag_array).to include("sound")
+          expect(service.post.versions.first.original_tags).to contain_exactly("tagme", "foo")
+        end
+      end
+
+      context "when it has no audio track but the uploader typed sound" do
+        let(:fixture)    { "animated.mp4" }
+        let(:tag_string) { "tagme sound" }
+
+        it "clears has_sound and removes sound" do
+          service.start!
+          expect(service.post.has_sound).to be false
+          expect(service.post.tag_array).not_to include("sound")
+        end
+      end
+    end
+
     context "when the Upload is invalid (bad rating)" do
       let(:params)  { { uploader: uploader, uploader_ip_addr: "127.0.0.1", rating: "z" } }
       let(:service) { described_class.new(params) }
