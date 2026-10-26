@@ -75,6 +75,7 @@
       position: absolute;
       height: 1rem;
       width: 1rem;
+      touch-action: none; // required for pointermove to fire on touch instead of scrolling
 
       &:before {
         content: "";
@@ -88,17 +89,32 @@
         border: 1px solid themed("color-background");
         border-radius: 2px;
       }
+
+      // Finger-sized hit area; the visible square stays the same
+      @media (pointer: coarse) {
+        height: 2rem;
+        width: 2rem;
+        &:before { margin: 0.75rem; }
+      }
     }
 
     .note-handle-nw {
       top: -0.5rem;
       left: -0.5rem;
       cursor: nw-resize;
+      @media (pointer: coarse) {
+        top: -1rem;
+        left: -1rem;
+      }
     }
     .note-handle-se {
       bottom: -0.5rem;
       right: -0.5rem;
       cursor: se-resize;
+      @media (pointer: coarse) {
+        bottom: -1rem;
+        right: -1rem;
+      }
     }
 
     &:hover, &.focused {
@@ -162,13 +178,19 @@
     pointer-events: all;
     cursor: crosshair;
     user-select: none; // Prevent text selection during drag
-    
+    -webkit-touch-callout: none; // No image sheet on a touch long press
+
     .note-body { cursor: pointer; }
 
     .note-box {
       cursor: move;
-      
+
       &:hover {
+        .note-handle-nw, .note-handle-se { display: block; }
+      }
+
+      // Nothing to hover with on touch devices
+      @media (hover: none) {
         .note-handle-nw, .note-handle-se { display: block; }
       }
     }

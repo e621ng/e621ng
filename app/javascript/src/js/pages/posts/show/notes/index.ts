@@ -110,6 +110,11 @@ export default class NoteManager {
         editor.open(noteID);
       });
 
+      // A touch long press would otherwise open the context menu
+      container.on("contextmenu.e6.note", (event) => {
+        if (NoteUtilities.editing) event.preventDefault();
+      });
+
       new NoteDrawing();
       new NoteResizing();
       new NoteMoving();

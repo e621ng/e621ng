@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { SAMPLE_NOTE, loadNoteManager, mouse, pressEscape, renderNotesPage, stubGeometry } from "../fixtures";
+import { SAMPLE_NOTE, loadNoteManager, nativeTouchMove, pointer, pressEscape, renderNotesPage, stubGeometry, touch } from "../fixtures";
 
 const dialog = { open: vi.fn(), close: vi.fn(), setTitle: vi.fn() };
 vi.mock("@/utility/dialog", () => ({
@@ -28,8 +28,8 @@ describe("NoteResizing", () => {
 
   it("does nothing outside editing mode", async () => {
     const { Note, NoteManager } = await loadNoteManager();
-    mouse(se(), "mousedown", { x: 300, y: 200 });
-    mouse(NoteManager.container, "mousemove", { x: 340, y: 230 });
+    pointer(se(), "pointerdown", { x: 300, y: 200 });
+    pointer(NoteManager.container, "pointermove", { x: 340, y: 230 });
     expect(Note.getByID("7")!.width).toBe(400);
     expect(NoteManager.container.attr("resizing")).toBeUndefined();
   });
@@ -37,21 +37,21 @@ describe("NoteResizing", () => {
   it("grows from the south-east handle and opens the editor on release", async () => {
     const { NoteManager, container, note } = await loadEditing();
 
-    mouse(se(), "mousedown", { x: 300, y: 200 });
+    pointer(se(), "pointerdown", { x: 300, y: 200 });
     expect(note.editing).toBe(true);
     expect(note.pending).toBe(true);
     expect(note.hasBackup).toBe(true);
     expect(container.attr("resizing")).toBe("true");
     expect(document.querySelectorAll(".note-box").length).toBe(1); // No drawing started
 
-    mouse(container, "mousemove", { x: 340, y: 230 });
+    pointer(container, "pointermove", { x: 340, y: 230 });
     expect(note.x).toBe(200);
     expect(note.y).toBe(200);
     expect(note.width).toBe(480);
     expect(note.height).toBe(260);
     expect(note.$box[0].style.width).toBe("240px");
 
-    mouse(container, "mouseup", { x: 340, y: 230 });
+    pointer(container, "pointerup", { x: 340, y: 230 });
     expect(note.editing).toBe(false);
     expect(note.pending).toBe(true);
     expect(container.attr("resizing")).toBe("false");
@@ -62,8 +62,8 @@ describe("NoteResizing", () => {
   it("moves the origin from the north-west handle", async () => {
     const { container, note } = await loadEditing();
 
-    mouse(nw(), "mousedown", { x: 100, y: 100 });
-    mouse(container, "mousemove", { x: 120, y: 110 });
+    pointer(nw(), "pointerdown", { x: 100, y: 100 });
+    pointer(container, "pointermove", { x: 120, y: 110 });
     expect(note.x).toBe(240);
     expect(note.y).toBe(220);
     expect(note.width).toBe(360);
@@ -73,15 +73,15 @@ describe("NoteResizing", () => {
   it("enforces the minimum size", async () => {
     const { container, note } = await loadEditing();
 
-    mouse(se(), "mousedown", { x: 300, y: 200 });
-    mouse(container, "mousemove", { x: 50, y: 50 });
+    pointer(se(), "pointerdown", { x: 300, y: 200 });
+    pointer(container, "pointermove", { x: 50, y: 50 });
     expect(note.width).toBe(20);
     expect(note.height).toBe(20);
     expect(note.x).toBe(200);
-    mouse(container, "mouseup", { x: 50, y: 50 });
+    pointer(container, "pointerup", { x: 50, y: 50 });
 
-    mouse(nw(), "mousedown", { x: 100, y: 100 });
-    mouse(container, "mousemove", { x: 500, y: 500 });
+    pointer(nw(), "pointerdown", { x: 100, y: 100 });
+    pointer(container, "pointermove", { x: 500, y: 500 });
     // Origin is pinned so the bottom-right corner stays put
     expect(note.width).toBe(20);
     expect(note.height).toBe(20);
@@ -91,14 +91,14 @@ describe("NoteResizing", () => {
 
   it.each([
     ["note:abort", (container: JQuery<HTMLElement>) => container.trigger("note:abort")],
-    ["mouseleave", (container: JQuery<HTMLElement>) => container.trigger("mouseleave")],
+    ["pointercancel", (container: JQuery<HTMLElement>) => pointer(container, "pointercancel", { x: 340, y: 230 })],
     ["Escape", () => pressEscape()],
     ["context menu", (container: JQuery<HTMLElement>) => container.trigger("contextmenu")],
   ])("restores the original bounds on %s", async (_label, abort) => {
     const { container, note } = await loadEditing();
 
-    mouse(se(), "mousedown", { x: 300, y: 200 });
-    mouse(container, "mousemove", { x: 340, y: 230 });
+    pointer(se(), "pointerdown", { x: 300, y: 200 });
+    pointer(container, "pointermove", { x: 340, y: 230 });
     expect(note.width).toBe(480);
 
     abort(container);
@@ -107,7 +107,24 @@ describe("NoteResizing", () => {
     expect(note.editing).toBe(false);
     expect(container.attr("resizing")).toBe("false");
 
-    mouse(container, "mouseup", { x: 340, y: 230 });
+    pointer(container, "pointerup", { x: 340, y: 230 });
     expect(dialog.open).not.toHaveBeenCalled();
+  });
+
+  it("starts immediately on touch, without a long press", async () => {
+    const { NoteManager, container, note } = await loadEditing();
+
+    touch(se(), "pointerdown", { x: 300, y: 200 });
+    expect(note.editing).toBe(true);
+    expect(container.attr("resizing")).toBe("true");
+    expect(nativeTouchMove(container[0])).toBe(true);
+
+    touch(container, "pointermove", { x: 340, y: 230 });
+    expect(note.width).toBe(480);
+
+    touch(container, "pointerup", { x: 340, y: 230 });
+    expect(note.editing).toBe(false);
+    expect(NoteManager.Editor.id).toBe("7");
+    expect(dialog.open).toHaveBeenCalledTimes(1);
   });
 });

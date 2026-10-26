@@ -1,129 +1,91 @@
 import Note from "@/pages/posts/show/notes/Note";
 import NoteEditor from "@/pages/posts/show/notes/NoteEditor";
 import NoteUtilities from "@/pages/posts/show/notes/NoteUtilities";
+import DragGesture from "@/pages/posts/show/notes/interactions/DragGesture";
+import { Point } from "@/pages/posts/show/notes/Types";
 
-/** Drawing a new note by click-dragging on an empty area of the container. */
+/**
+ * Drawing a new note by dragging on an empty area of the container.
+ * A mouse starts drawing immediately; a touch has to long-press first,
+ * so that a plain finger drag still scrolls the page.
+ */
 export default class NoteDrawing {
 
-  private isDrawing = false;
-  private startX = 0;
-  private startY = 0;
-  private throttleId: number | null = null;
+  private start: Point = { x: 0, y: 0 };
 
   /** Note currently being drawn */
   private drawingNote: Note | null = null;
 
-  public constructor () {
-    const container = NoteUtilities.container;
-
-    // Initial click to start drawing
-    container.on("mousedown.e6.note", (event) => {
-      if (!NoteUtilities.editing) return;
-
-      // Only respond to left mouse button
-      if (event.button !== 0) {
-        if (!this.isDrawing) return;
-        event.preventDefault();
-        this.abort();
-        return;
-      }
-
-      // Don't start drawing if clicking on an existing note
-      if ($(event.target).closest(".note-box").length > 0) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      this.isDrawing = true;
-      this.startX = event.pageX - NoteUtilities.containerOffset.x;
-      this.startY = event.pageY - NoteUtilities.containerOffset.y;
-
-      // Create a temporary note immediately
+  private readonly gesture = new DragGesture({
+    onStart: (point) => {
+      this.start = point;
       this.drawingNote = Note.createTemporary();
-      this.drawingNote.moveTo({ x: this.startX, y: this.startY });
+      this.drawingNote.moveTo(point);
       this.drawingNote.editing = true;
-    });
+    },
 
-    // Mousemove to update the drawing
-    container.on("mousemove.e6.note", (event) => {
-      if (!this.isDrawing || !this.drawingNote) return;
+    onMove: (point) => {
+      this.drawingNote?.adjustTo(this.rectTo(point));
+    },
 
-      event.preventDefault();
-
-      if (this.throttleId) cancelAnimationFrame(this.throttleId);
-      this.throttleId = requestAnimationFrame(() => {
-        if (!this.drawingNote) return;
-        const currentX = event.pageX - NoteUtilities.containerOffset.x;
-        const currentY = event.pageY - NoteUtilities.containerOffset.y;
-
-        this.drawingNote.adjustTo({
-          x: Math.min(this.startX, currentX),
-          y: Math.min(this.startY, currentY),
-          width: Math.abs(currentX - this.startX),
-          height: Math.abs(currentY - this.startY),
-        });
-      });
-    });
-
-    // Mouseup to finalize the drawing
-    container.on("mouseup.e6.note", (event) => {
-      if (!this.isDrawing || !this.drawingNote) return;
-
-      event.preventDefault();
-      event.stopPropagation();
-
-      const endX = event.pageX - NoteUtilities.containerOffset.x;
-      const endY = event.pageY - NoteUtilities.containerOffset.y;
-
-      const width = Math.abs(endX - this.startX);
-      const height = Math.abs(endY - this.startY);
-
-      this.isDrawing = false;
-      this.cancelFrame();
-
+    onEnd: (point) => {
       const note = this.drawingNote;
       this.drawingNote = null;
+      if (!note) return;
+
+      const rect = this.rectTo(point);
 
       // Only create the note if the area is large enough
       const minSize = NoteUtilities.noteMinWidth;
-      if (width < minSize || height < minSize) {
+      if (rect.width < minSize || rect.height < minSize) {
         note.destroy();
         return;
       }
 
-      note.adjustTo({
-        x: Math.min(this.startX, endX),
-        y: Math.min(this.startY, endY),
-        width: width,
-        height: height,
-      });
-
+      note.adjustTo(rect);
       note.editing = false;
       note.adjustBodyPosition();
       NoteEditor.instance.open(note.id);
-    });
+    },
 
-    container.on("note:abort mouseleave.e6.note", () => this.abort());
+    onCancel: () => {
+      this.drawingNote?.destroy();
+      this.drawingNote = null;
+    },
+  }, { longPress: true });
 
-    container.on("contextmenu.e6.note", (event) => {
-      if (!this.isDrawing) return;
+  public constructor () {
+    const container = NoteUtilities.container;
+
+    container.on("pointerdown.e6.note", (event) => {
+      if (!NoteUtilities.editing) return;
+
+      // Any other button cancels a drawing in progress
+      if (event.button !== 0) {
+        if (!this.gesture.active) return;
+        event.preventDefault();
+        this.gesture.abort();
+        return;
+      }
+
+      // Don't start drawing if pressing on an existing note
+      if ($(event.target).closest(".note-box").length > 0) return;
+
+      if (!this.gesture.begin(event)) return;
       event.preventDefault();
-      this.abort();
+      event.stopPropagation();
     });
+
+    container.on("note:abort", () => this.gesture.abort());
   }
 
-  private abort (): void {
-    if (!this.isDrawing || !this.drawingNote) return;
-
-    this.drawingNote.destroy();
-    this.drawingNote = null;
-    this.isDrawing = false;
-    this.cancelFrame();
-  }
-
-  private cancelFrame (): void {
-    if (!this.throttleId) return;
-    cancelAnimationFrame(this.throttleId);
-    this.throttleId = null;
+  /** Rectangle spanned by the start point and the current pointer position */
+  private rectTo (point: Point) {
+    return {
+      x: Math.min(this.start.x, point.x),
+      y: Math.min(this.start.y, point.y),
+      width: Math.abs(point.x - this.start.x),
+      height: Math.abs(point.y - this.start.y),
+    };
   }
 }

@@ -35,7 +35,8 @@ class SwipeGestureHandler {
   private onStart = (e: TouchEvent): void => {
     const t = e.touches[0];
     this.moves = [{ x: t.clientX, y: t.clientY, time: Date.now() }];
-    this.canceled = false;
+    // Drawing a wide note in editing mode must not navigate away
+    this.canceled = document.getElementById("note-container")?.getAttribute("editing") === "true";
   };
 
   private onMove = (e: TouchEvent): void => {
