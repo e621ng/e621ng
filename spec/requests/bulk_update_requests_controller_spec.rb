@@ -31,6 +31,14 @@ RSpec.describe BulkUpdateRequestsController do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to be_an(Array)
     end
+
+    it "links to the topic when the forum post has been deleted" do
+      topic = create(:forum_topic)
+      bur.update_columns(forum_topic_id: topic.id, forum_post_id: 0)
+      get bulk_update_requests_path
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include(%(href="#{forum_topic_path(topic)}"))
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -45,6 +53,12 @@ RSpec.describe BulkUpdateRequestsController do
 
     it "returns 200 for anonymous JSON" do
       get bulk_update_request_path(bur, format: :json)
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "returns 200 when the forum post has been deleted" do
+      bur.update_columns(forum_topic_id: create(:forum_topic).id, forum_post_id: 0)
+      get bulk_update_request_path(bur)
       expect(response).to have_http_status(:ok)
     end
   end

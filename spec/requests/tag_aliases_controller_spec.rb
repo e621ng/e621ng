@@ -81,6 +81,12 @@ RSpec.describe TagAliasesController do
       expect(response.parsed_body).to include("id" => tag_alias.id)
     end
 
+    it "returns 200 when the forum post has been deleted" do
+      tag_alias.update_columns(forum_topic_id: create(:forum_topic).id, forum_post_id: 0)
+      get tag_alias_path(tag_alias)
+      expect(response).to have_http_status(:ok)
+    end
+
     it "returns 404 for a non-existent id" do
       get tag_alias_path(0)
       expect(response).to have_http_status(:not_found)

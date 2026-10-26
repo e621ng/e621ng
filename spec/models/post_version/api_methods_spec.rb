@@ -10,7 +10,7 @@ RSpec.describe PostVersion do
   end
   let(:sensitive_attributes) do
     %i[
-      tags added_tags removed_tags
+      tags added_tags removed_tags original_tags
       locked_tags added_locked_tags removed_locked_tags
       rating rating_changed
       parent_id parent_changed

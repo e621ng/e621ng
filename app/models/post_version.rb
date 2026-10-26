@@ -36,6 +36,7 @@ class PostVersion < ApplicationRecord
                     updater_id: CurrentUser.id,
                     updater_ip_addr: CurrentUser.ip_addr,
                     tags: post.tag_string,
+                    original_tags: post.tags_before_parse || [],
                     locked_tags: post.locked_tags,
                     description: post.description,
                     reason: post.edit_reason
@@ -79,6 +80,12 @@ class PostVersion < ApplicationRecord
     (locked_tags || "").split
   end
 
+  # Metatags kept in original_tags (see Post#remove_metatags), not tag names
+  def self.original_metatag?(token)
+    name, value = token.sub(/\A[-+~]/, "").split(":", 2)
+    !value.nil? && name.match?(Post::TagMethods::ORIGINAL_TAGS_METATAG_WHITELIST)
+  end
+
   # Bulk-populate tag category lookups for a collection of post versions so
   # subsequent #tag_categories calls reuse one round-trip instead of one per version.
   def self.preload_tag_categories!(versions)
@@ -101,7 +108,8 @@ class PostVersion < ApplicationRecord
   def diff_tag_names
     d = diff(previous)
     (d[:added_tags] + d[:removed_tags] + d[:unchanged_tags] +
-      (d[:added_locked_tags] + d[:removed_locked_tags] + d[:unchanged_locked_tags]).map { |t| t.start_with?("-") ? t[1..] : t }).uniq
+      (d[:added_locked_tags] + d[:removed_locked_tags] + d[:unchanged_locked_tags]).map { |t| t.start_with?("-") ? t[1..] : t } +
+      original_tags.reject { |t| PostVersion.original_metatag?(t) }.map { |t| t.sub(/\A[-+~]/, "").downcase }).uniq
   end
 
   def presenter
@@ -306,7 +314,7 @@ class PostVersion < ApplicationRecord
 
       if !is_hidden || CurrentUser.is_staff?
         list += %i[
-          tags added_tags removed_tags
+          tags added_tags removed_tags original_tags
           locked_tags added_locked_tags removed_locked_tags
           rating rating_changed
           parent_id parent_changed

@@ -51,6 +51,15 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     should.concat(tags[:should].map { |x| { term: { tags: x } } })
   end
 
+  # One `terms` clause per set: benchmarked ~3x cheaper than N `term` clauses for long lists
+  # (external/docs/design/33_saved_searches/tag_subscriptions.md).
+  def add_tag_set_search_relation(tag_sets)
+    return if tag_sets.blank?
+    must.concat(tag_sets[:must].map { |names| { terms: { tags: names } } }) if tag_sets[:must]
+    must_not.concat(tag_sets[:must_not].map { |names| { terms: { tags: names } } }) if tag_sets[:must_not]
+    should.concat(tag_sets[:should].map { |names| { terms: { tags: names } } }) if tag_sets[:should]
+  end
+
   # Adds the grouped subsearches to the query.
   #
   # NOTE: Has the hidden side-effect of updating `always_show_deleted` with each subsearches'
@@ -286,6 +295,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     end
 
     add_tag_string_search_relation(q[:tags])
+    add_tag_set_search_relation(q[:tag_sets])
 
     # Update always_show_deleted
     @always_show_deleted ||= q[:show_deleted] unless GLOBAL_DELETED_FILTER

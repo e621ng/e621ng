@@ -1,0 +1,38 @@
+<div id="c-tag-subscriptions">
+  <div id="a-index">
+    <div class="tag-subscription-header">
+      <h2>Tag Subscriptions</h2>
+      <span class="ts-muted"><%= @tag_subscriptions.size %> / <%= Danbooru.config.tag_subscription_limit %> tags</span>
+    </div>
+
+    <p>
+      New posts with any of these tags are counted under "subscriptions" on your
+      <%= link_to "saved searches", saved_searches_path %> page, and can be searched with <code>search:subscriptions</code>.
+      Subscribe to a tag from its wiki page, or add several here.
+    </p>
+
+    <%= form_tag(tag_subscriptions_path, class: "tag-subscription-add") do %>
+      <%= text_area_tag :tag_names, nil, rows: 2, placeholder: "tag_one tag_two tag_three", data: { autocomplete: "tag-query" } %>
+      <%= submit_tag "Subscribe", class: "button btn-success" %>
+    <% end %>
+
+    <% if @tag_subscriptions.empty? %>
+      <p>You are not subscribed to any tags.</p>
+    <% else %>
+      <ul class="tag-subscription-list">
+        <% @tag_subscriptions.each do |sub| %>
+          <li class="tag-subscription-item" id="tag-subscription-<%= sub.id %>">
+            <%= link_to sub.tag.name, show_or_new_wiki_pages_path(title: sub.tag.name), class: "ts-name tag-type-#{sub.tag.category}" %>
+            <span class="ts-count"><%= number_with_delimiter(sub.tag.post_count) %> posts</span>
+            <span class="ts-created"><%= time_ago_in_words_tagged sub.created_at, compact: true %></span>
+            <%= link_to "Unsubscribe", tag_subscription_path(sub), method: :delete, class: "ts-actions" %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </div>
+</div>
+
+<% content_for(:page_title) do %>
+  Tag Subscriptions
+<% end %>

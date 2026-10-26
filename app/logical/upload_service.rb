@@ -52,6 +52,7 @@ class UploadService
   def convert_to_post(upload)
     Post.new.tap do |p|
       p.tag_string = upload.tag_string
+      p.submitted_tag_string = upload.submitted_tag_string
       p.locked_tags = upload.locked_tags
       p.is_rating_locked = upload.locked_rating if upload.locked_rating.present?
       p.description = upload.description.strip
@@ -68,6 +69,7 @@ class UploadService
       animated = upload.is_animated_file?(upload.file.path)
       p.is_animated = animated
       p.duration = upload.video_duration(upload.file.path, animated: animated)
+      p.has_sound = upload.video_has_sound?(upload.file.path)
 
       p.is_pending = true if should_set_pending?(upload, p)
     end

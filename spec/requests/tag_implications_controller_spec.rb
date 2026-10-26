@@ -65,6 +65,12 @@ RSpec.describe TagImplicationsController do
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to include("id" => implication.id)
     end
+
+    it "returns 200 when the forum post has been deleted" do
+      implication.update_columns(forum_topic_id: create(:forum_topic).id, forum_post_id: 0)
+      get tag_implication_path(implication)
+      expect(response).to have_http_status(:ok)
+    end
   end
 
   # ---------------------------------------------------------------------------

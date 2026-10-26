@@ -391,6 +391,7 @@ class TagAlias < TagRelationship
         ensure_category_consistency
         update_posts_locked_tags
         update_blacklists
+        move_tag_subscriptions
         update_posts
         rename_artist
         forum_updater.update(approval_message(approver), "APPROVED") if update_topic
@@ -471,6 +472,17 @@ class TagAlias < TagRelationship
         user.update_column(:blacklisted_tags, fixed_blacklist)
       end
     end
+  end
+
+  # Not reversed by undo: subscribers stay on the consequent.
+  def move_tag_subscriptions
+    antecedent_id = Tag.where(name: antecedent_name).pick(:id)
+    return if antecedent_id.nil? || !TagSubscription.exists?(tag_id: antecedent_id)
+    consequent_id = Tag.find_or_create_by_name(consequent_name).id
+    TagSubscription.where(tag_id: antecedent_id)
+                   .where.not(user_id: TagSubscription.where(tag_id: consequent_id).select(:user_id))
+                   .update_all(tag_id: consequent_id)
+    TagSubscription.where(tag_id: antecedent_id).delete_all
   end
 
   def update_posts_locked_tags

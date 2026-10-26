@@ -270,6 +270,33 @@ RSpec.describe UploadsController do
       end
     end
 
+    context "when indexing the new post is rejected with 429" do
+      before do
+        post_record
+        allow(Post.document_store).to receive(:client).and_return(instance_double(OpenSearch::Client))
+        allow(Post.document_store.client).to receive(:index).and_raise(OpenSearch::Transport::Transport::Errors::TooManyRequests)
+        allow(service_double).to receive(:start!) do
+          create(:post)
+          upload_double
+        end
+      end
+
+      it "returns 200 and tells the uploader indexing is delayed" do
+        sign_in_as member
+        post uploads_path(format: :json), params: base_params
+        expect(response).to have_http_status(:ok)
+        expect(flash[:notice]).to include("indexing is temporarily delayed")
+      end
+    end
+
+    context "when nothing was deferred" do
+      it "does not mention indexing" do
+        sign_in_as member
+        post uploads_path(format: :json), params: base_params
+        expect(flash[:notice].to_s).not_to include("indexing")
+      end
+    end
+
     context "when the service returns warnings exceeding 1500 characters" do
       let(:long_warning) { "a" * 1501 }
 

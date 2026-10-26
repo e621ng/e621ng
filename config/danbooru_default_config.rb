@@ -393,6 +393,12 @@ module Danbooru
       50
     end
 
+    # Maximum tags a user can subscribe to. Evaluated as one `terms` clause, so cost scales
+    # with this rather than with tag_query_limit.
+    def tag_subscription_limit
+      500
+    end
+
     # How long cached saved-search badge counts stay fresh.
     def saved_search_badge_ttl
       15.minutes
@@ -1005,6 +1011,12 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       false
     end
 
+    # ISO 3166-1 alpha-2 codes, as provided by Cloudflare's CF-IPCountry header.
+    # Visitors from these countries are shown the region notice modal.
+    def region_notice_countries
+      %w[GB]
+    end
+
     def janitor_reports_discord_webhook_url
       nil
     end
@@ -1042,6 +1054,7 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
 
         video: "This tag is added automatically to posts containing videos.",
         flash: "This tag is added automatically to posts containing Flash files.",
+        sound: "This tag is added automatically to video posts containing any sound.",
 
         animated: "This tag is added automatically to posts containing animated images.",
         animated_gif: "This tag is added automatically to posts containing animated GIFs.",

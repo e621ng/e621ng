@@ -27,7 +27,7 @@ RSpec.describe UploadService::Replacer do
   # Runs the real process! control flow (including its karma updates) with the file machinery
   # stubbed. The stubbed upload carries the post's own md5/dimensions so md5_changed is false
   # and the file-cleanup branch is skipped.
-  def process!(replacement, penalize:)
+  def process!(replacement, penalize:, has_sound: false)
     upload = build(:upload,
                    uploader:     replacer_user,
                    md5:          post.md5,
@@ -39,7 +39,7 @@ RSpec.describe UploadService::Replacer do
     file_stub = instance_double(File, path: "/tmp/replacer_spec_no_such_file")
     allow(upload).to receive_messages(
       invalid?: false, is_errored?: false, save!: true, update: true,
-      file: file_stub, is_animated_file?: false, video_duration: nil
+      file: file_stub, is_animated_file?: false, video_duration: nil, video_has_sound?: has_sound
     )
     allow(upload).to receive(:file=)
     allow(Upload).to receive(:create) do |**attrs|
@@ -103,6 +103,33 @@ RSpec.describe UploadService::Replacer do
       post.update!(tag_string: "better_version_at_source fake_png keep_this_tag")
       expect { process!(replacement, penalize: false) }
         .to change { post.reload.tag_string }.from("better_version_at_source fake_png keep_this_tag").to("keep_this_tag")
+    end
+  end
+
+  context "replacing a video" do
+    let(:post)        { create(:post, uploader: uploader, file_ext: "webm", is_animated: true, tag_string: "foo") }
+    let(:replacement) { create(:post_replacement, post: post, creator: replacer_user) }
+
+    it "sets has_sound and adds sound when the new file has audio" do
+      process!(replacement, penalize: false, has_sound: true)
+      post.reload
+      expect(post.has_sound).to be true
+      expect(post.tag_array).to include("sound")
+    end
+
+    it "clears has_sound and removes sound when the new file is silent" do
+      post.update!(has_sound: true, tag_string: "foo sound")
+      expect(post.reload.tag_array).to include("sound")
+
+      process!(replacement, penalize: false, has_sound: false)
+      post.reload
+      expect(post.has_sound).to be false
+      expect(post.tag_array).not_to include("sound")
+    end
+
+    it "does not record the automatic sound change as submitted by the approver" do
+      process!(replacement, penalize: false, has_sound: true)
+      expect(post.versions.last.original_tags).not_to include("sound")
     end
   end
 

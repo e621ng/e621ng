@@ -148,6 +148,7 @@ class User < ApplicationRecord
   has_many :post_sets, -> { order(name: :asc) }, foreign_key: :creator_id
   has_many :post_versions
   has_many :saved_searches, -> { order(id: :asc) }, dependent: :destroy
+  has_many :tag_subscriptions, dependent: :delete_all
   has_many :post_votes
   has_many :staff_notes, -> { active.order("staff_notes.id desc") }
   has_many :user_name_change_requests, -> { order(id: :asc) }

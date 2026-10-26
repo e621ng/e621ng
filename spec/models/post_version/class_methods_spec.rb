@@ -132,4 +132,23 @@ RSpec.describe PostVersion do
       expect(v2.tag_categories).to eq(resolved)
     end
   end
+
+  # ------------------------------------------------------------------ #
+  # .original_metatag?                                                   #
+  # ------------------------------------------------------------------ #
+
+  describe ".original_metatag?" do
+    it "is true for kept metatags, with or without a sign" do
+      %w[rating:e -parent:none +source:c locked:rating pool:1].each do |token|
+        expect(PostVersion.original_metatag?(token)).to be(true), token
+      end
+      expect(PostVersion.original_metatag?('source:"a b"')).to be(true)
+    end
+
+    it "is false for tag names" do
+      %w[foo -foo re:zero].each do |token|
+        expect(PostVersion.original_metatag?(token)).to be(false), token
+      end
+    end
+  end
 end

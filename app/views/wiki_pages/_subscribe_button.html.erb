@@ -1,0 +1,17 @@
+<%# locals: (tag:) %>
+<% if tag.present? && CurrentUser.user.is_member? %>
+  <%# Subscribing follows aliases, so the state must be read from the same tag %>
+  <% target_name = TagAlias.to_aliased([tag.name]).first %>
+  <% target = target_name == tag.name ? tag : Tag.find_by(name: target_name) %>
+  <% if target %>
+    <% subscription = CurrentUser.user.tag_subscriptions.find_by(tag_id: target.id) %>
+    <% aliased_note = target == tag ? "" : " (#{tag.name} is aliased to #{target.name})" %>
+    <% if subscription %>
+      <%= link_to "Unsubscribe", tag_subscription_path(subscription), method: :delete, id: "tag-subscription-toggle", class: "button btn-neutral",
+                  title: "Stop counting new posts with this tag in your subscriptions#{aliased_note}", data: { tag: tag.name, subscribed: "true" } %>
+    <% else %>
+      <%= link_to "Subscribe", tag_subscriptions_path(tag_name: tag.name), method: :post, id: "tag-subscription-toggle", class: "button btn-success",
+                  title: "Count new posts with this tag in your subscriptions#{aliased_note}", data: { tag: tag.name, subscribed: "false" } %>
+    <% end %>
+  <% end %>
+<% end %>

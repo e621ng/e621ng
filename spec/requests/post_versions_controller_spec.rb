@@ -55,6 +55,24 @@ RSpec.describe PostVersionsController do
       end
     end
 
+    context "with original tags" do
+      before { create(:artist_tag, name: "some_artist") }
+
+      let!(:version) { CurrentUser.scoped(member) { create(:post_version, post: post_record, original_tags: %w[Some_Artist -edited_tag rating:e]) } }
+
+      it "renders them from the preloaded tag categories" do
+        allow(TagSetPresenter).to receive(:new).and_call_original
+        get post_versions_path(params: { search: { post_id: post_record.id } })
+        expect(response).to have_http_status(:ok)
+        expect(TagSetPresenter).not_to have_received(:new)
+        row = Nokogiri::HTML(response.body).at_css("#post-version-#{version.id} .pv-original-tag-string")
+        expect(row.at_css("a.tag-type-#{Tag.categories.artist}").text).to eq("Some_Artist")
+        expect(row.at_css("a[href*='title=edited_tag']").text).to eq("-edited_tag")
+        expect(row.text).to include("rating:e")
+        expect(row.at_css("a[href*='title=rating']")).to be_nil
+      end
+    end
+
     context "as staff" do
       before { sign_in_as create(:janitor_user) }
 

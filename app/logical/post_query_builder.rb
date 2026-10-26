@@ -25,6 +25,17 @@ class PostQueryBuilder
     relation
   end
 
+  def add_tag_set_search_relation(tag_sets, relation)
+    return relation if tag_sets.blank?
+    tag_sets[:must]&.each do |names|
+      relation = relation.where("string_to_array(posts.tag_string, ' ') && ARRAY[?]", names)
+    end
+    tag_sets[:must_not]&.each do |names|
+      relation = relation.where("NOT(string_to_array(posts.tag_string, ' ') && ARRAY[?])", names)
+    end
+    relation
+  end
+
   # TODO: Make through unit test
   # FIXME: Fails with certain complex searches (e.g. `~( ( id:>10 ) ( id:<30 ) ) ~( tag1 ) -( ~tag2 ~tag3 )` works, but `~( ( id:>10 ) ( id:<30 ) ) ~( tag1 ) -( ~tag2 ~tag3 ) ~tag4` removes posts w/o `tag4` from results); has to do with poor grouping of complex queries merged w/ `AND`
   def add_group_search_relation(groups, relation)
@@ -195,7 +206,13 @@ class PostQueryBuilder
       relation = relation.where("posts.rating = ?", rating)
     end
 
-    relation = add_tag_string_search_relation(q[:tags], relation)
+    tags = q[:tags]
+    # A ~set is just more any-of tags, so it joins the existing should overlap check
+    if (should_sets = q[:tag_sets]&.dig(:should)).present?
+      tags = tags.merge(should: tags[:should] + should_sets.flatten)
+    end
+    relation = add_tag_string_search_relation(tags, relation)
+    relation = add_tag_set_search_relation(q[:tag_sets], relation)
     relation = add_group_search_relation(q[:groups], relation) if CAN_HAVE_GROUPS
 
     relation

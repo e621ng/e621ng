@@ -10,8 +10,12 @@ module DocumentStore
       test_suffix = Rails.env.test? ? ENV["TEST_ENV_NUMBER"].presence : nil
       klass.document_store.index_name = "#{klass.model_name.plural}_#{Rails.env}#{test_suffix}"
 
+      # If failing with TooManyRequests, defer to IndexUpdateJob/IndexDeleteJob retry with backoff.
+      # Doesn't apply to :update since it's already deferred.
       klass.after_commit on: [:create] do
         document_store.update_index(refresh: Rails.env.test?.to_s)
+      rescue OpenSearch::Transport::Transport::Errors::TooManyRequests => e
+        DocumentStore.defer_rejected_write(IndexUpdateJob, self, e)
       end
 
       klass.after_commit on: [:update] do
@@ -19,7 +23,9 @@ module DocumentStore
       end
 
       klass.after_commit on: [:destroy] do
-        document_store.delete_document(refresh: Rails.env.test?.to_s)
+        self.class.document_store.delete_document(id, refresh: Rails.env.test?.to_s)
+      rescue OpenSearch::Transport::Transport::Errors::TooManyRequests => e
+        DocumentStore.defer_rejected_write(IndexDeleteJob, self, e)
       end
     end
 
@@ -36,6 +42,14 @@ module DocumentStore
 
       IndexUpdateJob.set(queue: queue).perform_async(self.class.to_s, id)
     end
+  end
+
+  DEFERRED_WRITE_DELAY = 1.minute
+
+  def self.defer_rejected_write(job, record, error)
+    Rails.logger.warn("[DocumentStore] #{record.class.document_store.index_name}/#{record.id} rejected, retrying via #{job.name}: #{error.message.truncate(300)}")
+    job.perform_in(DEFERRED_WRITE_DELAY, record.class.to_s, record.id)
+    RequestStore[:index_update_delayed] = true
   end
 
   def self.client
