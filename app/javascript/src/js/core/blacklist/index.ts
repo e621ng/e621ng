@@ -5,6 +5,15 @@ import LStorage from "@/utility/storage/Local";
 import BlacklistWidget from "./BlacklistWidget";
 import CommentBlacklist from "./CommentBlacklist";
 
+/**
+ * Decides which posts on the page are hidden by the user's blacklist.
+ *
+ * Thumbnails are tracked by PostCache; this class only listens. Any change
+ * (new thumbnail, edited attributes, filter toggled, blacklist edited) marks
+ * the affected posts dirty and schedules a single commit in a microtask.
+ * The commit re-evaluates the dirty posts, diffs the hidden / matched sets,
+ * updates the classes, and announces the result through `e621:blacklist:changed`.
+ */
 class Blacklist {
 
   /* ============================== */
@@ -22,51 +31,60 @@ class Blacklist {
   /* ======= Initialization ======= */
   /* ============================== */
 
-  private isPostsShow = false;
   public filters: Record<string, Filter> = {};
 
+  /** Posts hidden right now. Replaced, never mutated, on every commit. */
   public hiddenPosts = new Set<number>();
+  /** Posts matching any filter, enabled or not. Replaced on every commit. */
   public matchedPosts = new Set<number>();
+
+  private revealed = new Set<number>();
+  private dirty: Set<number> | "all" = "all";
+  private pending = new Set<HTMLElement>();
+  private scheduled = false;
+  private warned = new Set<string>();
 
   private constructor () {
     if (Blacklist._instance)
-      throw new Error("BlacklistManager is a singleton class. Use BlacklistManager.instance to access the instance.");
+      throw new Error("Blacklist is a singleton class. Use Blacklist.instance to access the instance.");
 
     this.regenerateFilters();
-    $(() => this.onDOMLoad());
+
+    PostCache.on("post:added", ({ elements }) => {
+      for (const element of elements) {
+        this.pending.add(element);
+        this.markDirty(parseInt(element.dataset.id) || 0);
+      }
+      this.schedule();
+    });
+    PostCache.on("post:changed", ({ ids }) => {
+      for (const id of ids) this.markDirty(id);
+      this.schedule();
+    });
+    PostCache.on("post:removed", ({ ids }) => {
+      for (const id of ids) {
+        for (const filter of Object.values(this.filters)) filter.forget(id);
+        this.revealed.delete(id);
+        if (this.dirty !== "all") this.dirty.delete(id);
+      }
+      this.schedule();
+    });
 
     document.addEventListener("e621:blacklistUpdated", () => {
       this.regenerateFilters();
-      this.addPosts(PostCache.sample());
-      this.recalculateMatchedPosts();
-      this.updatePostVisibility();
-      this.updateThumbnailStyles();
+      this.invalidate("all");
     });
+
+    $(() => this.onDOMLoad());
+
+    // PostCache has already swept the page by the time this runs
+    this.schedule();
   }
 
   private onDOMLoad () {
-    this.isPostsShow = $("#image-container").length > 0;
-
-    this.addPosts($(".blacklistable"));
-    this.recalculateMatchedPosts();
-    this.updateThumbnailStyles();
-    this.updatePostVisibility();
-    $("#blacklisted-hider").remove();
-
+    this.flush();
     BlacklistWidget.initializeAll();
     CommentBlacklist.initializeAll();
-
-    // Pause videos when blacklisting
-    // This seems extraordinarily uncommon, so it's here
-    // just for feature parity with the old blacklist.
-    if (!this.isPostsShow) return;
-    const container = $("#image-container[data-file-ext='mp4'], \
-                      #image-container[data-file-ext='webm']")
-      .on("blk:hide", () => {
-        const video = container.find("video");
-        if (!video.length) return;
-        video[0].pause();
-      });
   }
 
 
@@ -75,122 +93,141 @@ class Blacklist {
   /* ============================== */
 
   /**
-   * Recalculate hidden posts based on the current filters.
-   * Also applies or removed `blacklist` class wherever necessary.
+   * Marks posts for re-evaluation on the next commit.
+   * @param ids Posts to re-evaluate, `"all"` for every post on the page, or nothing to only recompute the sets
    */
-  public updatePostVisibility () {
-    const oldPosts = this.hiddenPosts;
-    let newPosts = [];
+  public invalidate (ids?: Iterable<number> | "all"): void {
+    if (ids === "all") this.dirty = "all";
+    else if (ids) for (const id of ids) this.markDirty(id);
+    this.schedule();
+  }
 
-    // Tally up the new blacklisted posts
+  /** Runs the pending commit right away. No-op when nothing changed. */
+  public flush (): void {
+    if (!this.scheduled) return;
+    this.scheduled = false;
+    this.commit();
+  }
+
+  /**
+   * Shows a hidden post until it stops being hidden by the filters
+   * (e.g. the filter is toggled off and on again).
+   */
+  public reveal (id: number): void {
+    this.revealed.add(id);
+    this.invalidate();
+  }
+
+  /** Enables or disables every filter at once, with a single storage write. */
+  public setAllEnabled (enabled: boolean): void {
+    const disabled = new Set<string>();
     for (const filter of Object.values(this.filters)) {
+      filter.setEnabledWithoutSaving(enabled);
+      if (!enabled) disabled.add(filter.text);
+    }
+    LStorage.Blacklist.FilterState = disabled;
+    this.invalidate();
+  }
+
+
+  /* ============================== */
+  /* ========== Commit ============ */
+  /* ============================== */
+
+  private markDirty (id: number): void {
+    if (!id || this.dirty === "all") return;
+    this.dirty.add(id);
+  }
+
+  private schedule (): void {
+    if (this.scheduled) return;
+    this.scheduled = true;
+    queueMicrotask(() => this.flush());
+  }
+
+  private commit (): void {
+    const filters = Object.values(this.filters);
+
+    // 1. Re-evaluate whatever changed
+    const everything = this.dirty === "all";
+    let ids: number[];
+    if (this.dirty === "all") {
+      for (const filter of filters) filter.matchIDs.clear();
+      ids = PostCache.ids();
+    } else ids = Array.from(this.dirty);
+
+    for (const id of ids) {
+      const post: CachedPost | null = PostCache.get(id);
+      for (const filter of filters) {
+        if (post) filter.updateWithPosts(post);
+        else filter.forget(id);
+      }
+    }
+
+    // 2. Rebuild the sets
+    const rawHidden = new Set<number>();
+    const matched = new Set<number>();
+    for (const filter of filters) {
+      for (const id of filter.matchIDs) matched.add(id);
       if (!filter.enabled) continue;
-      newPosts = newPosts.concat(Array.from(filter.matchIDs));
+      for (const id of filter.matchIDs) rawHidden.add(id);
     }
 
-    // Calculate diffs
-    this.hiddenPosts = new Set(newPosts.filter(n => n));
-    const added = [...this.hiddenPosts].filter((n) => !oldPosts.has(n));
-    const removed = [...oldPosts].filter((n) => !this.hiddenPosts.has(n));
+    // A reveal only lasts while the filters keep hiding the post
+    for (const id of this.revealed)
+      if (!rawHidden.has(id)) this.revealed.delete(id);
+    const hidden = new Set<number>();
+    for (const id of rawHidden)
+      if (!this.revealed.has(id)) hidden.add(id);
 
-    // Update the UI
-    $(document).trigger("e621:blacklist:state-changed");
+    const previousHidden = this.hiddenPosts;
+    const previousMatched = this.matchedPosts;
+    const added = Array.from(hidden).filter((id) => !previousHidden.has(id));
+    const removed = Array.from(previousHidden).filter((id) => !hidden.has(id));
 
-    // Apply / remove classes
-    for (const postID of added)
-      PostCache.apply(postID, ($element) => {
-        $element.addClass("blacklisted").trigger("blk:hide");
-      });
-    for (const postID of removed)
-      PostCache.apply(postID, ($element) => {
-        $element.removeClass("blacklisted").trigger("blk:show");
-      });
+    this.hiddenPosts = hidden;
+    this.matchedPosts = matched;
+    this.dirty = new Set();
+    this.scheduled = false;
 
-    // Toggle notes on the posts#show page
-    if (!this.isPostsShow) return;
+    // 3. New elements (and every element, after a full re-evaluation) get their
+    //    complete state, and shed the pre-JS hiding class
+    const fresh = new Set<HTMLElement>();
+    const applyState = (element: HTMLElement, isNew: boolean) => {
+      if (!element.isConnected || fresh.has(element)) return;
+      fresh.add(element);
 
-    const container = $("#image-container");
-    if (container.hasClass("blacklisted")) {
-      $("#note-container").css("visibility", "hidden");
-    } else {
-      $("#note-container").css("visibility", "visible");
-    }
-  }
+      const id = parseInt(element.dataset.id) || 0;
+      const wasHidden = previousHidden.has(id);
+      const isHidden = hidden.has(id);
+      const $element = $(element)
+        .toggleClass("blacklisted", isHidden)
+        .toggleClass("filter-matches", matched.has(id))
+        .removeClass("blacklistable");
+      if (isHidden && (isNew || !wasHidden)) $element.trigger("blk:hide");
+      else if (!isHidden && wasHidden && !isNew) $element.trigger("blk:show");
+    };
+    for (const element of this.pending) applyState(element, true);
+    this.pending.clear();
+    if (everything)
+      for (const id of ids) PostCache.apply(id, ($el) => applyState($el[0], false));
 
-  /**
-   * Register posts in the system, and calculate which filters apply to them
-   * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $posts Posts to register
-   */
-  public addPosts ($posts: JQuery<HTMLElement> | JQuery<HTMLElement>[]) {
-    const newElements = PostCache.register($posts);
+    // 4. Everything else only gets the diff
+    const skipFresh = (fn: ($el: JQuery<HTMLElement>) => void) => ($el: JQuery<HTMLElement>) => {
+      if (!fresh.has($el[0])) fn($el);
+    };
+    for (const id of added)
+      PostCache.apply(id, skipFresh(($el) => { $el.addClass("blacklisted").trigger("blk:hide"); }));
+    for (const id of removed)
+      PostCache.apply(id, skipFresh(($el) => { $el.removeClass("blacklisted").trigger("blk:show"); }));
+    for (const id of matched)
+      if (!previousMatched.has(id)) PostCache.apply(id, skipFresh(($el) => { $el.addClass("filter-matches"); }));
+    for (const id of previousMatched)
+      if (!matched.has(id)) PostCache.apply(id, skipFresh(($el) => { $el.removeClass("filter-matches"); }));
 
-    for (const filter of Object.values(this.filters))
-      filter.updateWithElements($posts);
-
-    // Immediately apply the blacklist class to any newly registered elements that are already hidden.
-    // updatePostVisibility() does not apply the class to posts whose status did not change.
-    for (const $element of newElements) {
-      const id = $element.data("id");
-      if (this.hiddenPosts.has(id))
-        $element.addClass("blacklisted").trigger("blk:hide");
-    }
-  }
-
-  /**
-   * Re-reads the given thumbnails into the cache and re-evaluates every filter against them.
-   * Used after a thumbnail's attributes were changed in place (tag script, rating, status flags).
-   * @param {JQuery<HTMLElement>} $posts Thumbnails whose attributes changed
-   */
-  public refreshPosts ($posts: JQuery<HTMLElement>) {
-    const posts: CachedPost[] = [];
-    for (const element of $posts.get()) {
-      const post = PostCache.fromThumbnail($(element), true);
-      if (post) posts.push(post);
-    }
-    if (!posts.length) return;
-
-    for (const filter of Object.values(this.filters)) {
-      // Forget the previous verdict, otherwise updateWithPosts() keeps a stale match
-      for (const post of posts) filter.matchIDs.delete(post.id);
-      filter.updateWithPosts(posts);
-    }
-
-    this.recalculateMatchedPosts();
-    this.updatePostVisibility();
-    this.updateThumbnailStyles();
-  }
-
-  /**
-   * Loads posts into the blacklist system, updating the filters with any new matches.
-   * @param {CachedPost | CachedPost[]} posts Posts to load into the blacklist system
-   */
-  public loadDeferredPosts (posts: CachedPost | CachedPost[]) {
-    for (const filter of Object.values(this.filters))
-      filter.updateWithPosts(posts);
-  }
-
-  /**
-   * Recalculates the list of posts that match any of the filters, including disabled ones.
-   * This is used for styling thumbnails that match any filter, even if the filter is disabled.
-   * Should be called after new posts are added to the system, or after filters are updated.
-   */
-  public recalculateMatchedPosts () {
-    let allPosts = [];
-    for (const filter of Object.values(this.filters))
-      allPosts = allPosts.concat(Array.from(filter.matchIDs));
-    this.matchedPosts = new Set(allPosts);
-  }
-
-  /**
-   * Adds a `filter-matches` class to any thumbnails that match any of the filters,
-   * including disabled ones. Only needs to run after new posts get added to the page.
-   */
-  public updateThumbnailStyles () {
-    $(".filter-matches").removeClass("filter-matches");
-    for (const postID of this.matchedPosts)
-      PostCache.apply(postID, ($element) => {
-        $element.addClass("filter-matches");
-      });
+    document.dispatchEvent(new CustomEvent<BlacklistChangedDetail>("e621:blacklist:changed", {
+      detail: { hidden, matched, added, removed },
+    }));
   }
 
 
@@ -205,7 +242,9 @@ class Blacklist {
     // Attempt to create filters from text
     for (const entry of CurrentUser.blacklist) {
       const line = Filter.create(entry);
-      if (line) this.filters[line.text] = line;
+      if (!line) continue;
+      line.onChange = () => this.invalidate();
+      this.filters[line.text] = line;
     }
 
     // Clear any FilterState entries that don't have a matching filter
@@ -215,6 +254,63 @@ class Blacklist {
       LStorage.Blacklist.FilterState.delete(filterState);
     }
   }
+
+
+  /* ============================== */
+  /* ======== Deprecated API ====== */
+  /* ============================== */
+  // Thumbnails are tracked automatically now. These stay for userscripts
+  // that reach them through `E621.Blacklist`.
+  // TODO: Remove after November 2026
+
+  private deprecated (name: string): void {
+    if (this.warned.has(name)) return;
+    this.warned.add(name);
+    console.warn(`Blacklist.${name}() is deprecated: thumbnails are tracked automatically. Call Blacklist.flush() if you need a synchronous update.`);
+  }
+
+  public addPosts ($posts: JQuery<HTMLElement> | JQuery<HTMLElement>[]) {
+    this.deprecated("addPosts");
+    PostCache.register($posts);
+    this.flush();
+  }
+
+  public refreshPosts ($posts: JQuery<HTMLElement>) {
+    this.deprecated("refreshPosts");
+    PostCache.register($posts, true);
+    this.flush();
+  }
+
+  public loadDeferredPosts (posts: CachedPost | CachedPost[]) {
+    this.deprecated("loadDeferredPosts");
+    this.invalidate((Array.isArray(posts) ? posts : [posts]).map((post) => post.id));
+    this.flush();
+  }
+
+  public updatePostVisibility () {
+    this.deprecated("updatePostVisibility");
+    this.invalidate();
+    this.flush();
+  }
+
+  public recalculateMatchedPosts () {
+    this.deprecated("recalculateMatchedPosts");
+    this.invalidate("all");
+    this.flush();
+  }
+
+  public updateThumbnailStyles () {
+    this.deprecated("updateThumbnailStyles");
+    this.invalidate();
+    this.flush();
+  }
+}
+
+export interface BlacklistChangedDetail {
+  hidden: Set<number>;
+  matched: Set<number>;
+  added: number[];
+  removed: number[];
 }
 
 export default Blacklist.instance;

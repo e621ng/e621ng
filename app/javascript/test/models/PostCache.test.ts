@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { DeferredPostData } from "@/models/PostCache";
+import { tick } from "../helpers";
 
 const ATTRS: Record<string, string> = {
   "id": "42",
@@ -224,21 +225,23 @@ describe("PostCache", () => {
   });
 
   describe("register", () => {
-    it("strips the blacklistable class, dedupes, and returns only new elements", async () => {
+    it("keeps the blacklistable class, dedupes, and returns only new elements", async () => {
       const PostCache = await load();
       const $a = thumb();
       const $b = thumb({ id: "43" });
 
       const first = PostCache.register($(".thumbnail"));
       expect(first.map(($el) => $el[0])).toEqual([$a[0], $b[0]]);
-      expect($(".blacklistable").length).toBe(0);
+      // Stripped by the blacklist once the post is classified, not here
+      expect($(".blacklistable").length).toBe(2);
 
       // Same elements, wrapped again
       expect(PostCache.register([$($a[0]), $b])).toEqual([]);
       expect(PostCache.stats()).toEqual({ cachedPosts: 2, cachedElements: 2 });
+      expect(PostCache.ids()).toEqual([42, 43]);
     });
 
-    it("skips thumbnails it cannot parse", async () => {
+    it("skips thumbnails it cannot parse, and reveals them", async () => {
       const PostCache = await load();
       const $bad = thumb({ rating: "x" });
       expect(PostCache.register($bad)).toEqual([]);
@@ -327,6 +330,147 @@ describe("PostCache", () => {
       expect(Object.keys(posts)).toEqual(["42", "43"]);
       expect(posts[42].id).toBe(42);
       expect(posts[43].id).toBe(43);
+    });
+  });
+
+  describe("events", () => {
+    it("emits post:added once per register call, with the new elements only", async () => {
+      const PostCache = await load();
+      const added = vi.fn();
+      PostCache.on("post:added", added);
+
+      const $a = thumb();
+      const $b = thumb({ id: "43" });
+      PostCache.register($(".thumbnail"));
+      PostCache.register($a);
+
+      expect(added).toHaveBeenCalledOnce();
+      expect(added).toHaveBeenCalledWith({ elements: [$a[0], $b[0]] });
+    });
+
+    it("emits post:removed only when the last element of a post is pruned", async () => {
+      const PostCache = await load();
+      const removed = vi.fn();
+      PostCache.on("post:removed", removed);
+
+      const $a = thumb();
+      const $b = thumb();
+      PostCache.register($(".thumbnail"));
+
+      PostCache.prune($a);
+      expect(removed).not.toHaveBeenCalled();
+      PostCache.prune($b);
+      expect(removed).toHaveBeenCalledWith({ ids: [42] });
+      expect(PostCache.ids()).toEqual([]);
+      expect(PostCache.cachedIDs()).toEqual([42]);
+    });
+
+    it("emits post:changed whenever a record is written", async () => {
+      const PostCache = await load();
+      const changed = vi.fn();
+      PostCache.on("post:changed", changed);
+
+      const $thumb = thumb();
+      PostCache.fromThumbnail($thumb);
+      PostCache.fromThumbnail($thumb); // cached, no write
+      PostCache.fromThumbnail($thumb, true);
+      PostCache.fromDeferredPosts(43, { ...DEFERRED, id: 43 });
+
+      expect(changed.mock.calls.map((call) => call[0])).toEqual([{ ids: [42] }, { ids: [42] }, { ids: [43] }]);
+    });
+
+    it("unsubscribes and survives a throwing listener", async () => {
+      const PostCache = await load();
+      vi.spyOn(console, "error").mockImplementation(() => {});
+      const bad = vi.fn(() => { throw new Error("boom"); });
+      const good = vi.fn();
+      const off = PostCache.on("post:added", bad);
+      PostCache.on("post:added", good);
+
+      PostCache.register(thumb());
+      expect(good).toHaveBeenCalledOnce();
+
+      off();
+      PostCache.register(thumb({ id: "43" }));
+      expect(bad).toHaveBeenCalledOnce();
+      expect(good).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  describe("observer", () => {
+    it("registers thumbnails and the image container as they are added", async () => {
+      const PostCache = await load();
+      const $thumb = thumb();
+      $("body").append("<div><article class=\"thumbnail\" data-id=\"43\" data-rating=\"s\" data-tags=\"fox\"></article></div>");
+      $("body").append("<section id=\"image-container\" data-id=\"44\" data-rating=\"e\" data-tags=\"wolf\"></section>");
+      expect(PostCache.stats().cachedElements).toBe(0);
+
+      await tick();
+      expect(PostCache.ids()).toEqual([42, 43, 44]);
+      expect($thumb.hasClass("blacklistable")).toBe(true);
+    });
+
+    it("ignores avatar placeholders, which have no rating", async () => {
+      const PostCache = await load();
+      $("body").append("<article class=\"thumbnail avatar placeholder\" data-id=\"42\"></article>");
+      await tick();
+      expect(PostCache.stats()).toEqual({ cachedPosts: 0, cachedElements: 0 });
+    });
+
+    it("prunes removed thumbnails, but not moved ones", async () => {
+      const PostCache = await load();
+      const removed = vi.fn();
+      PostCache.on("post:removed", removed);
+      const $a = thumb();
+      const $b = thumb({ id: "43" });
+      await tick();
+      expect(PostCache.ids()).toEqual([42, 43]);
+
+      $a.remove();
+      $("body").append($("<div>").append($b));
+      await tick();
+      expect(removed).toHaveBeenCalledWith({ ids: [42] });
+      expect(PostCache.ids()).toEqual([43]);
+      expect(PostCache.stats().cachedElements).toBe(1);
+    });
+
+    it("re-reads a registered thumbnail when its attributes change", async () => {
+      const PostCache = await load();
+      const changed = vi.fn();
+      PostCache.on("post:changed", changed);
+      const $thumb = thumb();
+      await tick();
+      changed.mockClear();
+
+      $thumb.attr("data-tags", "wolf").attr("data-rating", "e").attr("data-flags", "deleted");
+      $thumb.addClass("whatever");
+      await tick();
+      expect(changed).toHaveBeenCalledOnce();
+      expect(PostCache.get(42)).toMatchObject({ tags: ["wolf"], rating: "e", flags: ["deleted"] });
+    });
+
+    it("ignores attribute changes on elements it does not track", async () => {
+      const PostCache = await load();
+      const changed = vi.fn();
+      PostCache.on("post:changed", changed);
+      $("body").append("<article class=\"thumbnail\" data-id=\"42\" data-rating=\"x\"></article>");
+      await tick();
+      $("article").attr("data-tags", "wolf");
+      await tick();
+      expect(changed).not.toHaveBeenCalled();
+    });
+
+    it("sweeps the page on observe() and does not double-register", async () => {
+      const PostCache = await load();
+      const $thumb = thumb();
+      PostCache.observe();
+      PostCache.observe();
+      expect(PostCache.stats().cachedElements).toBe(1);
+
+      PostCache.disconnect();
+      $thumb.remove();
+      await tick();
+      expect(PostCache.stats().cachedElements).toBe(1);
     });
   });
 });

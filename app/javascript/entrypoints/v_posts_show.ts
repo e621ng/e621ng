@@ -7,7 +7,7 @@ import "@/pages/comments/comments";
 import AddToPoolDialog from "@/pages/posts/show/AddToPoolDialog";
 import AddToSetDialog from "@/pages/posts/show/AddToSetDialog";
 import ApprovalToolbar from "@/pages/posts/show/ApprovalToolbar";
-import "@/pages/posts/show/BlacklistRevealOnClick";
+import "@/pages/posts/show/BlacklistedImage";
 import DeleteWithReasonDialog from "@/pages/posts/show/DeleteWithReasonDialog";
 import DetailedRejectionDialog from "@/pages/posts/show/DetailedRejectionDialog";
 import EditTab from "@/pages/posts/show/EditTab";

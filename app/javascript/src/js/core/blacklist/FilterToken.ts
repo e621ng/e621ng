@@ -37,7 +37,11 @@ export default class FilterToken {
     // Get filter type: tag, id, score, rating, etc.
     this.type = FilterUtilities.getFilterType(raw);
     if (this.type !== "tag") raw = raw.slice(this.type.length + 1);
-    else if (raw.includes("*")) {
+    if ((this.type === "user" || this.type === "uploader") && raw.startsWith("!")) {
+      // Funky `user:!123` alternative to `userid:123`
+      this.type = "userid";
+      raw = raw.slice(1);
+    } else if (this.type === "tag" && raw.includes("*")) {
       this.value = new RegExp(`^${Utility.regexp_escape(raw).replace(/\\\*/g, ".*")}$`);
       this.type = "wildcard";
       return;

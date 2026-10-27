@@ -9,6 +9,7 @@ import LStorage from "@/utility/storage/Local";
 export default class BlacklistWidget {
 
   private static isHotkeyRegistered = false;
+  private static isListening = false;
 
   /* ============================== */
   /* === Static Manager Methods === */
@@ -21,12 +22,13 @@ export default class BlacklistWidget {
       this.registry.push(new BlacklistWidget(element as HTMLDivElement));
     });
 
-    $(document)
-      .off("e621:blacklist:state-changed.blacklistWidget")
-      .on("e621:blacklist:state-changed.blacklistWidget", () => {
+    if (!BlacklistWidget.isListening) {
+      BlacklistWidget.isListening = true;
+      document.addEventListener("e621:blacklist:changed", () => {
         for (const widget of this.registry)
           widget.rebuildFilters();
       });
+    }
 
     // Register hotkey for toggling the blacklist
     if (!BlacklistWidget.isHotkeyRegistered) {
@@ -79,21 +81,7 @@ export default class BlacklistWidget {
       .text("Disable All Filters")
       .off("click.blacklistWidget")
       .on("click.blacklistWidget", () => {
-        if (this.$toggle.attr("is-enabling") == "true") {
-          for (const filter of Object.values(Blacklist.filters))
-            filter.setEnabledWithoutSaving(true);
-          LStorage.Blacklist.FilterState.clear();
-        } else {
-          const filterList = new Set<string>();
-          for (const filter of Object.values(Blacklist.filters)) {
-            filter.setEnabledWithoutSaving(false);
-            filterList.add(filter.text);
-          }
-          LStorage.Blacklist.FilterState = filterList;
-        }
-
-        $(document).trigger("e621:blacklist:state-changed");
-        Blacklist.updatePostVisibility();
+        Blacklist.setAllEnabled(this.$toggle.attr("is-enabling") == "true");
       });
 
     // Filters
@@ -116,7 +104,7 @@ export default class BlacklistWidget {
 
   /**
    * Deletes and re-creates the filter list.
-   * Done automatically every time a filter gets turned on or off,
+   * Done automatically after every blacklist commit,
    * so all instances are in sync no matter what.
    */
   private rebuildFilters () {
@@ -137,7 +125,7 @@ export default class BlacklistWidget {
       const entry = $("<li>")
         .attr("enabled", filter.enabled + "")
         .on("click", () => {
-          // Actual toggling done elsewhere
+          // The Blacklist commits and rebuilds the widget
           filter.enabled = !filter.enabled;
         })
         .appendTo(this.$container);
@@ -145,8 +133,8 @@ export default class BlacklistWidget {
       const link = $("<a>")
         .attr("href", "/posts?tags=" + encodeURIComponent(name))
         .text(name
-          .replace(/_/g, "\u200b_")   // zero-width space: allow tags to linebreak on underscores
-          .replace(/ -/g, " \u2011"), // non-breaking hyphen: prevent linebreaking on negated tags
+          .replace(/_/g, "​_")   // zero-width space: allow tags to linebreak on underscores
+          .replace(/ -/g, " ‑"), // non-breaking hyphen: prevent linebreaking on negated tags
         )
         .on("click", (event) => {
           event.preventDefault();

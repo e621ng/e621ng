@@ -1,5 +1,4 @@
-import Blacklist from "@/core/blacklist";
-import PostCache, { CachedPost } from "@/models/PostCache";
+import { CachedPost } from "@/models/PostCache";
 import LStorage from "@/utility/storage/Local";
 import FilterToken from "./FilterToken";
 
@@ -36,6 +35,9 @@ export default class Filter {
   public readonly tokens: FilterToken[];
   public readonly optional: FilterToken[];
   private _enabled: boolean;
+
+  /** Called after the filter is toggled on or off. Set by the Blacklist. */
+  public onChange: (() => void) | null = null;
 
   /**
    * Constructor. Should not normally be used – refer to `Filter.create()` instead.
@@ -78,7 +80,7 @@ export default class Filter {
     if (this._enabled) LStorage.Blacklist.FilterState.delete(this.text);
     else LStorage.Blacklist.FilterState.add(this.text);
 
-    Blacklist.updatePostVisibility();
+    this.onChange?.();
   }
 
   public setEnabledWithoutSaving (value: boolean) {
@@ -91,70 +93,40 @@ export default class Filter {
   /* ============================== */
 
   /**
-   * Updates the filter with the provided post elements, adding or removing them from the matched IDs as necessary.
-   * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $posts Thumbnail elements to update the filter with
-   * @returns {boolean} True if any posts were updated, false otherwise
+   * Checks whether the post matches this filter. Does not touch the matched IDs.
+   * @param {CachedPost} post Post to test
    */
-  updateWithElements ($posts: JQuery<HTMLElement> | JQuery<HTMLElement>[]): boolean {
-    if (Array.isArray($posts)) {
-      // Normal array – either produced by the branch below, or by PostCache.sample()
-      if ($posts.length == 0) return false;
-      let matchesAny = false;
-      for (const post of $posts)
-        if (this.updateWithElements($(post))) matchesAny = true;
-      return matchesAny;
-    } else if ($posts.length > 1) {
-      // JQuery collection with multiple elements – produced by a normal jQuery selector
-      return this.updateWithElements($posts.get().map(el => $(el)));
-    }
+  test (post: CachedPost): boolean {
+    for (const token of this.tokens)
+      if (!token.test(post)) return false;
 
-    const post = PostCache.fromThumbnail($posts);
-    if (!post) return false;
-    return this.updateWithPosts(post);
+    if (!this.optional.length) return true;
+    for (const token of this.optional)
+      if (token.test(post)) return true;
+    return false;
   }
 
   /**
-   * Updates the filter with the provided post(s), adding or removing them from the matched IDs as necessary.
+   * Re-evaluates the provided post(s), adding or removing them from the matched IDs as necessary.
    * @param {CachedPost | CachedPost[]} posts Post(s) to update the filter with
-   * @returns {boolean} True if any posts were updated, false otherwise
+   * @returns {boolean} True if any of the posts match
    */
   updateWithPosts (posts: CachedPost | CachedPost[]): boolean {
     if (Array.isArray(posts)) {
-      if (posts.length == 0) return false;
       let matchesAny = false;
       for (const post of posts)
         if (this.updateWithPosts(post)) matchesAny = true;
       return matchesAny;
     }
 
-    // Check if a post has already been matched
-    if (this.matchIDs.has(posts.id)) return true;
-    const post = posts;
+    const matches = this.test(posts);
+    if (matches) this.matchIDs.add(posts.id);
+    else this.matchIDs.delete(posts.id);
+    return matches;
+  }
 
-    // Check if the post matches the filter
-    let tokensMatch = true;
-    if (this.tokens.length) {
-      for (const token of this.tokens) {
-        tokensMatch = token.test(post);
-        if (!tokensMatch) break;
-      }
-    }
-
-    // No need to check optional tokens if rest of don't match
-    if (tokensMatch && this.optional.length) {
-      let optionalTokensMatch = false;
-      for (const token of this.optional) {
-        optionalTokensMatch = token.test(post);
-        if (optionalTokensMatch) break;
-      }
-
-      // If none of the optional tokens match, consider overall match a failure
-      if (!optionalTokensMatch) tokensMatch = false;
-    }
-
-    if (tokensMatch === true) this.matchIDs.add(post.id);
-    else if (tokensMatch === false) this.matchIDs.delete(post.id);
-
-    return tokensMatch === true;
+  /** Drops the post from the matched IDs, e.g. once it left the page. */
+  forget (id: number): void {
+    this.matchIDs.delete(id);
   }
 }

@@ -1,5 +1,4 @@
 import DeferredPostLoader from "@/core/DeferredPostLoader";
-import PostCache from "@/models/PostCache";
 import Logger from "@/utility/Logger";
 import SVGIcon from "@/utility/SVGIcon";
 import TaskQueue from "@/utility/TaskQueue";
@@ -270,10 +269,6 @@ export default class DTextFormatter {
     // The input is identical to the previous lookup
     if (this._parsedInputCache === currentText) return;
     this._parsedInputCache = currentText;
-
-    // Clean up any previous thumbnails
-    const pruned = PostCache.prune(this.$preview.find("article.thumbnail"));
-    this.Logger.log(`Pruned ${pruned} thumbnails from preview.`);
 
     this.$preview
       .html("")

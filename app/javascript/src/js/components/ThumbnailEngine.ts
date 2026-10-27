@@ -17,8 +17,9 @@ export default class ThumbnailEngine {
    * Renders a thumbnail element for a given post.
    * Unavailable posts (no preview URL) and deleted posts the user may not see are rendered without a picture.
    *
-   * Blacklist classes reflect the Blacklist state at render time. Callers introducing posts
-   * the blacklist has not seen yet must call `Blacklist.addPosts()` / `updatePostVisibility()` afterwards.
+   * Blacklist classes reflect the Blacklist state at render time, so posts loaded through
+   * DeferredPostLoader come out right on the first paint. Anything else is corrected by the
+   * Blacklist as soon as the thumbnail is registered.
    * @param {CachedPost} post Post data to render
    * @param {ThumbnailOptions} options Rendering options
    * @returns {JQuery<HTMLElement> | null} Rendered thumbnail element or null if the post cannot be rendered
