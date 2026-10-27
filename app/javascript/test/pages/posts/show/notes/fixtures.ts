@@ -109,6 +109,11 @@ export function stubGeometry ({ width = 800, height = 600 } = {}): Geometry {
     Element.prototype.scrollIntoView = () => {};
   vi.spyOn(Element.prototype, "scrollIntoView").mockImplementation(() => {});
 
+  // jsdom has no pointer capture
+  Element.prototype.setPointerCapture = () => {};
+  Element.prototype.releasePointerCapture = () => {};
+  Element.prototype.hasPointerCapture = () => false;
+
   return {
     fireResize: () => observers.forEach((callback) => callback()),
     setContainerWidth: (value) => { containerWidth = value; },
@@ -123,16 +128,34 @@ export function stubPositionFromStyle (): void {
   });
 }
 
-export interface MouseOptions {
+export interface PointerOptions {
   x?: number;
   y?: number;
   button?: number;
+  pointerType?: "mouse" | "touch" | "pen";
+  pointerId?: number;
+  isPrimary?: boolean;
 }
 
-/** Triggers a jQuery mouse event with page coordinates on the given element */
-export function mouse (target: Element | JQuery<HTMLElement>, type: string, { x = 0, y = 0, button = 0 }: MouseOptions = {}): void {
-  $(target as HTMLElement).trigger($.Event(type, { pageX: x, pageY: y, button, which: button + 1 }));
+/** Triggers a jQuery pointer event with page coordinates on the given element */
+export function pointer (target: Element | JQuery<HTMLElement>, type: string, { x = 0, y = 0, button = 0, pointerType = "mouse", pointerId = 1, isPrimary = true }: PointerOptions = {}): void {
+  $(target as HTMLElement).trigger($.Event(type, { pageX: x, pageY: y, button, which: button + 1, pointerType, pointerId, isPrimary }));
 }
+
+/** Same as `pointer`, with the defaults of a single finger */
+export function touch (target: Element | JQuery<HTMLElement>, type: string, options: PointerOptions = {}): void {
+  pointer(target, type, { pointerType: "touch", ...options });
+}
+
+/** Dispatches a native, cancelable touchmove on the element and reports whether the page would have scrolled */
+export function nativeTouchMove (target: Element): boolean {
+  const event = new Event("touchmove", { bubbles: true, cancelable: true });
+  target.dispatchEvent(event);
+  return event.defaultPrevented;
+}
+
+/** Long-press delay, as used by DragGesture */
+export const LONG_PRESS_MS = 400;
 
 export function pressEscape (): void {
   $(document).trigger($.Event("keydown", { key: "Escape" }));
