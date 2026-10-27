@@ -186,11 +186,14 @@ export default class SearchFilters {
   // DOM helpers
 
   private addCustomSortOption (label: string, iconName: string): void {
+    const $label = $("<label>").attr("for", SORT_CUSTOM_ID);
     const svgEl = iconName ? SVGIcon.render(iconName) : null;
-    const icon = svgEl ? svgEl.outerHTML : "";
+    if (svgEl) $label.append(svgEl);
+    $label.append(document.createTextNode(label));
+
     this.$sortInputs.first().closest(".ssc-body").append(
-      `<input type="radio" id="${SORT_CUSTOM_ID}" name="advanced-search-sort" value="${ORDER_CUSTOM}">`
-      + `<label for="${SORT_CUSTOM_ID}">${icon}${label}</label>`,
+      `<input type="radio" id="${SORT_CUSTOM_ID}" name="advanced-search-sort" value="${ORDER_CUSTOM}">`,
+      $label,
     );
   }
 

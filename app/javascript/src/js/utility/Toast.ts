@@ -316,7 +316,7 @@ export class Toast {
         "type": "button",
         "aria-label": "Close notification",
       })
-      .html(SVGIcon.render("times")?.outerHTML || "x")
+      .append(SVGIcon.render("times") || "x")
       .appendTo(this.$element)
       .on("click", () => this.dismiss());
 
