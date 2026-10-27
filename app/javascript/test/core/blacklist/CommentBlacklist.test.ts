@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { setSiteData, tick } from "../../helpers";
 
-function comment (creator: string, creatorID: number): JQuery<HTMLElement> {
-  const $article = $("<article>").addClass("comment")
+function comment (creator: string, creatorID: number, kind = "comment"): JQuery<HTMLElement> {
+  const $article = $("<article>").addClass(kind)
     .attr({ "data-creator": creator, "data-creator-id": creatorID });
   $("body").append($article);
   return $article;
@@ -29,6 +29,15 @@ describe("CommentBlacklist", () => {
     expect($alice.hasClass("blacklisted-user")).toBe(true);
     expect($carol.hasClass("blacklisted-user")).toBe(true);
     expect($dave.hasClass("blacklisted-user")).toBe(false);
+  });
+
+  it("marks blips and forum posts the same way", async () => {
+    const $blip = comment("bob", 12, "blip");
+    const $forum = comment("alice", 13, "forum-post");
+    await load(["user:bob", "userid:13"]);
+
+    expect($blip.hasClass("blacklisted-user")).toBe(true);
+    expect($forum.hasClass("blacklisted-user")).toBe(true);
   });
 
   it("follows blacklist edits", async () => {

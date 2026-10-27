@@ -2,7 +2,7 @@
   <article class="blip comment-post-grid"
     data-blip-id="<%= blip.id %>"
     data-is-deleted="<%= blip.is_deleted? %>"
-    data-creator="<%= blip.creator&.name %>"
+    data-creator="<%= blip.creator&.name&.downcase %>"
     data-creator-id="<%= blip.creator_id %>"
   >
     <div class="author-info">
