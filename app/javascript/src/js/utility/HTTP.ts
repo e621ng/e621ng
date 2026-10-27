@@ -1,4 +1,4 @@
-interface HTTPOptions {
+export interface HTTPOptions {
   method?: string;
   params?: Record<string, string | number | undefined | null>;
   body?: FormData | URLSearchParams | string;

@@ -1,12 +1,27 @@
 import Hotkeys from "@/core/hotkeys";
+import CurrentUser from "@/models/CurrentUser";
+import PostModel from "@/models/Post";
+import PostApproval from "@/models/PostApproval";
+import PostFlag from "@/models/PostFlag";
 import PostVote from "@/models/PostVote";
+import { ApiError } from "@/utility/ApiRequest";
 import Page from "@/utility/Page";
 import LStorage from "@/utility/storage/Local";
-import TaskQueue from "@/utility/TaskQueue";
 import ToastManager from "@/utility/Toast";
-import CurrentUser from "@/models/CurrentUser";
 
+// Facade over the API models. Still owns the pending-update toast, thumbnail
+// DOM updates, and page navigation; the HTTP calls live in models/.
 let Post = {};
+
+// Legacy callers pass flat Rails keys ({"post[rating]": "q"}); the model takes the nested shape.
+export function unwrapPostParams (params) {
+  const unwrapped = {};
+  for (const [key, value] of Object.entries(params)) {
+    const match = key.match(/^post\[(.+)\]$/);
+    unwrapped[match ? match[1] : key] = value;
+  }
+  return unwrapped;
+}
 
 Post.pending_update_toast = null;
 Post.pending_update_count = 0;
@@ -185,24 +200,11 @@ Post.initialize_links = function () {
     var other_post_id = parseInt(prompt("Enter the ID of the post to copy all notes to:"), 10);
 
     if (other_post_id !== null) {
-      $.ajax("/posts/" + current_post_id + "/copy_notes", {
-        type: "PUT",
-        data: {
-          other_post_id: other_post_id,
-        },
-        success: function () {
+      PostModel.copyNotes(current_post_id, other_post_id)
+        .then(() => {
           ToastManager.notice("Successfully copied notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
-        },
-        error: function (data) {
-          if (data.status === 404) {
-            ToastManager.alert("Error: Invalid destination post");
-          } else if (data.responseJSON && data.responseJSON.reason) {
-            ToastManager.alert("Error: " + data.responseJSON.reason);
-          } else {
-            ToastManager.alert("There was an error copying notes to <a href='" + other_post_id + "'>post #" + other_post_id + "</a>");
-          }
-        },
-      });
+        })
+        .catch(() => { /* Reported through danbooru:error */ });
     }
 
     e.preventDefault();
@@ -342,12 +344,12 @@ Post.update_data = function (data) {
 
 Post.tag = function (post_id, tags) {
   const tag_string = (Array.isArray(tags) ? tags.join(" ") : String(tags));
-  Post.update(post_id, { "post[old_tag_string]": "", "post[tag_string]": tag_string });
+  return Post.update(post_id, { "post[old_tag_string]": "", "post[tag_string]": tag_string });
 };
 
 Post.tagScript = function (post_id, tags, reason = "") {
   const tag_string = (Array.isArray(tags) ? tags.join(" ") : String(tags));
-  Post.update(post_id, { "post[tag_string_diff]": tag_string, "post[edit_reason]": reason });
+  return Post.update(post_id, { "post[tag_string_diff]": tag_string, "post[edit_reason]": reason });
 };
 
 Post.getMatchingThumbnails = function (post_id) {
@@ -356,25 +358,11 @@ Post.getMatchingThumbnails = function (post_id) {
 
 Post.update = function (post_id, params) {
   Post.notice_update("inc");
-
-  TaskQueue.add(() => {
-    $.ajax({
-      type: "PUT",
-      url: "/posts/" + post_id + ".json",
-      data: params,
-      success: function (data) {
-        Post.notice_update("dec");
-        Post.update_data(data);
-      },
-      error: function (data) {
-        Post.notice_update("dec");
-        const message = $
-          .map(data.responseJSON.errors, function (msg) { return msg; })
-          .join("; ");
-        $(window).trigger("danbooru:error", `There was an error updating <a href="/posts/${post_id}">post #${post_id}</a>: ${message}`);
-      },
-    });
-  }, { name: "Post.update" });
+  return PostModel.update(post_id, unwrapPostParams(params))
+    // TODO: update_data reads data.id, but the endpoint answers { post: {...} }; silent no-op today.
+    .then((data) => Post.update_data(data))
+    .catch(() => { /* Reported through danbooru:error */ })
+    .finally(() => Post.notice_update("dec"));
 };
 
 Post.delete_with_reason = function (post_id, reason, options = {}) {
@@ -382,109 +370,57 @@ Post.delete_with_reason = function (post_id, reason, options = {}) {
     dmail = null, dmail_title = null } = options;
 
   Post.notice_update("inc");
-  let error = false;
-  TaskQueue.add(() => {
-    console.log(`Deleting post ${post_id} for reason: ${reason}`);
-    $.ajax({
-      type: "POST",
-      url: `/staff/post/posts/${post_id}/delete.json`,
-      data: {commit: "Delete", reason: reason, from_flag: from_flag, move_favorites: move_favorites,
-        dmail: dmail, dmail_title: dmail_title},
-    }).fail(function (data) {
-      if (data.status === 409) {
-        ToastManager.alert("Post already deleted.");
-        location.reload();
-        return;
-      }
-      if (data.responseJSON && data.responseJSON.reason) {
-        ToastManager.alert("Error: " + data.responseJSON.reason);
-        error = true;
-        return;
-      }
-
-      var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      ToastManager.alert("Error: " + message);
-      error = true;
-    }).done(function () {
+  return PostModel.delete(post_id, { reason, from_flag, move_favorites, dmail, dmail_title })
+    .then(() => {
       ToastManager.notice("Deleted post.");
       if (reload_after_delete) {
         location.reload();
       } else {
         Post.getMatchingThumbnails(post_id).attr("data-flags", "deleted");
       }
-    }).always(function () {
-      if (!error)
-        Post.notice_update("dec");
-    });
-  }, { name: "Post.delete_with_reason" });
+    })
+    .catch((error) => {
+      // Already deleted elsewhere: the page is stale
+      if (error instanceof ApiError && error.status === 409) location.reload();
+    })
+    .finally(() => Post.notice_update("dec"));
 };
 
 Post.undelete = function (post_id, callback) {
   Post.notice_update("inc");
-  TaskQueue.add(() => {
-    $.ajax({
-      type: "POST",
-      url: `/staff/post/posts/${post_id}/undelete.json`,
-    }).fail(function (data) {
-      const response = data.responseJSON;
-      ToastManager.alert("Error: " + (response.reason || response.message));
-    }).done(function () {
+  return PostModel.undelete(post_id)
+    .then(() => {
       Post.getMatchingThumbnails(post_id).attr("data-flags", "active");
       ToastManager.notice("Undeleted post.");
       if (callback) callback();
-    }).always(function () {
-      Post.notice_update("dec");
-    });
-  }, { name: "Post.undelete" });
+    })
+    .catch(() => { /* Reported through danbooru:error */ })
+    .finally(() => Post.notice_update("dec"));
 };
 
 Post.unflag = function (post_id, approval, reload = true, callback = null) {
   Post.notice_update("inc");
-  let modApproval = approval || "none";
-  TaskQueue.add(() => {
-    $.ajax({
-      type: "DELETE",
-      url: `/posts/${post_id}/flag.json`,
-      data: {approval: modApproval},
-    }).fail(function (data) {
-      const response = data.responseJSON;
-      ToastManager.alert("Error: " + (response.reason || response.message));
-    }).done(function () {
+  return PostFlag.destroy(post_id, approval || "none")
+    .then(() => {
       Post.getMatchingThumbnails(post_id).removeClass("flagged");
       ToastManager.notice("Unflagged post");
       if (callback) callback();
       if (reload) location.reload();
-    }).always(function () {
-      Post.notice_update("dec");
-    });
-  }, { name: "Post.unflag" });
+    })
+    .catch(() => { /* Reported through danbooru:error */ })
+    .finally(() => Post.notice_update("dec"));
 };
 
 Post.flag = function (post_id, reason_name, parent_id = null, note = null, reload = true, callback = null) {
   Post.notice_update("inc");
-  TaskQueue.add(() => {
-    $.ajax({
-      type: "POST",
-      url: "/post_flags.json",
-      data: {
-        post_flag: {
-          post_id: parseInt(post_id),
-          reason_name,
-          parent_id,
-          note,
-        },
-      },
-    }).fail(function (data) {
-      const message = data.responseJSON.message;
-      ToastManager.alert("Error: " + message);
-    }).done(function () {
+  return PostFlag.create(parseInt(post_id), { reason_name, parent_id, note })
+    .then(() => {
       ToastManager.notice("Flagged post");
       if (callback) callback();
       if (reload) location.reload();
-    }).always(function () {
-      Post.notice_update("dec");
-    });
-  }, { name: "Post.flag" });
+    })
+    .catch(() => { /* Reported through danbooru:error */ })
+    .finally(() => Post.notice_update("dec"));
 };
 
 Post.move_flag_to_parent = function (post_id, parent_id, reason_name, note) {
@@ -495,100 +431,69 @@ Post.move_flag_to_parent = function (post_id, parent_id, reason_name, note) {
   });
 };
 
-
 Post.unapprove = function (post_id) {
   Post.notice_update("inc");
-  TaskQueue.add(() => {
-    $.ajax({
-      type: "DELETE",
-      url: "/staff/post/approval.json",
-      data: {post_id: post_id},
-    }).fail(function (data) {
-      var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      ToastManager.alert("Error: " + message);
-    }).done(function () {
+  return PostApproval.destroy(post_id)
+    .then(() => {
       ToastManager.notice("Unapproved post.");
       location.reload();
-    }).always(function () {
-      Post.notice_update("dec");
-    });
-  }, { name: "Post.unapprove" });
+    })
+    .catch(() => { /* Reported through danbooru:error */ })
+    .finally(() => Post.notice_update("dec"));
 };
 
 Post.destroy = function (post_id, reason) {
-  $.post(`/staff/post/posts/${post_id}/expunge.json`, { reason },
-  ).fail(data => {
-    var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-    ToastManager.alert("Error: " + message);
-  }).done(() => {
-    location.href = `/staff/destroyed_posts/${post_id}`;
-  });
+  return PostModel.expunge(post_id, reason)
+    .then(() => {
+      location.href = `/staff/destroyed_posts/${post_id}`;
+    })
+    .catch(() => { /* Reported through danbooru:error */ });
 };
 
 Post.regenerate_image_samples = function (post_id) {
-  $.post(`/staff/post/posts/${post_id}/regenerate_thumbnails.json`, {},
-  ).fail(data => {
-    ToastManager.alert("Error: " + data.responseJSON.reason);
-  }).done(() => {
-    if ($("#image-container").data("size") >= 10 * 1024 * 1024) {
-      ToastManager.notice("Large file: Image samples will be regenerated soon.");
-    } else {
-      ToastManager.notice("Image samples regenerated successfully.");
-    }
-  });
+  return PostModel.regenerateImageSamples(post_id)
+    .then(() => {
+      if ($("#image-container").data("size") >= 10 * 1024 * 1024) {
+        ToastManager.notice("Large file: Image samples will be regenerated soon.");
+      } else {
+        ToastManager.notice("Image samples regenerated successfully.");
+      }
+    })
+    .catch(() => { /* Reported through danbooru:error */ });
 };
 
 Post.regenerate_video_samples = function (post_id) {
-  $.post(`/staff/post/posts/${post_id}/regenerate_videos.json`, {},
-  ).fail(data => {
-    ToastManager.alert("Error: " + data.responseJSON.reason);
-  }).done(() => {
-    ToastManager.notice("Video samples will be regenerated in a few minutes.");
-  });
+  return PostModel.regenerateVideoSamples(post_id)
+    .then(() => {
+      ToastManager.notice("Video samples will be regenerated in a few minutes.");
+    })
+    .catch(() => { /* Reported through danbooru:error */ });
 };
 
 Post.approve = function (post_id, callback) {
   Post.notice_update("inc");
-  TaskQueue.add(() => {
-    $.post(
-      "/staff/post/approval.json",
-      { "post_id": post_id },
-    ).fail(function (data) {
-      var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      ToastManager.alert("Error: " + message);
-    }).done(function () {
+  return PostApproval.create(post_id)
+    .then(() => {
       const $thumbnails = Post.getMatchingThumbnails(post_id);
       if ($thumbnails.length) {
         $thumbnails.data("flags", $thumbnails.data("flags").replace(/pending/, ""));
         $thumbnails.removeClass("pending");
         ToastManager.notice("Approved post #" + post_id);
       }
-      if (callback) {
-        callback();
-      }
-    }).always(function () {
-      Post.notice_update("dec");
-    });
-  }, { name: "Post.approve" });
+      if (callback) callback();
+    })
+    .catch(() => { /* Reported through danbooru:error */ })
+    .finally(() => Post.notice_update("dec"));
 };
 
 Post.disapprove = function (post_id, reason, message) {
   Post.notice_update("inc");
-  TaskQueue.add(() => {
-    $.post(
-      "/staff/post/disapprovals.json",
-      {"post_disapproval[post_id]": post_id, "post_disapproval[reason]": reason, "post_disapproval[message]": message},
-    ).fail(function (data) {
-      var message = $.map(data.responseJSON.errors, (msg) => msg).join("; ");
-      ToastManager.alert("Error: " + message);
-    }).done(function () {
-      if ($("#c-posts #a-show").length) {
-        location.reload();
-      }
-    }).always(function () {
-      Post.notice_update("dec");
-    });
-  }, { name: "Post.disapprove" });
+  return PostApproval.disapprove(post_id, reason, message)
+    .then(() => {
+      if ($("#c-posts #a-show").length) location.reload();
+    })
+    .catch(() => { /* Reported through danbooru:error */ })
+    .finally(() => Post.notice_update("dec"));
 };
 
 Post.vote = function (id, score, prevent_unvote) {
@@ -597,20 +502,11 @@ Post.vote = function (id, score, prevent_unvote) {
 };
 
 Post.set_as_avatar = function (id) {
-  TaskQueue.add(() => {
-    $.ajax({
-      method: "PATCH",
-      url: `/users/${CurrentUser.id}.json`,
-      data: {
-        "user[avatar_id]": id,
-      },
-      headers: {
-        accept: "*/*;q=0.5,text/javascript",
-      },
-    }).done(function () {
+  return CurrentUser.setAvatar(id)
+    .then(() => {
       ToastManager.notice("Post set as avatar. You can crop it further <a href='/maintenance/user/avatar/edit'>here</a>.");
-    });
-  }, { name: "Post.set_as_avatar" });
+    })
+    .catch(() => { /* Reported through danbooru:error */ });
 };
 
 $(() => {

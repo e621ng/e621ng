@@ -6,6 +6,10 @@
   "include": [
     "app/javascript/src/js/jquery-shims.d.ts",
     "app/javascript/src/js/models/Favorite.ts",
+    "app/javascript/src/js/models/Post.ts",
+    "app/javascript/src/js/models/PostApproval.ts",
+    "app/javascript/src/js/models/PostFlag.ts",
+    "app/javascript/src/js/utility/ApiRequest.ts",
     "app/javascript/src/js/components/autocompletable_input.vue",
     "app/javascript/src/js/components/tags/**/*",
     "app/javascript/src/js/components/uploads/**/*",

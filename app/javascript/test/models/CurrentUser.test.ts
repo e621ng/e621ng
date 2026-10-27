@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { setMeta, setSiteData } from "../helpers";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { bypassQueue, lastFetch, recordErrors, stubFetch } from "../apiHelpers";
+import { jsonResponse, setMeta, setSiteData } from "../helpers";
 
 // CurrentUser pulls in Toast (which we don't want firing real UI) and, on the
 // save path, fetch. Stub both.
@@ -141,6 +142,37 @@ describe("CurrentUser", () => {
       expect(options.method).toBe("PUT");
       expect(options.headers["X-CSRF-Token"]).toBe("token123");
       expect(options.body.get("user[blacklisted_tags]")).toBe("new_a\nnew_b");
+    });
+  });
+
+  describe("setAvatar", () => {
+    afterEach(() => { $(window).off("danbooru:error"); });
+
+    it("PATCHes the avatar id through the queue and resolves on 204", async () => {
+      const fetchSpy = stubFetch(jsonResponse(null, { status: 204 }));
+      const queue = await bypassQueue();
+      setSiteData("site-user", { id: 42 });
+      const user = await freshUser();
+
+      await expect(user.setAvatar(7)).resolves.toBeUndefined();
+
+      const { url, init } = lastFetch(fetchSpy);
+      expect(url).toBe("/users/42.json");
+      expect(init.method).toBe("PATCH");
+      expect(init.body).toBe(JSON.stringify({ user: { avatar_id: 7 } }));
+      expect(init.headers).toEqual({ "Content-Type": "application/json", "X-CSRF-Token": "tok123" });
+      expect(queue.mock.calls[0][1]).toEqual({ name: "Post.set_as_avatar" });
+    });
+
+    it("reports failures", async () => {
+      stubFetch(jsonResponse({ errors: { avatar: ["must be a post you can see"] } }, { status: 422 }));
+      await bypassQueue();
+      setSiteData("site-user", { id: 42 });
+      const user = await freshUser();
+      const errors = recordErrors();
+
+      await expect(user.setAvatar(7)).rejects.toMatchObject({ status: 422 });
+      expect(errors).toEqual(["Error: must be a post you can see"]);
     });
   });
 });
