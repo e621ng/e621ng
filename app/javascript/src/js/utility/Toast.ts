@@ -82,6 +82,27 @@ export default class ToastManager {
     ToastManager.create(message, { type: "alert", timeout: 0 });
   }
 
+  /**
+   * Shows an info toast while the promise is pending, then rewrites it with the resolved message.
+   * On rejection the toast is dismissed and the error is swallowed: the request helpers already
+   * report failures through `danbooru:error`, so nothing is left for the caller to handle.
+   * @param promise The operation to track.
+   * @param pending Message to show while the operation is pending.
+   * @param done Builds the success message from the resolved value.
+   * @returns The resolved value, or `undefined` if the promise rejected.
+   */
+  public static async track<T> (promise: Promise<T>, pending: string, done: (result: T) => string): Promise<T | undefined> {
+    const toast = ToastManager.create(pending, { type: "info", timeout: 10 });
+    try {
+      const result = await promise;
+      toast.rewrite(done(result), { type: "notice", timeout: 1 });
+      return result;
+    } catch {
+      toast.dismiss(true);
+      return undefined;
+    }
+  }
+
 
   /* ==================== */
   /* == Initialization == */

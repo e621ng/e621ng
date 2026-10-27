@@ -10,7 +10,7 @@ import "@/pages/posts/show/MobileTabs";
 import "@/pages/posts/show/mod_queue";
 import Note from "@/pages/posts/show/notes";
 import PostSet from "@/pages/posts/show/PostSet";
-import "@/pages/posts/show/PostsShowToolbar";
+import "@/pages/posts/show/toolbar";
 import "@/pages/posts/show/recommended";
 import "@/pages/posts/show/TagEditor";
 import PostResizer from "@/pages/posts/show/Resizer";
