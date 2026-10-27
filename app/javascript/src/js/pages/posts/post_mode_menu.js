@@ -7,7 +7,6 @@ import Rails from "@rails/ujs";
 import Hotkeys from "@/core/hotkeys";
 import LStorage from "@/utility/storage/Local";
 import SStorage from "@/utility/storage/Session";
-import TaskQueue from "@/utility/TaskQueue";
 import PostVote from "@/models/PostVote";
 import Autocomplete from "@/components/autocomplete";
 import CurrentUser from "@/models/CurrentUser";
@@ -121,29 +120,7 @@ PostModeMenu.tag_script_apply_all = function (event) {
 };
 
 PostModeMenu.update_sets_menu = function () {
-  let target = $("#set-id");
-  target.off("change");
-  TaskQueue.add(() => {
-    $.ajax({
-      type: "GET",
-      url: "/post_sets/for_select.json",
-    }).fail(function (data) {
-      ToastManager.alert("Error getting sets list: " + data.message);
-    }).done(function (data) {
-      target.on("change", function (e) {
-        LStorage.Posts.Set = e.target.value;
-      });
-      target.empty();
-      const target_set = LStorage.Posts.Set;
-      ["Owned", "Maintained"].forEach(function (v) {
-        let group = $("<optgroup>", {label: v});
-        data[v].forEach(function (gi) {
-          group.append($("<option>", {value: gi[1], selected: (gi[1] == target_set)}).text(gi[0]));
-        });
-        target.append(group);
-      });
-    });
-  }, { name: "PostModeMenu.update_sets_menu" });
+  return PostSet.populateSelect($("#set-id"));
 };
 
 PostModeMenu.change = function () {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { jsonResponse, setMeta } from "../helpers";
+import { htmlResponse, jsonResponse, setMeta } from "../helpers";
 
 async function freshHTTP () {
   return (await import("@/utility/HTTP")).default;
@@ -39,5 +39,31 @@ describe("HTTP", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ error: "boom" }, { status: 500 }) as Response);
     const HTTP = await freshHTTP();
     await expect(HTTP.getJSON("/x")).rejects.toThrow();
+  });
+
+  describe("errorMessage", () => {
+    it("prefers message, then reason", async () => {
+      const HTTP = await freshHTTP();
+      expect(await HTTP.errorMessage(jsonResponse({ message: "Too many", reason: "x" }, { status: 422 }))).toBe("Too many");
+      expect(await HTTP.errorMessage(jsonResponse({ success: false, reason: "Access denied" }, { status: 403 }))).toBe("Access denied");
+    });
+
+    it("joins an errors array or an attribute hash", async () => {
+      const HTTP = await freshHTTP();
+      expect(await HTTP.errorMessage(jsonResponse({ errors: ["a", "b"] }, { status: 422 }))).toBe("a; b");
+      expect(await HTTP.errorMessage(jsonResponse({ errors: { base: ["a"], name: ["b", "c"] } }, { status: 422 }))).toBe("a; b; c");
+    });
+
+    it("maps a bodyless 404 to Not Found", async () => {
+      const HTTP = await freshHTTP();
+      expect(await HTTP.errorMessage(htmlResponse(404))).toBe("Not Found");
+      expect(await HTTP.errorMessage(jsonResponse({}, { status: 404 }))).toBe("Not Found");
+    });
+
+    it("falls back to the status line or the given fallback for non-JSON bodies", async () => {
+      const HTTP = await freshHTTP();
+      expect(await HTTP.errorMessage({ ...htmlResponse(502), statusText: "Bad Gateway" })).toBe("502 Bad Gateway");
+      expect(await HTTP.errorMessage(htmlResponse(502), "Upstream down")).toBe("Upstream down");
+    });
   });
 });

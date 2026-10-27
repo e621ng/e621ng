@@ -4,7 +4,8 @@ import ModuleRegistry from "@/utility/ModuleRegistry";
 
 import CurrentPost from "@/models/CurrentPost";
 import "@/pages/comments/comments";
-import "@/pages/posts/show/AddToPoolDialog";
+import AddToPoolDialog from "@/pages/posts/show/AddToPoolDialog";
+import AddToSetDialog from "@/pages/posts/show/AddToSetDialog";
 import "@/pages/posts/show/BlacklistRevealOnClick";
 import "@/pages/posts/show/MobileTabs";
 import "@/pages/posts/show/mod_queue";
@@ -24,7 +25,8 @@ import "@/pages/post_flags/post_flags"; // We only need expandable notes from he
 ModuleRegistry.register("v_posts_show", { Note, CurrentPost, PostResizer });
 
 $(() => {
-  PostSet.initialize_add_to_set_link();
-  PostSet.initialize_remove_from_set_links();
+  void AddToPoolDialog.instance;
+  void AddToSetDialog.instance;
+  PostSet.bindRemoveLinks();
   PostReowner.initialize_links();
 });
