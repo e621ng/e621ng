@@ -4,7 +4,9 @@ export interface ToolbarPageOptions {
   score?: number;
   up?: number;
   down?: number;
+  vote?: number;
   favorited?: boolean;
+  favCount?: number;
   notesEnabled?: boolean;
 }
 
@@ -21,26 +23,36 @@ export function pressHotkey (name: string): void {
 
 /**
  * Renders the parts of posts#show that the toolbar touches:
- * the image container, the score in the sidebar, and the toolbar markup from `_toolbar.html.erb`.
+ * the embedded post payload, the image container, the score in the sidebar,
+ * and the toolbar markup from `_toolbar.html.erb`.
  */
 export function renderToolbarPage ({
   score = 0,
   up = 0,
   down = 0,
+  vote = 0,
   favorited = false,
+  favCount = 0,
   notesEnabled = false,
 }: ToolbarPageOptions = {}): void {
   const state = score > 0 ? 1 : (score < 0 ? -1 : 0);
   const scoreClass = score > 0 ? "score-positive" : (score < 0 ? "score-negative" : "score-neutral");
 
+  // Same shape as `post_show_base64` (PostBlueprint); only the fields the toolbar reads
+  const postData = btoa(JSON.stringify({
+    id: POST_ID,
+    stats: { score: { up, down, total: score }, fav_count: favCount, is_favorited: favorited, vote },
+  }));
+
   document.body.innerHTML = `
+    <script type="text/plain" id="post-data" data-encoding="base64">${postData}</script>
     <section id="image-container" data-id="${POST_ID}" data-is-favorited="${favorited}">
       <div id="note-container" enabled="${notesEnabled}"></div>
     </section>
     <span class="post-score ${scoreClass}">${score}</span>
 
     <section id="ptbr-wrapper">
-      <div class="ptbr-vote" data-score="${score}" data-up="${up}" data-down="${down}" data-state="${state}" data-vote="0">
+      <div class="ptbr-vote" data-score="${score}" data-up="${up}" data-down="${down}" data-state="${state}" data-vote="${vote}">
         <button class="ptbr-vote-button" data-action="1" processing="false">Up</button>
         <button class="ptbr-score">${score}</button>
         <span class="ptbr-breakdown hidden"><span>${up}</span><span>${down}</span></span>
@@ -77,6 +89,16 @@ export async function loadToolbar () {
   const PostsShowToolbar = (await import("@/pages/posts/show/toolbar")).default;
   void PostsShowToolbar.instance;
   return PostsShowToolbar;
+}
+
+/** The CurrentPost instance the loaded toolbar is bound to. Call after `loadToolbar`. */
+export async function currentPost () {
+  return (await import("@/models/CurrentPost")).default;
+}
+
+/** The TaskCancelled class from the same module registry as the loaded toolbar. */
+export async function taskCancelled () {
+  return (await import("@/utility/TaskQueue")).TaskCancelled;
 }
 
 /** Lets pending promise callbacks run. */

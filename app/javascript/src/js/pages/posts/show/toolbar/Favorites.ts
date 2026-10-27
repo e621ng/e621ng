@@ -1,9 +1,11 @@
 import Hotkeys from "@/core/hotkeys";
 import CurrentPost from "@/models/CurrentPost";
-import Favorite from "@/models/Favorite";
 import ToastManager from "@/utility/Toast";
 
-/** Favorite button and hotkeys on the post toolbar. */
+/**
+ * Favorite button and hotkeys on the post toolbar.
+ * Renders from `CurrentPost.stats`; button state follows the `post:favorite:*` events the model emits.
+ */
 export default class ToolbarFavorites {
 
   /* ============================== */
@@ -37,55 +39,47 @@ export default class ToolbarFavorites {
 
     this.initButtons();
     this.initHotkeys();
+    this.initEvents();
   }
 
   private initButtons (): void {
     this.buttons.on("click", () => {
       if (this.processing) return;
-      this.setProcessing(true);
-
-      const request = this.isFavorited() ? this.remove() : this.add();
-      request
-        .catch(() => { /* Reported through danbooru:error */ })
-        .finally(() => { this.setProcessing(false); });
+      this.toggle().catch(() => { /* Reported through danbooru:error */ });
     });
   }
 
   private initHotkeys (): void {
     Hotkeys.register("favorite", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
-      if (this.isFavorited())
-        ToastManager.track(this.remove(), "Updating post...", () => "Favorite removed.");
+      if (CurrentPost.favorited)
+        ToastManager.track(CurrentPost.unfavorite(), "Updating post...", () => "Favorite removed.");
       else
-        ToastManager.track(this.add(), "Updating post...", () => "Favorite added.");
+        ToastManager.track(CurrentPost.favorite(), "Updating post...", () => "Favorite added.");
     });
 
     Hotkeys.register("favorite-add", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
-      if (this.isFavorited()) return;
-      ToastManager.track(this.add(), "Updating post...", () => "Favorite added.");
+      if (CurrentPost.favorited) return;
+      ToastManager.track(CurrentPost.favorite(), "Updating post...", () => "Favorite added.");
     });
 
     Hotkeys.register("favorite-del", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
-      if (!this.isFavorited()) return;
-      ToastManager.track(this.remove(), "Updating post...", () => "Favorite removed.");
+      if (!CurrentPost.favorited) return;
+      ToastManager.track(CurrentPost.unfavorite(), "Updating post...", () => "Favorite removed.");
     });
   }
 
-
-  /* ============================== */
-  /* =========== State ============ */
-  /* ============================== */
-
-  private isFavorited (): boolean {
-    return this.imageContainer.attr("data-is-favorited") == "true";
+  private initEvents (): void {
+    $(document)
+      .on("post:favorite:start", () => { this.setProcessing(true); })
+      .on("post:favorite", () => { this.render(); })
+      .on("post:favorite:end", () => { this.setProcessing(false); });
   }
 
-  // Both the toolbar button and the image container carry the favorite state
-  private setFavorited (value: boolean): void {
-    this.buttons.attr("favorited", String(value));
-    this.imageContainer.attr("data-is-favorited", String(value));
+  private toggle (): Promise<unknown> {
+    return CurrentPost.favorited ? CurrentPost.unfavorite() : CurrentPost.favorite();
   }
 
   // The attribute drives the pressed-state styling
@@ -96,31 +90,14 @@ export default class ToolbarFavorites {
 
 
   /* ============================== */
-  /* ========= Public API ========= */
+  /* ========= Rendering ========== */
   /* ============================== */
 
-  /** Favorites the current post. */
-  public add (): Promise<void> {
-    if (!CurrentPost.exists)
-      return Promise.reject(new Error("No current post available for favoriting."));
-
-    return Favorite.create(CurrentPost.id, 500).then(
-      () => { this.setFavorited(true); },
-      (error: Error & { cause?: unknown }) => {
-        // The server state is what we wanted, so just sync the page
-        if (error.cause !== "You have already favorited this post") throw error;
-        this.setFavorited(true);
-      },
-    );
-  }
-
-  /** Removes the current post from favorites. */
-  public remove (): Promise<void> {
-    if (!CurrentPost.exists)
-      return Promise.reject(new Error("No current post available for favoriting."));
-
-    return Favorite.destroy(CurrentPost.id, 500).then(() => {
-      this.setFavorited(false);
-    });
+  /** Syncs the favorite state with `CurrentPost.stats`. */
+  public render (): void {
+    const value = String(CurrentPost.favorited);
+    // Both the toolbar button and the image container carry the favorite state
+    this.buttons.attr("favorited", value);
+    this.imageContainer.attr("data-is-favorited", value);
   }
 }

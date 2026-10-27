@@ -45,7 +45,7 @@ export default class PostVote {
         $(window).trigger("danbooru:error", "Post not found.");
       else
         $(window).trigger("danbooru:error", "Error: " + error.message);
-      return Promise.reject();
+      return Promise.reject(error instanceof Error ? error : new Error(String(error)));
     });
   }
 

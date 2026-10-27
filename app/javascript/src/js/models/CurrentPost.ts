@@ -1,4 +1,5 @@
 import Logger from "@/utility/Logger";
+import { TaskCancelled } from "@/utility/TaskQueue";
 import Favorite from "./Favorite";
 import PostVote, { PostVoteResponse } from "./PostVote";
 
@@ -101,6 +102,7 @@ class CurrentPost {
     this.approver_id = obj["approver_id"] || 0;
 
     this.stats = obj["stats"] || {} as CurrentPostStats;
+    if (!this.stats.score) this.stats.score = { up: 0, down: 0, total: 0 };
     this.flags = obj["flags"] || {} as CurrentPostFlags;
     this.has = obj["has"] || {} as CurrentPostHas;
     this.relationships = obj["relationships"] || {} as CurrentPostRelationships;
@@ -136,15 +138,52 @@ class CurrentPost {
     return typeof this.id === "number" && this.id > 0;
   }
 
+  /** Sign of the total score, matching the `post_score_state` helper. */
+  public get scoreState (): -1 | 0 | 1 {
+    const total = this.stats?.score?.total || 0;
+    return total > 0 ? 1 : (total < 0 ? -1 : 0);
+  }
+
+  public get favorited (): boolean {
+    return !!this.stats?.is_favorited;
+  }
+
 
   /* ============================== */
   /* ======== Public API ========== */
   /* ============================== */
 
+  /**
+   * Casts a vote on the current post.
+   * Emits `post:vote:start`, then `post:vote` on success, then `post:vote:end`.
+   * A request superseded by a newer one (TaskCancelled) emits no `end`: the newer request owns the lifecycle.
+   * @param vote 1 for an upvote, -1 for a downvote.
+   * @param prevent_unvote If true, voting the same direction again does not remove the vote.
+   */
   public vote (vote: number, prevent_unvote: boolean = false): Promise<PostVoteResponse> {
     if (!this.exists)
-      throw new Error("No current post available for voting.");
-    return PostVote.vote(this.id, vote, prevent_unvote);
+      return Promise.reject(new Error("No current post available for voting."));
+
+    const lifecycle: PostVoteEvent = { post_id: this.id, direction: vote };
+    $(document).trigger("post:vote:start", lifecycle);
+
+    return PostVote.vote(this.id, vote, prevent_unvote).then(
+      (data) => {
+        this.stats.score.total = data.score;
+        this.stats.score.up = data.up;
+        this.stats.score.down = data.down;
+        this.stats.vote = data.our_score;
+
+        $(document).trigger("post:vote", { post_id: this.id, stats: this.stats } satisfies PostStatsEvent);
+        $(document).trigger("post:vote:end", lifecycle);
+        return data;
+      },
+      (error) => {
+        if (!(error instanceof TaskCancelled))
+          $(document).trigger("post:vote:end", lifecycle);
+        throw error;
+      },
+    );
   }
 
   public voteUp (): Promise<PostVoteResponse> {
@@ -155,20 +194,94 @@ class CurrentPost {
     return this.vote(-1, true);
   }
 
-  public favorite (): Promise<object> { // TODO: Update return type when Favorite class is ported to TypeScript
+  /**
+   * Favorites the current post.
+   * Emits `post:favorite:start`, then `post:favorite` on success, then `post:favorite:end`.
+   * Same TaskCancelled rule as `vote()`.
+   */
+  public favorite (delay: number = 500): Promise<FavoriteResponse | void> {
     if (!this.exists)
-      throw new Error("No current post available for favoriting.");
-    return Favorite.create(this.id);
+      return Promise.reject(new Error("No current post available for favoriting."));
+
+    const lifecycle: PostFavoriteEvent = { post_id: this.id, favorited: true };
+    $(document).trigger("post:favorite:start", lifecycle);
+
+    return Favorite.create(this.id, delay).then(
+      (data) => {
+        this.stats.is_favorited = true;
+        if (typeof data?.favorite_count === "number") this.stats.fav_count = data.favorite_count;
+
+        $(document).trigger("post:favorite", { post_id: this.id, stats: this.stats } satisfies PostStatsEvent);
+        $(document).trigger("post:favorite:end", lifecycle);
+        return data;
+      },
+      (error: Error & { cause?: unknown }) => {
+        // The server state is what we wanted, so just sync the model
+        if (error?.cause === "You have already favorited this post") {
+          this.stats.is_favorited = true;
+          $(document).trigger("post:favorite", { post_id: this.id, stats: this.stats } satisfies PostStatsEvent);
+          $(document).trigger("post:favorite:end", lifecycle);
+          return;
+        }
+
+        if (!(error instanceof TaskCancelled))
+          $(document).trigger("post:favorite:end", lifecycle);
+        throw error;
+      },
+    );
   }
 
-  public unfavorite (): Promise<object> {
+  /** Removes the current post from favorites. Emits the same events as `favorite()`. */
+  public unfavorite (delay: number = 500): Promise<FavoriteResponse> {
     if (!this.exists)
-      throw new Error("No current post available for unfavoriting.");
-    return Favorite.destroy(this.id);
+      return Promise.reject(new Error("No current post available for unfavoriting."));
+
+    const lifecycle: PostFavoriteEvent = { post_id: this.id, favorited: false };
+    $(document).trigger("post:favorite:start", lifecycle);
+
+    return Favorite.destroy(this.id, delay).then(
+      (data) => {
+        this.stats.is_favorited = false;
+        if (typeof data?.favorite_count === "number") this.stats.fav_count = data.favorite_count;
+
+        $(document).trigger("post:favorite", { post_id: this.id, stats: this.stats } satisfies PostStatsEvent);
+        $(document).trigger("post:favorite:end", lifecycle);
+        return data;
+      },
+      (error) => {
+        if (!(error instanceof TaskCancelled))
+          $(document).trigger("post:favorite:end", lifecycle);
+        throw error;
+      },
+    );
   }
 }
 
 export default CurrentPost.instance;
+
+/** Payload of `post:vote:start` and `post:vote:end`. */
+export interface PostVoteEvent {
+  post_id: number,
+  direction: number,
+}
+
+/** Payload of `post:favorite:start` and `post:favorite:end`. `favorited` is the requested state. */
+export interface PostFavoriteEvent {
+  post_id: number,
+  favorited: boolean,
+}
+
+/** Payload of `post:vote` and `post:favorite`. `stats` is the live CurrentPost.stats object. */
+export interface PostStatsEvent {
+  post_id: number,
+  stats: CurrentPostStats,
+}
+
+/** Response of favorites#create / favorites#destroy. */
+export interface FavoriteResponse {
+  post_id: number,
+  favorite_count: number,
+}
 
 interface CurrentPostFiles {
   meta: {
@@ -223,7 +336,7 @@ interface VideoSample {
   url?: string | null,
 }
 
-interface CurrentPostStats {
+export interface CurrentPostStats {
   score: {
     up: number,
     down: number,
