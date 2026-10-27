@@ -5,12 +5,14 @@ const approval = { create: vi.fn(), disapprove: vi.fn() };
 const flag = { destroy: vi.fn() };
 const toast = { notice: vi.fn(), create: vi.fn(() => ({ message: "", timeout: 0 })), dismiss: vi.fn() };
 const page = { matches: vi.fn(() => false) };
+const blacklist = { refreshPosts: vi.fn() };
 
 vi.mock("@/models/Post", async (importOriginal) => ({ ...await importOriginal<object>(), default: post }));
 vi.mock("@/models/PostApproval", () => ({ default: approval }));
 vi.mock("@/models/PostFlag", () => ({ default: flag }));
 vi.mock("@/utility/Toast", () => ({ default: toast }));
 vi.mock("@/utility/Page", () => ({ default: page }));
+vi.mock("@/core/blacklist", () => ({ default: blacklist }));
 
 const POST_ID = 42;
 const THUMB = { id: POST_ID, flags: "", rating: "q", tags: "fox red" };
@@ -39,6 +41,7 @@ describe("BulkActions", () => {
     post.update.mockResolvedValue(THUMB);
     toast.notice.mockReset();
     page.matches.mockReset().mockReturnValue(false);
+    blacklist.refreshPosts.mockReset();
   });
 
   describe("update", () => {
@@ -89,6 +92,8 @@ describe("BulkActions", () => {
       expect($thumb.data("flags")).toBe("deleted");
       expect($thumb.hasClass("deleted")).toBe(true);
       expect($thumb.hasClass("pending")).toBe(false);
+      expect(blacklist.refreshPosts).toHaveBeenCalledOnce();
+      expect(blacklist.refreshPosts.mock.calls[0][0].get()).toEqual([$thumb[0]]);
       expect(reload).not.toHaveBeenCalled();
     });
 
@@ -126,6 +131,7 @@ describe("BulkActions", () => {
     expect($thumb.attr("data-flags")).toBe("");
     expect($thumb.hasClass("deleted")).toBe(false);
     expect(toast.notice).toHaveBeenCalledWith("Undeleted post.");
+    expect(blacklist.refreshPosts).toHaveBeenCalledOnce();
   });
 
   it("unflags without reloading", async () => {
@@ -138,6 +144,7 @@ describe("BulkActions", () => {
     expect($thumb.hasClass("flagged")).toBe(false);
     expect($thumb.hasClass("pending")).toBe(true);
     expect(toast.notice).toHaveBeenCalledWith("Unflagged post");
+    expect(blacklist.refreshPosts).toHaveBeenCalledOnce();
     expect(reload).not.toHaveBeenCalled();
 
     await BulkActions.unflag(POST_ID, "approve");
@@ -155,6 +162,7 @@ describe("BulkActions", () => {
       expect($thumb.attr("data-flags")).toBe("");
       expect($thumb.hasClass("pending")).toBe(false);
       expect(toast.notice).toHaveBeenCalledWith("Approved post #42");
+      expect(blacklist.refreshPosts).toHaveBeenCalledOnce();
     });
 
     it("is silent without a thumbnail on the page", async () => {
@@ -164,6 +172,7 @@ describe("BulkActions", () => {
 
       expect(approval.create).toHaveBeenCalledWith(POST_ID);
       expect(toast.notice).not.toHaveBeenCalled();
+      expect(blacklist.refreshPosts).not.toHaveBeenCalled();
     });
   });
 
@@ -199,6 +208,8 @@ describe("BulkActions", () => {
       expect($thumb.hasClass("rating-questionable")).toBe(true);
       expect($thumb.hasClass("has-parent")).toBe(true);
       expect($thumb.hasClass("blacklistable")).toBe(true);
+      expect(blacklist.refreshPosts).toHaveBeenCalledOnce();
+      expect(blacklist.refreshPosts.mock.calls[0][0].get()).toEqual([$thumb[0]]);
     });
 
     it("clears status classes for an active post and updates every matching thumbnail", async () => {
@@ -213,11 +224,13 @@ describe("BulkActions", () => {
       expect($a.hasClass("deleted")).toBe(false);
       expect($b.hasClass("deleted")).toBe(false);
       expect($other.hasClass("deleted")).toBe(true);
+      expect(blacklist.refreshPosts.mock.calls[0][0].get()).toEqual([$a[0], $b[0]]);
     });
 
     it("tolerates a post that is not on the page", async () => {
       const { BulkActions } = await load();
       expect(BulkActions.syncThumbnail(THUMB as any).length).toBe(0);
+      expect(blacklist.refreshPosts).not.toHaveBeenCalled();
     });
   });
 });

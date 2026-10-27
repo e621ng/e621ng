@@ -4,49 +4,34 @@
  * Fetches data from the data-attributes of a thumbnail.
  */
 export default class PostCache {
-  static _cache: { [key: number]: CachedPostData } = {};
-  static _index = new Set<number>();
+  // Entries are never evicted on purpose: pages are full reloads, and each entry is tiny.
+  // Element references are what `prune()` manages.
+  private static _cache = new Map<number, CachedPostData>();
 
-  static _elements: { [key: number]: JQuery<HTMLElement>[] } = {};
-  static _elementCount = 0;
+  private static _elements: { [key: number]: JQuery<HTMLElement>[] } = {};
+  private static _elementCount = 0;
 
   /**
    * Add to cache based on the data-attributes of the specific thumbnail element
    * @param {JQuery<HTMLElement>} $element Thumbnail element
+   * @param {boolean} update Whether to re-read the attributes if the post ID is already cached.
    * @returns Processed data
    */
-  static fromThumbnail ($element: JQuery<HTMLElement>): CachedPost | null {
-    const id = $element.data("id");
+  static fromThumbnail ($element: JQuery<HTMLElement>, update: boolean = false): CachedPost | null {
+    const element = $element[0];
+    if (!element) return null;
+
+    // Reading the dataset directly is noticeably faster than $element.data()
+    const data = element.dataset;
+    const id = parseInt(data.id) || 0;
     if (!id) return null;
-    if (this._index.has(id)) return new CachedPost(this._cache[id]);
+    if (!update && this._cache.has(id)) return this.get(id);
 
-    // As of right now, fetching post data from the attributes takes up to three times as long
-    // compared to getting it from the cache. As such, it should be avoided whenever possible.
-
-    const data = $element[0].dataset; // Faster than $element.data()
-
-    // For some reason, this takes 10x as long on the first post.
-    // But it's still only ~1ms (rather than 0.1ms), so it's fine
-    const tag_string = data.tags || "",
-      tags = tag_string.split(" ");
-
-    const pools = [];
-    for (const one of (data.pools + "").split(" ")) {
-      const parsedOne = parseInt(one);
-      if (parsedOne) pools.push(parsedOne);
-    }
-
-    const rating = data.rating || "";
-    if (rating !== "s" && rating !== "q" && rating !== "e") return null;
-
-    const value: CachedPostData = {
-      tag_string: tag_string,
-      tags: tags,
-      tagcount: tags.length,
-
-      id: id,
-      flags: (data.flags || "").split(" "),
-      rating: rating,
+    return this._store(id, {
+      tags: data.tags || "",
+      flags: data.flags || "",
+      pools: data.pools || "",
+      rating: data.rating || "",
       file_ext: data.fileExt || "",
 
       width: parseInt(data.width) || -1,
@@ -58,56 +43,33 @@ export default class PostCache {
       is_favorited: data.isFavorited === "true",
       comment_count: parseInt(data.commentCount) || 0,
 
-      uploader: (data.uploader || "").toLowerCase(),
+      uploader: data.uploader || "",
       uploader_id: parseInt(data.uploaderId) || -1,
-
-      pools: pools,
 
       md5: data.md5 || "",
       preview_url: data.previewUrl || "",
       preview_webp: data.previewWebp || "",
       sample_url: data.sampleUrl || "",
       file_url: data.fileUrl || "",
-    };
-
-    this._cache[id] = value;
-    this._index.add(id);
-    return new CachedPost(value);
+    });
   }
 
   /**
    * Add to the cache based on the deferred post data
    * @param {number} id Post ID
-   * @param {any} data Deferred post data
+   * @param {DeferredPostData} data Deferred post data
    * @param {boolean} update Whether to update the cache if the post ID is already present.
    * @returns Processed data
    */
   static fromDeferredPosts (id: number, data: DeferredPostData, update: boolean = false): CachedPost | null {
     if (!id) return null;
-    if (!update && this._index.has(id)) return new CachedPost(this._cache[id]);
+    if (!update && this._cache.has(id)) return this.get(id);
 
-    // For some reason, this takes 10x as long on the first post.
-    // But it's still only ~1ms (rather than 0.1ms), so it's fine
-    const tag_string = data.tags || "",
-      tag_array = tag_string.split(" ");
-
-    const pools = [];
-    for (const one of (data.pools + "").split(" ")) {
-      const parsedOne = parseInt(one);
-      if (parsedOne) pools.push(parsedOne);
-    }
-
-    const rating = data.rating || "";
-    if (rating !== "s" && rating !== "q" && rating !== "e") return null;
-
-    const value: CachedPostData = {
-      tag_string: tag_string,
-      tags: tag_array,
-      tagcount: tag_array.length,
-
-      id: id,
-      flags: (data.flags || "").split(" "),
-      rating: rating,
+    return this._store(id, {
+      tags: data.tags || "",
+      flags: data.flags || "",
+      pools: data.pools || "",
+      rating: data.rating || "",
       file_ext: data.file_ext || "",
 
       width: data.width || -1,
@@ -119,20 +81,61 @@ export default class PostCache {
       is_favorited: !!data.is_favorited,
       comment_count: data.comment_count || 0,
 
-      uploader: (data.uploader || "").toLowerCase(),
+      uploader: data.uploader || "",
       uploader_id: data.uploader_id || -1,
-
-      pools: pools,
 
       md5: data.md5 || "",
       preview_url: data.preview_url || "",
       preview_webp: data.preview_webp || "",
       sample_url: data.sample_url || "",
       file_url: data.file_url || "",
+    });
+  }
+
+  /** Normalizes the raw values and writes them to the cache. Returns null if the rating is unusable. */
+  private static _store (id: number, raw: RawPostData): CachedPost | null {
+    const rating = raw.rating;
+    if (rating !== "s" && rating !== "q" && rating !== "e") return null;
+
+    const tags = splitWords(raw.tags);
+    const pools: number[] = [];
+    for (const one of splitWords(raw.pools)) {
+      const parsed = parseInt(one);
+      if (parsed) pools.push(parsed);
+    }
+
+    const value: CachedPostData = {
+      id: id,
+      tag_string: tags.join(" "),
+      tags: tags,
+      tagcount: tags.length,
+
+      flags: splitWords(raw.flags),
+      rating: rating,
+      file_ext: raw.file_ext,
+
+      width: raw.width,
+      height: raw.height,
+      size: raw.size,
+
+      score: raw.score,
+      fav_count: raw.fav_count,
+      is_favorited: raw.is_favorited,
+      comment_count: raw.comment_count,
+
+      uploader: raw.uploader.toLowerCase(),
+      uploader_id: raw.uploader_id,
+
+      pools: pools,
+
+      md5: raw.md5,
+      preview_url: raw.preview_url,
+      preview_webp: raw.preview_webp,
+      sample_url: raw.sample_url,
+      file_url: raw.file_url,
     };
 
-    this._cache[id] = value;
-    this._index.add(id);
+    this._cache.set(id, value);
     return new CachedPost(value);
   }
 
@@ -140,20 +143,23 @@ export default class PostCache {
   /**
    * Save post thumbnails so that they can be referred to later
    * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $elements Post elements
+   * @param {boolean} update Whether to re-read the attributes of already cached posts
    */
-  static register ($elements: JQuery<HTMLElement> | JQuery<HTMLElement>[]): JQuery<HTMLElement>[] {
+  static register ($elements: JQuery<HTMLElement> | JQuery<HTMLElement>[], update: boolean = false): JQuery<HTMLElement>[] {
     const added: JQuery<HTMLElement>[] = [];
     for (let $post of $elements) {
       $post = $($post);
+      // Stripped before validation on purpose: a thumbnail that cannot be parsed cannot be filtered either.
       $post.removeClass("blacklistable");
-      const postData = PostCache.fromThumbnail($post);
-      if (!postData) continue; // .fromThumbnail returns null if it cannot parse the thumbnail data
+      const postData = PostCache.fromThumbnail($post, update);
+      if (!postData) continue;
 
       if (!this._elements[postData.id])
         this._elements[postData.id] = [];
 
       // Check if this thumbnail element is already registered.
-      if (this._elements[postData.id].some((one: JQuery<HTMLElement>) => one.is($post)))
+      const element = $post[0];
+      if (this._elements[postData.id].some((one) => one[0] === element))
         continue;
 
       this._elements[postData.id].push($post);
@@ -176,12 +182,12 @@ export default class PostCache {
       return this.prune($element.get().map(el => $(el)));
     }
 
-    const id = $element.data("id");
-    if (!id) return 0;
-    if (!this._elements[id] || this._elements[id].length === 0) return 0;
+    const element = $element[0];
+    const id = element ? parseInt(element.dataset.id) || 0 : 0;
+    if (!id || !this._elements[id]) return 0;
 
     const initialLength = this._elements[id].length;
-    this._elements[id] = this._elements[id].filter((one: JQuery<HTMLElement>) => !one.is($element));
+    this._elements[id] = this._elements[id].filter((one) => one[0] !== element);
     const removedCount = initialLength - this._elements[id].length;
     this._elementCount -= removedCount;
 
@@ -203,7 +209,7 @@ export default class PostCache {
    * @param {($el: JQuery<HTMLElement>) => void} fn Function to apply to the posts
    */
   static apply (postID: number, fn: ($el: JQuery<HTMLElement>) => void) {
-    if (!this._elements[postID] || this._elements[postID].length === 0) return;
+    if (!this._elements[postID]) return;
     for (const one of this._elements[postID])
       fn(one);
   }
@@ -213,11 +219,9 @@ export default class PostCache {
    * @returns {JQuery<HTMLElement>[]} Array of thumbnails
    */
   static sample (): JQuery<HTMLElement>[] {
-    const output = [];
-    for (const elements of Object.values(this._elements)) {
-      if (elements.length == 0) continue;
+    const output: JQuery<HTMLElement>[] = [];
+    for (const elements of Object.values(this._elements))
       output.push(elements[0]);
-    }
     return output;
   }
 
@@ -227,8 +231,8 @@ export default class PostCache {
    * @returns {CachedPost | null} Cached post data or null if not found
    */
   static get (postID: number): CachedPost | null {
-    if (!this._index.has(postID)) return null;
-    return new CachedPost(this._cache[postID]);
+    const data = this._cache.get(postID);
+    return data ? new CachedPost(data) : null;
   }
 
   /**
@@ -238,7 +242,7 @@ export default class PostCache {
    */
   static getManyByID (postIDs: number[]): { [key: number]: CachedPost } {
     const posts: { [key: number]: CachedPost } = {};
-    for (const postID of new Set(postIDs)) {
+    for (const postID of postIDs) {
       const post = this.get(postID);
       if (post) posts[postID] = post;
     }
@@ -247,10 +251,15 @@ export default class PostCache {
 
   static stats () {
     return {
-      cachedPosts: this._index.size,
+      cachedPosts: this._cache.size,
       cachedElements: this._elementCount,
     };
   }
+}
+
+/** Splits a space-separated attribute into tokens, dropping empty ones. */
+function splitWords (value: string): string[] {
+  return value.trim().split(/\s+/).filter(Boolean);
 }
 
 export class CachedPost implements CachedPostData {
@@ -278,15 +287,18 @@ export class CachedPost implements CachedPostData {
 
   public pools: number[];
 
-  public md5?: string;
-  public preview_url?: string;
-  public preview_webp?: string;
-  public sample_url?: string;
-  public file_url?: string;
+  public md5: string;
+  public preview_url: string;
+  public preview_webp: string;
+  public sample_url: string;
+  public file_url: string;
 
   constructor (data: CachedPostData) {
-    for (const [key, value] of Object.entries(data))
-      this[key] = value;
+    Object.assign(this, data);
+    // Copies, so that callers cannot mutate the cache through the arrays
+    this.tags = [...data.tags];
+    this.flags = [...data.flags];
+    this.pools = [...data.pools];
   }
 
   public toAttributes (): { [key: string]: string | number | boolean } {
@@ -354,6 +366,13 @@ interface BasicPostData {
   fav_count: number,
   is_favorited: boolean,
   comment_count: number,
+}
+
+/** Data produced by the server for deferred posts */
+export interface DeferredPostData extends BasicPostData {
+  tags: string,
+  flags: string,
+  pools: string,
 
   // Absent from deleted posts
   md5?: string,
@@ -363,14 +382,7 @@ interface BasicPostData {
   file_url?: string,
 }
 
-/** Data produced by the server for deferred posts */
-export interface DeferredPostData extends BasicPostData {
-  tags: string,
-  flags: string,
-  pools: string,
-};
-
-/** Data stored in the cache for a post */
+/** Data stored in the cache for a post. URLs are normalized to empty strings when absent. */
 export interface CachedPostData extends BasicPostData {
   tags: string[],
   tag_string: string,
@@ -378,4 +390,37 @@ export interface CachedPostData extends BasicPostData {
 
   flags: string[],
   pools: number[],
-};
+
+  md5: string,
+  preview_url: string,
+  preview_webp: string,
+  sample_url: string,
+  file_url: string,
+}
+
+/** Raw field values shared by both parsers, before normalization */
+interface RawPostData {
+  tags: string,
+  flags: string,
+  pools: string,
+  rating: string,
+  file_ext: string,
+
+  width: number,
+  height: number,
+  size: number,
+
+  score: number,
+  fav_count: number,
+  is_favorited: boolean,
+  comment_count: number,
+
+  uploader: string,
+  uploader_id: number,
+
+  md5: string,
+  preview_url: string,
+  preview_webp: string,
+  sample_url: string,
+  file_url: string,
+}
