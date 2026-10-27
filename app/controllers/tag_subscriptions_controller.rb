@@ -11,6 +11,16 @@ class TagSubscriptionsController < ApplicationController
     end
   end
 
+  # The nav bell's target. Lands on the subscription anchor's new posts (full listing when
+  # there are none) for users who only use subscriptions; anyone with custom tracked searches
+  # gets the saved searches index instead. Counts live so the decision never uses a stale cache.
+  def visit
+    anchor = SavedSearch.find_by(user_id: CurrentUser.user.id, is_subscription: true)
+    return redirect_to tag_subscriptions_path if anchor.nil? || TagSubscription.tag_names_for(CurrentUser.user).empty?
+    return redirect_to saved_searches_path if CurrentUser.user.saved_searches.regular.tracked.exists?
+    redirect_to posts_path(tags: anchor.visit_tags(new_count: SavedSearch.new_post_count(anchor)))
+  end
+
   def create
     result = TagSubscription.subscribe!(CurrentUser.user, requested_names)
     respond_to do |format|

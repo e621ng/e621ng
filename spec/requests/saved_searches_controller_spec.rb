@@ -127,14 +127,31 @@ RSpec.describe SavedSearchesController do
   end
 
   describe "GET /saved_searches/:id/visit" do
-    it "advances the watermark and redirects to the only-new view" do
+    it "advances the watermark and redirects to the only-new view when the cached count is positive" do
       create(:post)
       ss = create(:saved_search, user: owner, name: "foxes", query: "fox", is_tracked: true)
       old_watermark = ss.last_seen_post_id
       create(:post)
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(owner.id), { ss.id => 1 })
       get visit_saved_search_path(ss)
       expect(response).to redirect_to(posts_path(tags: "search:foxes id:>#{old_watermark}"))
       expect(ss.reload.last_seen_post_id).to eq(Post.maximum(:id))
+    end
+
+    it "redirects to the full listing when the cached count is zero, still advancing the watermark" do
+      create(:post)
+      ss = create(:saved_search, user: owner, name: "foxes", query: "fox", is_tracked: true)
+      create(:post)
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(owner.id), { ss.id => 0 })
+      get visit_saved_search_path(ss)
+      expect(response).to redirect_to(posts_path(tags: "search:foxes"))
+      expect(ss.reload.last_seen_post_id).to eq(Post.maximum(:id))
+    end
+
+    it "redirects to the full listing when nothing is cached" do
+      ss = create(:saved_search, user: owner, name: "foxes", query: "fox", is_tracked: true)
+      get visit_saved_search_path(ss)
+      expect(response).to redirect_to(posts_path(tags: "search:foxes"))
     end
 
     it "redirects untracked searches without a watermark filter" do

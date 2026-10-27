@@ -40,7 +40,7 @@
 
     <% if CurrentUser.user.is_logged_in? && CurrentUser.user.has_tracked_saved_searches? %>
       <a
-        href="<%= saved_searches_path %>"
+        href="<%= visit_tag_subscriptions_path %>"
         class="nav-controls-notifications"
         aria-label="Notifications"
       >
@@ -53,7 +53,7 @@
 
   <menu class="nav-tools desktop <%= CurrentUser.user.is_logged_out? ? "anonymous" : "" %>">
     <% if CurrentUser.user.is_logged_in? && CurrentUser.user.has_tracked_saved_searches? %>
-      <%= decorated_nav_link_to("Notifications", :bell, saved_searches_path, class: "nav-tools-notifications", title: "Notifications", aria: { label: "Notifications" }, data: { notif_count: notif_count, notif_stale: notif_stale }) %>
+      <%= decorated_nav_link_to("Notifications", :bell, visit_tag_subscriptions_path, class: "nav-tools-notifications", title: "Notifications", aria: { label: "Notifications" }, data: { notif_count: notif_count, notif_stale: notif_stale }) %>
     <% end %>
     <%= decorated_nav_link_to("Themes", :swatch, theme_path, class: "nav-tools-themes", title: "Site Themes", aria: { label: "Themes" }) %>
     <% unless CurrentUser.user.is_logged_out? %>

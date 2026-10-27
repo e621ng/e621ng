@@ -68,14 +68,12 @@ class SavedSearchesController < ApplicationController
     respond_with(@saved_search, location: saved_searches_path)
   end
 
-  # Advances the watermark (tracked searches only) and lands on the only-new-posts view.
-  # This is the sole watermark-advancing search path; the search: metatag itself is read-only.
+  # Advances the watermark (tracked searches only) and lands on the only-new-posts view when
+  # the cached badge count says there are any; the index refreshes that count right before
+  # rendering these links. The search: metatag itself is read-only.
   def visit
     @saved_search = CurrentUser.user.saved_searches.find(params[:id])
-    old_watermark = @saved_search.mark_seen!
-    tags = "search:#{@saved_search.name || @saved_search.id}"
-    tags += " id:>#{old_watermark}" if old_watermark
-    redirect_to posts_path(tags: tags)
+    redirect_to posts_path(tags: @saved_search.visit_tags)
   end
 
   def mark_all_seen
