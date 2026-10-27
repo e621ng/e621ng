@@ -1,4 +1,4 @@
-import Post from "@/pages/posts/posts";
+import PendingUpdates from "@/pages/posts/PendingUpdates";
 import TaskQueue from "@/utility/TaskQueue";
 import ToastManager from "@/utility/Toast";
 import Dialog from "@/components/dialog";
@@ -137,8 +137,7 @@ export default class PostReowner {
   }
 
   private static reowner (post_id: string, new_owner: string, reowner_versions: boolean = false, post_events: boolean = true, karma: boolean = true): void {
-    Post.notice_update("inc");
-    let hasError = false;
+    PendingUpdates.begin();
     TaskQueue.add(async () => {
       try {
         await $.ajax({
@@ -160,11 +159,8 @@ export default class PostReowner {
         const errors = apiError?.responseJSON?.errors || [apiError?.responseJSON?.reason] || ["Unknown error"];
         const message = $.map(errors, (msg: string) => msg).join("; ");
         ToastManager.alert("Error: " + message);
-        hasError = true;
       } finally {
-        if (!hasError) {
-          Post.notice_update("dec");
-        }
+        PendingUpdates.end();
       }
     }, { name: "Post.reowner" });
   }

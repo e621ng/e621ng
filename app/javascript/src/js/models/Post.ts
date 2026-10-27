@@ -3,9 +3,35 @@ import ApiRequest from "@/utility/ApiRequest";
 /** Full post JSON as rendered by the responders / legacy blueprints. Kept loose for now. */
 export type PostJSON = Record<string, any>;
 
-/** PUT /posts/:id.json still answers in the legacy `{ post: {...} }` envelope. */
-export interface PostUpdateResponse {
-  post: PostJSON;
+/** The thumbnails-mode post payload (PostThumbnailBlueprint), which mirrors the thumbnail data attributes. */
+export interface PostThumbnailJSON {
+  id: number;
+  created_at: string;
+  md5: string | null;
+  file_ext: string;
+  width: number;
+  height: number;
+  size: number;
+  preview_url: string | null;
+  preview_webp: string | null;
+  sample_url: string | null;
+  file_url: string | null;
+  preview_width: number;
+  preview_height: number;
+  uploader_id: number;
+  uploader: string;
+  score: number;
+  fav_count: number;
+  is_favorited: boolean;
+  vote: number | null;
+  comment_count: number;
+  /** Space-joined subset of "pending flagged deleted"; empty when active. */
+  flags: string;
+  /** Space-joined pool ids. */
+  pools: string;
+  rating: "s" | "q" | "e";
+  /** The full tag string. */
+  tags: string;
 }
 
 export interface PostUpdateParams {
@@ -38,9 +64,11 @@ export interface PostDeleteOptions {
 
 export default class Post {
 
-  static update (post_id: number, params: PostUpdateParams): Promise<PostUpdateResponse> {
+  /** Updates the post and answers with its thumbnail payload, so index thumbnails can be synced. */
+  static update (post_id: number, params: PostUpdateParams): Promise<PostThumbnailJSON> {
     return ApiRequest.json(`/posts/${post_id}.json`, {
       method: "PUT",
+      params: { v2: "true", mode: "thumbnails" },
       json: { post: params },
       queue: { name: "Post.update" },
       errorText: (error) => `There was an error updating <a href="/posts/${post_id}">post #${post_id}</a>: ${error.message}`,

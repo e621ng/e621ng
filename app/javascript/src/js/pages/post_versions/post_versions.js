@@ -1,5 +1,5 @@
 import ToastManager from "@/utility/Toast";
-import Post from "@/pages/posts/posts";
+import BulkActions from "@/pages/posts/BulkActions";
 import TaskQueue from "@/utility/TaskQueue";
 
 let PostVersion = {};
@@ -76,9 +76,8 @@ PostVersion.tag_script_selected = function (event) {
     let id = $(row).data("post-id");
 
     promises.push(TaskQueue.add(() => {
-      Post.tagScript(id, script, reason);
-
       toast.message = `${++PostVersion.updated} / ${selected_rows.length} changes applied.`;
+      return BulkActions.tagScript(id, script, reason);
     }, { name: "PostVersion.tag_script_selected" }));
   }
   Promise.all(promises).then(() => {
