@@ -42,6 +42,32 @@ export default class HTTP {
     return HTTP.json(await HTTP.post(url, body, opts));
   }
 
+  /**
+   * Builds a user-facing message from a failed response. Handles every shape the backend
+   * produces: `render_expected_error` (`message` / `reason`), responders validation
+   * errors (`errors` as an array or an attribute hash), and non-JSON bodies such as
+   * HTML error pages, which fall back to the status line.
+   */
+  static async errorMessage (response: Response, fallback?: string): Promise<string> {
+    let body: any = null;
+    try { body = await response.json(); } catch { /* not JSON */ }
+
+    if (body && typeof body === "object") {
+      for (const key of ["message", "reason"])
+        if (typeof body[key] === "string" && body[key]) return body[key];
+
+      const errors = body.errors;
+      const messages: string[] = Array.isArray(errors)
+        ? errors
+        : errors && typeof errors === "object" ? Object.values(errors).flat() : [];
+      const text = messages.filter((msg) => typeof msg === "string" && msg).join("; ");
+      if (text) return text;
+    }
+
+    if (response.status === 404) return "Not Found";
+    return fallback ?? `${response.status} ${response.statusText ?? ""}`.trim();
+  }
+
   // The JSON sugar only resolves on 2xx (an error body could still be valid JSON,
   // which callers must not mistake for success); use `request`/`get`/`post` for
   // non-ok handling.

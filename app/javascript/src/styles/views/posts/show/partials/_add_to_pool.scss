@@ -5,9 +5,20 @@
   padding: 0.5rem;
 
   div.input { margin: 0; }
-  .add-to-pool-inputs, .add-to-pool-recent {
+  .dialog-inputs, .dialog-recent {
     padding: 0.5rem;
     background: themed("color-section-lighten-5");
     @include st-radius;
+  }
+
+  .dialog-submit {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+  }
+
+  #recent-pools li {
+    cursor: pointer;
+    &:hover { text-decoration: underline; }
   }
 }
