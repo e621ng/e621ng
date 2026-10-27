@@ -1,4 +1,4 @@
-import Post from "@/pages/posts/posts";
+import Navigation from "@/pages/posts/show/Navigation";
 import Page from "@/utility/Page";
 import LStorage from "@/utility/storage/Local";
 import Utility from "@/utility/utility";
@@ -76,20 +76,14 @@ class SwipeGestureHandler {
     const duration = last.time - first.time;
     if (duration <= 0 || totalDist / duration < MIN_VELOCITY) return;
 
-    if (dx > 0 && Post.has_prev_target()) {
+    if (dx > 0 && Navigation.hasPrev()) {
       $("body").css({ transition: "opacity 100ms ease, transform 100ms ease", opacity: "0", transform: "translateX(150%)" });
-      Utility.delay(0).then(() => Post.nav_prev()); // Apply CSS changes before navigating
-    } else if (dx < 0 && Post.has_next_target()) {
+      Utility.delay(0).then(() => Navigation.prev()); // Apply CSS changes before navigating
+    } else if (dx < 0 && Navigation.hasNext()) {
       $("body").css({ transition: "opacity 100ms ease, transform 100ms ease", opacity: "0", transform: "translateX(-150%)" });
-      Utility.delay(0).then(() => Post.nav_next()); // Apply CSS changes before navigating
+      Utility.delay(0).then(() => Navigation.next()); // Apply CSS changes before navigating
     }
   };
-}
-
-function getNextHref (): string | undefined {
-  return $(".search-seq-nav a[rel~=next]").attr("href")
-    || $(".paginator a[rel~=next]").attr("href")
-    || $(".pool-nav li.pool-selected-true a[rel~=next], .set-nav li.set-selected-true a[rel~=next]").attr("href");
 }
 
 $(() => {
@@ -98,7 +92,7 @@ $(() => {
   if (!("ontouchstart" in window) && !(navigator.maxTouchPoints > 0)) return;
   new SwipeGestureHandler();
 
-  const nextHref = getNextHref();
+  const nextHref = Navigation.nextHref();
   if (nextHref)
     $("<link>").attr({ rel: "prefetch", href: nextHref }).appendTo("head");
 });
