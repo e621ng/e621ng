@@ -18,7 +18,7 @@ import PostActions from "@/pages/posts/show/PostActions";
 import PostSet from "@/pages/posts/show/PostSet";
 import RelationshipPreview from "@/pages/posts/show/RelationshipPreview";
 import "@/pages/posts/show/toolbar";
-import "@/pages/posts/show/recommended";
+import Recommended from "@/pages/posts/show/Recommended";
 import "@/pages/posts/show/TagEditor";
 import PostResizer from "@/pages/posts/show/Resizer";
 import "@/pages/posts/show/SwipeGestureHandler";
@@ -36,6 +36,7 @@ $(() => {
   void DetailedRejectionDialog.instance;
   void DeleteWithReasonDialog.instance;
   void ApprovalToolbar.instance;
+  void Recommended.instance;
   PostSet.bindRemoveLinks();
   PostReowner.initialize_links();
   Navigation.registerHotkeys();
