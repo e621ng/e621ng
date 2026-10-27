@@ -25,18 +25,12 @@ export default class FilterUtilities {
     favcount: (token, post) => FilterUtilities.compare(post.fav_count, token),
     fav: (_token, post) => post.is_favorited,
 
-    uploader: (token, post) => FilterUtilities.FilterTests.user(token, post),
-    user: (token, post) => {
-    // Funky userid: alternative
-    // TODO: Don't re-parse this on every run
-      if (token.value.startsWith("!"))
-        return post.uploader_id === parseInt(token.value.slice(1));
-      return post.uploader === token.value;
-    },
+    uploader: (token, post) => post.uploader === token.value,
+    user: (token, post) => post.uploader === token.value,
     userid: (token, post) => FilterUtilities.compare(post.uploader_id, token),
     username: (token, post) => post.uploader === token.value,
 
-    pool: (token, post) => post.pools.includes(parseInt(token.value) || 0),
+    pool: (token, post) => post.pools.includes(token.value),
 
     // Not a supported metatag, type is assigned manually
     wildcard: (token, post) => FilterUtilities.wildcardTagMatchesFilter(post, token.value),
@@ -103,6 +97,7 @@ export default class FilterUtilities {
       case "score":
       case "favcount":
       case "userid":
+      case "pool":
         return parseInt(value);
       case "rating":
         return FilterUtilities.parseRating(value);
@@ -143,7 +138,7 @@ export default class FilterUtilities {
    * @returns true the post has the tag
    */
   static tagsMatchesFilter (post: CachedPost, filter: string): boolean {
-    return post.tags.indexOf(filter) >= 0;
+    return post.hasTag(filter);
   }
 
   static wildcardTagMatchesFilter (post: CachedPost, filter: RegExp): boolean {

@@ -148,7 +148,6 @@ class FeaturedPostsPreview {
   }
 
   private static clearList () {
-    this.$list.find(".thumbnail").each((_, element) => { PostCache.prune($(element)); });
     this.$list.empty();
   }
 }

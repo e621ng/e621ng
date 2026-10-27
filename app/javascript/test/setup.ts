@@ -83,6 +83,8 @@ afterEach(() => {
 
   document.head.innerHTML = "";
   document.body.innerHTML = "";
+  // PostCache starts a MutationObserver at import; stop it so it cannot outlive its module
+  (window as any)[Symbol.for("e621.postcache.observer")]?.disconnect();
   vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });

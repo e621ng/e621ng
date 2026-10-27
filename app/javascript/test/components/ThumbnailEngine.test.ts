@@ -182,6 +182,15 @@ describe("ThumbnailEngine", () => {
         expect(el.classList.contains("filter-matches")).toBe(true);
       });
 
+      it("picks up posts loaded through the cache once the blacklist is flushed", async () => {
+        const { ThumbnailEngine, Blacklist, post } = await load({ blacklist: ["wolf"] });
+        const data = post({ tags: "fox wolf" });
+        Blacklist.flush();
+        const el = ThumbnailEngine.render(data)![0];
+        expect(el.classList.contains("blacklisted")).toBe(true);
+        expect(el.classList.contains("filter-matches")).toBe(true);
+      });
+
       it("matches a disabled filter without hiding", async () => {
         const { ThumbnailEngine, Blacklist, post } = await load();
         Blacklist.matchedPosts.add(42);

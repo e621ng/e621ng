@@ -1,15 +1,22 @@
-
 /**
  * Simple post cache, used to speed up blacklist processing.
  * Fetches data from the data-attributes of a thumbnail.
+ *
+ * Also tracks which thumbnail elements are on the page. A MutationObserver picks up
+ * thumbnails as they are added, removed, or edited in place, so callers that touch
+ * the DOM do not need to register or prune anything by hand.
  */
 export default class PostCache {
   // Entries are never evicted on purpose: pages are full reloads, and each entry is tiny.
-  // Element references are what `prune()` manages.
+  // Element references are what `prune()` and the observer manage.
   private static _cache = new Map<number, CachedPostData>();
 
-  private static _elements: { [key: number]: JQuery<HTMLElement>[] } = {};
+  private static _elements = new Map<number, Set<HTMLElement>>();
   private static _elementCount = 0;
+
+  /** Elements the observer tracks. Avatar placeholders have no rating, so they are skipped. */
+  public static readonly SELECTOR = "article.thumbnail[data-id][data-rating], #image-container[data-id]";
+  private static readonly OBSERVED_ATTRIBUTES = ["data-tags", "data-rating", "data-flags"];
 
   /**
    * Add to cache based on the data-attributes of the specific thumbnail element
@@ -108,6 +115,7 @@ export default class PostCache {
       id: id,
       tag_string: tags.join(" "),
       tags: tags,
+      tagSet: new Set(tags),
       tagcount: tags.length,
 
       flags: splitWords(raw.flags),
@@ -136,71 +144,78 @@ export default class PostCache {
     };
 
     this._cache.set(id, value);
+    this._emit("post:changed", { ids: [id] });
     return new CachedPost(value);
   }
 
 
+  /* ============================== */
+  /* ===== Element lifecycle ====== */
+  /* ============================== */
+
   /**
-   * Save post thumbnails so that they can be referred to later
+   * Save post thumbnails so that they can be referred to later.
+   * Normally done by the observer; only needed by hand when the result must be synchronous.
    * @param {JQuery<HTMLElement> | JQuery<HTMLElement>[]} $elements Post elements
    * @param {boolean} update Whether to re-read the attributes of already cached posts
+   * @returns Elements that were not registered before
    */
   static register ($elements: JQuery<HTMLElement> | JQuery<HTMLElement>[], update: boolean = false): JQuery<HTMLElement>[] {
     const added: JQuery<HTMLElement>[] = [];
     for (let $post of $elements) {
       $post = $($post);
-      // Stripped before validation on purpose: a thumbnail that cannot be parsed cannot be filtered either.
-      $post.removeClass("blacklistable");
-      const postData = PostCache.fromThumbnail($post, update);
-      if (!postData) continue;
-
-      if (!this._elements[postData.id])
-        this._elements[postData.id] = [];
-
-      // Check if this thumbnail element is already registered.
       const element = $post[0];
-      if (this._elements[postData.id].some((one) => one[0] === element))
-        continue;
+      if (!element) continue;
 
-      this._elements[postData.id].push($post);
+      const postData = PostCache.fromThumbnail($post, update);
+      if (!postData) {
+        // A thumbnail that cannot be parsed cannot be filtered, so it must not stay hidden
+        $post.removeClass("blacklistable");
+        continue;
+      }
+
+      let elements = this._elements.get(postData.id);
+      if (!elements) {
+        elements = new Set();
+        this._elements.set(postData.id, elements);
+      }
+      if (elements.has(element)) continue;
+
+      elements.add(element);
       this._elementCount++;
       added.push($post);
     }
+
+    if (added.length) this._emit("post:added", { elements: added.map(($el) => $el[0]) });
     return added;
   }
 
   /**
-   * Remove a thumbnail from the cache. Should be called when a thumbnail is removed from the DOM to prevent memory leaks.
+   * Remove a thumbnail from the cache. Normally done by the observer when the element leaves the DOM.
    * @param {JQuery<HTMLElement>} $element Thumbnail element to remove
+   * @returns Number of element references removed
    */
   static prune ($element: JQuery<HTMLElement> | JQuery<HTMLElement>[]): number {
-    if (Array.isArray($element)) {
-      let totalRemoved = 0;
-      for (const el of $element) totalRemoved += this.prune(el);
-      return totalRemoved;
-    } else if ($element.length > 1) {
-      return this.prune($element.get().map(el => $(el)));
+    const list = Array.isArray($element) ? $element.map(($el) => $el[0]) : $element.get();
+    const removedIDs: number[] = [];
+    let removedCount = 0;
+
+    for (const element of list) {
+      const id = element ? parseInt(element.dataset.id) || 0 : 0;
+      const elements = id ? this._elements.get(id) : null;
+      if (!elements || !elements.delete(element)) continue;
+
+      removedCount++;
+      this._elementCount--;
+      if (elements.size === 0) {
+        this._elements.delete(id);
+        removedIDs.push(id);
+      }
     }
 
-    const element = $element[0];
-    const id = element ? parseInt(element.dataset.id) || 0 : 0;
-    if (!id || !this._elements[id]) return 0;
-
-    const initialLength = this._elements[id].length;
-    this._elements[id] = this._elements[id].filter((one) => one[0] !== element);
-    const removedCount = initialLength - this._elements[id].length;
-    this._elementCount -= removedCount;
-
-    // Cleanup to prevent .sample() from returning undefined values
-    if (this._elements[id].length === 0) this._pruneElement(id);
+    if (removedIDs.length) this._emit("post:removed", { ids: removedIDs });
     return removedCount;
   }
-
-  /** Should only be called internally to remove all references to a post */
-  private static _pruneElement (id: number) {
-    delete this._elements[id];
-  }
-
 
   /**
    * Applies the provided function to all posts with the specified ID.
@@ -209,9 +224,10 @@ export default class PostCache {
    * @param {($el: JQuery<HTMLElement>) => void} fn Function to apply to the posts
    */
   static apply (postID: number, fn: ($el: JQuery<HTMLElement>) => void) {
-    if (!this._elements[postID]) return;
-    for (const one of this._elements[postID])
-      fn(one);
+    const elements = this._elements.get(postID);
+    if (!elements) return;
+    for (const one of elements)
+      fn($(one));
   }
 
   /**
@@ -220,10 +236,142 @@ export default class PostCache {
    */
   static sample (): JQuery<HTMLElement>[] {
     const output: JQuery<HTMLElement>[] = [];
-    for (const elements of Object.values(this._elements))
-      output.push(elements[0]);
+    for (const elements of this._elements.values())
+      output.push($(elements.values().next().value));
     return output;
   }
+
+  /** IDs of posts that currently have at least one element on the page */
+  static ids (): number[] {
+    return Array.from(this._elements.keys());
+  }
+
+  /** IDs of every post with cached data, whether or not it is on the page */
+  static cachedIDs (): number[] {
+    return Array.from(this._cache.keys());
+  }
+
+
+  /* ============================== */
+  /* ========== Observer ========== */
+  /* ============================== */
+
+  // Kept on a global symbol as well: specs reset the module registry, and the previous
+  // module's observer would otherwise keep pruning into a map nobody reads anymore.
+  private static readonly OBSERVER_KEY = Symbol.for("e621.postcache.observer");
+
+  /**
+   * Registers every tracked element under the root, then watches it for
+   * thumbnails being added, removed, or edited. Safe to call more than once.
+   * @param {Node} root Node to observe, the whole document by default
+   */
+  static observe (root: ParentNode & Node = document.documentElement): void {
+    if (typeof MutationObserver === "undefined") return;
+    this.disconnect();
+
+    const found = root.querySelectorAll<HTMLElement>(this.SELECTOR);
+    if (found.length) this.register(Array.from(found, (el) => $(el)));
+
+    const observer = new MutationObserver((records) => this._onMutations(records));
+    observer.observe(root, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: this.OBSERVED_ATTRIBUTES,
+    });
+    (window as any)[this.OBSERVER_KEY] = observer;
+  }
+
+  /** Stops watching the DOM. Already-registered elements are kept. */
+  static disconnect (): void {
+    const observer: MutationObserver | undefined = (window as any)[this.OBSERVER_KEY];
+    if (!observer) return;
+    observer.disconnect();
+    delete (window as any)[this.OBSERVER_KEY];
+  }
+
+  private static _onMutations (records: MutationRecord[]): void {
+    const removed = new Set<HTMLElement>();
+    const added = new Set<HTMLElement>();
+    const changed = new Set<HTMLElement>();
+
+    const collect = (node: Node, into: Set<HTMLElement>) => {
+      if (node.nodeType !== Node.ELEMENT_NODE) return;
+      const element = node as HTMLElement;
+      if (element.matches(this.SELECTOR)) into.add(element);
+      for (const child of element.querySelectorAll<HTMLElement>(this.SELECTOR)) into.add(child);
+    };
+
+    for (const record of records) {
+      if (record.type === "attributes") {
+        const target = record.target as HTMLElement;
+        if (target.matches(this.SELECTOR)) changed.add(target);
+        continue;
+      }
+      for (const node of record.removedNodes) collect(node, removed);
+      for (const node of record.addedNodes) collect(node, added);
+    }
+
+    // Moved elements show up in both lists; what matters is where they ended up
+    const toPrune: JQuery<HTMLElement>[] = [];
+    for (const element of removed)
+      if (!element.isConnected) toPrune.push($(element));
+    if (toPrune.length) this.prune(toPrune);
+
+    const toRegister: JQuery<HTMLElement>[] = [];
+    for (const element of added)
+      if (element.isConnected) toRegister.push($(element));
+    if (toRegister.length) this.register(toRegister);
+
+    for (const element of changed) {
+      if (!element.isConnected || added.has(element)) continue;
+      const id = parseInt(element.dataset.id) || 0;
+      if (!this._elements.has(id)) continue;
+      this.fromThumbnail($(element), true);
+    }
+  }
+
+
+  /* ============================== */
+  /* =========== Events =========== */
+  /* ============================== */
+
+  private static _listeners = new Map<keyof PostCacheEvents, Set<PostCacheListener<any>>>();
+
+  /**
+   * Subscribes to a cache event.
+   * @returns Function that removes the subscription
+   */
+  static on<K extends keyof PostCacheEvents> (event: K, fn: PostCacheListener<K>): () => void {
+    let listeners = this._listeners.get(event);
+    if (!listeners) {
+      listeners = new Set();
+      this._listeners.set(event, listeners);
+    }
+    listeners.add(fn);
+    return () => this.off(event, fn);
+  }
+
+  static off<K extends keyof PostCacheEvents> (event: K, fn: PostCacheListener<K>): void {
+    this._listeners.get(event)?.delete(fn);
+  }
+
+  private static _emit<K extends keyof PostCacheEvents> (event: K, detail: PostCacheEvents[K]): void {
+    const listeners = this._listeners.get(event);
+    if (!listeners) return;
+    for (const fn of listeners) {
+      try {
+        fn(detail);
+      } catch (error) {
+        console.error(`PostCache: listener for ${event} failed`, error);
+      }
+    }
+  }
+
+
+  /* ============================== */
+  /* ========== Lookups =========== */
+  /* ============================== */
 
   /**
    * Gets the cached data for a post by its ID
@@ -262,10 +410,22 @@ function splitWords (value: string): string[] {
   return value.trim().split(/\s+/).filter(Boolean);
 }
 
+export interface PostCacheEvents {
+  /** Elements registered for the first time */
+  "post:added": { elements: HTMLElement[] };
+  /** Posts whose last element left the page */
+  "post:removed": { ids: number[] };
+  /** Posts whose cached data was (re)written */
+  "post:changed": { ids: number[] };
+}
+
+type PostCacheListener<K extends keyof PostCacheEvents> = (detail: PostCacheEvents[K]) => void;
+
 export class CachedPost implements CachedPostData {
 
   public tag_string: string;
   public tags: string[];
+  public tagSet: ReadonlySet<string>;
   public tagcount: number;
 
   public id: number;
@@ -295,10 +455,15 @@ export class CachedPost implements CachedPostData {
 
   constructor (data: CachedPostData) {
     Object.assign(this, data);
-    // Copies, so that callers cannot mutate the cache through the arrays
+    // Copies, so that callers cannot mutate the cache through the arrays.
+    // The tag set is read-only and shared, since it is what makes filtering cheap.
     this.tags = [...data.tags];
     this.flags = [...data.flags];
     this.pools = [...data.pools];
+  }
+
+  public hasTag (tag: string): boolean {
+    return this.tagSet.has(tag);
   }
 
   public toAttributes (): { [key: string]: string | number | boolean } {
@@ -385,6 +550,7 @@ export interface DeferredPostData extends BasicPostData {
 /** Data stored in the cache for a post. URLs are normalized to empty strings when absent. */
 export interface CachedPostData extends BasicPostData {
   tags: string[],
+  tagSet: ReadonlySet<string>,
   tag_string: string,
   tagcount: number,
 
@@ -424,3 +590,7 @@ interface RawPostData {
   sample_url: string,
   file_url: string,
 }
+
+// Module scripts run after the document is parsed, so the sweep sees server-rendered thumbnails.
+// Must come after the class declarations above, since the sweep constructs CachedPost instances.
+if (typeof document !== "undefined") PostCache.observe();

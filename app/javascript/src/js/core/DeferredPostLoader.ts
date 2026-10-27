@@ -28,13 +28,9 @@ export default class DeferredPostLoader {
       if (post) processed.push(post);
     }
 
-    // At this point, no thumbnails are rendered.
-    // However, this lets us populate the Blacklist and render thumbnails with the correct
-    // visibility on the first try, instead of rendering them and then updating their visibility.
-    Blacklist.loadDeferredPosts(processed);
-    Blacklist.recalculateMatchedPosts();
-    Blacklist.updatePostVisibility();
-    Blacklist.updateThumbnailStyles();
+    // Storing the data marked the posts dirty. Committing now, rather than in the microtask,
+    // lets ThumbnailEngine render them with the correct visibility on the first try.
+    Blacklist.flush();
 
     this.Logger.log("Loaded post data", "\n ⤷ Processed: " + processed.length + " / " + Object.keys(postsData).length, "\n ⤷ In cache: " + PostCache.stats().cachedPosts);
 
@@ -109,9 +105,6 @@ $(() => {
   DeferredPostLoader.renderUserAvatars();
 
   // Backwards compatibility - prefer to call .loadPostData() directly.
-  // Does not do any pruning, so the blacklist will gradually get more and more inaccurate
-  // as posts are removed from the DOM. This event is only intended to be triggered on one-off
-  // occasions (ex. reloading a blip after marking it), so it shouldn't cause too much of an issue.
   $(window).on("e621:add_deferred_posts", (_, posts) => {
     DeferredPostLoader.loadPostData(posts);
     DeferredPostLoader.renderDTextThumbnails();

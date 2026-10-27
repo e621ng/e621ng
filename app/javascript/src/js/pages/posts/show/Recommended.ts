@@ -1,4 +1,3 @@
-import Blacklist from "@/core/blacklist";
 import Analytics from "@/core/Analytics";
 import ThumbnailEngine from "@/components/ThumbnailEngine";
 import CurrentPost from "@/models/CurrentPost";
@@ -212,10 +211,6 @@ export default class Recommended {
     if (this.status !== "waiting") {
       this.status = "waiting";
 
-      container.find(".thumbnail").each((_, element) => {
-        PostCache.prune($(element));
-      });
-      this.Logger.log("Thumbnails pruned", PostCache.stats());
       container.empty();
 
       for (let i = 0; i < Recommended.RESULT_COUNT; i++)
@@ -300,11 +295,6 @@ export default class Recommended {
       renderedPosts.push(rendered);
     }
 
-    // 6. Apply blacklist (also registers the thumbnails with PostCache)
-    if (renderedPosts.length > 0) {
-      Blacklist.addPosts(renderedPosts);
-      Blacklist.updatePostVisibility();
-    }
     this.Logger.log(`Rendered ${renderedPosts.length} posts`, renderedPosts);
     this.Logger.log(" ⤷ Cache state:", PostCache.stats());
     perf.mark("rendered");

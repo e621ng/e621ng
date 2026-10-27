@@ -223,6 +223,11 @@
 }
 
 
+// Comments, blips, and forum posts from blacklisted users
+article.blacklisted-user {
+  display: none !important;
+}
+
 // Completely hide the blacklisted posts on these pages only
 #c-posts #a-index,
 #c-popular,

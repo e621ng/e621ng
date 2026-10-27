@@ -25,6 +25,11 @@ export function setSiteData (id: string, value: unknown): void {
   script.textContent = encodeBase64(value);
 }
 
+/** Lets MutationObserver delivery and queued microtasks settle. */
+export function tick (): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, 0));
+}
+
 /** Inject or update a `<meta name="..." content="...">` element in the head. */
 export function setMeta (name: string, content: string): void {
   let meta = document.head.querySelector<HTMLMetaElement>(`meta[name="${name}"]`);

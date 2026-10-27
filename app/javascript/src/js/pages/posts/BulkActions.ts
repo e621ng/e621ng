@@ -1,4 +1,3 @@
-import Blacklist from "@/core/blacklist";
 import Post, { PostThumbnailJSON, PostUpdateParams } from "@/models/Post";
 import PostApproval from "@/models/PostApproval";
 import PostFlag from "@/models/PostFlag";
@@ -113,9 +112,7 @@ export default class BulkActions {
     BulkActions.setData($thumbnails, "flags", flags);
     const active = new Set(flags.split(" ").filter((flag) => flag));
     for (const flag of STATUS_FLAGS) $thumbnails.toggleClass(flag, active.has(flag));
-
-    // Every in-place attribute change ends here, so this is where the blacklist catches up
-    if ($thumbnails.length) Blacklist.refreshPosts($thumbnails);
+    // The blacklist picks the attribute changes up through PostCache's observer
   }
 
   private static removeFlag ($thumbnails: JQuery<HTMLElement>, flag: string): void {

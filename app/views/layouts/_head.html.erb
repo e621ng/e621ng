@@ -63,16 +63,13 @@
 }
 </script>
 
-<style id="blacklisted-hider">
-  .thumbnail, #image-container, #c-comments .post {
-    visibility: hidden !important;
-  }
+<%# Inline so that nothing flashes before the stylesheet loads. The blacklist removes the class once a post is classified. %>
+<style>
+  .blacklistable { visibility: hidden !important; }
 </style>
 <noscript>
   <style>
-    .thumbnail, #image-container, #c-comments .post {
-      visibility: visible !important;
-    }
+    .blacklistable { visibility: visible !important; }
   </style>
 </noscript>
 
