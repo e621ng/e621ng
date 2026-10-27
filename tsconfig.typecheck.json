@@ -17,6 +17,12 @@
     "app/javascript/src/js/pages/post_replacements/new/**/*",
     "app/javascript/src/js/pages/posts/show/tag_editor.vue",
     "app/javascript/src/js/pages/posts/show/TagEditor.ts",
+    "app/javascript/src/js/pages/posts/show/EditTab.ts",
+    "app/javascript/src/js/pages/posts/show/Navigation.ts",
+    "app/javascript/src/js/pages/posts/show/PostActions.ts",
+    "app/javascript/src/js/pages/posts/show/RelationshipPreview.ts",
+    "app/javascript/src/js/pages/posts/show/SourceValidation.ts",
+    "app/javascript/src/js/pages/posts/show/SwipeGestureHandler.ts",
     "app/javascript/src/js/pages/posts/show/notes/**/*",
     "app/javascript/src/js/pages/posts/show/toolbar/**/*"
   ]
