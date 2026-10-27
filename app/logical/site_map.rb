@@ -152,6 +152,12 @@ module SiteMap
   page :posts, :uploads, "Upload Listing", level: UserLevel::STAFF
   page :posts, :help_page, "Help", params: { id: "posts" }
 
+  # --- Saved Searches ---
+  group :saved_searches, "Saved Searches"
+  page :saved_searches, :saved_searches, "Listing"
+  page :saved_searches, :new_saved_search, "New"
+  page :saved_searches, :tag_subscriptions, "Subscriptions"
+
   # --- Post Events ---
   group :post_events, "Post Events"
   page :post_events, :post_events, "Listing"
