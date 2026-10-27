@@ -6,7 +6,8 @@ export default class Favorite {
   /**
    * Creates a new favorite for the specified post.
    * @param {number} post_id The ID of the post to favorite.
-   * @returns {Promise<Response>} The response from the server.
+   * @param {number} delay Minimum delay before the request is sent, in milliseconds.
+   * @returns {Promise<{post_id: number, favorite_count: number}>} The parsed response from the server.
    */
   static async create (post_id, delay = 1000) {
     if (!post_id) return Promise.reject(new Error("Post ID is required"));
@@ -33,7 +34,7 @@ export default class Favorite {
           const errorData = await response.json();
           backendErrorMessage = errorData.message || "Unknown error";
 
-          // NOTE: the PostShowToolbar relies on this error message to reset the page's favorite state.
+          // NOTE: CurrentPost.favorite() relies on this error message to reconcile the page's favorite state.
           if (backendErrorMessage !== "You have already favorited this post")
             $(window).trigger("danbooru:error", "Error: " + backendErrorMessage);
         } catch (_error) {
@@ -61,7 +62,8 @@ export default class Favorite {
   /**
    * Deletes a favorite for the specified post.
    * @param {number} post_id The ID of the post to unfavorite.
-   * @returns {Promise<Response>} The response from the server.
+   * @param {number} delay Minimum delay before the request is sent, in milliseconds.
+   * @returns {Promise<{post_id: number, favorite_count: number}>} The parsed response from the server.
    */
   static async destroy (post_id, delay = 1000) {
     if (!post_id) return Promise.reject(new Error("Post ID is required"));

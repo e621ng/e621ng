@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { POST_ID, flush, hotkeys, loadToolbar, pressHotkey, renderToolbarPage } from "./fixtures";
+import { POST_ID, currentPost, flush, hotkeys, loadToolbar, pressHotkey, renderToolbarPage } from "./fixtures";
 
 vi.mock("@/core/hotkeys", () => ({
   default: { register: (name: string, listener: () => void) => { hotkeys.set(name, listener); } },
 }));
 vi.mock("@/utility/Page", () => ({ default: { matches: () => true } }));
 vi.mock("@/pages/posts/show/notes", () => ({ default: { enabled: false } }));
-vi.mock("@/models/CurrentPost", () => ({ default: { exists: true, id: 123, vote: vi.fn() } }));
+vi.mock("@/models/PostVote", () => ({ default: { vote: vi.fn() } }));
 
 const favorite = { create: vi.fn(), destroy: vi.fn() };
 vi.mock("@/models/Favorite", () => ({ default: favorite }));
@@ -23,8 +23,8 @@ function favoritedState () {
 
 describe("ToolbarFavorites", () => {
   beforeEach(() => {
-    favorite.create.mockReset().mockResolvedValue({});
-    favorite.destroy.mockReset().mockResolvedValue({});
+    favorite.create.mockReset().mockResolvedValue({ post_id: POST_ID, favorite_count: 1 });
+    favorite.destroy.mockReset().mockResolvedValue({ post_id: POST_ID, favorite_count: 0 });
     toast.track.mockReset().mockImplementation(
       (promise: Promise<unknown>, _pending: string, done: (result: unknown) => string) => promise.then(done, () => undefined),
     );
@@ -35,6 +35,7 @@ describe("ToolbarFavorites", () => {
     it("adds a favorite when not yet favorited", async () => {
       renderToolbarPage({ favorited: false });
       await loadToolbar();
+      const CurrentPost = await currentPost();
 
       $(".ptbr-favorite-button").trigger("click");
       await flush();
@@ -42,11 +43,14 @@ describe("ToolbarFavorites", () => {
       expect(favorite.create).toHaveBeenCalledWith(POST_ID, 500);
       expect(favorite.destroy).not.toHaveBeenCalled();
       expect(favoritedState()).toEqual({ button: "true", image: "true" });
+      expect(CurrentPost.favorited).toBe(true);
+      expect(CurrentPost.stats.fav_count).toBe(1);
     });
 
     it("removes the favorite when already favorited", async () => {
-      renderToolbarPage({ favorited: true });
+      renderToolbarPage({ favorited: true, favCount: 1 });
       await loadToolbar();
+      const CurrentPost = await currentPost();
 
       $(".ptbr-favorite-button").trigger("click");
       await flush();
@@ -54,6 +58,8 @@ describe("ToolbarFavorites", () => {
       expect(favorite.destroy).toHaveBeenCalledWith(POST_ID, 500);
       expect(favorite.create).not.toHaveBeenCalled();
       expect(favoritedState()).toEqual({ button: "false", image: "false" });
+      expect(CurrentPost.favorited).toBe(false);
+      expect(CurrentPost.stats.fav_count).toBe(0);
     });
 
     it("ignores clicks while a request is pending, then resets", async () => {
@@ -68,38 +74,59 @@ describe("ToolbarFavorites", () => {
       expect(favorite.create).toHaveBeenCalledTimes(1);
       expect(button.attr("processing")).toBe("true");
 
-      resolve({});
+      resolve({ post_id: POST_ID, favorite_count: 1 });
       await flush();
       expect(button.attr("processing")).toBe("false");
     });
 
     it("syncs the page when the server reports the post is already favorited", async () => {
       favorite.create.mockRejectedValue(new Error("HTTP 422", { cause: "You have already favorited this post" }));
-      renderToolbarPage({ favorited: false });
+      renderToolbarPage({ favorited: false, favCount: 3 });
       await loadToolbar();
+      const CurrentPost = await currentPost();
 
       $(".ptbr-favorite-button").trigger("click");
       await flush();
 
       expect(favoritedState()).toEqual({ button: "true", image: "true" });
+      expect(CurrentPost.favorited).toBe(true);
+      expect(CurrentPost.stats.fav_count).toBe(3);
+      expect($(".ptbr-favorite-button").attr("processing")).toBe("false");
     });
 
     it("leaves the state alone on other errors and resets the button", async () => {
       favorite.create.mockRejectedValue(new Error("HTTP 500", { cause: "Internal error" }));
       renderToolbarPage({ favorited: false });
       await loadToolbar();
+      const CurrentPost = await currentPost();
 
       const button = $(".ptbr-favorite-button");
       button.trigger("click");
       await flush();
 
       expect(favoritedState()).toEqual({ button: "false", image: "false" });
+      expect(CurrentPost.favorited).toBe(false);
       expect(button.attr("processing")).toBe("false");
     });
   });
 
+  describe("model-driven updates", () => {
+    it("re-renders when the favorite bypasses the toolbar", async () => {
+      renderToolbarPage({ favorited: false });
+      await loadToolbar();
+      const CurrentPost = await currentPost();
+
+      await CurrentPost.favorite();
+      expect(favoritedState()).toEqual({ button: "true", image: "true" });
+
+      await CurrentPost.unfavorite();
+      expect(favoritedState()).toEqual({ button: "false", image: "false" });
+      expect($(".ptbr-favorite-button").attr("processing")).toBe("false");
+    });
+  });
+
   describe("hotkeys", () => {
-    it("favorite toggles based on the image container state", async () => {
+    it("favorite toggles based on the model state", async () => {
       renderToolbarPage({ favorited: false });
       await loadToolbar();
 
