@@ -1,7 +1,7 @@
 import Post from "@/pages/posts/posts";
 import TaskQueue from "@/utility/TaskQueue";
 import ToastManager from "@/utility/Toast";
-import Dialog from "@/utility/dialog";
+import Dialog from "@/components/dialog";
 
 interface PreviousOwner {
   id: number;

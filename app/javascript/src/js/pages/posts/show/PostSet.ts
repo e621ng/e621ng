@@ -1,4 +1,4 @@
-import Dialog from "@/utility/dialog";
+import Dialog from "@/components/dialog";
 import LStorage from "@/utility/storage/Local";
 import TaskQueue from "@/utility/TaskQueue";
 import ToastManager, { Toast } from "@/utility/Toast";

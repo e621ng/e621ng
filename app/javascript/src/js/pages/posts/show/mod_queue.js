@@ -1,5 +1,5 @@
 import Post from "@/pages/posts/posts";
-import Dialog from "@/utility/dialog";
+import Dialog from "@/components/dialog";
 import CStorage from "@/utility/storage/Cookie";
 
 let ModQueue = {};

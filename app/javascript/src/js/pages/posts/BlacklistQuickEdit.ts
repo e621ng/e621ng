@@ -1,5 +1,5 @@
 import CurrentUser from "@/models/CurrentUser";
-import Dialog from "@/utility/dialog";
+import Dialog from "@/components/dialog";
 
 $(() => {
   const dialogEl = $("#blacklist-edit-dialog");

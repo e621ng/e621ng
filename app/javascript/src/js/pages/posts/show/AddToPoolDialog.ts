@@ -1,8 +1,8 @@
 import ToastManager from "@/utility/Toast";
-import Dialog from "@/utility/dialog";
+import Dialog from "@/components/dialog";
 
 $(() => {
-  let poolDialog = null;
+  let poolDialog: Dialog | null = null;
   $(".add-to-pool").on("click.danbooru", function (event) {
     event.preventDefault();
 

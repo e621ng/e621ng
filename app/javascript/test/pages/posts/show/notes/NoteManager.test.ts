@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SAMPLE_NOTE, loadNoteManager, renderNotesPage, stubGeometry } from "./fixtures";
 
 const dialog = { open: vi.fn(), close: vi.fn(), setTitle: vi.fn() };
-vi.mock("@/utility/dialog", () => ({
+vi.mock("@/components/dialog", () => ({
   default: class {
     open = dialog.open;
     close = dialog.close;
