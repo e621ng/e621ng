@@ -1,3 +1,4 @@
+import ApiRequest from "@/utility/ApiRequest";
 import Logger from "@/utility/Logger";
 import LStorage from "@/utility/storage/Local";
 import ToastManager from "@/utility/Toast";
@@ -145,6 +146,20 @@ class CurrentUser {
     this.rawBlacklist = newBlacklist;
     CurrentUser.patchBlacklistMethods(this.rawBlacklist);
     CurrentUser.saveBlacklist(newBlacklist);
+  }
+
+
+  /* ============================== */
+  /* ======= Account updates ====== */
+  /* ============================== */
+
+  /** Sets the given post as the user's avatar. Failures are reported through `danbooru:error`. */
+  public setAvatar (post_id: number): Promise<void> {
+    return ApiRequest.send(`/users/${this.id}.json`, {
+      method: "PATCH",
+      json: { user: { avatar_id: post_id } },
+      queue: { name: "Post.set_as_avatar" },
+    }).then(() => undefined);
   }
 
 
