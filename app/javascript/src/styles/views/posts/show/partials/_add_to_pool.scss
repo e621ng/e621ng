@@ -11,6 +11,14 @@
     @include st-radius;
   }
 
+  .dialog-inputs {
+    input, select {
+      max-width: unset;
+      width: 100%;
+    }
+    .hint { max-width: unset; }
+  }
+
   .dialog-submit {
     display: flex;
     gap: 0.5rem;
