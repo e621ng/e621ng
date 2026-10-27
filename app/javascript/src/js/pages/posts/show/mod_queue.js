@@ -1,4 +1,4 @@
-import Post from "@/pages/posts/posts";
+import BulkActions from "@/pages/posts/BulkActions";
 import Dialog from "@/components/dialog";
 import CStorage from "@/utility/storage/Cookie";
 
@@ -19,7 +19,7 @@ ModQueue.detailed_rejection_dialog = function () {
       .off("submit.danbooru")
       .on("submit.danbooru", (event) => {
         event.preventDefault();
-        Post.disapprove(postID, $("#post_disapproval_reason").val(), $("#post_disapproval_message").val());
+        BulkActions.disapprove(postID, $("#post_disapproval_reason").val(), $("#post_disapproval_message").val());
         rejectionDialog.close();
         return false;
       });
@@ -69,8 +69,8 @@ ModQueue.delete_with_reason_dialog = function (event) {
     const dmailMessage = sendDMail ? dmailOption?.attr("data-dmail-message") : null;
     const dmailTitle = sendDMail ? dmailOption?.attr("data-dmail-title") : null;
     const finalReason = hasReason ? reasonInput.val() : reason;
-    Post.delete_with_reason(data.postId, finalReason, {
-      reload_after_delete: true,
+    BulkActions.delete(Number(data.postId), finalReason, {
+      reload: true,
       from_flag: !hasReason,
       move_favorites: data.moveFavs === "true",
       dmail: dmailMessage,

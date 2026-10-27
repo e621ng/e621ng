@@ -16,6 +16,7 @@ import LStorage from "@/utility/storage/Local";
 import SStorage from "@/utility/storage/Session";
 import ToastManager from "@/utility/Toast";
 
+// Page entrypoints add more members through ModuleRegistry.register (e.g. E621.Post on posts#index).
 export interface E621Type {
   Registry: typeof ModuleRegistry;
   Performance: typeof Performance;

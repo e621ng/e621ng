@@ -3,6 +3,7 @@ import { bypassQueue, lastFetch, recordErrors, stubFetch } from "../apiHelpers";
 import { htmlResponse, jsonResponse } from "../helpers";
 
 const POST = { id: 42, tag_string: "a b" };
+const THUMB = { id: 42, flags: "", rating: "q", tags: "a b" };
 
 async function freshPost () {
   return (await import("@/models/Post")).default;
@@ -13,14 +14,14 @@ describe("Post", () => {
 
   describe("update", () => {
     it("PUTs the nested post params through the queue", async () => {
-      const fetchSpy = stubFetch(jsonResponse({ post: POST }));
+      const fetchSpy = stubFetch(jsonResponse(THUMB));
       const queue = await bypassQueue();
       const Post = await freshPost();
 
-      await expect(Post.update(42, { rating: "q" })).resolves.toEqual({ post: POST });
+      await expect(Post.update(42, { rating: "q" })).resolves.toEqual(THUMB);
 
       const { url, init } = lastFetch(fetchSpy);
-      expect(url).toBe("/posts/42.json");
+      expect(url).toBe("/posts/42.json?v2=true&mode=thumbnails");
       expect(init.method).toBe("PUT");
       expect(init.body).toBe(JSON.stringify({ post: { rating: "q" } }));
       expect(queue.mock.calls[0][1]).toEqual({ name: "Post.update" });
@@ -37,7 +38,7 @@ describe("Post", () => {
     });
 
     it("passes a cancelled task through", async () => {
-      stubFetch(jsonResponse({ post: POST }));
+      stubFetch(jsonResponse(THUMB));
       const { default: TaskQueue, TaskCancelled } = await import("@/utility/TaskQueue");
       vi.spyOn(TaskQueue, "add").mockImplementation(() => Promise.reject(new TaskCancelled("Replaced")));
       const Post = await freshPost();
