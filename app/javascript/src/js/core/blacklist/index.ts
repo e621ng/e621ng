@@ -137,6 +137,30 @@ class Blacklist {
   }
 
   /**
+   * Re-reads the given thumbnails into the cache and re-evaluates every filter against them.
+   * Used after a thumbnail's attributes were changed in place (tag script, rating, status flags).
+   * @param {JQuery<HTMLElement>} $posts Thumbnails whose attributes changed
+   */
+  public refreshPosts ($posts: JQuery<HTMLElement>) {
+    const posts: CachedPost[] = [];
+    for (const element of $posts.get()) {
+      const post = PostCache.fromThumbnail($(element), true);
+      if (post) posts.push(post);
+    }
+    if (!posts.length) return;
+
+    for (const filter of Object.values(this.filters)) {
+      // Forget the previous verdict, otherwise updateWithPosts() keeps a stale match
+      for (const post of posts) filter.matchIDs.delete(post.id);
+      filter.updateWithPosts(posts);
+    }
+
+    this.recalculateMatchedPosts();
+    this.updatePostVisibility();
+    this.updateThumbnailStyles();
+  }
+
+  /**
    * Loads posts into the blacklist system, updating the filters with any new matches.
    * @param {CachedPost | CachedPost[]} posts Posts to load into the blacklist system
    */

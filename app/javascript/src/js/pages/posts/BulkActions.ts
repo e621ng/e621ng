@@ -1,3 +1,4 @@
+import Blacklist from "@/core/blacklist";
 import Post, { PostThumbnailJSON, PostUpdateParams } from "@/models/Post";
 import PostApproval from "@/models/PostApproval";
 import PostFlag from "@/models/PostFlag";
@@ -94,7 +95,6 @@ export default class BulkActions {
     const $thumbnails = BulkActions.thumbnails(data.id);
     if (!$thumbnails.length) return $thumbnails;
 
-    // TODO: PostCache still holds the old tags, so the blacklist is not re-evaluated until reload.
     BulkActions.setData($thumbnails, "tags", data.tags);
     BulkActions.setData($thumbnails, "rating", data.rating);
     BulkActions.setFlags($thumbnails, data.flags);
@@ -113,6 +113,9 @@ export default class BulkActions {
     BulkActions.setData($thumbnails, "flags", flags);
     const active = new Set(flags.split(" ").filter((flag) => flag));
     for (const flag of STATUS_FLAGS) $thumbnails.toggleClass(flag, active.has(flag));
+
+    // Every in-place attribute change ends here, so this is where the blacklist catches up
+    if ($thumbnails.length) Blacklist.refreshPosts($thumbnails);
   }
 
   private static removeFlag ($thumbnails: JQuery<HTMLElement>, flag: string): void {
