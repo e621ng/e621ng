@@ -5133,10 +5133,24 @@ CREATE INDEX index_forum_topics_on_creator_id ON public.forum_topics USING btree
 
 
 --
+-- Name: index_forum_topics_on_is_sticky_and_last_bumped_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topics_on_is_sticky_and_last_bumped_at ON public.forum_topics USING btree (is_sticky, last_bumped_at);
+
+
+--
 -- Name: index_forum_topics_on_is_sticky_and_updated_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_forum_topics_on_is_sticky_and_updated_at ON public.forum_topics USING btree (is_sticky, updated_at);
+
+
+--
+-- Name: index_forum_topics_on_last_bumped_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topics_on_last_bumped_at ON public.forum_topics USING btree (last_bumped_at);
 
 
 --

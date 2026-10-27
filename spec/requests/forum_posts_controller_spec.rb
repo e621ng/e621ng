@@ -232,11 +232,18 @@ RSpec.describe ForumPostsController do
     it "bumps the topic by default" do
       forum_topic.update_columns(last_bumped_at: 1.hour.ago)
       sign_in_as user
+      post forum_posts_path, params: { forum_post: { body: "xaxaxa", topic_id: forum_topic.id } }
+      expect(forum_topic.reload.last_bumped_at).to be_within(5.seconds).of(Time.current)
+    end
+
+    it "bumps the topic when do_not_bump_topic is 0" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as user
       post forum_posts_path, params: { forum_post: { body: "xaxaxa", topic_id: forum_topic.id, do_not_bump_topic: "0" } }
       expect(forum_topic.reload.last_bumped_at).to be_within(5.seconds).of(Time.current)
     end
 
-    it "does not bump the topic when do_not_bump_topic is set" do
+    it "does not bump the topic when do_not_bump_topic is 1" do
       forum_topic.update_columns(last_bumped_at: 1.hour.ago)
       sign_in_as user
       expect do

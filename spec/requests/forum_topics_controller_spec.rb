@@ -277,23 +277,31 @@ RSpec.describe ForumTopicsController do
     it "bumps the topic by default" do
       forum_topic.update_columns(last_bumped_at: 1.hour.ago)
       sign_in_as user
+      put forum_topic_path(forum_topic), params: { forum_topic: { title: "new title" } }
+      expect(forum_topic.reload.last_bumped_at).to be_within(5.seconds).of(Time.current)
+    end
+
+    it "bumps the topic when do_not_bump is 0" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as user
       put forum_topic_path(forum_topic), params: { forum_topic: { title: "new title", do_not_bump: "0" } }
       expect(forum_topic.reload.last_bumped_at).to be_within(5.seconds).of(Time.current)
     end
 
-    it "bumps the topic when an admin edits only the original post" do
+    it "does not bump the topic when do_not_bump is 1" do
       forum_topic.update_columns(last_bumped_at: 1.hour.ago)
-      sign_in_as admin
-      put forum_topic_path(forum_topic), params: { forum_topic: { original_post_attributes: { id: forum_topic.original_post.id, body: "admin edit" } } }
-      expect(forum_topic.reload.original_post.body).to eq("admin edit")
-      expect(forum_topic.last_bumped_at).to be_within(5.seconds).of(Time.current)
+      sign_in_as user
+      expect do
+        put forum_topic_path(forum_topic), params: { forum_topic: { title: "new title", do_not_bump: "1" } }
+      end.not_to(change { forum_topic.reload.last_bumped_at })
+      expect(forum_topic.title).to eq("new title")
     end
 
-    it "does not bump the topic when an admin edits only the original post with do_not_bump" do
+    it "does not bump the topic when an admin edits only the original post" do
       forum_topic.update_columns(last_bumped_at: 1.hour.ago)
       sign_in_as admin
       expect do
-        put forum_topic_path(forum_topic), params: { forum_topic: { do_not_bump: "1", original_post_attributes: { id: forum_topic.original_post.id, body: "admin edit" } } }
+        put forum_topic_path(forum_topic), params: { forum_topic: { original_post_attributes: { id: forum_topic.original_post.id, body: "admin edit" } } }
       end.not_to(change { forum_topic.reload.last_bumped_at })
       expect(forum_topic.original_post.body).to eq("admin edit")
     end
@@ -314,15 +322,6 @@ RSpec.describe ForumTopicsController do
       end.not_to(change { forum_topic.reload.last_bumped_at })
       expect(forum_topic.title).to eq("mod title")
       expect(forum_topic.original_post.body).to eq("mod edit")
-    end
-
-    it "does not bump the topic when do_not_bump is set" do
-      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
-      sign_in_as user
-      expect do
-        put forum_topic_path(forum_topic), params: { forum_topic: { title: "new title", do_not_bump: "1" } }
-      end.not_to(change { forum_topic.reload.last_bumped_at })
-      expect(forum_topic.title).to eq("new title")
     end
   end
 

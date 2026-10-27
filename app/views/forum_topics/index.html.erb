@@ -10,7 +10,7 @@
     <p>
       <% search = params[:search].to_unsafe_h.except("order") %>
       <% order = params.dig(:search, :order) %>
-      <% if order.blank? || %w[bumped sticky].include?(order.downcase) %>
+      <% if order.blank? || %w[bumped sticky].include?(order.to_s.downcase) %>
         <%= link_to("Show all recently updated topics »", forum_topics_path(search: search.merge(order: "sticky_updated"))) %>
       <% else %>
         <%= link_to("Show only recently bumped topics »", forum_topics_path(search: search)) %>
