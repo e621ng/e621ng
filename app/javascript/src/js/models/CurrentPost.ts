@@ -1,6 +1,6 @@
 import Logger from "@/utility/Logger";
 import { TaskCancelled } from "@/utility/TaskQueue";
-import Favorite from "./Favorite";
+import Favorite, { FavoriteError, FavoriteResponse } from "./Favorite";
 import PostVote, { PostVoteResponse } from "./PostVote";
 
 let _data: Record<string, any> = {},
@@ -215,9 +215,9 @@ class CurrentPost {
         $(document).trigger("post:favorite:end", lifecycle);
         return data;
       },
-      (error: Error & { cause?: unknown }) => {
+      (error) => {
         // The server state is what we wanted, so just sync the model
-        if (error?.cause === "You have already favorited this post") {
+        if (error instanceof FavoriteError && error.alreadyFavorited) {
           this.stats.is_favorited = true;
           $(document).trigger("post:favorite", { post_id: this.id, stats: this.stats } satisfies PostStatsEvent);
           $(document).trigger("post:favorite:end", lifecycle);
@@ -278,10 +278,7 @@ export interface PostStatsEvent {
 }
 
 /** Response of favorites#create / favorites#destroy. */
-export interface FavoriteResponse {
-  post_id: number,
-  favorite_count: number,
-}
+export type { FavoriteResponse };
 
 interface CurrentPostFiles {
   meta: {

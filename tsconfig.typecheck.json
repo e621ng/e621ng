@@ -5,6 +5,7 @@
   // files elsewhere stay explicit until their directory is fully migrated.
   "include": [
     "app/javascript/src/js/jquery-shims.d.ts",
+    "app/javascript/src/js/models/Favorite.ts",
     "app/javascript/src/js/components/autocompletable_input.vue",
     "app/javascript/src/js/components/tags/**/*",
     "app/javascript/src/js/components/uploads/**/*",
