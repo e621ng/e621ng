@@ -34,7 +34,8 @@
       display: flex;
       @include st-radius-top;
       cursor: grab;
-      height: 2rem; // Hardcoded height for drag calculations
+      height: 2rem; // Dialog.ts falls back to this while the dialog is hidden
+      touch-action: none; // Touch drags must not scroll the page
 
       background-color: themed("color-section-darken-5");
 

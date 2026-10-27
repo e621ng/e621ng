@@ -1,4 +1,4 @@
-import Dialog from "@/utility/dialog";
+import Dialog from "@/components/dialog";
 
 function bootstrapReferencesEdit () {
   const wrapper = document.getElementById("staff-wiki-references");
@@ -19,7 +19,7 @@ function bootstrapBulkImport () {
   const bulkButton = document.getElementById("staff-wiki-references-bulk");
   if (!bulkButton) return;
 
-  let dialog = null;
+  let dialog: Dialog | null = null;
   bulkButton.addEventListener("click", () => {
     if (!dialog) dialog = new Dialog("#bulk-import-dialog");
     dialog.toggle();

@@ -1,4 +1,4 @@
-import Dialog from "@/utility/dialog";
+import Dialog from "@/components/dialog";
 import HTTP from "@/utility/HTTP";
 import TaskQueue from "@/utility/TaskQueue";
 import ToastManager from "@/utility/Toast";
