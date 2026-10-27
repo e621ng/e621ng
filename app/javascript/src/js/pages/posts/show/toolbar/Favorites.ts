@@ -6,26 +6,52 @@ import ToastManager from "@/utility/Toast";
 /** Favorite button and hotkeys on the post toolbar. */
 export default class ToolbarFavorites {
 
-  public static init (): void {
-    $(".ptbr-favorite-button").each((_index, element) => {
-      this.initButton($(element));
-    });
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
+
+  private static _instance: ToolbarFavorites | null = null;
+  public static get instance (): ToolbarFavorites {
+    if (!ToolbarFavorites._instance)
+      ToolbarFavorites._instance = new ToolbarFavorites();
+    return ToolbarFavorites._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private buttons: JQuery<HTMLElement>;
+  private imageContainer: JQuery<HTMLElement>;
+
+  /** Whether a favorite request is in flight */
+  private processing = false;
+
+  private constructor () {
+    if (ToolbarFavorites._instance)
+      throw new Error("ToolbarFavorites is a singleton class. Use ToolbarFavorites.instance to access the instance.");
+
+    this.buttons = $(".ptbr-favorite-button");
+    this.imageContainer = $("#image-container");
+
+    this.initButtons();
     this.initHotkeys();
   }
 
-  private static initButton (button: JQuery<HTMLElement>): void {
-    button.on("click", () => {
-      if (button.attr("processing") == "true") return;
-      button.attr("processing", "true");
+  private initButtons (): void {
+    this.buttons.on("click", () => {
+      if (this.processing) return;
+      this.setProcessing(true);
 
-      const request = button.attr("favorited") == "true" ? this.remove() : this.add();
+      const request = this.isFavorited() ? this.remove() : this.add();
       request
         .catch(() => { /* Reported through danbooru:error */ })
-        .finally(() => { button.attr("processing", "false"); });
+        .finally(() => { this.setProcessing(false); });
     });
   }
 
-  private static initHotkeys (): void {
+  private initHotkeys (): void {
     Hotkeys.register("favorite", () => {
       ToastManager.dismiss("Favorite added.", "Favorite removed.");
       if (this.isFavorited())
@@ -47,18 +73,34 @@ export default class ToolbarFavorites {
     });
   }
 
-  private static isFavorited (): boolean {
-    return $("#image-container").attr("data-is-favorited") == "true";
+
+  /* ============================== */
+  /* =========== State ============ */
+  /* ============================== */
+
+  private isFavorited (): boolean {
+    return this.imageContainer.attr("data-is-favorited") == "true";
   }
 
   // Both the toolbar button and the image container carry the favorite state
-  private static setFavorited (value: boolean): void {
-    $(".ptbr-favorite-button").attr("favorited", String(value));
-    $("#image-container").attr("data-is-favorited", String(value));
+  private setFavorited (value: boolean): void {
+    this.buttons.attr("favorited", String(value));
+    this.imageContainer.attr("data-is-favorited", String(value));
   }
 
+  // The attribute drives the pressed-state styling
+  private setProcessing (value: boolean): void {
+    this.processing = value;
+    this.buttons.attr("processing", String(value));
+  }
+
+
+  /* ============================== */
+  /* ========= Public API ========= */
+  /* ============================== */
+
   /** Favorites the current post. */
-  public static add (): Promise<void> {
+  public add (): Promise<void> {
     if (!CurrentPost.exists)
       return Promise.reject(new Error("No current post available for favoriting."));
 
@@ -73,7 +115,7 @@ export default class ToolbarFavorites {
   }
 
   /** Removes the current post from favorites. */
-  public static remove (): Promise<void> {
+  public remove (): Promise<void> {
     if (!CurrentPost.exists)
       return Promise.reject(new Error("No current post available for favoriting."));
 

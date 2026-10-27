@@ -5,18 +5,52 @@ import Offclick, { OffclickEntry } from "@/utility/Offclick";
 import Page from "@/utility/Page";
 import ToastManager from "@/utility/Toast";
 
-/** The toolbar underneath the post image: voting, favorites, notes toggle, share, and overflow menu. */
+/**
+ * Entry point for the toolbar underneath the post image.
+ * Owns the voting and favorites modules, and wires the notes toggle, share, and overflow menus.
+ */
 export default class PostsShowToolbar {
 
-  public static init (): void {
-    ToolbarVoting.init();
-    ToolbarFavorites.init();
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
+
+  private static _instance: PostsShowToolbar | null = null;
+  public static get instance (): PostsShowToolbar {
+    if (!PostsShowToolbar._instance)
+      PostsShowToolbar._instance = new PostsShowToolbar();
+    return PostsShowToolbar._instance;
+  }
+
+  public static get Voting (): ToolbarVoting { return ToolbarVoting.instance; }
+  public static get Favorites (): ToolbarFavorites { return ToolbarFavorites.instance; }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private overflowMenu: JQuery<HTMLElement>;
+  private overflowToggle: JQuery<HTMLElement>;
+  private overflowOffclick: OffclickEntry | null = null;
+
+  private constructor () {
+    if (PostsShowToolbar._instance)
+      throw new Error("PostsShowToolbar is a singleton class. Use PostsShowToolbar.instance to access the instance.");
+
+    this.overflowMenu = $(".ptbr-etc-menu");
+    this.overflowToggle = $(".ptbr-etc-toggle");
+
+    if (!Page.matches("posts", "show")) return;
+
+    void ToolbarVoting.instance;
+    void ToolbarFavorites.instance;
     this.initNotesToggle();
     this.initOverflowMenu();
     this.initShareMenu();
   }
 
-  private static initNotesToggle (): void {
+  private initNotesToggle (): void {
     const buttons = $(".ptbr-notes-button");
     const sync = () => {
       buttons.attr({
@@ -30,34 +64,30 @@ export default class PostsShowToolbar {
     $("#note-container").on("note:visible:true note:visible:false", sync);
   }
 
-  private static initOverflowMenu (): void {
-    const menu = $(".ptbr-etc-menu");
-    const toggle = $(".ptbr-etc-toggle");
-    let offclick: OffclickEntry | null = null;
-
-    const close = () => {
-      menu.addClass("hidden");
-      toggle.attr("aria-expanded", "false");
-    };
-
-    toggle.on("click", () => {
+  private initOverflowMenu (): void {
+    this.overflowToggle.on("click", () => {
       // Register the offclick handler on first use
-      if (offclick === null) {
-        offclick = Offclick.register(".ptbr-etc-toggle", ".ptbr-etc-menu", close);
+      if (this.overflowOffclick === null) {
+        this.overflowOffclick = Offclick.register(".ptbr-etc-toggle", ".ptbr-etc-menu", () => this.closeOverflowMenu());
 
         $(".ptbr-etc-download, .ptbr-etc-pool, .ptbr-etc-set, .ptbr-share-button").on("click", () => {
-          offclick.disabled = true;
-          close();
+          this.overflowOffclick.disabled = true;
+          this.closeOverflowMenu();
         });
       }
 
-      offclick.disabled = !offclick.disabled;
-      menu.toggleClass("hidden", offclick.disabled);
-      toggle.attr("aria-expanded", String(!offclick.disabled));
+      this.overflowOffclick.disabled = !this.overflowOffclick.disabled;
+      this.overflowMenu.toggleClass("hidden", this.overflowOffclick.disabled);
+      this.overflowToggle.attr("aria-expanded", String(!this.overflowOffclick.disabled));
     });
   }
 
-  private static initShareMenu (): void {
+  private closeOverflowMenu (): void {
+    this.overflowMenu.addClass("hidden");
+    this.overflowToggle.attr("aria-expanded", "false");
+  }
+
+  private initShareMenu (): void {
     $(".ptbr-share-button").on("click", () => {
       $("#ptbr-share-menu").toggleClass("hidden");
     });
@@ -78,7 +108,4 @@ export default class PostsShowToolbar {
   }
 }
 
-$(() => {
-  if (!Page.matches("posts", "show")) return;
-  PostsShowToolbar.init();
-});
+$(() => { void PostsShowToolbar.instance; });

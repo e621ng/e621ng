@@ -26,6 +26,18 @@ describe("PostsShowToolbar", () => {
     vi.restoreAllMocks();
   });
 
+  describe("singleton", () => {
+    it("constructs once and exposes the sub-modules", async () => {
+      const PostsShowToolbar = await loadToolbar();
+      const ToolbarVoting = (await import("@/pages/posts/show/toolbar/Voting")).default;
+      const ToolbarFavorites = (await import("@/pages/posts/show/toolbar/Favorites")).default;
+
+      expect(PostsShowToolbar.instance).toBe(PostsShowToolbar.instance);
+      expect(PostsShowToolbar.Voting).toBe(ToolbarVoting.instance);
+      expect(PostsShowToolbar.Favorites).toBe(ToolbarFavorites.instance);
+    });
+  });
+
   describe("notes toggle", () => {
     it("reflects the note manager state on init", async () => {
       notes.enabled = true;

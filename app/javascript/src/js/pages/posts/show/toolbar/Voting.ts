@@ -7,32 +7,58 @@ import ToastManager from "@/utility/Toast";
 /** Vote buttons, score breakdown, and the upvote / downvote hotkeys on the post toolbar. */
 export default class ToolbarVoting {
 
-  public static init (): void {
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
+
+  private static _instance: ToolbarVoting | null = null;
+  public static get instance (): ToolbarVoting {
+    if (!ToolbarVoting._instance)
+      ToolbarVoting._instance = new ToolbarVoting();
+    return ToolbarVoting._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private buttons: JQuery<HTMLElement>;
+  private breakdown: JQuery<HTMLElement>;
+  private breakdownOffclick: OffclickEntry | null = null;
+
+  /** Whether a vote request is in flight */
+  private processing = false;
+
+  private constructor () {
+    if (ToolbarVoting._instance)
+      throw new Error("ToolbarVoting is a singleton class. Use ToolbarVoting.instance to access the instance.");
+
+    this.buttons = $("button.ptbr-vote-button");
+    this.breakdown = $(".ptbr-breakdown").first();
+
     this.initBreakdown();
     this.initButtons();
     this.initHotkeys();
   }
 
-  private static initBreakdown (): void {
-    const breakdown = $(".ptbr-breakdown").first();
-    let offclick: OffclickEntry | null = null;
-
+  private initBreakdown (): void {
     $(".ptbr-score").first().on("click", () => {
       // Register the offclick handler on first use
-      if (offclick === null)
-        offclick = Offclick.register(".ptbr-score", ".ptbr-breakdown", () => {
-          breakdown.addClass("hidden");
+      if (this.breakdownOffclick === null)
+        this.breakdownOffclick = Offclick.register(".ptbr-score", ".ptbr-breakdown", () => {
+          this.breakdown.addClass("hidden");
         });
 
-      offclick.disabled = !offclick.disabled;
-      breakdown.toggleClass("hidden");
+      this.breakdownOffclick.disabled = !this.breakdownOffclick.disabled;
+      this.breakdown.toggleClass("hidden");
     });
   }
 
-  private static initButtons (): void {
-    const buttons = $("button.ptbr-vote-button").on("click", (event) => {
-      if (buttons.attr("processing") == "true") return;
-      buttons.attr("processing", "true");
+  private initButtons (): void {
+    this.buttons.on("click", (event) => {
+      if (this.processing) return;
+      this.setProcessing(true);
 
       const button = $(event.currentTarget);
       button.addClass("anim");
@@ -40,14 +66,13 @@ export default class ToolbarVoting {
       this.vote(Number(button.data("action")))
         .catch(() => { /* Reported through danbooru:error */ })
         .finally(() => {
-          buttons
-            .attr("processing", "false")
-            .removeClass("anim");
+          this.setProcessing(false);
+          this.buttons.removeClass("anim");
         });
     });
   }
 
-  private static initHotkeys (): void {
+  private initHotkeys (): void {
     Hotkeys.register("upvote", () => {
       ToastManager.dismiss("Post upvoted.", "Post downvoted.");
       ToastManager.track(this.vote(1), "Updating post...", (data) => {
@@ -72,11 +97,22 @@ export default class ToolbarVoting {
     });
   }
 
+  // The attribute drives the pressed-state styling
+  private setProcessing (value: boolean): void {
+    this.processing = value;
+    this.buttons.attr("processing", String(value));
+  }
+
+
+  /* ============================== */
+  /* ========= Public API ========= */
+  /* ============================== */
+
   /**
    * Casts a vote on the current post and updates the score displays.
    * @param direction 1 for an upvote, -1 for a downvote.
    */
-  public static vote (direction: number): Promise<PostVoteResponse> {
+  public vote (direction: number): Promise<PostVoteResponse> {
     return CurrentPost.vote(direction).then((data) => {
       const state = data.score > 0 ? 1 : (data.score < 0 ? -1 : 0);
 
@@ -87,7 +123,7 @@ export default class ToolbarVoting {
 
       // Toolbar vote block
       $(".ptbr-score").text(data.score);
-      $(".ptbr-breakdown").html(`<span>${data.up}</span><span>${data.down}</span>`);
+      this.breakdown.html(`<span>${data.up}</span><span>${data.down}</span>`);
       $(".ptbr-vote").attr({
         "data-score": data.score,
         "data-up": data.up,

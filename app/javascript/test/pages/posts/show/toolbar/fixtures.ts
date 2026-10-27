@@ -75,7 +75,7 @@ export async function loadToolbar () {
   vi.resetModules();
   hotkeys.clear();
   const PostsShowToolbar = (await import("@/pages/posts/show/toolbar")).default;
-  PostsShowToolbar.init();
+  void PostsShowToolbar.instance;
   return PostsShowToolbar;
 }
 
