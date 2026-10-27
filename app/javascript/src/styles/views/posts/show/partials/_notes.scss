@@ -216,6 +216,7 @@
   & > .input { margin-bottom: 0; }
   textarea {
     width: 100%;
+    max-width: unset; // Overrides the mobile 90% max width
     box-sizing: border-box;
     resize: none;
   }
@@ -229,7 +230,10 @@
     display: flex;
     gap: 0.5rem;
 
-    button { width: 25%; }
+    button {
+      width: 25%;
+      font-size: initial; // Overrides the mobile 160% font size
+    }
   }
 
   // Hide delete and history buttons for temporary notes
