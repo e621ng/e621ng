@@ -35,12 +35,32 @@ RSpec.describe SavedSearch do
   end
 
   describe "#mark_seen!" do
-    it "returns the old watermark and advances to the current max" do
+    it "returns the old watermark and advances to the current max when there was something new" do
       ss = create(:saved_search, user: user, is_tracked: true)
       old_watermark = ss.last_seen_post_id
       newer = create(:post)
-      expect(ss.mark_seen!).to eq(old_watermark)
+      expect(ss.mark_seen!(new_count: 1)).to eq(old_watermark)
       expect(ss.reload.last_seen_post_id).to eq(newer.id)
+    end
+
+    it "returns nil but still advances when there was nothing new" do
+      ss = create(:saved_search, user: user, is_tracked: true)
+      newer = create(:post)
+      expect(ss.mark_seen!(new_count: 0)).to be_nil
+      expect(ss.reload.last_seen_post_id).to eq(newer.id)
+    end
+
+    it "defaults to the cached count for the current safe-mode variant" do
+      ss = create(:saved_search, user: user, is_tracked: true)
+      old_watermark = ss.last_seen_post_id
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => 2 })
+      expect(ss.mark_seen!).to eq(old_watermark)
+    end
+
+    it "treats an unevaluable (nil) cached count as nothing new" do
+      ss = create(:saved_search, user: user, is_tracked: true)
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id), { ss.id => nil })
+      expect(ss.mark_seen!).to be_nil
     end
 
     it "zeroes only this search's cached badge entry" do
@@ -69,8 +89,22 @@ RSpec.describe SavedSearch do
 
     it "is a no-op for untracked searches" do
       ss = create(:saved_search, user: user)
-      expect(ss.mark_seen!).to be_nil
+      expect(ss.mark_seen!(new_count: 5)).to be_nil
       expect(ss.reload.last_seen_post_id).to be_nil
+    end
+  end
+
+  describe "#visit_tags" do
+    it "appends the old watermark only when there was something new" do
+      ss = create(:saved_search, user: user, name: "foxes", is_tracked: true)
+      old_watermark = ss.last_seen_post_id
+      expect(ss.visit_tags(new_count: 3)).to eq("search:foxes id:>#{old_watermark}")
+      expect(ss.visit_tags(new_count: 0)).to eq("search:foxes")
+    end
+
+    it "falls back to the id for unnamed searches" do
+      ss = create(:saved_search, user: user, name: nil)
+      expect(ss.visit_tags(new_count: 3)).to eq("search:#{ss.id}")
     end
   end
 

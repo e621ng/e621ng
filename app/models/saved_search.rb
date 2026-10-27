@@ -174,9 +174,18 @@ class SavedSearch < ApplicationRecord
       end
     end
 
+    # The search string a visit lands on: only-new when there was something new, otherwise the
+    # full listing (the watermark is site-wide, so an id:> filter alone would often be empty).
+    def visit_tags(new_count: cached_new_count)
+      old_watermark = mark_seen!(new_count: new_count)
+      tags = "search:#{name || id}"
+      tags += " id:>#{old_watermark}" if old_watermark
+      tags
+    end
+
     # Advances the watermark and zeroes this search's cached badge entries.
-    # Returns the old watermark for the "only new posts" redirect.
-    def mark_seen!
+    # Returns the old watermark when new_count says there is something to show, else nil.
+    def mark_seen!(new_count: cached_new_count)
       return nil unless is_tracked?
       old_watermark = last_seen_post_id
       update_column(:last_seen_post_id, Post.maximum(:id))
@@ -188,7 +197,12 @@ class SavedSearch < ApplicationRecord
         # Keeps the original timestamp so visits don't postpone the next refresh
         self.class.write_badge_entry(key, entry[:counts], at: entry[:at])
       end
-      old_watermark
+      old_watermark if new_count.to_i > 0
+    end
+
+    # Last cached count for the current safe-mode variant; nil when absent or unevaluable.
+    def cached_new_count
+      self.class.badge_counts(user)&.dig(id)
     end
   end
 

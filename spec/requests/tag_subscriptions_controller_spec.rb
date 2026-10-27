@@ -70,6 +70,69 @@ RSpec.describe TagSubscriptionsController do
     end
   end
 
+  describe "GET /tag_subscriptions/visit" do
+    def anchor
+      SavedSearch.subscription_for!(owner)
+    end
+
+    it "sends users without an anchor to the subscriptions page" do
+      get visit_tag_subscriptions_path
+      expect(response).to redirect_to(tag_subscriptions_path)
+    end
+
+    it "sends users with an empty anchor to the subscriptions page" do
+      anchor
+      get visit_tag_subscriptions_path
+      expect(response).to redirect_to(tag_subscriptions_path)
+    end
+
+    it "sends users with custom tracked searches to the saved searches index" do
+      anchor
+      create(:tag_subscription, user: owner, tag: fox)
+      create(:saved_search, user: owner, is_tracked: true)
+      get visit_tag_subscriptions_path
+      expect(response).to redirect_to(saved_searches_path)
+    end
+
+    it "ignores untracked custom searches" do
+      anchor
+      create(:tag_subscription, user: owner, tag: fox)
+      create(:saved_search, user: owner)
+      allow(SavedSearch).to receive(:new_post_count).and_return(0)
+      get visit_tag_subscriptions_path
+      expect(response).to redirect_to(posts_path(tags: "search:subscriptions"))
+    end
+
+    it "lands on the only-new view when the live count is positive" do
+      create(:post)
+      create(:tag_subscription, user: owner, tag: fox)
+      ss = anchor
+      old_watermark = ss.last_seen_post_id
+      create(:post)
+      allow(SavedSearch).to receive(:new_post_count).with(ss).and_return(1)
+      get visit_tag_subscriptions_path
+      expect(response).to redirect_to(posts_path(tags: "search:subscriptions id:>#{old_watermark}"))
+      expect(ss.reload.last_seen_post_id).to eq(Post.maximum(:id))
+    end
+
+    it "lands on the full listing when the live count is zero, still advancing the watermark" do
+      create(:post)
+      create(:tag_subscription, user: owner, tag: fox)
+      ss = anchor
+      create(:post)
+      allow(SavedSearch).to receive(:new_post_count).with(ss).and_return(0)
+      get visit_tag_subscriptions_path
+      expect(response).to redirect_to(posts_path(tags: "search:subscriptions"))
+      expect(ss.reload.last_seen_post_id).to eq(Post.maximum(:id))
+    end
+
+    it "requires a member" do
+      sign_in_as nil
+      get visit_tag_subscriptions_path
+      expect(response).not_to have_http_status(:ok)
+    end
+  end
+
   describe "DELETE /tag_subscriptions/:id" do
     it "unsubscribes" do
       sub = create(:tag_subscription, user: owner, tag: fox)

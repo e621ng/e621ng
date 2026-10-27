@@ -152,6 +152,12 @@ module SiteMap
   page :posts, :uploads, "Upload Listing", level: UserLevel::STAFF
   page :posts, :help_page, "Help", params: { id: "posts" }
 
+  # --- Saved Searches ---
+  group :saved_searches, "Saved Searches"
+  page :saved_searches, :saved_searches, "Listing", level: UserLevel::MEMBER
+  page :saved_searches, :new_saved_search, "New", level: UserLevel::MEMBER
+  page :saved_searches, :tag_subscriptions, "Subscriptions", level: UserLevel::MEMBER
+
   # --- Post Events ---
   group :post_events, "Post Events"
   page :post_events, :post_events, "Listing"
@@ -312,7 +318,7 @@ module SiteMap
   # posting changes) are plausible future additions, deferred to keep this
   # change behaviour-preserving.
   # ---------------------------------------------------------------------------
-  exclude :api_keys, :saved_searches, :tag_subscriptions, reason: :requires_context
+  exclude :api_keys, reason: :requires_context
   exclude :forum_posts, reason: :main_nav
   exclude :avoid_posting_versions, :search_trend_blacklists, :search_trend_hourlies,
           :staff_wiki_versions, :post_set_maintainers, reason: :utility
