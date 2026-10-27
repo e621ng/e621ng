@@ -5,7 +5,7 @@ const voteSpy = vi.fn();
 vi.mock("@/models/PostVote", () => ({ default: { vote: (...args: unknown[]) => voteSpy(...args) } }));
 
 const favorite = { create: vi.fn(), destroy: vi.fn() };
-vi.mock("@/models/Favorite", () => ({ default: favorite }));
+vi.mock("@/models/Favorite", async (importOriginal) => ({ ...await importOriginal<object>(), default: favorite }));
 
 const POST_ID = 42;
 
@@ -16,6 +16,10 @@ function embedPost (stats: Record<string, unknown> = {}): void {
 
 async function freshPost () {
   return (await import("@/models/CurrentPost")).default;
+}
+
+async function favoriteError () {
+  return (await import("@/models/Favorite")).FavoriteError;
 }
 
 async function taskCancelled () {
@@ -147,8 +151,9 @@ describe("CurrentPost", () => {
     it("treats 'already favorited' as success without touching the count", async () => {
       embedPost();
       const post = await freshPost();
+      const FavoriteError = await favoriteError();
       const seen = recordEvents();
-      favorite.create.mockRejectedValue(new Error("HTTP 422", { cause: "You have already favorited this post" }));
+      favorite.create.mockRejectedValue(new FavoriteError(422, "You have already favorited this post"));
 
       await expect(post.favorite()).resolves.toBeUndefined();
       expect(post.favorited).toBe(true);
@@ -160,7 +165,7 @@ describe("CurrentPost", () => {
       embedPost();
       const post = await freshPost();
       const seen = recordEvents();
-      favorite.create.mockRejectedValue(new Error("HTTP 500", { cause: "Internal error" }));
+      favorite.create.mockRejectedValue(new Error("HTTP 500"));
 
       await expect(post.favorite()).rejects.toThrow("HTTP 500");
       expect(post.favorited).toBe(false);

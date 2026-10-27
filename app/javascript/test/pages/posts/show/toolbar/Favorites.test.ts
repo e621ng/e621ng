@@ -9,7 +9,12 @@ vi.mock("@/pages/posts/show/notes", () => ({ default: { enabled: false } }));
 vi.mock("@/models/PostVote", () => ({ default: { vote: vi.fn() } }));
 
 const favorite = { create: vi.fn(), destroy: vi.fn() };
-vi.mock("@/models/Favorite", () => ({ default: favorite }));
+vi.mock("@/models/Favorite", async (importOriginal) => ({ ...await importOriginal<object>(), default: favorite }));
+
+async function alreadyFavorited () {
+  const { FavoriteError } = await import("@/models/Favorite");
+  return new FavoriteError(422, "You have already favorited this post");
+}
 
 const toast = { track: vi.fn(), dismiss: vi.fn(), notice: vi.fn(), alert: vi.fn() };
 vi.mock("@/utility/Toast", () => ({ default: toast }));
@@ -80,7 +85,7 @@ describe("ToolbarFavorites", () => {
     });
 
     it("syncs the page when the server reports the post is already favorited", async () => {
-      favorite.create.mockRejectedValue(new Error("HTTP 422", { cause: "You have already favorited this post" }));
+      favorite.create.mockRejectedValue(await alreadyFavorited());
       renderToolbarPage({ favorited: false, favCount: 3 });
       await loadToolbar();
       const CurrentPost = await currentPost();
@@ -95,7 +100,7 @@ describe("ToolbarFavorites", () => {
     });
 
     it("leaves the state alone on other errors and resets the button", async () => {
-      favorite.create.mockRejectedValue(new Error("HTTP 500", { cause: "Internal error" }));
+      favorite.create.mockRejectedValue(new Error("HTTP 500"));
       renderToolbarPage({ favorited: false });
       await loadToolbar();
       const CurrentPost = await currentPost();
@@ -185,7 +190,7 @@ describe("ToolbarFavorites", () => {
     });
 
     it("does not leak a rejected request out of the listener", async () => {
-      favorite.create.mockRejectedValue(new Error("HTTP 500", { cause: "Internal error" }));
+      favorite.create.mockRejectedValue(new Error("HTTP 500"));
       renderToolbarPage({ favorited: false });
       await loadToolbar();
 

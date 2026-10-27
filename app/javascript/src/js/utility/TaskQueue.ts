@@ -17,7 +17,7 @@ export default class TaskQueue {
    * @returns {Promise} Promise that resolves when the task is completed or rejects if the task fails.
    * @throws {Error} If the task is not a function or if the delay is not a non-negative number.
    */
-  static add (task: TaskFn, options: TaskQueueOptions = {}): Promise<any> {
+  static add<T> (task: TaskFn<T>, options: TaskQueueOptions = {}): Promise<T> {
     if (typeof task !== "function") throw new Error("Task must be a function");
 
     let { delay = 1000 } = options;
@@ -28,7 +28,7 @@ export default class TaskQueue {
 
     if (unique && name !== null) this.cancel(name, "Replaced by a new unique task");
 
-    const result = new Promise((resolve, reject) => {
+    const result = new Promise<T>((resolve, reject) => {
       const taskItem: TaskItem = { task, resolve, reject, delay, name };
       if (priority) this._queue.unshift(taskItem);
       else this._queue.push(taskItem);
@@ -150,7 +150,7 @@ export class TaskCancelled {
   }
 }
 
-type TaskFn = () => void | Promise<any>;
+type TaskFn<T = unknown> = () => T | Promise<T>;
 
 interface TaskQueueOptions {
   delay?: number;
@@ -160,7 +160,7 @@ interface TaskQueueOptions {
 }
 
 interface TaskItem {
-  task: TaskFn;
+  task: TaskFn<any>;
   resolve: (value: any) => void;
   reject: (reason?: any) => void;
   delay: number;
