@@ -1,0 +1,37 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Exact pins stay exact: the pin is raised to the new version, never widened to a range.
+    versioning-strategy: increase
+    # Supply-chain quarantine: a release must be at least 3 days old before it is proposed.
+    # Does not apply to Dependabot security updates, which arrive as separate PRs and
+    # need an explicit justification in review before merging.
+    cooldown:
+      default-days: 3
+    # One PR per run containing every eligible version bump, so lockstep peers
+    # (vitest + @vitest/coverage-v8) land together and CI runs once.
+    groups:
+      npm:
+        applies-to: version-updates
+        patterns:
+          - "*"
+    labels:
+      - "Type: Dependencies"
+    commit-message:
+      prefix: "[NPM]"
+    ignore:
+      # Known blockers; drop these entries once the Docker image moves to Node >= 22.
+      - dependency-name: vitest
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@vitest/coverage-v8"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: jsdom
+        update-types: ["version-update:semver-major"]
+      # TypeScript 7 ships no JS API yet (typescript-eslint and vue-tsc cannot load it).
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
