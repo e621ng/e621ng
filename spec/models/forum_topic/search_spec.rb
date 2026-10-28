@@ -166,8 +166,8 @@ RSpec.describe ForumTopic do
       expect(ordered_ids("bumped")).to eq([topic_b.id, topic_a.id, topic_c.id])
     end
 
-    it "orders by last_bumped_at descending by default" do
-      expect(ordered_ids(nil)).to eq([topic_b.id, topic_a.id, topic_c.id])
+    it "orders by updated_at descending by default" do
+      expect(ordered_ids(nil)).to eq([topic_a.id, topic_c.id, topic_b.id])
     end
   end
 end
