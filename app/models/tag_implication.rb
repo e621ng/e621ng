@@ -48,7 +48,8 @@ class TagImplication < TagRelationship
 
         until children.empty?
           result.concat(children)
-          children = TagImplication.active.where(antecedent_name: children).pluck(:consequent_name)
+          # Drop names already collected so a genuine cycle terminates instead of looping forever.
+          children = TagImplication.active.where(antecedent_name: children).pluck(:consequent_name).uniq - result
         end
 
         result.sort.uniq
@@ -71,16 +72,22 @@ class TagImplication < TagRelationship
       update_columns(descendant_names: descendant_names)
     end
 
-    def update_descendant_names_for_parents(visited = Set.new)
-      visited.add(id)
+    # path = ids on the current recursion stack (a parent found here is a real cycle);
+    # done = ids already refreshed in this walk (a parent found here is a diamond, not a cycle).
+    def update_descendant_names_for_parents(path = Set.new, done = Set.new)
+      path.add(id)
       parents.each do |parent|
-        if visited.include?(parent.id)
+        if path.include?(parent.id)
           parent.update_columns(status: "error: circular implication detected")
           next
         end
+        next unless done.add?(parent.id)
+
         parent.update_descendant_names!
-        parent.update_descendant_names_for_parents(visited)
+        parent.update_descendant_names_for_parents(path, done)
       end
+    ensure
+      path.delete(id)
     end
   end
 

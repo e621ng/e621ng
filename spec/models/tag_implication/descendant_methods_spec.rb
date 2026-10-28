@@ -12,6 +12,14 @@ require "rails_helper"
 RSpec.describe TagImplication do
   include_context "as admin"
 
+  # Builds a real a -> b -> a cycle, bypassing the validation that normally forbids it.
+  def create_cycle
+    a_to_b = create(:active_tag_implication, antecedent_name: "cyc_a", consequent_name: "cyc_b")
+    b_to_a = create(:tag_implication, antecedent_name: "cyc_b", consequent_name: "cyc_other")
+    b_to_a.update_columns(consequent_name: "cyc_a", status: "active")
+    [a_to_b, b_to_a]
+  end
+
   # ---------------------------------------------------------------------------
   # #descendants (instance)
   # ---------------------------------------------------------------------------
@@ -166,16 +174,52 @@ RSpec.describe TagImplication do
   # Circular detection in #update_descendant_names_for_parents
   # ---------------------------------------------------------------------------
   describe "#update_descendant_names_for_parents circular detection" do
-    it "marks a parent as errored when its id is already in the visited set" do
-      parent = create(:active_tag_implication, antecedent_name: "tag_x", consequent_name: "tag_a")
-      child  = create(:active_tag_implication, antecedent_name: "tag_a", consequent_name: "tag_b")
-      # parent.consequent_name == child.antecedent_name, so parent is in child's parents chain.
-      # Passing parent.id in the visited set simulates a previously-traversed ancestor,
-      # directly exercising the circular-detection error branch without needing a real
-      # circular implication in the DB (which would cause an infinite loop in #descendants).
-      child.update_descendant_names_for_parents(Set.new([parent.id]))
+    it "does not flag a diamond as circular" do
+      # x -> b, x -> c, b -> a, c -> a: x -> * is reached twice from a -> z, once per branch.
+      x_to_b = create(:active_tag_implication, antecedent_name: "dia_x", consequent_name: "dia_b")
+      x_to_c = create(:active_tag_implication, antecedent_name: "dia_x", consequent_name: "dia_c")
+      create(:active_tag_implication, antecedent_name: "dia_b", consequent_name: "dia_a")
+      create(:active_tag_implication, antecedent_name: "dia_c", consequent_name: "dia_a")
 
-      expect(parent.reload.status).to eq("error: circular implication detected")
+      create(:active_tag_implication, antecedent_name: "dia_a", consequent_name: "dia_z")
+
+      expect(TagImplication.where("status LIKE 'error:%'")).to be_empty
+      expect(x_to_b.reload.descendant_names).to match_array(%w[dia_a dia_b dia_z])
+      expect(x_to_c.reload.descendant_names).to match_array(%w[dia_a dia_c dia_z])
+    end
+
+    it "refreshes each ancestor only once per walk" do
+      create(:active_tag_implication, antecedent_name: "dia_x", consequent_name: "dia_b")
+      create(:active_tag_implication, antecedent_name: "dia_x", consequent_name: "dia_c")
+      create(:active_tag_implication, antecedent_name: "dia_b", consequent_name: "dia_a")
+      create(:active_tag_implication, antecedent_name: "dia_c", consequent_name: "dia_a")
+      child = create(:active_tag_implication, antecedent_name: "dia_a", consequent_name: "dia_z")
+
+      refreshed = []
+      allow_any_instance_of(TagImplication).to receive(:update_descendant_names!) { |ti| refreshed << ti.id } # rubocop:disable RSpec/AnyInstance
+      child.update_descendant_names_for_parents
+
+      expect(refreshed).to eq(refreshed.uniq)
+      expect(refreshed.size).to eq(4)
+    end
+
+    it "marks the implication that closes a real cycle as errored" do
+      a_to_b, b_to_a = create_cycle
+
+      # Walk: a->b (on path) -> parent b->a -> parent a->b, which is still on the path.
+      # reload drops the parents memoized by the factory save, which predates b->a.
+      a_to_b.reload.update_descendant_names_for_parents
+
+      expect(a_to_b.reload.status).to eq("error: circular implication detected")
+      expect(b_to_a.reload.status).to eq("active")
+    end
+  end
+
+  describe "#descendants with a cycle" do
+    it "terminates and returns each tag once" do
+      a_to_b, = create_cycle
+
+      expect(a_to_b.reload.descendants).to match_array(%w[cyc_a cyc_b])
     end
   end
 end
