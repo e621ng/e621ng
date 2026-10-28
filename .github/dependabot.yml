@@ -23,7 +23,7 @@ updates:
     labels:
       - "Type: Dependencies"
     commit-message:
-      prefix: "[NPM]"
+      prefix: "[NPM] "
     ignore:
       # Known blockers; drop these entries once the Docker image moves to Node >= 22.
       - dependency-name: vitest
