@@ -1,6 +1,7 @@
 import ToastManager from "@/utility/Toast";
 import BulkActions from "@/pages/posts/BulkActions";
 import TaskQueue from "@/utility/TaskQueue";
+import TagScript, { TagScriptError } from "@/pages/posts/TagScript";
 
 let PostVersion = {};
 
@@ -70,6 +71,23 @@ PostVersion.tag_script_selected = function (event) {
   if (!script)
     return;
 
+  let commands;
+  try {
+    commands = TagScript.parse(script);
+  } catch (error) {
+    if (!(error instanceof TagScriptError)) throw error;
+    ToastManager.alert(error.message);
+    return;
+  }
+  // Rows don't carry the posts' current tags, so conditions can't be checked here
+  if (TagScript.hasConditionals(commands)) {
+    ToastManager.alert("Conditional [if ...] commands are only supported in the post index tag script mode.");
+    return;
+  }
+  const changes = TagScript.evaluate(commands, new Set());
+  if (!changes.length)
+    return;
+
   const toast = ToastManager.create("Applying tag script...", { timeout: 0 });
   const promises = [];
   for (let row of selected_rows) {
@@ -77,7 +95,7 @@ PostVersion.tag_script_selected = function (event) {
 
     promises.push(TaskQueue.add(() => {
       toast.message = `${++PostVersion.updated} / ${selected_rows.length} changes applied.`;
-      return BulkActions.tagScript(id, script, reason);
+      return BulkActions.applyTagDiff(id, changes, reason);
     }, { name: "PostVersion.tag_script_selected" }));
   }
   Promise.all(promises).then(() => {

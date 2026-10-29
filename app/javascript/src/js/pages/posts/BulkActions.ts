@@ -33,9 +33,8 @@ export default class BulkActions {
       .catch(reported);
   }
 
-  static tagScript (post_id: number, tags: string | string[], reason: string = ""): Promise<void> {
-    const tag_string = Array.isArray(tags) ? tags.join(" ") : String(tags);
-    return BulkActions.update(post_id, { tag_string_diff: tag_string, edit_reason: reason });
+  static applyTagDiff (post_id: number, changes: string[], reason: string = ""): Promise<void> {
+    return BulkActions.update(post_id, { tag_string_diff: changes.join(" "), edit_reason: reason });
   }
 
   static delete (post_id: number, reason: string, options: BulkDeleteOptions = {}): Promise<void> {
