@@ -146,29 +146,59 @@ RSpec.describe FileMethods, type: :model do
 
   # ----------------------------------------------------------------------- #
   describe "#video_has_sound?" do
-    it "returns true for an MP4 with an audio track" do
+    it "returns true for an MP4 with an audible track" do
       upload = build(:upload, file_ext: "mp4")
-      path = file_fixture("file_validator/animated-h264-aac.mp4").to_s
+      path = file_fixture("sound/tone-aac.mp4").to_s
       expect(upload.video_has_sound?(path)).to be true
     end
 
-    it "returns true for a WebM with an audio track" do
+    it "returns true for a WebM with an audible track" do
       upload = build(:upload, file_ext: "webm")
-      path = file_fixture("file_validator/animated-av1-vorbis.webm").to_s
+      path = file_fixture("sound/tone-opus.webm").to_s
       expect(upload.video_has_sound?(path)).to be true
     end
 
-    it "returns false for videos without an audio track" do
+    it "returns true when only a non-default audio stream is audible" do
+      upload = build(:upload, file_ext: "mp4")
+      path = file_fixture("sound/multi-aac.mp4").to_s
+      expect(upload.video_has_sound?(path)).to be true
+    end
+
+    it "returns false for videos whose audio track is silent" do
+      { "mp4" => "sound/silent-aac.mp4", "webm" => "sound/silent-opus.webm" }.each do |ext, fixture|
+        upload = build(:upload, file_ext: ext)
+        expect(upload.video_has_sound?(file_fixture(fixture).to_s)).to be false
+      end
+    end
+
+    it "returns false for videos without an audio track without decoding them" do
+      allow(Open3).to receive(:capture3).and_call_original
       %w[mp4 webm].each do |ext|
         upload = build(:upload, file_ext: ext)
         path = file_fixture("animated.#{ext}").to_s
         expect(upload.video_has_sound?(path)).to be false
       end
+      expect(Open3).not_to have_received(:capture3).with(Danbooru.config.ffmpeg_path, any_args)
+    end
+
+    it "respects the configured threshold" do
+      allow(Danbooru.config.custom_configuration).to receive(:sound_detection_threshold_db).and_return(-5)
+      upload = build(:upload, file_ext: "mp4")
+      path = file_fixture("sound/tone-aac.mp4").to_s
+      expect(upload.video_has_sound?(path)).to be false
     end
 
     it "returns false for non-video files without reading them" do
       upload = build(:upload, file_ext: "gif")
       expect(upload.video_has_sound?("/nonexistent/path.gif")).to be false
+    end
+
+    it "raises when ffmpeg fails to decode the audio" do
+      allow(Open3).to receive(:capture3).and_call_original
+      allow(Open3).to receive(:capture3).with(Danbooru.config.ffmpeg_path, any_args).and_return([+"", +"boom", instance_double(Process::Status, success?: false)])
+      upload = build(:upload, file_ext: "mp4")
+      path = file_fixture("sound/tone-aac.mp4").to_s
+      expect { upload.video_has_sound?(path) }.to raise_error(ArgumentError, /unreadable video/)
     end
 
     # ffprobe accepts still images as one-frame videos, so use bytes it can't parse at all.

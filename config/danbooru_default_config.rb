@@ -113,6 +113,12 @@ module Danbooru
       "/usr/bin/ffprobe"
     end
 
+    # Peak level (dBFS) a video's audio must exceed to count as having sound.
+    # Digital silence measures -91 dB; dithered or near-silent tracks sit below -60.
+    def sound_detection_threshold_db
+      -60
+    end
+
     def default_bg_color
       "152f56"
     end
