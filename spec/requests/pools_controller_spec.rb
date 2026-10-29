@@ -48,6 +48,88 @@ RSpec.describe PoolsController do
       expect(ids).to include(series_pool.id)
       expect(ids).not_to include(collection_pool.id)
     end
+
+    describe "sortable list" do
+      def sort_link(column)
+        Nokogiri::HTML(response.body).at_css(".index-list-header a.pl-#{column}")
+      end
+
+      def sort_link_order(column)
+        uri = URI.parse(sort_link(column)["href"])
+        Rack::Utils.parse_nested_query(uri.query).dig("search", "order")
+      end
+
+      # The direction the list is sorted by this column, or nil when it is sorted by another one.
+      def sorted(column)
+        link = sort_link(column)
+        return nil unless link["aria-current"] == "true"
+        link["aria-label"][/sorted (\w+)\z/, 1]
+      end
+
+      it "renders the pool's id, post count and update time" do
+        get pools_path
+        item = Nokogiri::HTML(response.body).at_css("li#pool-#{pool.id}.pool-list-item")
+        expect(item.at_css(".pl-id").text.strip).to eq("##{pool.id}")
+        expect(item.at_css(".pl-name a")["href"]).to eq(pool_path(pool))
+        expect(item.at_css(".pl-posts").text.strip).to eq("#{pool.post_count} #{'post'.pluralize(pool.post_count)}")
+        expect(Time.zone.parse(item.at_css(".pl-updated time")["datetime"])).to eq(pool.updated_at.change(sec: 0))
+      end
+
+      it "marks the updated column as sorted by default, and its link reverses the order" do
+        get pools_path
+        expect(sorted(:updated)).to eq("descending")
+        expect(sort_link_order(:updated)).to eq("updated_at_asc")
+        expect(sorted(:name)).to be_nil
+        expect(sort_link_order(:name)).to eq("name")
+      end
+
+      it "reverses the order of the sorted column" do
+        get pools_path, params: { search: { order: "name" } }
+        expect(sorted(:name)).to eq("ascending")
+        expect(sort_link_order(:name)).to eq("name_desc")
+        expect(sorted(:updated)).to be_nil
+        expect(sort_link_order(:updated)).to eq("updated_at")
+      end
+
+      it "treats the created_at order as the id column sorted descending" do
+        get pools_path, params: { search: { order: "created_at" } }
+        expect(sorted(:id)).to eq("descending")
+        expect(sort_link_order(:id)).to eq("id_asc")
+      end
+
+      it "marks the id column as sorted on sequential pages, which ignore the order" do
+        get pools_path, params: { search: { order: "name" }, page: "b#{pool.id + 1}" }
+        expect(sorted(:id)).to eq("descending")
+        expect(sorted(:name)).to be_nil
+      end
+
+      it "offers every header order in the search form, so submitting it keeps the order" do
+        get pools_path
+        options = Nokogiri::HTML(response.body).css("select#search_order option").pluck("value")
+        expect(options).to include(*PoolsHelper::POOL_INDEX_SORTS.values.flat_map(&:keys))
+      end
+
+      it "keeps the search form closed when the list is only sorted" do
+        get pools_path, params: { search: { order: "name" } }
+        expect(Nokogiri::HTML(response.body).at_css("#searchform")["style"]).to include("display:none")
+      end
+
+      it "opens the search form when the list is also filtered" do
+        get pools_path, params: { search: { order: "name", name_matches: "foo" } }
+        expect(Nokogiri::HTML(response.body).at_css("#searchform")["style"].to_s).not_to include("display:none")
+      end
+
+      it "still opens the gallery's search form for a sort, as the gallery has no sort links" do
+        get gallery_pools_path, params: { search: { order: "name" } }
+        expect(Nokogiri::HTML(response.body).at_css("#searchform")["style"].to_s).not_to include("display:none")
+      end
+
+      it "keeps the other search params and drops the page" do
+        get pools_path, params: { search: { name_matches: "foo", order: "post_count" }, page: 2, limit: 10 }
+        params = Rack::Utils.parse_nested_query(URI.parse(sort_link(:posts)["href"]).query)
+        expect(params).to eq("search" => { "name_matches" => "foo", "order" => "post_count_asc" }, "limit" => "10")
+      end
+    end
   end
 
   describe "#show" do
