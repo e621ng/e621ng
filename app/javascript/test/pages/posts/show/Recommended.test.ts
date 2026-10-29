@@ -6,8 +6,6 @@ import type { RecommendationResponse } from "@/pages/posts/show/Recommended";
 const POST_ID = 42;
 
 function render ({ artist = true, tags = true, hidden = false } = {}): void {
-  document.body.dataset.controller = "posts";
-  document.body.dataset.action = "show";
   const tab = (action: string, label: string, selected: boolean) => `
     <button type="button" role="tab" id="post-recommendations-tab-${action}" data-action="${action}"
       aria-controls="post-recommendations-list" aria-selected="${selected}">${label}</button>`;

@@ -1,4 +1,3 @@
-import Page from "@/utility/Page";
 import CStorage from "@/utility/storage/Cookie";
 
 /**
@@ -30,8 +29,6 @@ export default class ApprovalToolbar {
   private constructor () {
     if (ApprovalToolbar._instance)
       throw new Error("ApprovalToolbar is a singleton class. Use ApprovalToolbar.instance to access the instance.");
-
-    if (!Page.matches("posts", "show")) return;
 
     this.toggle = $("#janitor-toolbar-toggle");
     if (!this.toggle.length) return;

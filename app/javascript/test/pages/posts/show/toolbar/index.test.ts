@@ -4,7 +4,6 @@ import { POST_ID, flush, hotkeys, loadToolbar, renderToolbarPage } from "./fixtu
 vi.mock("@/core/hotkeys", () => ({
   default: { register: (name: string, listener: () => void) => { hotkeys.set(name, listener); } },
 }));
-vi.mock("@/utility/Page", () => ({ default: { matches: () => true } }));
 vi.mock("@/models/CurrentPost", () => ({ default: { exists: true, id: 123, vote: vi.fn() } }));
 vi.mock("@/models/Favorite", () => ({ default: { create: vi.fn(), destroy: vi.fn() } }));
 

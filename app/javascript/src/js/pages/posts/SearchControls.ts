@@ -1,12 +1,32 @@
 import Offclick, { OffclickEntry } from "../../utility/Offclick";
 import LStorage from "../../utility/storage/Local";
 
+/** The fullscreen toggle, advanced search and layout settings menus above the posts gallery. */
 export default class SearchControls {
+
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
+
+  private static _instance: SearchControls | null = null;
+  public static get instance (): SearchControls {
+    if (!SearchControls._instance)
+      SearchControls._instance = new SearchControls();
+    return SearchControls._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
 
   private advOffclickHandler: OffclickEntry;
   private layoutOffclickHandler: OffclickEntry;
 
-  constructor () {
+  private constructor () {
+    if (SearchControls._instance)
+      throw new Error("SearchControls is a singleton class. Use SearchControls.instance to access the instance.");
+
     this.initFullscreenToggle();
     this.initAdvancedSearch();
     this.initLayoutSettings();
@@ -140,7 +160,3 @@ export default class SearchControls {
       });
   }
 }
-
-$(() => {
-  new SearchControls();
-});

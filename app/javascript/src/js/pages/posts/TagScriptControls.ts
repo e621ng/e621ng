@@ -7,12 +7,30 @@ import ToastManager, { Toast } from "@/utility/Toast";
 /** The index mode menu's tag script field, its 1-9 slots, and the "All" button. */
 export default class TagScriptControls {
 
-  private static field: HTMLInputElement | null = null;
-  private static notice: Toast | null = null;
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
 
-  static initialize (): void {
+  private static _instance: TagScriptControls | null = null;
+  public static get instance (): TagScriptControls {
+    if (!TagScriptControls._instance)
+      TagScriptControls._instance = new TagScriptControls();
+    return TagScriptControls._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private field: HTMLInputElement | null;
+  private notice: Toast | null = null;
+
+  private constructor () {
+    if (TagScriptControls._instance)
+      throw new Error("TagScriptControls is a singleton class. Use TagScriptControls.instance to access the instance.");
+
     this.field = document.querySelector<HTMLInputElement>("#tag-script-field");
-    this.notice = null;
     if (!this.field) return;
 
     this.field.addEventListener("blur", () => {
@@ -26,13 +44,13 @@ export default class TagScriptControls {
   }
 
   /** Loads the current slot into the field. Announces the slot only when asked to. */
-  static activate (announce: boolean): void {
+  public activate (announce: boolean): void {
     if (!this.field) return;
     this.field.value = LStorage.Posts.TagScript.Content;
     if (announce) this.announce();
   }
 
-  static switchSlot (slot: number): void {
+  public switchSlot (slot: number): void {
     if (!this.field || !Number.isInteger(slot) || slot < 1 || slot > 9) return;
     if (slot === LStorage.Posts.TagScript.ID) return;
 
@@ -41,7 +59,7 @@ export default class TagScriptControls {
   }
 
   /** Applies the current script to a post. Pass pre-parsed `commands` to skip re-parsing. */
-  static applyTo (post_id: number, commands?: TagScriptCommand[] | null): void {
+  public applyTo (post_id: number, commands?: TagScriptCommand[] | null): void {
     commands ??= this.parse(LStorage.Posts.TagScript.Content);
     const post = PostCache.get(post_id);
     if (!commands || !post) return;
@@ -50,7 +68,7 @@ export default class TagScriptControls {
     if (changes.length) BulkActions.applyTagDiff(post_id, changes, this.reason());
   }
 
-  static applyAll (): void {
+  public applyAll (): void {
     const commands = this.parse(LStorage.Posts.TagScript.Content);
     if (!commands) return;
 
@@ -63,7 +81,7 @@ export default class TagScriptControls {
   }
 
   /** Returns the parsed commands, or null (with an alert) if the script is invalid */
-  private static parse (script: string): TagScriptCommand[] | null {
+  private parse (script: string): TagScriptCommand[] | null {
     try {
       return TagScript.parse(script);
     } catch (error) {
@@ -73,11 +91,11 @@ export default class TagScriptControls {
     }
   }
 
-  private static reason (): string {
+  private reason (): string {
     return document.querySelector<HTMLInputElement>("#tag-script-reason")?.value ?? "";
   }
 
-  private static announce (): void {
+  private announce (): void {
     this.notice?.dismiss(true);
     this.notice = ToastManager.create(`Switched to tag script #${LStorage.Posts.TagScript.ID}. To switch tag scripts, use the number keys.`);
   }

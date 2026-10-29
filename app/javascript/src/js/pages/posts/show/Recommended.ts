@@ -4,7 +4,6 @@ import CurrentPost from "@/models/CurrentPost";
 import PostCache, { CachedPost, DeferredPostData } from "@/models/PostCache";
 import HTTP from "@/utility/HTTP";
 import Logger from "@/utility/Logger";
-import Page from "@/utility/Page";
 import PerformanceTracker from "@/utility/PerformanceTracker";
 import CStorage from "@/utility/storage/Cookie";
 import LStorage from "@/utility/storage/Local";
@@ -73,8 +72,6 @@ export default class Recommended {
   private constructor () {
     if (Recommended._instance)
       throw new Error("Recommended is a singleton class. Use Recommended.instance to access the instance.");
-
-    if (!Page.matches("posts", "show")) return;
 
     this.wrapper = $("#post-recommendations");
     this.container = $("#post-recommendations-list");

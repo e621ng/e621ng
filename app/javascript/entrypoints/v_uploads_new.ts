@@ -1,8 +1,13 @@
 // uploads # new
 
 import ModuleRegistry from "@/utility/ModuleRegistry";
+import State from "@/utility/StateUtils";
 
-import "@/pages/posts/BlacklistQuickEdit";
+import BlacklistQuickEdit from "@/pages/posts/BlacklistQuickEdit";
 import "@/pages/uploads/new";
 
-ModuleRegistry.register("v_uploads_new");
+State.onReady(() => {
+  void BlacklistQuickEdit.instance;
+
+  ModuleRegistry.register("v_uploads_new");
+});

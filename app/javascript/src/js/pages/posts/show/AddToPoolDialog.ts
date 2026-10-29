@@ -2,7 +2,6 @@ import Dialog from "@/components/dialog";
 import CurrentPost from "@/models/CurrentPost";
 import HTTP from "@/utility/HTTP";
 import Logger from "@/utility/Logger";
-import Page from "@/utility/Page";
 import ToastManager from "@/utility/Toast";
 
 interface RecentPool {
@@ -45,8 +44,6 @@ export default class AddToPoolDialog {
   private constructor () {
     if (AddToPoolDialog._instance)
       throw new Error("AddToPoolDialog is a singleton class. Use AddToPoolDialog.instance to access the instance.");
-
-    if (!Page.matches("posts", "show")) return;
 
     this.form = $("#add-to-pool-dialog");
     if (!this.form.length) return;

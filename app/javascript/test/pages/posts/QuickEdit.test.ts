@@ -31,8 +31,7 @@ function render () {
 
 async function load () {
   const QuickEdit = (await import("@/pages/posts/QuickEdit")).default;
-  QuickEdit.initialize();
-  return QuickEdit;
+  return QuickEdit.instance;
 }
 
 const container = () => document.getElementById("quick-edit-div");

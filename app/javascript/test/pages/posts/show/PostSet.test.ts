@@ -170,7 +170,7 @@ describe("PostSet", () => {
       const PostSet = await load();
       const removeSpy = vi.spyOn(PostSet, "remove_post").mockImplementation(() => {});
 
-      PostSet.bindRemoveLinks();
+      void PostSet.instance;
       document.querySelector<HTMLElement>("a.set-nav-remove-link")!.click();
 
       expect(removeSpy).toHaveBeenCalledWith(3, 44);

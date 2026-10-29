@@ -1,6 +1,5 @@
 import Dialog from "@/components/dialog";
 import BulkActions from "@/pages/posts/BulkActions";
-import Page from "@/utility/Page";
 
 /**
  * "Disapprove" dialog on posts#show, opened by the `.detailed-rejection-link` in the quick-mod bar.
@@ -35,8 +34,6 @@ export default class DetailedRejectionDialog {
   private constructor () {
     if (DetailedRejectionDialog._instance)
       throw new Error("DetailedRejectionDialog is a singleton class. Use DetailedRejectionDialog.instance to access the instance.");
-
-    if (!Page.matches("posts", "show")) return;
 
     this.container = $("#detailed-rejection-dialog");
     if (!this.container.length) return;

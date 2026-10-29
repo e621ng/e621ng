@@ -79,7 +79,7 @@ describe("Navigation", () => {
     render(SEARCH_SEQ);
     const { Navigation, navigate } = await load();
 
-    Navigation.registerHotkeys();
+    void Navigation.instance;
 
     expect([...hotkeys.keys()]).toEqual(["prev", "next"]);
     hotkeys.get("next")();

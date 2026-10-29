@@ -13,7 +13,7 @@ export type PostMode = "view" | "edit" | "add-fav" | "remove-fav" | "add-to-set"
 const inputValue = (selector: string): string => document.querySelector<HTMLInputElement>(selector)?.value ?? "";
 
 const ACTIONS: Record<Exclude<PostMode, "view">, (post_id: number) => unknown> = {
-  "edit": (id) => QuickEdit.open(id),
+  "edit": (id) => QuickEdit.instance.open(id),
   "add-fav": (id) => BulkActions.favorite(id),
   "remove-fav": (id) => BulkActions.unfavorite(id),
   "add-to-set": (id) => PostSet.add_post(inputValue("#set-id"), id),
@@ -23,7 +23,7 @@ const ACTIONS: Record<Exclude<PostMode, "view">, (post_id: number) => unknown> =
   "rating-s": (id) => BulkActions.update(id, { rating: "s" }),
   "rating-q": (id) => BulkActions.update(id, { rating: "q" }),
   "rating-e": (id) => BulkActions.update(id, { rating: "e" }),
-  "tag-script": (id) => TagScriptControls.applyTo(id),
+  "tag-script": (id) => TagScriptControls.instance.applyTo(id),
   "remove-parent": (id) => BulkActions.update(id, { parent_id: "" }),
   "lock-rating": (id) => BulkActions.update(id, { is_rating_locked: "1" }),
   "lock-note": (id) => BulkActions.update(id, { is_note_locked: "1" }),
@@ -36,23 +36,37 @@ const ACTIONS: Record<Exclude<PostMode, "view">, (post_id: number) => unknown> =
 /**
  * The mode selector on post index and favorites pages: clicking a thumbnail
  * performs the selected action instead of opening the post.
- * Exposed as `E621.PostModeMenu`.
+ * The instance is exposed as `E621.PostModeMenu`.
  */
 export default class PostModeMenu {
 
-  private static select: HTMLSelectElement | null = null;
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
 
-  static get mode (): PostMode {
-    const value = this.select?.value;
-    return value && value in ACTIONS ? value as PostMode : "view";
+  private static _instance: PostModeMenu | null = null;
+  public static get instance (): PostModeMenu {
+    if (!PostModeMenu._instance)
+      PostModeMenu._instance = new PostModeMenu();
+    return PostModeMenu._instance;
   }
 
-  static initialize (): void {
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private select: HTMLSelectElement | null;
+
+  private constructor () {
+    if (PostModeMenu._instance)
+      throw new Error("PostModeMenu is a singleton class. Use PostModeMenu.instance to access the instance.");
+
     this.select = document.querySelector<HTMLSelectElement>("#mode-box-mode");
     if (!this.select) return;
 
-    QuickEdit.initialize();
-    TagScriptControls.initialize();
+    void QuickEdit.instance;
+    void TagScriptControls.instance;
 
     // Stale or unavailable modes (e.g. after a privilege change) fall back to view
     const options = Array.from(this.select.options, (option) => option.value);
@@ -65,15 +79,20 @@ export default class PostModeMenu {
     if (CurrentUser.is.privileged) {
       for (let slot = 1; slot <= 9; slot++) {
         Hotkeys.register(`tag-script-${slot}` as HotkeyAction, () => {
-          if (this.mode === "tag-script") TagScriptControls.switchSlot(slot);
+          if (this.mode === "tag-script") TagScriptControls.instance.switchSlot(slot);
         });
       }
     }
   }
 
+  public get mode (): PostMode {
+    const value = this.select?.value;
+    return value && value in ACTIONS ? value as PostMode : "view";
+  }
+
   /** Syncs the page to the selected mode. `userInitiated` announces and focuses the mode's input. */
-  private static apply (userInitiated: boolean): void {
-    QuickEdit.close();
+  private apply (userInitiated: boolean): void {
+    QuickEdit.instance.close();
 
     const mode = this.mode;
     document.getElementById("page")?.setAttribute("data-mode-menu", mode);
@@ -87,7 +106,7 @@ export default class PostModeMenu {
 
     if (isSetMode && setSelect) PostSet.populateSelect($(setSelect));
     if (mode === "tag-script") {
-      TagScriptControls.activate(userInitiated);
+      TagScriptControls.instance.activate(userInitiated);
       const field = document.querySelector<HTMLInputElement>("#tag-script-field");
       if (userInitiated && field) {
         field.focus();
@@ -96,7 +115,7 @@ export default class PostModeMenu {
     }
   }
 
-  private static onClick (event: MouseEvent): void {
+  private onClick (event: MouseEvent): void {
     // Modified clicks keep their browser meaning (new tab, new window, ...)
     if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
 

@@ -139,5 +139,3 @@ export default class NoteManager {
     note.$box[0].scrollIntoView({ behavior: "smooth", block: "center" });
   }
 }
-
-$(() => { void NoteManager.instance; });

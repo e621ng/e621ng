@@ -11,22 +11,37 @@ const MIN_HEIGHT = 80;
 /** The inline tag editor opened by the index mode menu's "Edit" mode. */
 export default class QuickEdit {
 
-  private static container: HTMLElement | null = null;
-  private static form: HTMLFormElement | null = null;
-  private static textarea: HTMLTextAreaElement | null = null;
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
 
-  private static _postID: number | null = null;
+  private static _instance: QuickEdit | null = null;
+  public static get instance (): QuickEdit {
+    if (!QuickEdit._instance)
+      QuickEdit._instance = new QuickEdit();
+    return QuickEdit._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private container: HTMLElement | null;
+  private form: HTMLFormElement | null;
+  private textarea: HTMLTextAreaElement | null;
+
+  private _postID: number | null = null;
   // The tags the user started from, so the server merges concurrent edits instead of reverting them
-  private static oldTagString = "";
+  private oldTagString = "";
 
-  /** ID of the post being edited, or null if the editor is closed */
-  static get postID (): number | null { return this._postID; }
+  private constructor () {
+    if (QuickEdit._instance)
+      throw new Error("QuickEdit is a singleton class. Use QuickEdit.instance to access the instance.");
 
-  static initialize (): void {
     this.container = document.getElementById("quick-edit-div");
     this.form = document.querySelector<HTMLFormElement>("#quick-edit-form");
     this.textarea = document.querySelector<HTMLTextAreaElement>("#post_tag_string");
-    this._postID = null;
     if (!this.container || !this.form || !this.textarea) return;
 
     this.form.addEventListener("submit", (event) => {
@@ -45,7 +60,10 @@ export default class QuickEdit {
     });
   }
 
-  static open (post_id: number): void {
+  /** ID of the post being edited, or null if the editor is closed */
+  public get postID (): number | null { return this._postID; }
+
+  public open (post_id: number): void {
     const post = PostCache.get(post_id);
     if (!this.container || !this.textarea || !post) return;
 
@@ -68,7 +86,7 @@ export default class QuickEdit {
     textarea.style.height = Math.max(MIN_HEIGHT, textarea.scrollHeight - padding) + "px";
   }
 
-  static close (): void {
+  public close (): void {
     if (this._postID === null) return;
     this._postID = null;
 
@@ -79,7 +97,7 @@ export default class QuickEdit {
     Hotkeys.enabled = true;
   }
 
-  private static submit (): Promise<void> {
+  private submit (): Promise<void> {
     const post_id = this._postID;
     if (post_id === null) return Promise.resolve();
 

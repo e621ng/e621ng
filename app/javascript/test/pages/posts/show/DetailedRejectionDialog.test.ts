@@ -34,8 +34,6 @@ const DIALOG_MARKUP = `
   </div>`;
 
 function render ({ withDialog = true } = {}): void {
-  document.body.dataset.controller = "posts";
-  document.body.dataset.action = "show";
   document.body.innerHTML = `
     <div class="quick-mod">
       <a href="#" class="detailed-rejection-link" data-post-id="${POST_ID}">Disapprove</a>
@@ -112,13 +110,6 @@ describe("DetailedRejectionDialog", () => {
     $("#detailed-rejection-cancel").trigger("click");
     expect(dialogs[0].close).toHaveBeenCalledTimes(1);
     expect(bulk.disapprove).not.toHaveBeenCalled();
-  });
-
-  it("does nothing off the posts#show page", async () => {
-    document.body.dataset.action = "index";
-    await load();
-    open();
-    expect(dialogs).toHaveLength(0);
   });
 
   it("does nothing when the dialog partial is not rendered", async () => {

@@ -14,8 +14,7 @@ function page (blacklisted: boolean, video = false) {
 
 async function load () {
   blacklist.reveal.mockReset();
-  await import("@/pages/posts/show/BlacklistedImage");
-  await new Promise((resolve) => $(resolve)); // DOM-ready handler
+  void (await import("@/pages/posts/show/BlacklistedImage")).default.instance;
 }
 
 describe("BlacklistedImage", () => {

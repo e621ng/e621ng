@@ -5,12 +5,31 @@ const CLOSED = 0, OPEN = 1, DISMISSED = 2;
 /** The collapsible wiki excerpt above the posts index / favorites gallery. State persists in local storage. */
 export default class WikiExcerpt {
 
-  static initialize (): void {
-    for (const section of document.querySelectorAll<HTMLElement>(".wiki-excerpt"))
-      WikiExcerpt.bind(section);
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
+
+  private static _instance: WikiExcerpt | null = null;
+  public static get instance (): WikiExcerpt {
+    if (!WikiExcerpt._instance)
+      WikiExcerpt._instance = new WikiExcerpt();
+    return WikiExcerpt._instance;
   }
 
-  private static bind (section: HTMLElement): void {
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private constructor () {
+    if (WikiExcerpt._instance)
+      throw new Error("WikiExcerpt is a singleton class. Use WikiExcerpt.instance to access the instance.");
+
+    for (const section of document.querySelectorAll<HTMLElement>(".wiki-excerpt"))
+      this.bind(section);
+  }
+
+  private bind (section: HTMLElement): void {
     const state = LStorage.Posts.WikiExcerpt;
     if (state === DISMISSED) return;
 

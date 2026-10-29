@@ -21,8 +21,6 @@ const POST_ID = 42;
 const FOR_SELECT = { Owned: [["my set", 7], ["other set", 8]], Maintained: [["shared set", 9]] };
 
 function render (): void {
-  document.body.dataset.controller = "posts";
-  document.body.dataset.action = "show";
   document.body.innerHTML = `
     <a href="#" class="add-to-set">Add to set</a>
     <form id="add-to-set-dialog" data-title="Add to Set">

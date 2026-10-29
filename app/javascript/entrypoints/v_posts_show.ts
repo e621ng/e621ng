@@ -1,46 +1,56 @@
 // posts # show
 
 import ModuleRegistry from "@/utility/ModuleRegistry";
+import State from "@/utility/StateUtils";
 
 import CurrentPost from "@/models/CurrentPost";
 import "@/pages/comments/comments";
 import AddToPoolDialog from "@/pages/posts/show/AddToPoolDialog";
 import AddToSetDialog from "@/pages/posts/show/AddToSetDialog";
 import ApprovalToolbar from "@/pages/posts/show/ApprovalToolbar";
-import "@/pages/posts/show/BlacklistedImage";
+import BlacklistedImage from "@/pages/posts/show/BlacklistedImage";
 import DeleteWithReasonDialog from "@/pages/posts/show/DeleteWithReasonDialog";
 import DetailedRejectionDialog from "@/pages/posts/show/DetailedRejectionDialog";
 import EditTab from "@/pages/posts/show/EditTab";
-import "@/pages/posts/show/MobileTabs";
+import MobileTabs from "@/pages/posts/show/MobileTabs";
 import Navigation from "@/pages/posts/show/Navigation";
 import Note from "@/pages/posts/show/notes";
 import PostActions from "@/pages/posts/show/PostActions";
 import PostSet from "@/pages/posts/show/PostSet";
 import RelationshipPreview from "@/pages/posts/show/RelationshipPreview";
-import "@/pages/posts/show/toolbar";
+import PostsShowToolbar from "@/pages/posts/show/toolbar";
 import Recommended from "@/pages/posts/show/Recommended";
-import "@/pages/posts/show/TagEditor";
+import TagEditor from "@/pages/posts/show/TagEditor";
 import PostResizer from "@/pages/posts/show/Resizer";
-import "@/pages/posts/show/SwipeGestureHandler";
-import "@/pages/posts/show/Video";
+import SwipeGestureHandler from "@/pages/posts/show/SwipeGestureHandler";
+import PostVideo from "@/pages/posts/show/Video";
 import PostReowner from "@/pages/staff/post/posts/PostReowner";
 
 
 import "@/pages/post_flags/post_flags"; // We only need expandable notes from here
 
-ModuleRegistry.register("v_posts_show", { Note, CurrentPost, PostResizer });
+State.onReady(() => {
+  void BlacklistedImage.instance;
+  void MobileTabs.instance;
+  void Note.instance;
+  void PostsShowToolbar.instance;
+  void TagEditor.instance;
+  void PostResizer.instance;
+  void SwipeGestureHandler.instance;
+  void PostVideo.instance;
 
-$(() => {
   void AddToPoolDialog.instance;
   void AddToSetDialog.instance;
   void DetailedRejectionDialog.instance;
   void DeleteWithReasonDialog.instance;
   void ApprovalToolbar.instance;
   void Recommended.instance;
-  PostSet.bindRemoveLinks();
+  void PostSet.instance;
+  void PostActions.instance;
+  void Navigation.instance;
+  void RelationshipPreview.instance;
+  void EditTab.instance;
   PostReowner.initialize_links();
-  Navigation.registerHotkeys();
-  PostActions.bind();
-  RelationshipPreview.initialize();
-  EditTab.initialize();
+
+  ModuleRegistry.register("v_posts_show", { Note, CurrentPost, PostResizer: PostResizer.instance });
 });

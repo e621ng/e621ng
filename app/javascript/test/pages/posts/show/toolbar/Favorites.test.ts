@@ -4,7 +4,6 @@ import { POST_ID, currentPost, flush, hotkeys, loadToolbar, pressHotkey, renderT
 vi.mock("@/core/hotkeys", () => ({
   default: { register: (name: string, listener: () => void) => { hotkeys.set(name, listener); } },
 }));
-vi.mock("@/utility/Page", () => ({ default: { matches: () => true } }));
 vi.mock("@/pages/posts/show/notes", () => ({ default: { enabled: false } }));
 vi.mock("@/models/PostVote", () => ({ default: { vote: vi.fn() } }));
 

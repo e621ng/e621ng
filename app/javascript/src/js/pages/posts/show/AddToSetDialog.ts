@@ -2,7 +2,6 @@ import Dialog from "@/components/dialog";
 import CurrentPost from "@/models/CurrentPost";
 import PostSet from "@/pages/posts/show/PostSet";
 import HTTP from "@/utility/HTTP";
-import Page from "@/utility/Page";
 import ToastManager from "@/utility/Toast";
 
 /**
@@ -36,8 +35,6 @@ export default class AddToSetDialog {
   private constructor () {
     if (AddToSetDialog._instance)
       throw new Error("AddToSetDialog is a singleton class. Use AddToSetDialog.instance to access the instance.");
-
-    if (!Page.matches("posts", "show")) return;
 
     this.form = $("#add-to-set-dialog");
     if (!this.form.length) return;

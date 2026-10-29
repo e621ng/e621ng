@@ -2,7 +2,6 @@ import NoteManager from "@/pages/posts/show/notes";
 import ToolbarFavorites from "@/pages/posts/show/toolbar/Favorites";
 import ToolbarVoting from "@/pages/posts/show/toolbar/Voting";
 import Offclick, { OffclickEntry } from "@/utility/Offclick";
-import Page from "@/utility/Page";
 import ToastManager from "@/utility/Toast";
 
 /**
@@ -40,8 +39,6 @@ export default class PostsShowToolbar {
 
     this.overflowMenu = $(".ptbr-etc-menu");
     this.overflowToggle = $(".ptbr-etc-toggle");
-
-    if (!Page.matches("posts", "show")) return;
 
     void ToolbarVoting.instance;
     void ToolbarFavorites.instance;
@@ -107,5 +104,3 @@ export default class PostsShowToolbar {
     });
   }
 }
-
-$(() => { void PostsShowToolbar.instance; });
