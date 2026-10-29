@@ -55,12 +55,16 @@ export default class SavedSearchBadge {
   }
 
   public static bootstrapAnalytics (): void {
-    if (!Analytics.enabled || !Settings.Analytics.events.subscription_click) return;
-    document.querySelectorAll<HTMLElement>("[data-notif-count]").forEach((element) => {
-      element.addEventListener("click", () => {
-        Analytics.track("subscription_click");
+    if (!Settings.Analytics.events.subscription_click) return;
+
+    trackClick("a.nav-controls-notifications", "mobile");
+    trackClick("#nav-notifications-link", "desktop");
+
+    function trackClick (query: string, type: "mobile" | "desktop") {
+      document.querySelector<HTMLAnchorElement>(query)?.addEventListener("click", () => {
+        Analytics.track("subscription_click", { type });
       });
-    });
+    }
   }
 }
 
