@@ -85,7 +85,7 @@ class Analytics {
    * @returns The list of events that are enabled for tracking.
    */
   public get Events (): EventConfig {
-    if (!Settings.Analytics.enabled) return { recommendation: false, search_trend: false };
+    if (!Settings.Analytics.enabled) return { recommendation: false, search_trend: false, subscription_click: false };
     return Settings.Analytics.events;
   }
 }
@@ -95,4 +95,5 @@ export default Analytics.instance;
 interface EventConfig {
   recommendation: boolean;
   search_trend: boolean;
+  subscription_click: boolean;
 };

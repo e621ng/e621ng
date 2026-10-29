@@ -30,6 +30,7 @@ const Settings = {} as {
     events: {
       recommendation: boolean,
       search_trend: boolean,
+      subscription_click: boolean,
     }
   },
   Autocomplete: {
@@ -57,6 +58,7 @@ Object.defineProperty(Settings, "Analytics", {
       events: {
         recommendation: obj.events?.recommendation || false,
         search_trend: obj.events?.search_trend || false,
+        subscription_click: obj.events?.subscription_click || false,
       },
     };
     Object.defineProperty(Settings, "Analytics", { value, writable: false });

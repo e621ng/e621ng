@@ -1,5 +1,6 @@
 import HTTP from "@/utility/HTTP";
 import State from "@/utility/StateUtils";
+import Analytics from "./Analytics";
 
 type BadgeSummary = {
   count: number | null;
@@ -51,6 +52,22 @@ export default class SavedSearchBadge {
       }
     }, this.DELAYS[attempt]);
   }
+
+  public static bootstrapAnalytics (): void {
+    if (!Analytics.Events.subscription_click) return;
+
+    trackClick("a.nav-controls-notifications", "mobile");
+    trackClick("#nav-notifications-link", "desktop");
+
+    function trackClick (query: string, type: "mobile" | "desktop") {
+      document.querySelector<HTMLAnchorElement>(query)?.addEventListener("click", () => {
+        Analytics.track("subscription_click", { type });
+      });
+    }
+  }
 }
 
-State.onReady(() => SavedSearchBadge.bootstrap());
+State.onReady(() => {
+  SavedSearchBadge.bootstrap();
+  SavedSearchBadge.bootstrapAnalytics();
+});

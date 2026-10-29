@@ -2,6 +2,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { jsonResponse } from "../helpers";
 
 let hidden = false;
+const analytics = vi.hoisted(() => ({
+  events: { subscription_click: true },
+  track: vi.fn(),
+}));
+
+vi.mock("@/core/Analytics", () => ({
+  default: {
+    get Events () {
+      return analytics.events;
+    },
+    track: analytics.track,
+  },
+}));
 
 function render (count: number, stale: boolean) {
   const attrs = `data-notif-count="${count}"${stale ? ' data-notif-stale="true"' : ""}`;
@@ -22,6 +35,8 @@ describe("SavedSearchBadge", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     hidden = false;
+    analytics.events.subscription_click = true;
+    analytics.track.mockClear();
     Object.defineProperty(document, "hidden", { configurable: true, get: () => hidden });
   });
 
@@ -106,5 +121,36 @@ describe("SavedSearchBadge", () => {
     await vi.advanceTimersByTimeAsync(2000);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(badges()[0].getAttribute("data-notif-count")).toBe("7");
+  });
+
+  it("tracks mobile and desktop notification clicks with their type", async () => {
+    document.body.innerHTML = `
+      <a class="nav-controls-notifications"></a>
+      <a id="nav-notifications-link"></a>
+      <a id="other-link"></a>
+    `;
+    await load();
+
+    document.querySelector<HTMLAnchorElement>(".nav-controls-notifications").click();
+    document.querySelector<HTMLAnchorElement>("#nav-notifications-link").click();
+    document.querySelector<HTMLAnchorElement>("#other-link").click();
+
+    expect(analytics.track).toHaveBeenNthCalledWith(1, "subscription_click", { type: "mobile" });
+    expect(analytics.track).toHaveBeenNthCalledWith(2, "subscription_click", { type: "desktop" });
+    expect(analytics.track).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not track notification clicks when the event is disabled", async () => {
+    document.body.innerHTML = `
+      <a class="nav-controls-notifications"></a>
+      <a id="nav-notifications-link"></a>
+    `;
+    analytics.events.subscription_click = false;
+    await load();
+
+    document.querySelector<HTMLAnchorElement>(".nav-controls-notifications").click();
+    document.querySelector<HTMLAnchorElement>("#nav-notifications-link").click();
+
+    expect(analytics.track).not.toHaveBeenCalled();
   });
 });

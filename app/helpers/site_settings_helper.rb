@@ -47,6 +47,7 @@ module SiteSettingsHelper
         events: {
           recommendation: Danbooru.config.visitor_metrics_events[:recommendation] || false,
           search_trend: Danbooru.config.visitor_metrics_events[:search_trend] || false,
+          subscription_click: Danbooru.config.visitor_metrics_events[:subscription_click] || false,
         },
       },
       Autocomplete: {
