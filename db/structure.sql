@@ -1074,7 +1074,7 @@ CREATE TABLE public.forum_topics (
     updated_at timestamp without time zone NOT NULL,
     category_id integer DEFAULT 0 NOT NULL,
     creator_ip_addr inet NOT NULL,
-    last_bumped_at timestamp(6) without time zone NOT NULL
+    last_bumped_at timestamp without time zone NOT NULL
 );
 
 
