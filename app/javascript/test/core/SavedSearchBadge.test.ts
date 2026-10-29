@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { jsonResponse } from "../helpers";
+import { jsonResponse, setSiteData } from "../helpers";
 
 let hidden = false;
+const trackSpy = vi.hoisted(() => vi.fn());
+
+vi.mock("@/core/Analytics", () => ({
+  default: { track: trackSpy },
+}));
 
 function render (count: number, stale: boolean) {
   const attrs = `data-notif-count="${count}"${stale ? ' data-notif-stale="true"' : ""}`;
@@ -22,6 +27,7 @@ describe("SavedSearchBadge", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     hidden = false;
+    trackSpy.mockClear();
     Object.defineProperty(document, "hidden", { configurable: true, get: () => hidden });
   });
 
@@ -106,5 +112,37 @@ describe("SavedSearchBadge", () => {
     await vi.advanceTimersByTimeAsync(2000);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     expect(badges()[0].getAttribute("data-notif-count")).toBe("7");
+  });
+
+  it("tracks mobile and desktop notification clicks with their type", async () => {
+    document.body.innerHTML = `
+      <a class="nav-controls-notifications"></a>
+      <a id="nav-notifications-link"></a>
+      <a id="other-link"></a>
+    `;
+    setSiteData("site-settings", { Analytics: { events: { subscription_click: true } } });
+    await load();
+
+    document.querySelector<HTMLAnchorElement>(".nav-controls-notifications").click();
+    document.querySelector<HTMLAnchorElement>("#nav-notifications-link").click();
+    document.querySelector<HTMLAnchorElement>("#other-link").click();
+
+    expect(trackSpy).toHaveBeenNthCalledWith(1, "subscription_click", { type: "mobile" });
+    expect(trackSpy).toHaveBeenNthCalledWith(2, "subscription_click", { type: "desktop" });
+    expect(trackSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not track notification clicks when the event is disabled", async () => {
+    document.body.innerHTML = `
+      <a class="nav-controls-notifications"></a>
+      <a id="nav-notifications-link"></a>
+    `;
+    setSiteData("site-settings", { Analytics: { events: { subscription_click: false } } });
+    await load();
+
+    document.querySelector<HTMLAnchorElement>(".nav-controls-notifications").click();
+    document.querySelector<HTMLAnchorElement>("#nav-notifications-link").click();
+
+    expect(trackSpy).not.toHaveBeenCalled();
   });
 });
