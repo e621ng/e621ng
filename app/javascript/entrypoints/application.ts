@@ -20,7 +20,7 @@ import "@/core/PaginatorFastTravel";
 import "@/core/RegionNotice";
 import "@/core/SavedSearchBadge";
 import "@/core/themes";
-import "@/core/tos_warning";
+import "@/core/TOSWarning";
 import "@/core/user_warning"; // Realistically, should only be on specific pages
 import Logger from "@/utility/Logger";
 import ToastManager from "@/utility/Toast";
