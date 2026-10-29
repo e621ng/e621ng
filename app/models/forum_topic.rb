@@ -21,7 +21,7 @@ class ForumTopic < ApplicationRecord
   after_update :update_original_post
   before_destroy :create_mod_action_for_delete
 
-  before_save(if: ->(rec) { !rec.do_not_bump.to_s.truthy? && (rec.new_record? || rec.watched_attributes_changed?) }) do |rec|
+  before_save(if: ->(rec) { rec.new_record? || (!rec.do_not_bump.to_s.truthy? && rec.watched_attributes_changed?) }) do |rec|
     rec.last_bumped_at = Time.current
   end
   after_save(:if => ->(rec) {rec.saved_change_to_is_locked?}) do |rec|
