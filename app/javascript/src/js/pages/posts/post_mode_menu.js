@@ -4,7 +4,8 @@ import PendingUpdates from "@/pages/posts/PendingUpdates";
 import PostModel from "@/models/Post";
 import Favorite from "@/models/Favorite";
 import PostSet from "@/pages/posts/show/PostSet";
-import TagScript from "@/models/tag_script";
+import TagScript, { TagScriptError } from "@/pages/posts/TagScript";
+import PostCache from "@/models/PostCache";
 import Rails from "@rails/ujs";
 import Hotkeys from "@/core/hotkeys";
 import LStorage from "@/utility/storage/Local";
@@ -102,6 +103,7 @@ PostModeMenu.initialize_tag_script_field = function () {
   $("#tag-script-field").on("blur", function () {
     const script = $(this).val();
     LStorage.Posts.TagScript.Content = script;
+    PostModeMenu.parse_tag_script(script);
   });
 
   $("#tag-script-all").on("click", PostModeMenu.tag_script_apply_all);
@@ -109,9 +111,21 @@ PostModeMenu.initialize_tag_script_field = function () {
 
 PostModeMenu.tag_script_apply_all = function (event) {
   event.preventDefault();
+  if (!PostModeMenu.parse_tag_script(LStorage.Posts.TagScript.Content)) return;
   const posts = $("article.thumbnail");
   if (!confirm(`Apply the tag script to ${posts.length} posts?`)) return;
   posts.trigger("click");
+};
+
+/** Returns the parsed commands, or null (with an alert) if the script is invalid */
+PostModeMenu.parse_tag_script = function (script) {
+  try {
+    return TagScript.parse(script);
+  } catch (error) {
+    if (!(error instanceof TagScriptError)) throw error;
+    ToastManager.alert(error.message);
+    return null;
+  }
 };
 
 PostModeMenu.update_sets_menu = function () {
@@ -197,15 +211,14 @@ PostModeMenu.click = function (e) {
   } else if (s === "remove-parent") {
     BulkActions.update(post_id, { parent_id: "" });
   } else if (s === "tag-script") {
-    const tag_script = LStorage.Posts.TagScript.Content;
-    if (!tag_script) {
-      e.preventDefault();
-      return;
-    }
-    const postTags = $(`article.thumbnail[data-id="${post_id}"]`).first().data("tags").split(" ");
-    const tags = new Set(postTags);
-    const changes = TagScript.run(tags, tag_script);
-    BulkActions.tagScript(post_id, changes, $("#tag-script-reason").val());
+    // Never fall through to the post link, even on a broken script
+    e.preventDefault();
+    const commands = PostModeMenu.parse_tag_script(LStorage.Posts.TagScript.Content);
+    const post = PostCache.get(post_id);
+    if (!commands || !post) return;
+
+    const changes = TagScript.evaluate(commands, post.tagSet);
+    if (changes.length) BulkActions.applyTagDiff(post_id, changes, $("#tag-script-reason").val());
   } else {
     return;
   }

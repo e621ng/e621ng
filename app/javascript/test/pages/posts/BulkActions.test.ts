@@ -64,14 +64,14 @@ describe("BulkActions", () => {
     });
   });
 
-  describe("tagScript", () => {
-    it("joins tag arrays and forwards the reason", async () => {
+  describe("applyTagDiff", () => {
+    it("joins the changes and forwards the reason", async () => {
       const { BulkActions } = await load();
 
-      await BulkActions.tagScript(POST_ID, ["a", "-b"], "cleanup");
+      await BulkActions.applyTagDiff(POST_ID, ["a", "-b"], "cleanup");
       expect(post.update).toHaveBeenCalledWith(POST_ID, { tag_string_diff: "a -b", edit_reason: "cleanup" });
 
-      await BulkActions.tagScript(POST_ID, "c");
+      await BulkActions.applyTagDiff(POST_ID, ["c"]);
       expect(post.update).toHaveBeenLastCalledWith(POST_ID, { tag_string_diff: "c", edit_reason: "" });
     });
   });
