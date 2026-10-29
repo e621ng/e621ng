@@ -12,7 +12,7 @@ describe("Settings", () => {
 
     expect(Settings.Analytics.enabled).toBe(false);
     expect(Settings.Analytics.client_id).toBeNull();
-    expect(Settings.Analytics.events).toEqual({ recommendation: false, search_trend: false });
+    expect(Settings.Analytics.events).toEqual({ recommendation: false, search_trend: false, subscription_click: false });
     expect(Settings.Posts.webp_enabled).toBe(false);
     expect(Settings.Posts.max_file_size).toBe(0);
     expect(Settings.Posts.max_file_sizes).toEqual({});
@@ -41,7 +41,7 @@ describe("Settings", () => {
       Analytics: {
         enabled: true,
         client_id: "G-XYZ",
-        events: { recommendation: true, search_trend: false },
+        events: { recommendation: true, search_trend: false, subscription_click: false },
       },
       Posts: {
         webp_enabled: true,
@@ -56,7 +56,7 @@ describe("Settings", () => {
     expect(Settings.Analytics).toEqual({
       enabled: true,
       client_id: "G-XYZ",
-      events: { recommendation: true, search_trend: false },
+      events: { recommendation: true, search_trend: false, subscription_click: false },
     });
     expect(Settings.Posts.webp_enabled).toBe(true);
     expect(Settings.Posts.max_file_size).toBe(104857600);
@@ -71,7 +71,7 @@ describe("Settings", () => {
 
     expect(Settings.Analytics.enabled).toBe(true);
     expect(Settings.Analytics.client_id).toBeNull();
-    expect(Settings.Analytics.events).toEqual({ recommendation: false, search_trend: false });
+    expect(Settings.Analytics.events).toEqual({ recommendation: false, search_trend: false, subscription_click: false });
   });
 
   describe("Autocomplete.blacklist", () => {

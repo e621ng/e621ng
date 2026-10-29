@@ -1006,6 +1006,7 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       {
         recommendation: false,
         search_trend: false,
+        subscription_click: false,
       }
     end
 

@@ -53,15 +53,15 @@ RSpec.describe SiteSettingsHelper do
 
     it "reflects the configured analytics event flags" do
       allow(Danbooru.config.custom_configuration).to receive(:visitor_metrics_events)
-        .and_return(recommendation: true, search_trend: false)
+        .and_return(recommendation: true, search_trend: false, subscription_click: false)
 
-      expect(settings["Analytics"]["events"]).to eq("recommendation" => true, "search_trend" => false)
+      expect(settings["Analytics"]["events"]).to eq("recommendation" => true, "search_trend" => false, "subscription_click" => false)
     end
 
     it "defaults missing analytics event flags to false" do
       allow(Danbooru.config.custom_configuration).to receive(:visitor_metrics_events).and_return({})
 
-      expect(settings["Analytics"]["events"]).to eq("recommendation" => false, "search_trend" => false)
+      expect(settings["Analytics"]["events"]).to eq("recommendation" => false, "search_trend" => false, "subscription_click" => false)
     end
 
     it "exposes the autocomplete blacklist" do
