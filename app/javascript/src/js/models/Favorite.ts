@@ -24,9 +24,6 @@ export default class Favorite {
   }
 
   private static request (post_id: number, delay: number, method: string, url: string): Promise<FavoriteResponse> {
-    // JS callers (post_mode_menu) are not type-checked, so keep the runtime guard
-    if (!post_id) return Promise.reject(new Error("Post ID is required"));
-
     // Create and destroy share a queue name on purpose: the latest request wins
     return TaskQueue.add(() => {
       return HTTP.request(url, {

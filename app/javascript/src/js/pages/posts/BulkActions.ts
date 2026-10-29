@@ -1,6 +1,8 @@
+import Favorite from "@/models/Favorite";
 import Post, { PostThumbnailJSON, PostUpdateParams } from "@/models/Post";
 import PostApproval from "@/models/PostApproval";
 import PostFlag from "@/models/PostFlag";
+import PostVote from "@/models/PostVote";
 import PendingUpdates from "@/pages/posts/PendingUpdates";
 import { ApiError } from "@/utility/ApiRequest";
 import Page from "@/utility/Page";
@@ -35,6 +37,19 @@ export default class BulkActions {
 
   static applyTagDiff (post_id: number, changes: string[], reason: string = ""): Promise<void> {
     return BulkActions.update(post_id, { tag_string_diff: changes.join(" "), edit_reason: reason });
+  }
+
+  static favorite (post_id: number): Promise<void> {
+    return PendingUpdates.track(Favorite.create(post_id)).then(() => {}, reported);
+  }
+
+  static unfavorite (post_id: number): Promise<void> {
+    return PendingUpdates.track(Favorite.destroy(post_id)).then(() => {}, reported);
+  }
+
+  /** Votes without toggling off an existing vote of the same score */
+  static vote (post_id: number, score: 1 | -1): Promise<void> {
+    return PendingUpdates.track(PostVote.vote(post_id, score, true)).then(() => {}, reported);
   }
 
   static delete (post_id: number, reason: string, options: BulkDeleteOptions = {}): Promise<void> {
