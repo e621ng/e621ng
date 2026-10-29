@@ -151,8 +151,8 @@ RSpec.describe UploadService do
         nil
       end
 
-      context "when it has an audio track" do
-        let(:fixture)    { "file_validator/animated-h264-aac.mp4" }
+      context "when it has an audible track" do
+        let(:fixture)    { "sound/tone-aac.mp4" }
         let(:tag_string) { "tagme foo" }
 
         it "sets has_sound and adds sound without attributing it to the uploader" do
@@ -160,6 +160,17 @@ RSpec.describe UploadService do
           expect(service.post.has_sound).to be true
           expect(service.post.tag_array).to include("sound")
           expect(service.post.versions.first.original_tags).to contain_exactly("tagme", "foo")
+        end
+      end
+
+      context "when its audio track is silent" do
+        let(:fixture)    { "sound/silent-aac.mp4" }
+        let(:tag_string) { "tagme sound" }
+
+        it "clears has_sound and removes sound" do
+          service.start!
+          expect(service.post.has_sound).to be false
+          expect(service.post.tag_array).not_to include("sound")
         end
       end
 

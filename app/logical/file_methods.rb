@@ -174,11 +174,28 @@ module FileMethods
     true
   end
 
+  # A declared audio stream is not enough: many encoders mux a fully silent
+  # track, so decode the audio and check its peak level against the threshold.
   def video_has_sound?(file_path)
     return false unless is_video?
     movie = video(file_path)
     raise ArgumentError, "unreadable video: #{file_path}" unless movie.valid?
-    movie.audio_streams.any?
+    return false if movie.audio_streams.empty?
+
+    max_volume = video_max_volume_db(file_path)
+    max_volume.present? && max_volume > Danbooru.config.sound_detection_threshold_db
+  end
+
+  # Peak level in dBFS of the decoded audio, or nil when no samples were decoded.
+  def video_max_volume_db(file_path)
+    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-nostats", "-hide_banner", "-vn", "-i", file_path, "-af", "volumedetect", "-f", "null", "-")
+    unless status.success?
+      Rails.logger.warn("[FFMPEG VOLUMEDETECT STDOUT] #{stdout.chomp}")
+      Rails.logger.warn("[FFMPEG VOLUMEDETECT STDERR] #{stderr.chomp}")
+      raise ArgumentError, "unreadable video: #{file_path}"
+    end
+
+    stderr[/max_volume: (-?\d+(?:\.\d+)?) dB/, 1]&.to_f
   end
 
   # Verify whether the file at the provided path is corrupt.
