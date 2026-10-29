@@ -1,5 +1,4 @@
 import HTTP from "@/utility/HTTP";
-import Settings from "@/utility/Settings";
 import State from "@/utility/StateUtils";
 import Analytics from "./Analytics";
 
@@ -55,7 +54,7 @@ export default class SavedSearchBadge {
   }
 
   public static bootstrapAnalytics (): void {
-    if (!Settings.Analytics.events.subscription_click) return;
+    if (!Analytics.Events.subscription_click) return;
 
     trackClick("a.nav-controls-notifications", "mobile");
     trackClick("#nav-notifications-link", "desktop");
