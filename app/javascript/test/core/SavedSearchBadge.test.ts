@@ -1,11 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { jsonResponse, setSiteData } from "../helpers";
+import { jsonResponse } from "../helpers";
 
 let hidden = false;
-const trackSpy = vi.hoisted(() => vi.fn());
+const analytics = vi.hoisted(() => ({
+  events: { subscription_click: true },
+  track: vi.fn(),
+}));
 
 vi.mock("@/core/Analytics", () => ({
-  default: { track: trackSpy },
+  default: {
+    get Events () {
+      return analytics.events;
+    },
+    track: analytics.track,
+  },
 }));
 
 function render (count: number, stale: boolean) {
@@ -27,7 +35,8 @@ describe("SavedSearchBadge", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     hidden = false;
-    trackSpy.mockClear();
+    analytics.events.subscription_click = true;
+    analytics.track.mockClear();
     Object.defineProperty(document, "hidden", { configurable: true, get: () => hidden });
   });
 
@@ -120,16 +129,15 @@ describe("SavedSearchBadge", () => {
       <a id="nav-notifications-link"></a>
       <a id="other-link"></a>
     `;
-    setSiteData("site-settings", { Analytics: { events: { subscription_click: true } } });
     await load();
 
     document.querySelector<HTMLAnchorElement>(".nav-controls-notifications").click();
     document.querySelector<HTMLAnchorElement>("#nav-notifications-link").click();
     document.querySelector<HTMLAnchorElement>("#other-link").click();
 
-    expect(trackSpy).toHaveBeenNthCalledWith(1, "subscription_click", { type: "mobile" });
-    expect(trackSpy).toHaveBeenNthCalledWith(2, "subscription_click", { type: "desktop" });
-    expect(trackSpy).toHaveBeenCalledTimes(2);
+    expect(analytics.track).toHaveBeenNthCalledWith(1, "subscription_click", { type: "mobile" });
+    expect(analytics.track).toHaveBeenNthCalledWith(2, "subscription_click", { type: "desktop" });
+    expect(analytics.track).toHaveBeenCalledTimes(2);
   });
 
   it("does not track notification clicks when the event is disabled", async () => {
@@ -137,12 +145,12 @@ describe("SavedSearchBadge", () => {
       <a class="nav-controls-notifications"></a>
       <a id="nav-notifications-link"></a>
     `;
-    setSiteData("site-settings", { Analytics: { events: { subscription_click: false } } });
+    analytics.events.subscription_click = false;
     await load();
 
     document.querySelector<HTMLAnchorElement>(".nav-controls-notifications").click();
     document.querySelector<HTMLAnchorElement>("#nav-notifications-link").click();
 
-    expect(trackSpy).not.toHaveBeenCalled();
+    expect(analytics.track).not.toHaveBeenCalled();
   });
 });
