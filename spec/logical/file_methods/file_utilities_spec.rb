@@ -158,6 +158,12 @@ RSpec.describe FileMethods, type: :model do
       expect(upload.video_has_sound?(path)).to be true
     end
 
+    it "returns true when only a non-default audio stream is audible" do
+      upload = build(:upload, file_ext: "mp4")
+      path = file_fixture("sound/multi-aac.mp4").to_s
+      expect(upload.video_has_sound?(path)).to be true
+    end
+
     it "returns false for videos whose audio track is silent" do
       { "mp4" => "sound/silent-aac.mp4", "webm" => "sound/silent-opus.webm" }.each do |ext, fixture|
         upload = build(:upload, file_ext: ext)
