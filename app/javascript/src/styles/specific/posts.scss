@@ -278,14 +278,26 @@ div#c-posts {
       width:100%
     }
   }
+}
 
-  div#quick-edit-div {
-    @include st-max-width;
-    textarea {
-      width: 100%;
-      height: 4em;
-      display: block;
-    }
+// Shared by posts#index and favorites#index
+div#quick-edit-div {
+  @include st-max-width;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease-out;
+  &.open { grid-template-rows: 1fr; }
+  @media (prefers-reduced-motion: reduce) { transition: none; }
+
+  .quick-edit-body {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  textarea {
+    width: 100%;
+    height: 4em;
+    display: block;
   }
 }
 

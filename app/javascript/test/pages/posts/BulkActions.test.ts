@@ -3,12 +3,16 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const post = { update: vi.fn(), delete: vi.fn(), undelete: vi.fn() };
 const approval = { create: vi.fn(), disapprove: vi.fn() };
 const flag = { destroy: vi.fn() };
+const favorite = { create: vi.fn(), destroy: vi.fn() };
+const vote = { vote: vi.fn() };
 const toast = { notice: vi.fn(), create: vi.fn(() => ({ message: "", timeout: 0 })), dismiss: vi.fn() };
 const page = { matches: vi.fn(() => false) };
 
 vi.mock("@/models/Post", async (importOriginal) => ({ ...await importOriginal<object>(), default: post }));
 vi.mock("@/models/PostApproval", () => ({ default: approval }));
 vi.mock("@/models/PostFlag", () => ({ default: flag }));
+vi.mock("@/models/Favorite", async (importOriginal) => ({ ...await importOriginal<object>(), default: favorite }));
+vi.mock("@/models/PostVote", () => ({ default: vote }));
 vi.mock("@/utility/Toast", () => ({ default: toast }));
 vi.mock("@/utility/Page", () => ({ default: page }));
 
@@ -34,7 +38,7 @@ async function apiError (status: number) {
 
 describe("BulkActions", () => {
   beforeEach(() => {
-    for (const group of [post, approval, flag])
+    for (const group of [post, approval, flag, favorite, vote])
       for (const fn of Object.values(group)) fn.mockReset().mockResolvedValue(undefined);
     post.update.mockResolvedValue(THUMB);
     toast.notice.mockReset();
@@ -73,6 +77,31 @@ describe("BulkActions", () => {
 
       await BulkActions.applyTagDiff(POST_ID, ["c"]);
       expect(post.update).toHaveBeenLastCalledWith(POST_ID, { tag_string_diff: "c", edit_reason: "" });
+    });
+  });
+
+  describe("favorite / unfavorite / vote", () => {
+    it("forwards to the models and balances the counter", async () => {
+      const { BulkActions, PendingUpdates } = await load();
+
+      await BulkActions.favorite(POST_ID);
+      await BulkActions.unfavorite(POST_ID);
+      await BulkActions.vote(POST_ID, -1);
+
+      expect(favorite.create).toHaveBeenCalledWith(POST_ID);
+      expect(favorite.destroy).toHaveBeenCalledWith(POST_ID);
+      expect(vote.vote).toHaveBeenCalledWith(POST_ID, -1, true);
+      expect(PendingUpdates.count).toBe(0);
+    });
+
+    it("stays quiet on failure", async () => {
+      favorite.create.mockRejectedValue(new Error("nope"));
+      vote.vote.mockRejectedValue(new Error("nope"));
+      const { BulkActions, PendingUpdates } = await load();
+
+      await expect(BulkActions.favorite(POST_ID)).resolves.toBeUndefined();
+      await expect(BulkActions.vote(POST_ID, 1)).resolves.toBeUndefined();
+      expect(PendingUpdates.count).toBe(0);
     });
   });
 

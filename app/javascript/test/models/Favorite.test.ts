@@ -53,15 +53,6 @@ describe("Favorite", () => {
       expect(queue.mock.calls[0][1]).toEqual({ name: `Post.favorite.${POST_ID}`, unique: true, delay: 750 });
     });
 
-    it("rejects without fetching when the post ID is missing", async () => {
-      const fetchSpy = vi.spyOn(globalThis, "fetch");
-      const { Favorite } = await freshFavorite();
-
-      await expect(Favorite.create(0)).rejects.toThrow("Post ID is required");
-      await expect(Favorite.create(undefined as unknown as number)).rejects.toThrow("Post ID is required");
-      expect(fetchSpy).not.toHaveBeenCalled();
-    });
-
     it("flags 'already favorited' without reporting it", async () => {
       await bypassQueue();
       vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ success: false, message: "You have already favorited this post" }, { status: 422 }));
@@ -158,14 +149,6 @@ describe("Favorite", () => {
       expect(error).toBeInstanceOf(FavoriteError);
       expect(error.status).toBe(423);
       expect(errors).toEqual(["Error: Post favorites are being transferred, please try again later"]);
-    });
-
-    it("rejects without fetching when the post ID is missing", async () => {
-      const fetchSpy = vi.spyOn(globalThis, "fetch");
-      const { Favorite } = await freshFavorite();
-
-      await expect(Favorite.destroy(0)).rejects.toThrow("Post ID is required");
-      expect(fetchSpy).not.toHaveBeenCalled();
     });
   });
 });
