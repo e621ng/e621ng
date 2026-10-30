@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { htmlResponse, jsonResponse, setMeta } from "../../../helpers";
+import { htmlResponse, jsonResponse, setMeta } from "../helpers";
 
 const { alertSpy, toast, createSpy } = vi.hoisted(() => {
   const toast = { message: "", timeout: 0, dismiss: vi.fn() };
-  return { alertSpy: vi.fn(), toast, createSpy: vi.fn(() => toast) };
+  return { alertSpy: vi.fn(), toast, createSpy: vi.fn((..._args: unknown[]) => toast) };
 });
 
 vi.mock("@/utility/Toast", () => ({
@@ -13,7 +13,7 @@ vi.mock("@/utility/Toast", () => ({
 vi.mock("@/utility/TaskQueue", () => ({ default: { add: (task: () => unknown) => Promise.resolve().then(task) } }));
 
 async function load () {
-  return (await import("@/pages/posts/show/PostSet")).default;
+  return (await import("@/models/PostSet")).default;
 }
 
 function requests (fetchSpy: ReturnType<typeof vi.spyOn>): { url: string; body: string }[] {
@@ -161,19 +161,6 @@ describe("PostSet", () => {
       const PostSet = await load();
       await PostSet.populateSelect($("#set-id") as JQuery<HTMLSelectElement>);
       expect(alertSpy).toHaveBeenCalledWith("Error getting sets list: Access denied");
-    });
-  });
-
-  describe("bindRemoveLinks", () => {
-    it("queues a removal with numeric ids from the link's data attributes", async () => {
-      document.body.innerHTML = '<a href="#" class="set-nav-remove-link" data-set-id="3" data-post-id="44">x</a>';
-      const PostSet = await load();
-      const removeSpy = vi.spyOn(PostSet, "remove_post").mockImplementation(() => {});
-
-      void PostSet.instance;
-      document.querySelector<HTMLElement>("a.set-nav-remove-link")!.click();
-
-      expect(removeSpy).toHaveBeenCalledWith(3, 44);
     });
   });
 });

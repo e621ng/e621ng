@@ -1,6 +1,6 @@
 import Dialog from "@/components/dialog";
 import CurrentPost from "@/models/CurrentPost";
-import PostSet from "@/pages/posts/show/PostSet";
+import PostSet from "@/models/PostSet";
 import HTTP from "@/utility/HTTP";
 import ToastManager from "@/utility/Toast";
 

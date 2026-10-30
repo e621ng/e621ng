@@ -17,34 +17,6 @@ export interface ForSelectResponse {
  */
 export default class PostSet {
 
-  /* ============================== */
-  /* ===== Singleton pattern ====== */
-  /* ============================== */
-
-  private static _instance: PostSet | null = null;
-  public static get instance (): PostSet {
-    if (!PostSet._instance)
-      PostSet._instance = new PostSet();
-    return PostSet._instance;
-  }
-
-
-  /* ============================== */
-  /* ======= Initialization ======= */
-  /* ============================== */
-
-  private constructor () {
-    if (PostSet._instance)
-      throw new Error("PostSet is a singleton class. Use PostSet.instance to access the instance.");
-
-    // The "remove from set" buttons in the posts#show set navigation blocks
-    $("a.set-nav-remove-link").on("click", (event) => {
-      event.preventDefault();
-      const { setId, postId } = (event.currentTarget as HTMLElement).dataset;
-      PostSet.remove_post(Number(setId), Number(postId));
-    });
-  }
-
   private static postUpdateToast: Toast | null = null;
 
   private static timeouts: Record<SetAction, number | null> = { add: null, remove: null };

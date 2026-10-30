@@ -10,7 +10,7 @@ const user = { is: { privileged: true } };
 const toast = { alert: vi.fn(), notice: vi.fn(), create: vi.fn(() => ({ dismiss: vi.fn() })) };
 
 vi.mock("@/pages/posts/BulkActions", () => ({ default: bulk }));
-vi.mock("@/pages/posts/show/PostSet", () => ({ default: postSet }));
+vi.mock("@/models/PostSet", () => ({ default: postSet }));
 vi.mock("@/core/hotkeys", () => ({ default: hotkeys }));
 vi.mock("@/models/CurrentUser", () => ({ default: user }));
 vi.mock("@/utility/Toast", async (importOriginal) => ({ ...await importOriginal<object>(), default: toast }));

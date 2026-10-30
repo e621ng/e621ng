@@ -3,7 +3,7 @@ import { HotkeyAction } from "@/core/hotkeys/Types";
 import CurrentUser from "@/models/CurrentUser";
 import BulkActions from "@/pages/posts/BulkActions";
 import QuickEdit from "@/pages/posts/QuickEdit";
-import PostSet from "@/pages/posts/show/PostSet";
+import PostSet from "@/models/PostSet";
 import TagScriptControls from "@/pages/posts/TagScriptControls";
 import SStorage from "@/utility/storage/Session";
 
