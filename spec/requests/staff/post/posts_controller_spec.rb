@@ -369,6 +369,12 @@ RSpec.describe Staff::Post::PostsController do
         expect(flash[:alert]).to match(/New owner could not be found/)
       end
 
+      it "returns 422 with the message over JSON if the new owner could not be found" do
+        post reowner_staff_post_post_path(post_record, format: :json), params: { reowner: { new_owner: "I_AM_NOT_A_USER" } }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body["message"]).to match(/New owner could not be found/)
+      end
+
       it "calls reowner! and redirects if the user is found" do
         allow_any_instance_of(Post).to receive(:reowner!).with(new_owner, post_events: true, reowner_versions: false, karma: true).and_return(9999) # rubocop:disable RSpec/AnyInstance
         expect do
