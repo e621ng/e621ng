@@ -20,8 +20,6 @@ vi.mock("@/utility/Toast", () => ({ default: { alert: (msg: string) => alertSpy(
 const POST_ID = 42;
 
 function render (): void {
-  document.body.dataset.controller = "posts";
-  document.body.dataset.action = "show";
   document.body.innerHTML = `
     <a href="#" class="add-to-pool">Add to pool</a>
     <button class="add-to-pool">Add to Pool</button>
@@ -79,15 +77,6 @@ describe("AddToPoolDialog", () => {
     document.querySelector<HTMLElement>("button.add-to-pool")!.click();
     expect(dialogs).toHaveLength(1);
     expect(dialogs[0].toggle).toHaveBeenCalledTimes(2);
-  });
-
-  it("does nothing off the posts#show page", async () => {
-    document.body.dataset.action = "index";
-    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(recentResponse());
-    await load();
-    open();
-    expect(dialogs).toHaveLength(0);
-    expect(fetchSpy).not.toHaveBeenCalled();
   });
 
   it("loads recent pools once, rendering names as text", async () => {

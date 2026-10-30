@@ -8,18 +8,42 @@ const TOGGLE_VALUES: Record<string, string> = { unset: "", yes: "true", no: "fal
 const TOGGLE_STATE_MAP: Record<string, string> = { "": "unset", "true": "yes", "false": "no" };
 
 
+/** The advanced search controls in the posts sidebar, kept in sync with each tag search textarea. */
 export default class SearchFilters {
 
-  static initialize (): void {
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
+
+  private static _instance: SearchFilters | null = null;
+  public static get instance (): SearchFilters {
+    if (!SearchFilters._instance)
+      SearchFilters._instance = new SearchFilters();
+    return SearchFilters._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private constructor () {
+    if (SearchFilters._instance)
+      throw new Error("SearchFilters is a singleton class. Use SearchFilters.instance to access the instance.");
+
     const $controls = $("#advanced-search-container") as JQuery<HTMLDivElement>;
     if (!$controls.length) return;
 
     $(".post-search").each((_index, element) => {
       const $textarea = $(element).find<HTMLTextAreaElement>("textarea[name=tags]").first();
       if (!$textarea.length) return;
-      new SearchFilters($textarea, $controls);
+      new SearchFilterBinding($textarea, $controls);
     });
   }
+}
+
+/** Binds the advanced search controls to one tag search textarea. */
+class SearchFilterBinding {
 
   private $sortInputs: JQuery<HTMLInputElement>;
   private $inpoolToggle: JQuery<HTMLLabelElement>;
@@ -226,5 +250,3 @@ export default class SearchFilters {
     this.$textarea.val(q.toString()).trigger("input");
   }
 }
-
-$(() => SearchFilters.initialize());

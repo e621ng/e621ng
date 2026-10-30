@@ -33,7 +33,7 @@ describe("RandomPost", () => {
     $("body").append('<textarea id="tags">fox</textarea>');
     const { RandomPost, navigate } = await load();
 
-    RandomPost.registerHotkey();
+    void RandomPost.instance;
     hotkeys.get("random")();
 
     expect(navigate).toHaveBeenCalledWith("/posts/random?tags=fox");

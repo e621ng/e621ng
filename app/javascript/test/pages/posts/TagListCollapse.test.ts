@@ -12,7 +12,7 @@ function render () {
 
 async function load () {
   const TagListCollapse = (await import("@/pages/posts/TagListCollapse")).default;
-  TagListCollapse.initialize();
+  void TagListCollapse.instance;
 }
 
 const hidden = (selector: string) => document.querySelector<HTMLElement>(selector).style.display === "none";

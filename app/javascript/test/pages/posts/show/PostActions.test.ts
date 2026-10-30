@@ -39,7 +39,7 @@ async function load () {
   const PostActions = (await import("@/pages/posts/show/PostActions")).default;
   const reload = vi.spyOn(PostActions as any, "reload").mockImplementation(() => {});
   const navigate = vi.spyOn(PostActions as any, "navigate").mockImplementation(() => {});
-  PostActions.bind();
+  void PostActions.instance;
   return { reload, navigate };
 }
 

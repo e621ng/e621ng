@@ -22,8 +22,7 @@ function render ({ hidden = 0 } = {}) {
 async function load () {
   const TagScriptControls = (await import("@/pages/posts/TagScriptControls")).default;
   const LStorage = (await import("@/utility/storage/Local")).default;
-  TagScriptControls.initialize();
-  return { TagScriptControls, LStorage };
+  return { TagScriptControls: TagScriptControls.instance, LStorage };
 }
 
 const field = () => document.querySelector<HTMLInputElement>("#tag-script-field");

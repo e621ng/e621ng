@@ -10,17 +10,34 @@ import { allUrlsValid, isUrlValid, splitUrls } from "./SourceValidation";
  */
 export default class EditTab {
 
-  private static isEditing = false;
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
 
-  static get editing (): boolean { return EditTab.isEditing; }
+  private static _instance: EditTab | null = null;
+  public static get instance (): EditTab {
+    if (!EditTab._instance)
+      EditTab._instance = new EditTab();
+    return EditTab._instance;
+  }
 
-  static initialize (): void {
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private isEditing = false;
+
+  private constructor () {
+    if (EditTab._instance)
+      throw new Error("EditTab is a singleton class. Use EditTab.instance to access the instance.");
+
     // The form is only rendered for members
     if (CurrentUser.is.anonymous || !$("#edit").length) return;
 
     $("#side-edit-link, #post-edit-link, #post-edit-close").on("click.danbooru", (event) => {
       event.preventDefault(); // Only one of these is a link
-      EditTab.toggle();
+      this.toggle();
     });
 
     $(document).on("danbooru:open-post-edit-tab.edittab", () => {
@@ -32,27 +49,29 @@ export default class EditTab {
     });
     $(document).on("danbooru:close-post-edit-tab.edittab", () => { Hotkeys.enabled = true; });
 
-    EditTab.initializeSourceValidation();
+    this.initializeSourceValidation();
   }
 
-  static toggle (): void {
-    if (EditTab.isEditing) EditTab.close();
-    else EditTab.open();
+  public get editing (): boolean { return this.isEditing; }
+
+  public toggle (): void {
+    if (this.isEditing) this.close();
+    else this.open();
   }
 
-  static open (): void {
-    EditTab.isEditing = true;
+  public open (): void {
+    this.isEditing = true;
     $("#edit").show();
     $(document).trigger("danbooru:open-post-edit-tab");
   }
 
-  static close (): void {
-    EditTab.isEditing = false;
+  public close (): void {
+    this.isEditing = false;
     $(document).trigger("danbooru:close-post-edit-tab");
     $("#edit").hide();
   }
 
-  private static initializeSourceValidation (): void {
+  private initializeSourceValidation (): void {
     const oldSources = splitUrls(String($("input[name='post[old_source]']").val() ?? ""));
     const invalidOldSources = oldSources.filter((url) => !isUrlValid(url));
 

@@ -2,7 +2,6 @@ import Hotkeys from "@/core/hotkeys";
 import CurrentPost from "@/models/CurrentPost";
 import Logger from "@/utility/Logger";
 import Settings from "@/utility/Settings";
-import State from "@/utility/StateUtils";
 import LStorage from "@/utility/storage/Local";
 
 /**
@@ -14,7 +13,7 @@ import LStorage from "@/utility/storage/Local";
  * — it does not mutate the DOM, avoiding the historical on-load reflow. It reacts
  * to explicit user actions (selector change / hotkey) thereafter.
  */
-class PostResizer {
+export default class PostResizer {
 
   /* ============================== */
   /* ===== Singleton pattern ====== */
@@ -44,7 +43,7 @@ class PostResizer {
 
     PostResizer.testWebpSupport().then((support) => {
       this.hasWebpSupport = support;
-      State.onReady(() => this.initialize());
+      this.initialize();
     });
   }
 
@@ -350,5 +349,3 @@ class PostResizer {
     });
   }
 }
-
-export default PostResizer.instance;

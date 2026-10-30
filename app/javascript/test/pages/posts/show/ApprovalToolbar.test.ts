@@ -1,8 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 function render ({ withToggle = true, enabled = false } = {}): void {
-  document.body.dataset.controller = "posts";
-  document.body.dataset.action = "show";
   document.body.innerHTML = `
     <ul>${withToggle ? `<li><a href="#" id="janitor-toolbar-toggle">Approvals: ${enabled ? "On" : "Off"}</a></li>` : ""}</ul>
     <div class="notice notice-pending ${enabled ? "enabled" : ""}" id="pending-approval-notice"></div>`;
@@ -52,14 +50,6 @@ describe("ApprovalToolbar", () => {
     click();
     expect(ApprovalToolbar.instance.visible).toBe(true);
     expect($("#pending-approval-notice").hasClass("enabled")).toBe(true);
-  });
-
-  it("does nothing off the posts#show page", async () => {
-    document.body.dataset.action = "index";
-    const { CStorage } = await load();
-    click();
-    expect(CStorage.Posts.JanitorToolbar).toBe(false);
-    expect($("#pending-approval-notice").hasClass("enabled")).toBe(false);
   });
 
   it("does nothing when the toggle is not rendered", async () => {

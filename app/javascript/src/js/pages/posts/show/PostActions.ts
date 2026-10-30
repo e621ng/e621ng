@@ -16,7 +16,26 @@ const reported = () => { /* Reported through danbooru:error */ };
  */
 export default class PostActions {
 
-  static bind (): void {
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
+
+  private static _instance: PostActions | null = null;
+  public static get instance (): PostActions {
+    if (!PostActions._instance)
+      PostActions._instance = new PostActions();
+    return PostActions._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private constructor () {
+    if (PostActions._instance)
+      throw new Error("PostActions is a singleton class. Use PostActions.instance to access the instance.");
+
     $(".undelete-post-link").on("click.danbooru", (event) => {
       event.preventDefault();
       if (!confirm("Are you sure you want to undelete this post?")) return;

@@ -38,8 +38,6 @@ function dialogMarkup (withDmail: boolean, dmailChecked: boolean): string {
 }
 
 function render ({ withDialog = true, withDmail = true, dmailChecked = false } = {}): void {
-  document.body.dataset.controller = "posts";
-  document.body.dataset.action = "show";
   document.body.innerHTML = `
     <a href="#" class="delete-with-reason-link flag" data-post-id="${POST_ID}" data-reason="${FLAG_REASON}" data-from-flag="true" data-move-favs="true">Delete with given reason</a>
     <div class="quick-mod">
@@ -182,13 +180,6 @@ describe("DeleteWithReasonDialog", () => {
     $("#delete-with-reason-dialog-cancel").trigger("click");
     expect(dialogs[0].close).toHaveBeenCalledTimes(1);
     expect(bulk.delete).not.toHaveBeenCalled();
-  });
-
-  it("does nothing off the posts#show page", async () => {
-    document.body.dataset.action = "index";
-    await load();
-    open("canned");
-    expect(dialogs).toHaveLength(0);
   });
 
   it("does nothing when the dialog partial is not rendered", async () => {

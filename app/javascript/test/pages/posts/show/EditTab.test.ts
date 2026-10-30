@@ -28,8 +28,7 @@ function render ({ withForm = true, oldSource = "", source = "" } = {}) {
 async function load ({ anonymous = false } = {}) {
   setSiteData("site-user", { id: anonymous ? 0 : 5, is: { anonymous } });
   const EditTab = (await import("@/pages/posts/show/EditTab")).default;
-  EditTab.initialize();
-  return EditTab;
+  return EditTab.instance;
 }
 
 function events () {

@@ -1,6 +1,5 @@
 import Dialog from "@/components/dialog";
 import BulkActions from "@/pages/posts/BulkActions";
-import Page from "@/utility/Page";
 
 interface DeletionContext {
   postId: number;
@@ -44,8 +43,6 @@ export default class DeleteWithReasonDialog {
   private constructor () {
     if (DeleteWithReasonDialog._instance)
       throw new Error("DeleteWithReasonDialog is a singleton class. Use DeleteWithReasonDialog.instance to access the instance.");
-
-    if (!Page.matches("posts", "show")) return;
 
     this.form = $("#delete-with-reason-dialog");
     if (!this.form.length) return;

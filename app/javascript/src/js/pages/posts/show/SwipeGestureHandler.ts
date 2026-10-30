@@ -1,5 +1,4 @@
 import Navigation from "@/pages/posts/show/Navigation";
-import Page from "@/utility/Page";
 import LStorage from "@/utility/storage/Local";
 import Utility from "@/utility/utility";
 
@@ -15,16 +14,44 @@ interface TouchPoint {
   time: number;
 }
 
-class SwipeGestureHandler {
+/** Swipe left / right on posts#show to go to the next / previous post. Opt-in, touch devices only. */
+export default class SwipeGestureHandler {
+
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
+
+  private static _instance: SwipeGestureHandler | null = null;
+  public static get instance (): SwipeGestureHandler {
+    if (!SwipeGestureHandler._instance)
+      SwipeGestureHandler._instance = new SwipeGestureHandler();
+    return SwipeGestureHandler._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
   private moves: TouchPoint[] = [];
   private canceled = false;
 
-  constructor () {
+  private constructor () {
+    if (SwipeGestureHandler._instance)
+      throw new Error("SwipeGestureHandler is a singleton class. Use SwipeGestureHandler.instance to access the instance.");
+
+    if (!LStorage.Theme.Gestures) return;
+    if (!("ontouchstart" in window) && !(navigator.maxTouchPoints > 0)) return;
+
     document.body.addEventListener("touchstart", this.onStart, { passive: true });
     document.body.addEventListener("touchmove", this.onMove, { passive: true });
     document.body.addEventListener("touchend", this.onEnd, { passive: true });
     window.addEventListener("pageshow", this.onPageShow);
     $("#image-container").css({ overflow: "visible" });
+
+    const nextHref = Navigation.nextHref();
+    if (nextHref)
+      $("<link>").attr({ rel: "prefetch", href: nextHref }).appendTo("head");
   }
 
   private onPageShow = (e: PageTransitionEvent): void => {
@@ -85,14 +112,3 @@ class SwipeGestureHandler {
     }
   };
 }
-
-$(() => {
-  if (!LStorage.Theme.Gestures) return;
-  if (!Page.matches("posts", "show")) return;
-  if (!("ontouchstart" in window) && !(navigator.maxTouchPoints > 0)) return;
-  new SwipeGestureHandler();
-
-  const nextHref = Navigation.nextHref();
-  if (nextHref)
-    $("<link>").attr({ rel: "prefetch", href: nextHref }).appendTo("head");
-});

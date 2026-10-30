@@ -1,14 +1,33 @@
 /** The tag search textarea (posts index / show, favorites): grows with its content, Enter submits. */
 export default class PostSearchInput {
 
-  static initialize (): void {
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
+
+  private static _instance: PostSearchInput | null = null;
+  public static get instance (): PostSearchInput {
+    if (!PostSearchInput._instance)
+      PostSearchInput._instance = new PostSearchInput();
+    return PostSearchInput._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private constructor () {
+    if (PostSearchInput._instance)
+      throw new Error("PostSearchInput is a singleton class. Use PostSearchInput.instance to access the instance.");
+
     for (const section of document.querySelectorAll(".post-search")) {
       const textarea = section.querySelector<HTMLTextAreaElement>("textarea[name='tags']");
-      if (textarea) PostSearchInput.bind(textarea);
+      if (textarea) this.bind(textarea);
     }
   }
 
-  private static bind (textarea: HTMLTextAreaElement): void {
+  private bind (textarea: HTMLTextAreaElement): void {
     const resize = () => {
       textarea.style.height = "0";
       textarea.style.height = textarea.scrollHeight + "px";

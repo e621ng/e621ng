@@ -1,7 +1,12 @@
 // post-favorites
 
 import ModuleRegistry from "@/utility/ModuleRegistry";
+import State from "@/utility/StateUtils";
 
-import "@/pages/posts/BlacklistQuickEdit";
+import BlacklistQuickEdit from "@/pages/posts/BlacklistQuickEdit";
 
-ModuleRegistry.register("v_post-favorites");
+State.onReady(() => {
+  void BlacklistQuickEdit.instance;
+
+  ModuleRegistry.register("v_post-favorites");
+});

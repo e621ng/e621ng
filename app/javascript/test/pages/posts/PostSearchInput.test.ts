@@ -16,7 +16,7 @@ function render (count = 1) {
 
 async function load () {
   const PostSearchInput = (await import("@/pages/posts/PostSearchInput")).default;
-  PostSearchInput.initialize();
+  void PostSearchInput.instance;
 }
 
 function textareas () {

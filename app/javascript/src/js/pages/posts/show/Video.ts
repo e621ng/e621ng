@@ -166,12 +166,34 @@ function getPlayerType (): typeof VideoPlayer {
 }
 
 
-(async () => {
-  // only do anything here if there's a video in the page
-  const videoContainer = $<VideoPlayerElement>(".video-player")[0];
-  if (videoContainer === undefined) return;
+/** The video player on posts#show: native or custom, depending on the user's setting. */
+export default class PostVideo {
 
-  const player = new (getPlayerType())(videoContainer);
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
 
-  player.loadSettings();
-})();
+  private static _instance: PostVideo | null = null;
+  public static get instance (): PostVideo {
+    if (!PostVideo._instance)
+      PostVideo._instance = new PostVideo();
+    return PostVideo._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private constructor () {
+    if (PostVideo._instance)
+      throw new Error("PostVideo is a singleton class. Use PostVideo.instance to access the instance.");
+
+    // only do anything here if there's a video in the page
+    const videoContainer = $<VideoPlayerElement>(".video-player")[0];
+    if (videoContainer === undefined) return;
+
+    const player = new (getPlayerType())(videoContainer);
+    player.loadSettings();
+  }
+}

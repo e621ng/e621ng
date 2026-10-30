@@ -45,8 +45,7 @@ async function load () {
   const QuickEdit = (await import("@/pages/posts/QuickEdit")).default;
   const SStorage = (await import("@/utility/storage/Session")).default;
   const LStorage = (await import("@/utility/storage/Local")).default;
-  PostModeMenu.initialize();
-  return { PostModeMenu, QuickEdit, SStorage, LStorage };
+  return { PostModeMenu: PostModeMenu.instance, QuickEdit: QuickEdit.instance, SStorage, LStorage };
 }
 
 function selectMode (mode: string) {

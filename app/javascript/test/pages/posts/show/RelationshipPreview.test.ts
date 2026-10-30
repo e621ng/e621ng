@@ -18,8 +18,7 @@ async function load ({ shown = false } = {}) {
   const LStorage = (await import("@/utility/storage/Local")).default;
   LStorage.Posts.ShowPostChildren = shown;
   const RelationshipPreview = (await import("@/pages/posts/show/RelationshipPreview")).default;
-  RelationshipPreview.initialize();
-  return { RelationshipPreview, LStorage };
+  return { RelationshipPreview: RelationshipPreview.instance, LStorage };
 }
 
 const displays = () => [

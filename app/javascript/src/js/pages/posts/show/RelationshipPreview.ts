@@ -4,24 +4,43 @@ import LStorage from "@/utility/storage/Local";
 /** The collapsible parent / child thumbnails on posts#show. Both open and close together. */
 export default class RelationshipPreview {
 
-  static initialize (): void {
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
+
+  private static _instance: RelationshipPreview | null = null;
+  public static get instance (): RelationshipPreview {
+    if (!RelationshipPreview._instance)
+      RelationshipPreview._instance = new RelationshipPreview();
+    return RelationshipPreview._instance;
+  }
+
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private constructor () {
+    if (RelationshipPreview._instance)
+      throw new Error("RelationshipPreview is a singleton class. Use RelationshipPreview.instance to access the instance.");
+
     if (CurrentPost.exists) $(`[id=post_${CurrentPost.id}]`).addClass("current-post");
 
-    RelationshipPreview.apply(LStorage.Posts.ShowPostChildren);
+    this.apply(LStorage.Posts.ShowPostChildren);
 
     $("#has-children-relationship-preview-link, #has-parent-relationship-preview-link").on("click.danbooru", (event) => {
       event.preventDefault();
-      RelationshipPreview.toggle();
+      this.toggle();
     });
   }
 
-  static apply (shown: boolean): void {
+  public apply (shown: boolean): void {
     $("#has-children-relationship-preview, #has-parent-relationship-preview").toggle(shown);
     $("#has-children-relationship-preview-link, #has-parent-relationship-preview-link").text(shown ? "« hide" : "show »");
   }
 
-  static toggle (): void {
+  public toggle (): void {
     LStorage.Posts.ShowPostChildren = !LStorage.Posts.ShowPostChildren;
-    RelationshipPreview.apply(LStorage.Posts.ShowPostChildren);
+    this.apply(LStorage.Posts.ShowPostChildren);
   }
 }
