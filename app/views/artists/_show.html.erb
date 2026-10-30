@@ -5,6 +5,7 @@
       <% if @artist.is_locked? %>
         (locked)
       <% end %>
+      <%= render "wiki_pages/subscribe_button", tag: @artist.tag %>
     </h1>
 
     <% if @artist.is_dnp? %>
