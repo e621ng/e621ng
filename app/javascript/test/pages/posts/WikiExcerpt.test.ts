@@ -16,7 +16,7 @@ function render () {
 
 async function load (stored?: number) {
   if (stored !== undefined) localStorage.setItem(STORAGE_KEY, String(stored));
-  const WikiExcerpt = (await import("@/pages/posts/WikiExcerpt")).default;
+  const WikiExcerpt = (await import("@/pages/posts/index/WikiExcerpt")).default;
   void WikiExcerpt.instance;
 }
 
