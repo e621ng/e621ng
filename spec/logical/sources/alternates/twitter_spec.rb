@@ -140,6 +140,10 @@ RSpec.describe Sources::Alternates::Twitter do
   # #original_url — x.com tracking parameter removal
   # -------------------------------------------------------------------------
   describe "#original_url — x.com tracking parameter removal" do
+    it "removes the 'a' tracking param" do
+      expect(transform("https://x.com/user/status/123456789?a=1bO9MXNv_b73dBccgzg")).to eq("https://x.com/user/status/123456789")
+    end
+
     it "removes the 's' tracking param" do
       expect(transform("https://x.com/user/status/123456789?s=20")).to eq("https://x.com/user/status/123456789")
     end
