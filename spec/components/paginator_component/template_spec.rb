@@ -182,17 +182,18 @@ RSpec.describe PaginatorComponent, type: :component do
       end
     end
 
-    it "renders .page.spacer links when the window does not reach the edges" do
+    it "renders .page.spacer buttons when the window does not reach the edges" do
       with_request_url "/posts" do
         doc = render_inline(described_class.new(records: make_records(mode: :numbered, current_page: 5, total_pages: 20)))
-        expect(doc.css("a.page.spacer").length).to eq(2)
+        expect(doc.css("button.page.spacer").length).to eq(2)
+        expect(doc.css("[href*='page=0']")).to be_empty
       end
     end
 
     it "omits spacers when the window is adjacent to the edges (small set)" do
       with_request_url "/posts" do
         doc = render_inline(described_class.new(records: make_records(mode: :numbered, current_page: 2, total_pages: 3)))
-        expect(doc.css("a.page.spacer")).to be_empty
+        expect(doc.css(".page.spacer")).to be_empty
       end
     end
   end

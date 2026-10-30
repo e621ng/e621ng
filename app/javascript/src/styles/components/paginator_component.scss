@@ -10,7 +10,7 @@ nav.pagination {
   margin: 1rem auto;
   max-width: calc(100vw - 1rem);
 
-  & > a, & > span {
+  & > a, & > span, & > button {
     display: flex;
     box-sizing: border-box;
     justify-content: center;
@@ -42,6 +42,9 @@ nav.pagination {
     }
     &.spacer {
       padding: 0.75rem 0.3rem;
+      background: transparent;
+      border: 0;
+      font: inherit;
       svg { height: 1rem; }
     }
   }
@@ -64,7 +67,7 @@ nav.pagination {
     justify-content: center;
     gap: 0.125rem;
 
-    a, span {
+    a, span, button {
       order: 0 !important;
       min-width: 2.25rem;
       font-size: 0.9rem;
@@ -77,7 +80,7 @@ nav.pagination {
   }
 
   @include window-larger-than(50rem) {
-    a, span {
+    a, span, button {
       padding: 0.75rem 0.5rem;
       font-size: 0.95rem;
     }
