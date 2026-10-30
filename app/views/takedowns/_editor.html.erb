@@ -6,12 +6,11 @@
     <br><br>
 
     <label for="delete_reason">Post deletion reason</label><br>
-    <%= text_field_tag "delete_reason", "Artist requested removal", {size: 80} %>
+    <%= text_field_tag "delete_reason", "Artist requested removal", {size: 80, class: "takedown-text-input"} %>
     <br><br>
 
-    <button type="button" id="takedown-keepall" class="takedown-post-label takedown-postall-label takedown-post-keep">Keep all</button>
-    <button type="button" id="takedown-deleteall" class="takedown-post-label takedown-postall-label takedown-post-delete">Delete all</button>
-    <br><br>
+    <button type="button" id="takedown-keepall" class="st-button kinetic success takedown-postall-button">Keep all</button>
+    <button type="button" id="takedown-deleteall" class="st-button kinetic danger takedown-postall-button">Delete all</button>
 
     <div id="takedown-post-buttons">
       <% @takedown.actual_posts.select([:id, :is_deleted, :is_pending, :is_flagged]).each do |post| %>
@@ -19,14 +18,18 @@
           <%= render "editor_post", post_id: post.id, delete: @takedown.should_delete(post.id), status_class: post.status == "deleted" ? "delete" : "keep" %>
         <% else %>
           <div id="takedown-post-<%= post.id %>" data-post-id="<%= post.id %>" class="takedown-post">
-            <button type="button" class="takedown-post-label takedown-post-remove" title="Remove this post from the takedown">X</button>
-            Post <%= post.id %> was destroyed or not found.
+            <button type="button" class="st-button danger takedown-post-remove" title="Remove this post from the takedown">
+              <%= svg_icon(:times, width: 16, height: 16) %>
+            </button>
+            <span class="takedown-post-status">
+              Post <%= post.id %> was destroyed or not found.
+            </span>
           </div>
         <% end %>
       <% end %>
     </div>
     <template id="takedown-post-template">
-      <%= render "editor_post", post_id: nil, delete: false, status_class: nil %>
+      <%= render "editor_post", post_id: nil, delete: false, status_class: "keep" %>
     </template>
 
     <label for="takedown-add-posts-tags">Add posts with tags:</label><br>

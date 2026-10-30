@@ -33,11 +33,13 @@ function row (id: number | null, remove = false, statusClass: string | null = "k
   const pid = id ?? "";
   return `
     <div id="takedown-post-${pid}" data-post-id="${pid}" class="takedown-post">
-      <button type="button" class="takedown-post-label takedown-post-remove">X</button>
+      <button type="button" class="st-button danger takedown-post-remove">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" name="times"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+      </button>
       <label for="takedown_posts_${pid}" class="takedown-post-label takedown-post-${action}">
         <input type="hidden" name="takedown_posts[${pid}]" value="0">
         <input type="checkbox" id="takedown_posts_${pid}" name="takedown_posts[${pid}]" value="1"${remove ? " checked" : ""}>
-        <span>${remove ? "Delete" : "Keep"}</span>
+        <span class="takedown-post-action">${remove ? "Delete" : "Keep"}</span>
       </label>
       <span class="takedown-post-status${statusClass ? ` takedown-post-${statusClass}` : ""}"><a href="${id ? `/posts/${id}` : "#"}">post #${pid}</a></span>
     </div>`;
@@ -51,7 +53,7 @@ function mount (rows: string, { status = true } = {}): void {
         <button type="button" id="takedown-keepall">Keep all</button>
         <button type="button" id="takedown-deleteall">Delete all</button>
         <div id="takedown-post-buttons">${rows}</div>
-        <template id="takedown-post-template">${row(null, false, null)}</template>
+        <template id="takedown-post-template">${row(null)}</template>
         <input id="takedown-add-posts-tags">
         <button type="button" id="takedown-add-posts-tags-preview" disabled>Add</button>
         <button type="button" id="takedown-add-posts-tags-confirm" hidden>Confirm</button>
@@ -246,6 +248,7 @@ describe("TakedownEditor", () => {
       expect(added.querySelector<HTMLInputElement>("input[type=hidden]").name).toBe("takedown_posts[7]");
       expect(added.querySelector("a").getAttribute("href")).toBe("/posts/7");
       expect(added.querySelector("a").textContent).toBe("post #7");
+      expect(added.querySelector(".takedown-post-status").classList).toContain("takedown-post-keep");
 
       expect(trackDone).toHaveBeenCalledWith("2 posts added to takedown");
       expect($id<HTMLInputElement>("takedown-add-posts-ids").value).toBe("");
