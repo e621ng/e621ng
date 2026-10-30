@@ -2,6 +2,11 @@
 
   <div class="search">
     <%= render "posts/partials/common/search", title: "Posts", tags: params[:tags] %>
+    <% if params[:tags].present? && CurrentUser.user.has_tracked_saved_searches? && params[:tags].to_s.include?("search:subscriptions") %>
+      <div class="favorites-order-warning">
+        <%= link_to "Manage Subscriptions", tag_subscriptions_path %>
+      </div>
+    <% end %>
     <%= render "posts/partials/index/controls" %>
   </div>
 
