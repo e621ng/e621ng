@@ -11,6 +11,7 @@ Rails.start();
 import "@/core/Analytics";
 import "@/core/AuthOverlay";
 import "@/core/common";
+import "@/core/CopyButton";
 import "@/core/DTextExtras";
 import "@/core/DTextFormatterLoader";
 import { getE621Instance } from "@/core/E621Global";

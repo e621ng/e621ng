@@ -88,16 +88,10 @@
     font-family: monospace;
     white-space: pre-wrap;
 
-    button.copy-code {
+    .copy-button {
       float: right;
-      background: transparent;
-      color: themed("color-link");
       font-family: monospace;
       font-size: 0.75rem;
-
-      &:hover {
-        color: themed("color-link-hover");
-      }
     }
   }
 

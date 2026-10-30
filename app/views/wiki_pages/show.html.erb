@@ -18,9 +18,7 @@
         <% end %>
 
         <% if wiki_content.tag.present? %>
-          <button id="copy-tag" data-clipboard-text="<%= wiki_content.tag.name %>" title="Copy tag to clipboard" style="display: none;">
-            <%= svg_icon(:copy, width: 16, height: 16) %>
-          </button>
+          <%= copy_button(wiki_content.tag.name, label: "tag") %>
         <% end %>
 
         <%= render "subscribe_button", tag: wiki_content.tag %>

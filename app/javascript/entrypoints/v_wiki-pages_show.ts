@@ -2,7 +2,6 @@
 
 import ModuleRegistry from "@/utility/ModuleRegistry";
 
-import "@/pages/wiki_pages/show/CopyTag";
 import "@/pages/wiki_pages/show/DetailsAnchor";
 import "@/pages/wiki_pages/show/SubscribeTag";
 

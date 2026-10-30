@@ -41,6 +41,13 @@ RSpec.describe UsersController do
       expect(response.parsed_body).to include("id" => user.id)
     end
 
+    it "renders a copy button with the raw username" do
+      named = create(:user, name: "copy_me_please")
+      get user_path(named)
+      button = Nokogiri::HTML(response.body).at_css(".user-card-name button.copy-button")
+      expect(button["data-copy-text"]).to eq("copy_me_please")
+    end
+
     it "returns 404 for a non-existent user" do
       get user_path(id: 0)
       expect(response).to have_http_status(:not_found)

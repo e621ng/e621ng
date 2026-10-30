@@ -25,17 +25,8 @@
     vertical-align: middle;
   }
 
-  #copy-tag {
-    background: transparent;
-    display: inline-flex;
+  .copy-button {
     vertical-align: baseline;
-    border-radius: 0;
-    padding: 0.25rem;
-    color: themed("color-link");
-
-    &:hover, &:active {
-      color: themed("color-link-hover");
-    }
 
     svg {
       height: 1.25rem;

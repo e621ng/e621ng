@@ -159,6 +159,17 @@ module IconHelper
     end
   end
 
+  # Hidden until JS confirms clipboard support; clicks are handled by CopyButton.ts
+  def copy_button(text, label:)
+    tag.button(
+      svg_icon(:copy, width: 16, height: 16),
+      type: "button",
+      class: "copy-button",
+      title: "Copy #{label} to clipboard",
+      data: { copy_text: text, copy_label: label },
+    )
+  end
+
   def svg_badge(number, klass)
     "" unless (number.is_a? Integer) || number == "+"
 
