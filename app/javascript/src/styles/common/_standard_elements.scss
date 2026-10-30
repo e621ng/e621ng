@@ -137,11 +137,17 @@
   &:hover, &:active {
     background: palette("background-red-d5")
   }
+  &.kinetic {
+    --kinetic-shadow-color: #{palette("background-red-d7")};
+  }
 }
 .st-button.success {
   background: palette("background-green");
   &:hover, &:active {
     background: palette("background-green-d5")
+  }
+  &.kinetic {
+    --kinetic-shadow-color: #{palette("background-green-d7")};
   }
 }
 .st-button.submit {

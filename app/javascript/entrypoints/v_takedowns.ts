@@ -1,8 +1,12 @@
 // takedowns
 
 import ModuleRegistry from "@/utility/ModuleRegistry";
+import State from "@/utility/StateUtils";
 
-import "@/pages/takedowns/takedown_editor";
-import Takedown from "@/pages/takedowns/takedowns";
+import TakedownEditor from "@/pages/takedowns/TakedownEditor";
 
-ModuleRegistry.register("v_takedowns", { Takedown });
+State.onReady(() => {
+  void TakedownEditor.instance;
+
+  ModuleRegistry.register("v_takedowns", { TakedownEditor: TakedownEditor.instance });
+});

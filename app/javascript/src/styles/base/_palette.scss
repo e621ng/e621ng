@@ -9,6 +9,7 @@ $palette: (
   // Red
   "background-red": #76312e,
   "background-red-d5": #{color.adjust(#76312e, $lightness: -5%)},
+  "background-red-d7": #{color.adjust(#76312e, $lightness: -7%)},
   "background-red-d10": #{color.adjust(#76312e, $lightness: -10%)},
 
   // Yellow
@@ -19,6 +20,7 @@ $palette: (
   // Green
   "background-green": #227d2a,
   "background-green-d5": #{color.adjust(#227d2a, $lightness: -5%)},
+  "background-green-d7": #{color.adjust(#227d2a, $lightness: -7%)},
   "background-green-d10": #{color.adjust(#227d2a, $lightness: -10%)},
 
   // Grey
