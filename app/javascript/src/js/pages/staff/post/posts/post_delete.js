@@ -1,4 +1,3 @@
-import Utility from "@/utility/utility";
 
 let PostDeletion = {};
 
@@ -37,7 +36,7 @@ PostDeletion.init = function () {
       let newMessage = dMailTemplate.value;
       // Don't overwrite the input's text unless necessary
       let titleChanged = force, messageChanged = force;
-      if (!Utility.blank(newReason)) {
+      if (newReason?.trim()) {
         const reasonPlaceholder = "%REASON%";
         if (newTitle.indexOf(reasonPlaceholder) >= 0) {
           newTitle = newTitle.replaceAll(reasonPlaceholder, newReason);

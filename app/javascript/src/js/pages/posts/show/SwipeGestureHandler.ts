@@ -1,6 +1,5 @@
 import Navigation from "@/pages/posts/show/Navigation";
 import LStorage from "@/utility/storage/Local";
-import Utility from "@/utility/utility";
 
 const EDGE_ZONE = 20; // px — ignore swipes starting this close to screen edge (browser back/forward gesture)
 const MIN_DISTANCE = 150; // px — minimum total path length
@@ -105,10 +104,10 @@ export default class SwipeGestureHandler {
 
     if (dx > 0 && Navigation.hasPrev()) {
       $("body").css({ transition: "opacity 100ms ease, transform 100ms ease", opacity: "0", transform: "translateX(150%)" });
-      Utility.delay(0).then(() => Navigation.prev()); // Apply CSS changes before navigating
+      setTimeout(() => Navigation.prev(), 0); // Apply CSS changes before navigating
     } else if (dx < 0 && Navigation.hasNext()) {
       $("body").css({ transition: "opacity 100ms ease, transform 100ms ease", opacity: "0", transform: "translateX(-150%)" });
-      Utility.delay(0).then(() => Navigation.next()); // Apply CSS changes before navigating
+      setTimeout(() => Navigation.next(), 0); // Apply CSS changes before navigating
     }
   };
 }

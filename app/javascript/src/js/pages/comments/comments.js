@@ -127,7 +127,6 @@ Comment.quote = function (e) {
 
     const $textarea = $div.find("textarea");
     TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"));
-    $textarea.selectEnd();
   }).fail(function (data) {
     ToastManager.alert(data.responseText);
   });

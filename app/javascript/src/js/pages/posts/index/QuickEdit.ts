@@ -4,6 +4,7 @@ import Post from "@/models/Post";
 import PostCache from "@/models/PostCache";
 import BulkActions from "@/pages/posts/BulkActions";
 import PendingUpdates from "@/pages/posts/PendingUpdates";
+import TextUtils from "@/utility/TextUtils";
 import ToastManager from "@/utility/Toast";
 
 const MIN_HEIGHT = 80;
@@ -76,8 +77,7 @@ export default class QuickEdit {
 
     const textarea = this.textarea;
     textarea.value = post.tag_string + " ";
-    textarea.focus();
-    textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+    TextUtils.focusEnd(textarea);
 
     // Fit the content height (content-box sizing, so padding is excluded)
     textarea.style.height = MIN_HEIGHT + "px";

@@ -60,5 +60,15 @@ export default class TextUtils {
     if (existingInput.length > 0)
       message = existingInput + (existingInput.endsWith("\n\n") ? "" : "\n\n") + message;
     $textarea.val(message);
+    TextUtils.focusEnd($textarea[0]);
+  }
+
+  /**
+   * Focus the input and place the cursor at the end of its value.
+   * @param el The input or textarea element
+   */
+  static focusEnd (el: HTMLInputElement | HTMLTextAreaElement): void {
+    el.focus();
+    el.setSelectionRange(el.value.length, el.value.length);
   }
 }

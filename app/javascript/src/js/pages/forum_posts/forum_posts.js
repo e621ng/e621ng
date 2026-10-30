@@ -48,7 +48,6 @@ ForumPost.quote = function (e) {
   }).done(function (data) {
     const $textarea = $("#forum_post_body_for_");
     TextUtils.processQuote($textarea, data.body, parent.data("creator"), parent.data("creator-id"));
-    $textarea.selectEnd();
 
     $("#topic-response").show();
     setTimeout(function () {
