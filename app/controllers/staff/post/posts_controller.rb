@@ -138,7 +138,9 @@ module Staff
         reowner_params = new_reowner_params
         @new_owner = User.find_by_name_or_id(reowner_params[:new_owner]) # rubocop:disable Rails/DynamicFindBy
         if @new_owner.blank?
-          flash[:alert] = "New owner could not be found. Try using !<userId> instead of a name."
+          message = "New owner could not be found. Try using !<userId> instead of a name."
+          return render_expected_error(422, message) if request.format.json?
+          flash[:alert] = message
           return
         end
         reowner_versions = ActiveModel::Type::Boolean.new.cast(reowner_params[:reowner_versions])

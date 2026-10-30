@@ -18,13 +18,13 @@ import Note from "@/pages/posts/show/notes";
 import PostActions from "@/pages/posts/show/PostActions";
 import PostSet from "@/pages/posts/show/PostSet";
 import RelationshipPreview from "@/pages/posts/show/RelationshipPreview";
+import ReownerDialog from "@/pages/posts/show/ReownerDialog";
 import PostsShowToolbar from "@/pages/posts/show/toolbar";
 import Recommended from "@/pages/posts/show/Recommended";
 import TagEditor from "@/pages/posts/show/TagEditor";
 import PostResizer from "@/pages/posts/show/Resizer";
 import SwipeGestureHandler from "@/pages/posts/show/SwipeGestureHandler";
 import PostVideo from "@/pages/posts/show/Video";
-import PostReowner from "@/pages/staff/post/posts/PostReowner";
 
 
 import "@/pages/post_flags/post_flags"; // We only need expandable notes from here
@@ -50,7 +50,7 @@ State.onReady(() => {
   void Navigation.instance;
   void RelationshipPreview.instance;
   void EditTab.instance;
-  PostReowner.initialize_links();
+  void ReownerDialog.instance;
 
   ModuleRegistry.register("v_posts_show", { Note, CurrentPost, PostResizer: PostResizer.instance });
 });
