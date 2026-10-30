@@ -11,7 +11,7 @@ class Analytics {
   private static _instance: Analytics | null = null;
   public static get instance () {
     if (!this._instance) {
-      this._instance = new Analytics(Settings.Analytics.client_id);
+      this._instance = new Analytics(Settings.Analytics.client_id, Settings.Analytics.api_url);
     }
     return this._instance;
   }
@@ -24,7 +24,7 @@ class Analytics {
   private op: OpenPanel | null = null;
   private Logger: Logger;
 
-  private constructor (clientID: string) {
+  private constructor (clientID: string, apiURL: string) {
     if (Analytics._instance)
       throw new Error("Analytics is a singleton class. Use Analytics.instance to access the instance.");
 
@@ -32,9 +32,10 @@ class Analytics {
 
     if (Settings.Analytics.enabled) {
       if (!clientID) throw new Error("clientID is required");
+      if (!apiURL) throw new Error("apiURL is required");
 
       this.op = new OpenPanel({
-        apiUrl: "https://op.dragonfru.it/api",
+        apiUrl: apiURL,
         clientId: clientID,
         trackScreenViews: true,
         trackOutgoingLinks: true,

@@ -12,6 +12,7 @@ describe("Settings", () => {
 
     expect(Settings.Analytics.enabled).toBe(false);
     expect(Settings.Analytics.client_id).toBeNull();
+    expect(Settings.Analytics.api_url).toBeNull();
     expect(Settings.Analytics.events).toEqual({ recommendation: false, search_trend: false, subscription_click: false });
     expect(Settings.Posts.webp_enabled).toBe(false);
     expect(Settings.Posts.max_file_size).toBe(0);
@@ -41,6 +42,7 @@ describe("Settings", () => {
       Analytics: {
         enabled: true,
         client_id: "G-XYZ",
+        api_url: "https://op.example.com/api",
         events: { recommendation: true, search_trend: false, subscription_click: false },
       },
       Posts: {
@@ -56,6 +58,7 @@ describe("Settings", () => {
     expect(Settings.Analytics).toEqual({
       enabled: true,
       client_id: "G-XYZ",
+      api_url: "https://op.example.com/api",
       events: { recommendation: true, search_trend: false, subscription_click: false },
     });
     expect(Settings.Posts.webp_enabled).toBe(true);
@@ -71,6 +74,7 @@ describe("Settings", () => {
 
     expect(Settings.Analytics.enabled).toBe(true);
     expect(Settings.Analytics.client_id).toBeNull();
+    expect(Settings.Analytics.api_url).toBeNull();
     expect(Settings.Analytics.events).toEqual({ recommendation: false, search_trend: false, subscription_click: false });
   });
 

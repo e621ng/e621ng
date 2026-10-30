@@ -1014,6 +1014,19 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       nil
     end
 
+    # Server-side OpenPanel events. Needs a separate "server" client, since those require a secret.
+    def openpanel_api_url
+      "https://op.dragonfru.it/api"
+    end
+
+    def openpanel_server_client_id
+      nil
+    end
+
+    def openpanel_server_client_secret
+      nil
+    end
+
     def fsc_modal_enabled?
       false
     end
