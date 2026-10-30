@@ -283,6 +283,16 @@ RSpec.describe SavedSearchesController do
       expect(response.parsed_body.first).to include("is_subscription" => true, "tag_count" => 1)
     end
 
+    it "lists the anchor first even when it is the newest search" do
+      older = create_list(:saved_search, 2, user: owner)
+      anchor
+      get saved_searches_path(format: :json)
+      expect(response.parsed_body.pluck("id")).to eq([anchor.id, *older.map(&:id)])
+
+      get saved_searches_path
+      expect(response.body.index(%(id="saved-search-#{anchor.id}"))).to be < response.body.index(%(id="saved-search-#{older.first.id}"))
+    end
+
     it "renders the anchor row with a Manage link" do
       anchor
       get saved_searches_path

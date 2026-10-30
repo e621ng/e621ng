@@ -5,7 +5,8 @@ class SavedSearchesController < ApplicationController
   before_action :member_only
 
   def index
-    @saved_searches = CurrentUser.user.saved_searches
+    # The subscription anchor is created lazily, so pin it above older searches
+    @saved_searches = CurrentUser.user.saved_searches.reorder(is_subscription: :desc, id: :asc)
     # The user explicitly asked: compute fresh counts (cache updated as a side effect)
     @counts = SavedSearch.refresh_badge_counts!(CurrentUser.user)
     respond_with(@saved_searches) do |format|
