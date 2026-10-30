@@ -1,5 +1,4 @@
 import { CachedPost } from "@/models/PostCache";
-import Utility from "@/utility/utility";
 import FilterUtilities from "./FilterUtilities";
 
 /**
@@ -42,7 +41,7 @@ export default class FilterToken {
       this.type = "userid";
       raw = raw.slice(1);
     } else if (this.type === "tag" && raw.includes("*")) {
-      this.value = new RegExp(`^${Utility.regexp_escape(raw).replace(/\\\*/g, ".*")}$`);
+      this.value = new RegExp(`^${FilterToken.escapeRegExp(raw).replace(/\\\*/g, ".*")}$`);
       this.type = "wildcard";
       return;
     }
@@ -85,6 +84,10 @@ export default class FilterToken {
         ];
       }
     }
+  }
+
+  private static escapeRegExp (string: string): string {
+    return string.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1");
   }
 
   /**

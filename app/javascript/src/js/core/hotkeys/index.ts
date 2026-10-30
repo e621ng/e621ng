@@ -1,6 +1,7 @@
 import HotkeysConfig from "@/core/hotkeys/HotkeysConfig";
 import * as Types from "@/core/hotkeys/Types";
 import CurrentUser from "@/models/CurrentUser";
+import TextUtils from "@/utility/TextUtils";
 
 class Hotkeys {
 
@@ -251,9 +252,7 @@ class Hotkeys {
       element.trigger("focus");
 
       // Place the cursor at the end of the input
-      const input = element[0] as HTMLInputElement;
-      input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
+      TextUtils.focusEnd(element[0] as HTMLInputElement);
     }
   }
 }
