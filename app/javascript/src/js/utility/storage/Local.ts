@@ -63,7 +63,7 @@ class LStorage extends StorageObject {
     Palette: "default" as "default" | "deut" | "trit",
     Font: "Verdana" as "Verdana" | "Lato" | "Lexend" | "Monospace" | "OpenDyslexic" | "OpenSans" | "ComicSans" | "Papyrus",
     Navbar: "top" as "top" | "bottom" | "none",
-    Gestures: false,
+    Gestures: true,
     StickyHeader: false,
     Logo: "pride", // Too many to list
   };
