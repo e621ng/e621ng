@@ -1,0 +1,18 @@
+// Shared copy-to-clipboard button, see CopyButton.ts
+.copy-button {
+  display: none;
+  background: transparent;
+  border-radius: 0;
+  padding: 0.25rem;
+  color: themed("color-text-muted");
+  opacity: 0.5;
+
+  &:hover, &:active {
+    color: themed("color-link-hover");
+    opacity: 1;
+  }
+}
+
+html.clipboard-supported .copy-button {
+  display: inline-flex;
+}

@@ -104,6 +104,14 @@ RSpec.describe WikiPagesController do
       expect(response).to have_http_status(:ok)
     end
 
+    it "renders a copy button for the tag name" do
+      create(:tag, name: "copy_this_tag")
+      page = create(:wiki_page, title: "copy_this_tag")
+      get wiki_page_path(page)
+      button = Nokogiri::HTML(response.body).at_css("#wiki-page-title button.copy-button")
+      expect(button["data-copy-text"]).to eq("copy_this_tag")
+    end
+
     it "returns 200 as JSON" do
       get wiki_page_path(wiki_page, format: :json)
       expect(response).to have_http_status(:ok)

@@ -51,11 +51,15 @@ $avatar-height: 4.5rem;
     flex-flow: column;
 
     .user-card-name {
+      display: flex;
+      align-items: center;
       max-width: 14.5rem;
       overflow: hidden;
 
       a {
         display: block;
+        min-width: 0;
+        overflow: hidden;
         line-height: 1.5rem;
         font-size: 1.25rem; // When adjusting this, also adjust the value in ProfileCard.ts
         color: themed("color-text");

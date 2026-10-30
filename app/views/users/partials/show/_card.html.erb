@@ -6,6 +6,7 @@
     <div class="user-card-info">
       <div class="user-card-name">
         <%= link_to_user(@user) %>
+        <%= copy_button(@user.name, label: "username") %>
       </div>
       <div class="user-card-joined">
         Joined <%= compact_date @user.created_at %>

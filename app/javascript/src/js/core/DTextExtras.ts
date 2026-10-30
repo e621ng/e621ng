@@ -1,8 +1,7 @@
-import SVGIcon from "@/utility/SVGIcon";
-import TextUtils from "@/utility/TextUtils";
-import Toast from "@/utility/Toast";
+import CopyButton from "@/core/CopyButton";
+import State from "@/utility/StateUtils";
 
-$(() => {
+State.onReady(() => {
   // Prevent link navigation on first tap of a spoiler tag on touch devices.
   $(document).on("touchend.danbooru", ".spoiler", function (e) {
     if ($(e.target).closest("a", this).length && !$(this).hasClass("spoiler-revealed")) {
@@ -18,25 +17,18 @@ $(() => {
   });
 
   // Copy <pre> content to clipboard on click.
-  if (TextUtils.clipboardSupported) {
-    $(".dtext-container pre").each((_index, element) => bootstrapCodeBlocks($(element)));
+  if (CopyButton.supported) {
+    for (const pre of document.querySelectorAll<HTMLElement>(".dtext-container pre"))
+      bootstrapCodeBlock(pre);
   }
 });
 
-function bootstrapCodeBlocks (wrapper: JQuery<HTMLElement>) {
-  const button = $("<button>")
-    .addClass("copy-code")
-    .attr({
-      "type": "button",
-      "title": "Copy code to clipboard",
-    })
-    .append(SVGIcon.render("copy"))
-    .prependTo(wrapper);
+function bootstrapCodeBlock (pre: HTMLElement) {
+  pre.prepend(CopyButton.create({ label: "code", text: () => codeText(pre) }));
+}
 
-  button.on("click", () => {
-    const code = wrapper.clone().children("button.copy-code").remove().end().text();
-    TextUtils.copyToClipboard(code)
-      .then(() => Toast.create("Copied to clipboard!", { timeout: 1 }))
-      .catch(() => Toast.alert("Failed to copy code to clipboard."));
-  });
+function codeText (pre: HTMLElement): string {
+  const clone = pre.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll(".copy-button").forEach((button) => button.remove());
+  return clone.textContent ?? "";
 }
