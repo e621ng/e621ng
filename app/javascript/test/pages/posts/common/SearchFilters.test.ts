@@ -12,7 +12,7 @@ function render ({ withControls = true } = {}): void {
 }
 
 async function load () {
-  const SearchFilters = (await import("@/pages/posts/SearchFilters")).default;
+  const SearchFilters = (await import("@/pages/posts/common/SearchFilters")).default;
   void SearchFilters.instance;
 }
 

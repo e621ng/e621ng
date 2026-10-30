@@ -11,7 +11,7 @@ function render () {
 }
 
 async function load () {
-  const TagListCollapse = (await import("@/pages/posts/TagListCollapse")).default;
+  const TagListCollapse = (await import("@/pages/posts/common/TagListCollapse")).default;
   void TagListCollapse.instance;
 }
 

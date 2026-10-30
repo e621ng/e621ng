@@ -42,7 +42,7 @@ function render ({ modes = MODES } = {}) {
 
 async function load () {
   const PostModeMenu = (await import("@/pages/posts/index/PostModeMenu")).default;
-  const QuickEdit = (await import("@/pages/posts/QuickEdit")).default;
+  const QuickEdit = (await import("@/pages/posts/index/QuickEdit")).default;
   const SStorage = (await import("@/utility/storage/Session")).default;
   const LStorage = (await import("@/utility/storage/Local")).default;
   return { PostModeMenu: PostModeMenu.instance, QuickEdit: QuickEdit.instance, SStorage, LStorage };

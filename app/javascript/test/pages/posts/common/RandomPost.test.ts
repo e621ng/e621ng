@@ -6,7 +6,7 @@ vi.mock("@/core/hotkeys", () => ({
 }));
 
 async function load () {
-  const RandomPost = (await import("@/pages/posts/RandomPost")).default;
+  const RandomPost = (await import("@/pages/posts/common/RandomPost")).default;
   const navigate = vi.spyOn(RandomPost as any, "navigate").mockImplementation(() => {});
   return { RandomPost, navigate };
 }

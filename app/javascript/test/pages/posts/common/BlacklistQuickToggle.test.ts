@@ -14,7 +14,7 @@ function render (): void {
 }
 
 async function load () {
-  const BlacklistQuickToggle = (await import("@/pages/posts/BlacklistQuickToggle")).default;
+  const BlacklistQuickToggle = (await import("@/pages/posts/common/BlacklistQuickToggle")).default;
   void BlacklistQuickToggle.instance;
 }
 

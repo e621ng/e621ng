@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 async function load () {
-  const SearchControls = (await import("@/pages/posts/SearchControls")).default;
+  const SearchControls = (await import("@/pages/posts/common/SearchControls")).default;
   const LStorage = (await import("@/utility/storage/Local")).default;
   return { SearchControls, LStorage };
 }

@@ -2,9 +2,9 @@ import Hotkeys from "@/core/hotkeys";
 import { HotkeyAction } from "@/core/hotkeys/Types";
 import CurrentUser from "@/models/CurrentUser";
 import BulkActions from "@/pages/posts/BulkActions";
-import QuickEdit from "@/pages/posts/QuickEdit";
+import QuickEdit from "@/pages/posts/index/QuickEdit";
 import PostSet from "@/models/PostSet";
-import TagScriptControls from "@/pages/posts/TagScriptControls";
+import TagScriptControls from "@/pages/posts/index/TagScriptControls";
 import SStorage from "@/utility/storage/Session";
 
 /** Mirrors the options in posts/partials/index/_mode_menu.html.erb */

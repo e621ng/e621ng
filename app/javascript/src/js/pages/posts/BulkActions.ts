@@ -5,7 +5,6 @@ import PostFlag from "@/models/PostFlag";
 import PostVote from "@/models/PostVote";
 import PendingUpdates from "@/pages/posts/PendingUpdates";
 import { ApiError } from "@/utility/ApiRequest";
-import Page from "@/utility/Page";
 import ToastManager from "@/utility/Toast";
 
 export interface BulkDeleteOptions {
@@ -25,7 +24,7 @@ const reported = () => { /* Reported through danbooru:error */ };
 /**
  * Post actions applied from the index mode menu and the mod queue. Each one
  * counts towards the pending-updates toast and keeps the matching thumbnails
- * in sync. Exposed as `E621.Post` on the index and favorites pages.
+ * in sync. Exposed as `E621.Post` on every posts page (via v_posts) and favorites.
  */
 export default class BulkActions {
 
@@ -95,10 +94,10 @@ export default class BulkActions {
       .catch(reported);
   }
 
-  static disapprove (post_id: number, reason: string, message?: string): Promise<void> {
+  static disapprove (post_id: number, reason: string, message?: string, { reload = false } = {}): Promise<void> {
     return PendingUpdates.track(PostApproval.disapprove(post_id, reason, message))
       .then(() => {
-        if (Page.matches("posts", "show")) BulkActions.reload();
+        if (reload) BulkActions.reload();
       })
       .catch(reported);
   }

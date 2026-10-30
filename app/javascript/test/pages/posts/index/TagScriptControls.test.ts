@@ -20,7 +20,7 @@ function render ({ hidden = 0 } = {}) {
 }
 
 async function load () {
-  const TagScriptControls = (await import("@/pages/posts/TagScriptControls")).default;
+  const TagScriptControls = (await import("@/pages/posts/index/TagScriptControls")).default;
   const LStorage = (await import("@/utility/storage/Local")).default;
   return { TagScriptControls: TagScriptControls.instance, LStorage };
 }
