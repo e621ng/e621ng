@@ -142,12 +142,14 @@ export default class BlacklistWidget {
         })
         .appendTo(entry);
 
-      $("<span>").text(filter.matchIDs.size).appendTo(link);
+      if (!this.hasPost)
+        $("<span>").text(filter.matchIDs.size).appendTo(link);
     }
 
     // Update the total blacklist size
     this.$wrapper.attr("filters", activeFilters);
-    this.$counter.text("(" + Blacklist.hiddenPosts.size + ")");
+    if (this.hasPost) this.$counter.text("");
+    else this.$counter.text("(" + Blacklist.hiddenPosts.size + ")");
 
     // Change the toggle state accordingly
     const text = inactiveFilters ? "Enable All Filters" : "Disable All Filters";
