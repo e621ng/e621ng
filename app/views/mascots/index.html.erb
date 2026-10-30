@@ -31,7 +31,16 @@
             <td><%= mascot.foreground_color %></td>
             <td><%= mascot.artist_name %></td>
             <td><%= mascot.artist_url %></td>
-            <td><%= svg_icon(:chexagon, width: 12, height: 12) if mascot.active %></td>
+            <td>
+              <% if CurrentUser.user.is_admin? %>
+                <button type="button" class="st-button mascot-active-toggle" data-mascot-id="<%= mascot.id %>" aria-pressed="<%= mascot.active %>">
+                  <span class="mascot-active-on">Active</span>
+                  <span class="mascot-active-off">Inactive</span>
+                </button>
+              <% elsif mascot.active %>
+                <%= svg_icon(:chexagon, width: 12, height: 12) %>
+              <% end %>
+            </td>
             <td><%= mascot.available_on_string %></td>
             <td><%= compact_time mascot.created_at %></td>
             <% if CurrentUser.user.is_admin? %>

@@ -37,6 +37,22 @@ RSpec.describe MascotsController do
       expect(response.parsed_body).to be_an(Array)
     end
 
+    it "renders active toggle buttons for an admin" do
+      mascot
+      create(:inactive_mascot)
+      sign_in_as admin
+      get mascots_path
+      expect(response.body).to include(%(class="st-button mascot-active-toggle" data-mascot-id="#{mascot.id}" aria-pressed="true"))
+      expect(response.body).to include(%(aria-pressed="false"))
+    end
+
+    it "does not render active toggle buttons for a member" do
+      mascot
+      sign_in_as member
+      get mascots_path
+      expect(response.body).not_to include("mascot-active-toggle")
+    end
+
     it "includes url_path in each JSON record" do
       mascot
       get mascots_path(format: :json)
@@ -248,6 +264,43 @@ RSpec.describe MascotsController do
           expect(response).to have_http_status(:ok)
         end
       end
+
+      # The index page's inline "Active" toggle
+      context "with only the active flag via JSON" do
+        it "deactivates the mascot" do
+          patch mascot_path(mascot, format: :json), params: { mascot: { active: "false" } }
+          expect(response).to have_http_status(:no_content)
+          expect(mascot.reload.active).to be(false)
+        end
+
+        it "activates the mascot" do
+          inactive = create(:inactive_mascot)
+          patch mascot_path(inactive, format: :json), params: { mascot: { active: "true" } }
+          expect(response).to have_http_status(:no_content)
+          expect(inactive.reload.active).to be(true)
+        end
+
+        it "logs a mascot_update ModAction" do
+          mascot
+          expect { patch mascot_path(mascot, format: :json), params: { mascot: { active: "false" } } }.to change(ModAction, :count).by(1)
+          expect(ModAction.last.action).to eq("mascot_update")
+        end
+
+        it "returns 422 with errors when the mascot is invalid" do
+          mascot.update_column(:artist_url, "example.com")
+          patch mascot_path(mascot, format: :json), params: { mascot: { active: "false" } }
+          expect(response).to have_http_status(:unprocessable_content)
+          expect(response.parsed_body["errors"]).to be_present
+          expect(mascot.reload.active).to be(true)
+        end
+      end
+    end
+
+    it "returns 403 for a member toggling active via JSON" do
+      sign_in_as member
+      patch mascot_path(mascot, format: :json), params: { mascot: { active: "false" } }
+      expect(response).to have_http_status(:forbidden)
+      expect(mascot.reload.active).to be(true)
     end
   end
 

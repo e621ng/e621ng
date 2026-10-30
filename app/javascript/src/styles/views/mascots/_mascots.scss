@@ -27,3 +27,21 @@
   margin: -0.5rem 0;
   object-fit: cover;
 }
+
+.mascot-active-toggle {
+  min-width: 6rem;
+  span { text-align: center; }
+
+  &[aria-pressed="true"] {
+    background: palette("background-green");
+    &:hover, &:active { background: palette("background-green-d5"); }
+    .mascot-active-off { display: none; }
+  }
+
+  &[aria-pressed="false"] {
+    color: themed("color-text-muted");
+    svg, .mascot-active-on { display: none; }
+  }
+
+  &:disabled { opacity: 0.5; cursor: wait; }
+}
