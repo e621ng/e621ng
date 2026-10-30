@@ -18,6 +18,7 @@ export default class AutocompleteWidget {
 
     window.addEventListener("scroll", repositionAll, { passive: true });
     window.addEventListener("resize", repositionAll, { passive: true });
+    window.addEventListener("dialog:move", repositionAll);
 
     AutocompleteWidget.globalHandlersInitialized = true;
   }
