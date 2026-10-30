@@ -66,6 +66,7 @@ class Post < ApplicationRecord
   after_commit :handle_thumbnails_on_create, on: :create
   after_commit :generate_image_samples, on: :create
   after_commit :generate_video_samples, on: :create, if: :is_video?
+  after_commit :track_upload_event, on: :create, if: -> { OpenPanelClient.enabled? }
 
   belongs_to :updater, :class_name => "User", optional: true # this is handled in versions
   belongs_to :approver, class_name: "User", optional: true
@@ -1319,6 +1320,18 @@ class Post < ApplicationRecord
         self.uploader_id = CurrentUser.id
         self.uploader_ip_addr = CurrentUser.ip_addr
       end
+    end
+
+    def track_upload_event
+      OpenPanelTrackJob.perform_async("post_created", {
+        "rating" => rating,
+        "file_ext" => file_ext,
+        "file_size" => file_size,
+        "is_pending" => is_pending,
+        "uploader_level" => uploader&.level_string,
+        # Keeps queued or retried events at upload time
+        "__timestamp" => created_at.utc.iso8601(3),
+      })
     end
 
     def uploader_name

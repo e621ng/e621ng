@@ -6,6 +6,27 @@ RSpec.describe Post do
   include_context "as admin"
 
   describe "UploaderMethods" do
+    describe "#track_upload_event" do
+      it "enqueues an OpenPanel event on create when enabled" do
+        allow(OpenPanelClient).to receive(:enabled?).and_return(true)
+        uploader = create(:privileged_user)
+        expect { create(:post, uploader: uploader, rating: "e", is_pending: true) }.to enqueue_sidekiq_job(OpenPanelTrackJob).with(
+          "post_created",
+          hash_including("rating" => "e", "is_pending" => true, "file_ext" => "jpg", "uploader_level" => "Privileged", "__timestamp" => kind_of(String)),
+        )
+      end
+
+      it "does nothing when disabled" do
+        expect { create(:post) }.not_to enqueue_sidekiq_job(OpenPanelTrackJob)
+      end
+
+      it "does not fire on update" do
+        post = create(:post)
+        allow(OpenPanelClient).to receive(:enabled?).and_return(true)
+        expect { post.update!(rating: "q") }.not_to enqueue_sidekiq_job(OpenPanelTrackJob)
+      end
+    end
+
     describe "#previous_version_uploaders" do
       it "returns the deduplicated list of previous replacement uploaders" do
         post = create(:post)
