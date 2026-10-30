@@ -60,7 +60,7 @@ class PostPresenter < Presenter
   ########################################
 
   def video_attributes
-    {
+    attributes = {
       id: "image",
       class: initial_video_class(CurrentUser.user),
       loop: "true",
@@ -68,6 +68,12 @@ class PostPresenter < Presenter
       playsinline: "playsinline",
       controls: "controls",
     }
+
+    unless @post.has_sound
+      attributes["muted"] = "true"
+    end
+
+    attributes
   end
 
   def initial_video_class(user = CurrentUser.user)
