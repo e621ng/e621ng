@@ -7,6 +7,15 @@
       <%= link_to "All", forum_topics_path %>,
       <%= ForumCategory.visible.ordered_categories.all.map {|rec| link_to_unless_current(rec.name, forum_topics_path(:search => {:category_id => rec.id}))}.join(", ").html_safe %>
     </p>
+    <p>
+      <% search = params[:search].to_unsafe_h.except("order") %>
+      <% order = params.dig(:search, :order) %>
+      <% if order.blank? || %w[bumped sticky].include?(order.to_s.downcase) %>
+        <%= link_to("Show all recently updated topics »", forum_topics_path(search: search.merge(order: "sticky_updated"))) %>
+      <% else %>
+        <%= link_to("Show only recently bumped topics »", forum_topics_path(search: search)) %>
+      <% end %>
+    </p>
 
     <%= render "listing", :forum_topics => @forum_topics %>
 

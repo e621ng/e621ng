@@ -1073,7 +1073,8 @@ CREATE TABLE public.forum_topics (
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone NOT NULL,
     category_id integer DEFAULT 0 NOT NULL,
-    creator_ip_addr inet NOT NULL
+    creator_ip_addr inet NOT NULL,
+    last_bumped_at timestamp without time zone NOT NULL
 );
 
 
@@ -5132,10 +5133,24 @@ CREATE INDEX index_forum_topics_on_creator_id ON public.forum_topics USING btree
 
 
 --
+-- Name: index_forum_topics_on_is_sticky_and_last_bumped_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topics_on_is_sticky_and_last_bumped_at ON public.forum_topics USING btree (is_sticky, last_bumped_at);
+
+
+--
 -- Name: index_forum_topics_on_is_sticky_and_updated_at; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_forum_topics_on_is_sticky_and_updated_at ON public.forum_topics USING btree (is_sticky, updated_at);
+
+
+--
+-- Name: index_forum_topics_on_last_bumped_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topics_on_last_bumped_at ON public.forum_topics USING btree (last_bumped_at);
 
 
 --
@@ -6610,6 +6625,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('20261026161409'),
 ('20261026161404'),
 ('20261020150541'),
+('20261018195809'),
 ('20261006134945'),
 ('20260907205015'),
 ('20260827214903'),
