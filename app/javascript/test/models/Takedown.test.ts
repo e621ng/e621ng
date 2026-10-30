@@ -60,6 +60,19 @@ describe("Takedown", () => {
     expect(JSON.parse(init.body as string)).toEqual({ post_ids: "42" });
   });
 
+  it("clearPosts POSTs to the member route and resolves with the removed count", async () => {
+    const fetchSpy = stubFetch(jsonResponse({ removed_count: 3 }));
+    const queue = await bypassQueue();
+    const Takedown = await freshTakedown();
+
+    await expect(Takedown.clearPosts(5)).resolves.toBe(3);
+
+    const { url, init } = lastFetch(fetchSpy);
+    expect(url).toBe("/takedowns/5/clear_posts.json");
+    expect(init.method).toBe("POST");
+    expect(queue.mock.calls[0][1]).toEqual({ name: "Takedown.clearPosts" });
+  });
+
   it("reports and rejects failures", async () => {
     stubFetch(jsonResponse({ message: "Access Denied" }, { status: 403 }));
     await bypassQueue();

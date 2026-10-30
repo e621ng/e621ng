@@ -43,6 +43,9 @@
     <label for="takedown-add-posts-ids">Add post IDs to takedown (space-separated):</label><br>
     <%= text_field_tag "takedown-add-posts-ids", "", size: 40 %>
     <%= button_tag "Add", id: "takedown-add-posts-ids-submit", type: :button, disabled: true %>
+    <br><br>
+
+    <button type="button" id="takedown-clear-posts" class="st-button kinetic danger">Clear all posts</button>
   </div>
 
   <h2>Update</h2>

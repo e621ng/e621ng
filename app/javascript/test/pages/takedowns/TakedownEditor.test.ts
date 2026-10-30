@@ -7,6 +7,7 @@ const { api, trackDone } = vi.hoisted(() => ({
     addPostsByTags: vi.fn(),
     addPostsByIds: vi.fn(),
     removePost: vi.fn(),
+    clearPosts: vi.fn(),
   },
   trackDone: vi.fn(),
 }));
@@ -61,6 +62,7 @@ function mount (rows: string, { status = true } = {}): void {
         <div id="takedown-add-posts-tags-warning" hidden></div>
         <input id="takedown-add-posts-ids">
         <button type="button" id="takedown-add-posts-ids-submit" disabled>Add</button>
+        <button type="button" id="takedown-clear-posts">Clear all posts</button>
       </div>
       ${status ? "<span id=\"post-status-select\"></span>" : ""}
     </form>`;
@@ -398,6 +400,55 @@ describe("TakedownEditor", () => {
       type(input(), "a");
       pressEnter(input());
       expect(api.countMatchingPosts).toHaveBeenCalledWith("a");
+    });
+  });
+  describe("clearing all posts", () => {
+    const button = () => $id<HTMLButtonElement>("takedown-clear-posts");
+
+    it("does nothing when the confirmation is declined", async () => {
+      const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
+      mount(row(1) + row(2, true));
+      await boot();
+
+      button().click();
+      await tick();
+
+      expect(confirmSpy).toHaveBeenCalledWith("Remove all 2 posts from this takedown? This cannot be undone.");
+      expect(api.clearPosts).not.toHaveBeenCalled();
+      expect(document.querySelectorAll(".takedown-post")).toHaveLength(2);
+    });
+
+    it("empties the list and the hint once confirmed", async () => {
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      api.clearPosts.mockResolvedValue(2);
+      mount(row(1) + row(2, true));
+      await boot();
+      const submit = vi.fn((event: Event) => event.preventDefault());
+      document.querySelector("form").addEventListener("submit", submit);
+
+      button().click();
+      expect(button().disabled).toBe(true);
+      await tick();
+
+      expect(api.clearPosts).toHaveBeenCalledWith(5);
+      expect(document.querySelectorAll(".takedown-post")).toHaveLength(0);
+      expect(statusText()).toBe("");
+      expect(trackDone).toHaveBeenCalledWith("2 posts removed from takedown");
+      expect(button().disabled).toBe(false);
+      expect(submit).not.toHaveBeenCalled();
+    });
+
+    it("keeps the rows and re-enables the button on failure", async () => {
+      vi.spyOn(window, "confirm").mockReturnValue(true);
+      api.clearPosts.mockRejectedValue(new Error("nope"));
+      mount(row(1));
+      await boot();
+
+      button().click();
+      await tick();
+
+      expect($id("takedown-post-1")).not.toBeNull();
+      expect(button().disabled).toBe(false);
     });
   });
 });

@@ -2,7 +2,7 @@
 
 class TakedownsController < ApplicationController
   respond_to :html, :json
-  before_action :can_handle_takedowns_only, only: %i[update edit destroy add_by_ids add_by_tags count_matching_posts remove_by_ids]
+  before_action :can_handle_takedowns_only, only: %i[update edit destroy add_by_ids add_by_tags count_matching_posts remove_by_ids clear_posts]
   before_action :ensure_takedowns_enabled, only: %i[new create]
 
   def index
@@ -92,6 +92,12 @@ class TakedownsController < ApplicationController
   def remove_by_ids
     @takedown = Takedown.find(params[:id])
     @takedown.remove_posts_by_ids!(params[:post_ids])
+  end
+
+  def clear_posts
+    @takedown = Takedown.find(params[:id])
+    removed = @takedown.clear_posts!
+    render json: { removed_count: removed }
   end
 
   private

@@ -203,6 +203,7 @@ Rails.application.routes.draw do
       post :add_by_ids
       post :add_by_tags
       post :remove_by_ids
+      post :clear_posts
     end
   end
 
