@@ -15,7 +15,7 @@ function render (count = 1) {
 }
 
 async function load () {
-  const PostSearchInput = (await import("@/pages/posts/PostSearchInput")).default;
+  const PostSearchInput = (await import("@/pages/posts/common/PostSearchInput")).default;
   void PostSearchInput.instance;
 }
 

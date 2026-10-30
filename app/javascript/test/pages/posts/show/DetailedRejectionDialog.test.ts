@@ -100,7 +100,7 @@ describe("DetailedRejectionDialog", () => {
     $("#post_disapproval_message").val("Please clean up the lines");
     $("#detailed-rejection-form").trigger("submit");
 
-    expect(bulk.disapprove).toHaveBeenCalledWith(POST_ID, "borderline_quality", "Please clean up the lines");
+    expect(bulk.disapprove).toHaveBeenCalledWith(POST_ID, "borderline_quality", "Please clean up the lines", { reload: true });
     expect(dialogs[0].close).toHaveBeenCalledTimes(1);
   });
 

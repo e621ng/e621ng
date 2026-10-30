@@ -6,7 +6,6 @@ const flag = { destroy: vi.fn() };
 const favorite = { create: vi.fn(), destroy: vi.fn() };
 const vote = { vote: vi.fn() };
 const toast = { notice: vi.fn(), create: vi.fn(() => ({ message: "", timeout: 0 })), dismiss: vi.fn() };
-const page = { matches: vi.fn(() => false) };
 
 vi.mock("@/models/Post", async (importOriginal) => ({ ...await importOriginal<object>(), default: post }));
 vi.mock("@/models/PostApproval", () => ({ default: approval }));
@@ -14,7 +13,6 @@ vi.mock("@/models/PostFlag", () => ({ default: flag }));
 vi.mock("@/models/Favorite", async (importOriginal) => ({ ...await importOriginal<object>(), default: favorite }));
 vi.mock("@/models/PostVote", () => ({ default: vote }));
 vi.mock("@/utility/Toast", () => ({ default: toast }));
-vi.mock("@/utility/Page", () => ({ default: page }));
 
 const POST_ID = 42;
 const THUMB = { id: POST_ID, flags: "", rating: "q", tags: "fox red" };
@@ -42,7 +40,6 @@ describe("BulkActions", () => {
       for (const fn of Object.values(group)) fn.mockReset().mockResolvedValue(undefined);
     post.update.mockResolvedValue(THUMB);
     toast.notice.mockReset();
-    page.matches.mockReset().mockReturnValue(false);
   });
 
   describe("update", () => {
@@ -196,17 +193,23 @@ describe("BulkActions", () => {
     });
   });
 
-  it("disapproves and reloads only on posts#show", async () => {
+  it("disapproves and reloads only when asked", async () => {
     const { BulkActions, reload } = await load();
 
     await BulkActions.disapprove(POST_ID, "borderline_quality", "m");
     expect(approval.disapprove).toHaveBeenCalledWith(POST_ID, "borderline_quality", "m");
     expect(reload).not.toHaveBeenCalled();
 
-    page.matches.mockReturnValue(true);
-    await BulkActions.disapprove(POST_ID, "borderline_quality");
-    expect(page.matches).toHaveBeenCalledWith("posts", "show");
+    await BulkActions.disapprove(POST_ID, "borderline_quality", undefined, { reload: true });
     expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it("does not reload when the disapproval fails", async () => {
+    approval.disapprove.mockRejectedValue(new Error("nope"));
+    const { BulkActions, reload } = await load();
+
+    await BulkActions.disapprove(POST_ID, "borderline_quality", undefined, { reload: true });
+    expect(reload).not.toHaveBeenCalled();
   });
 
   describe("syncThumbnail", () => {

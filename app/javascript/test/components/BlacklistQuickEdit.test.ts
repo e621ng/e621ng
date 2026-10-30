@@ -26,7 +26,7 @@ function render (): void {
 
 async function load () {
   dialogs.length = 0;
-  const BlacklistQuickEdit = (await import("@/pages/posts/BlacklistQuickEdit")).default;
+  const BlacklistQuickEdit = (await import("@/components/BlacklistQuickEdit")).default;
   void BlacklistQuickEdit.instance;
   return BlacklistQuickEdit;
 }

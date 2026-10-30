@@ -2,7 +2,7 @@
 
 import State from "@/utility/StateUtils";
 
-import BlacklistQuickEdit from "@/pages/posts/BlacklistQuickEdit";
+import BlacklistQuickEdit from "@/components/BlacklistQuickEdit";
 
 State.onReady(() => {
   void BlacklistQuickEdit.instance;

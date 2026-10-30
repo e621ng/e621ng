@@ -1,4 +1,4 @@
-import SVGIcon from "../../utility/SVGIcon";
+import SVGIcon from "@/utility/SVGIcon";
 import SearchQuery, { ORDER_ASC, ORDER_CUSTOM, ORDER_DESC, ORDER_VALUES, RATINGS } from "./SearchQuery";
 
 const SORT_CUSTOM_ID = "advanced-search-sort-custom";

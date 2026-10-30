@@ -30,7 +30,7 @@ function render () {
 }
 
 async function load () {
-  const QuickEdit = (await import("@/pages/posts/QuickEdit")).default;
+  const QuickEdit = (await import("@/pages/posts/index/QuickEdit")).default;
   return QuickEdit.instance;
 }
 

@@ -75,7 +75,7 @@ export default class DetailedRejectionDialog {
   private submit (): void {
     const reason = String(this.reasonSelect.val() ?? "");
     const message = String(this.messageInput.val() ?? "");
-    void BulkActions.disapprove(this.postId, reason, message);
+    void BulkActions.disapprove(this.postId, reason, message, { reload: true });
     this.close();
   }
 }

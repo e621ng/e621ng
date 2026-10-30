@@ -1,5 +1,5 @@
-import Offclick, { OffclickEntry } from "../../utility/Offclick";
-import LStorage from "../../utility/storage/Local";
+import Offclick, { OffclickEntry } from "@/utility/Offclick";
+import LStorage from "@/utility/storage/Local";
 
 /** The fullscreen toggle, advanced search and layout settings menus above the posts gallery. */
 export default class SearchControls {
