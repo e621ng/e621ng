@@ -1,0 +1,13 @@
+<%# Also rendered with post_id: nil as the <template> row; TakedownEditor fills in the ids %>
+<% action = delete ? "delete" : "keep" %>
+<div id="takedown-post-<%= post_id %>" data-post-id="<%= post_id %>" class="takedown-post">
+  <button type="button" class="takedown-post-label takedown-post-remove" title="Remove this post from the takedown">X</button>
+  <label for="takedown_posts_<%= post_id %>" class="takedown-post-label takedown-post-<%= action %>">
+    <input type="hidden" name="takedown_posts[<%= post_id %>]" value="0" autocomplete="off">
+    <input type="checkbox" id="takedown_posts_<%= post_id %>" name="takedown_posts[<%= post_id %>]" value="1"<%= " checked" if delete %>>
+    <span><%= action.capitalize %></span>
+  </label>
+  <span class="takedown-post-status<%= " takedown-post-#{status_class}" if status_class %>">
+    <%= link_to("post ##{post_id}", post_id ? post_path(post_id) : "#") %>
+  </span>
+</div>

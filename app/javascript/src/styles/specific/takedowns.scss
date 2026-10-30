@@ -19,13 +19,11 @@ div#c-takedowns {
     overflow: hidden;
   }
 
-  #takedown-add-posts-tags-warning {
-    display: none;
-  }
-
   #takedown-add-posts-tags-confirm, #takedown-add-posts-tags-cancel {
-    display: none;
+    display: inline-block;
     background-color: #FFEB7E;
+
+    &[hidden] { display: none; }
   }
 
   #takedown-post-buttons {
@@ -41,6 +39,13 @@ div#c-takedowns {
     margin-bottom: 2px;
     margin-right: 5px;
     cursor: pointer;
+  }
+
+  button.takedown-post-label {
+    padding: 0;
+    border: none;
+    font: inherit;
+    color: inherit;
   }
 
   .takedown-postall-label {

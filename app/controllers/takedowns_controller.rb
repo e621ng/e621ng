@@ -84,7 +84,8 @@ class TakedownsController < ApplicationController
   end
 
   def count_matching_posts
-    post_count = Post.tag_match_system(params[:post_tags]).count_only
+    # Same filter as Takedown#add_posts_by_tags!, so the preview matches what gets added
+    post_count = Post.tag_match_system("#{params[:post_tags]} -status:deleted").count_only
     render json: { matched_post_count: post_count }
   end
 

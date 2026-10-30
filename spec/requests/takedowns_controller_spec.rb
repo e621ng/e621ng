@@ -66,6 +66,22 @@ RSpec.describe TakedownsController do
       get takedown_path(takedown, code: takedown.vericode)
       expect(response).to have_http_status(:ok)
     end
+
+    it "renders the post editor rows and row template for an admin" do
+      td = create(:takedown_with_post, source: "http://example.com")
+      post_id = td.post_array.first
+      td.update_columns(del_post_ids: post_id.to_s)
+      sign_in_as create(:admin_user)
+
+      get takedown_path(td)
+
+      page = Nokogiri::HTML(response.body)
+      label = page.at_css("label[for='takedown_posts_#{post_id}']")
+      expect(label[:class]).to include("takedown-post-delete")
+      expect(label.at_css("span").text).to eq("Delete")
+      expect(page.at_css("#takedown_posts_#{post_id}")[:checked]).to be_present
+      expect(page.at_css("#takedown-post-template .takedown-post")).to be_present
+    end
   end
 
   # ---------------------------------------------------------------------------
@@ -286,6 +302,15 @@ RSpec.describe TakedownsController do
       post count_matching_posts_takedowns_path(format: :json), params: { post_tags: "tagme" }
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body).to include("matched_post_count")
+    end
+
+    it "excludes deleted posts, matching add_by_tags" do
+      sign_in_as bd_staff
+      query = instance_double(DocumentStore::Response, count_only: 7)
+      allow(Post).to receive(:tag_match_system).and_return(query)
+      post count_matching_posts_takedowns_path(format: :json), params: { post_tags: "tagme" }, as: :json
+      expect(Post).to have_received(:tag_match_system).with("tagme -status:deleted")
+      expect(response.parsed_body).to eq("matched_post_count" => 7)
     end
   end
 
