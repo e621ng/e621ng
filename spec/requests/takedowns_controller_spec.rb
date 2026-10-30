@@ -333,4 +333,27 @@ RSpec.describe TakedownsController do
       expect(response).to have_http_status(:no_content)
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # POST /takedowns/:id/clear_posts — clear_posts
+  # ---------------------------------------------------------------------------
+
+  describe "POST /takedowns/:id/clear_posts" do
+    let(:td_with_post) { create(:takedown_with_post) }
+
+    it "returns 403 for a member" do
+      sign_in_as member
+      post clear_posts_takedown_path(td_with_post, format: :json)
+      expect(response).to have_http_status(:forbidden)
+      expect(td_with_post.reload.post_array).not_to be_empty
+    end
+
+    it "removes every post and returns the count for bd_staff" do
+      sign_in_as bd_staff
+      post clear_posts_takedown_path(td_with_post, format: :json)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to eq("removed_count" => 1)
+      expect(td_with_post.reload.post_array).to be_empty
+    end
+  end
 end

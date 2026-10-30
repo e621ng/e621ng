@@ -41,4 +41,12 @@ export default class Takedown {
       queue: { name: "Takedown.removePost" },
     }).then(() => undefined);
   }
+
+  /** Removes every post from the takedown; resolves with the number removed */
+  static clearPosts (id: number): Promise<number> {
+    return ApiRequest.json<{ removed_count: number }>(`/takedowns/${id}/clear_posts.json`, {
+      method: "POST",
+      queue: { name: "Takedown.clearPosts" },
+    }).then((data) => data.removed_count);
+  }
 }

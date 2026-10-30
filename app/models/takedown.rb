@@ -115,6 +115,18 @@ class Takedown < ApplicationRecord
       end
     end
 
+    # Returns the number of posts removed
+    def clear_posts!
+      removed = 0
+      with_lock do
+        removed = post_array.size
+        self.post_ids = ""
+        self.del_post_ids = ""
+        save!
+      end
+      removed
+    end
+
     def matching_post_ids(input)
       input.scan(%r{(?:https://(?:e621|e926)\.net/posts/)?(\d+)}i).flatten.map(&:to_i).uniq
     end

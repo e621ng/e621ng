@@ -56,6 +56,8 @@ export default class TakedownEditor {
     this.bindInput("takedown-add-posts-ids", "takedown-add-posts-ids-submit");
     this.byId("takedown-add-posts-ids-submit")?.addEventListener("click", () => void this.addByIds());
 
+    this.byId("takedown-clear-posts")?.addEventListener("click", () => void this.clearPosts());
+
     this.refreshStatus();
   }
 
@@ -172,8 +174,11 @@ export default class TakedownEditor {
   }
 
   private static addedText (response: TakedownAddResponse): string {
-    const count = response.added_count;
-    return `${count} post${count === 1 ? "" : "s"} added to takedown`;
+    return `${TakedownEditor.posts(response.added_count)} added to takedown`;
+  }
+
+  private static posts (count: number): string {
+    return `${count} post${count === 1 ? "" : "s"}`;
   }
 
 
@@ -277,6 +282,29 @@ export default class TakedownEditor {
 
     this.appendPosts(response);
     input.value = "";
+  }
+
+
+  /* ============================== */
+  /* ========= Clear all ========== */
+  /* ============================== */
+
+  private async clearPosts (): Promise<void> {
+    const button = this.byId<HTMLButtonElement>("takedown-clear-posts");
+    const listed = this.container.querySelectorAll("#takedown-post-buttons .takedown-post").length;
+    if (!confirm(`Remove all ${TakedownEditor.posts(listed)} from this takedown? This cannot be undone.`)) return;
+
+    button.disabled = true;
+    const removed = await ToastManager.track(
+      Takedown.clearPosts(this.takedownId),
+      "Clearing posts...",
+      (count) => `${TakedownEditor.posts(count)} removed from takedown`,
+    );
+    button.disabled = false;
+    if (removed === undefined) return;
+
+    this.byId("takedown-post-buttons")?.replaceChildren();
+    this.refreshStatus();
   }
 
 

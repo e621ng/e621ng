@@ -121,4 +121,34 @@ RSpec.describe Takedown do
       expect(Takedown.find(takedown.id).post_array).not_to include(post_a.id)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # clear_posts!
+  # -------------------------------------------------------------------------
+  describe "#clear_posts!" do
+    let(:post_a) { create(:post) }
+    let(:post_b) { create(:post) }
+
+    before do
+      takedown.add_posts_by_ids!("#{post_a.id} #{post_b.id}")
+      takedown.update!(del_post_ids: post_a.id.to_s)
+    end
+
+    it "returns the number of posts removed" do
+      expect(takedown.clear_posts!).to eq(2)
+    end
+
+    it "empties the post and deletion lists and persists them" do
+      takedown.clear_posts!
+      reloaded = Takedown.find(takedown.id)
+      expect(reloaded.post_array).to be_empty
+      expect(reloaded.del_post_array).to be_empty
+      expect(reloaded.post_count).to eq(0)
+    end
+
+    it "returns 0 for an already empty takedown" do
+      takedown.clear_posts!
+      expect(takedown.clear_posts!).to eq(0)
+    end
+  end
 end
