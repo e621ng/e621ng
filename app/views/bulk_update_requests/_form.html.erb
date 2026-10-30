@@ -8,7 +8,7 @@
   <div class="input">
     <label class="text optional" for="bulk_update_request_script">Script</label>
     <%= text_area :bulk_update_request, :script, :size => "50x10" %>
-    <a href="#" id="script-help-link">Help</a>
+    <%= link_to "Help", help_page_path(id: "tag_relationships", anchor: "bur"), id: "script-help-link" %>
     <ul class="hint" id="script-help" title="Bulk Update Request Help" style="display: none;">
       <li>unalias aaa -> bbb</li>
       <li>unimply aaa -> bbb</li>
