@@ -27,6 +27,7 @@ const Settings = {} as {
   Analytics: {
     enabled: boolean,
     client_id: string | null,
+    api_url: string | null,
     events: {
       recommendation: boolean,
       search_trend: boolean,
@@ -55,6 +56,7 @@ Object.defineProperty(Settings, "Analytics", {
     const value = {
       enabled: obj.enabled || false,
       client_id: obj.client_id || null,
+      api_url: obj.api_url || null,
       events: {
         recommendation: obj.events?.recommendation || false,
         search_trend: obj.events?.search_trend || false,

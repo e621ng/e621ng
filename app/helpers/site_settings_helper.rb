@@ -37,12 +37,13 @@ module SiteSettingsHelper
   private
 
   def site_settings_data
-    analytics_enabled = Danbooru.config.enable_visitor_metrics? && Danbooru.config.analytics_client_id.present?
+    analytics_enabled = Danbooru.config.enable_visitor_metrics? && Danbooru.config.analytics_client_id.present? && Danbooru.config.openpanel_api_url.present?
 
     {
       Analytics: {
         enabled: analytics_enabled,
         client_id: analytics_enabled ? Danbooru.config.analytics_client_id : nil,
+        api_url: analytics_enabled ? Danbooru.config.openpanel_api_url : nil,
 
         events: {
           recommendation: Danbooru.config.visitor_metrics_events[:recommendation] || false,

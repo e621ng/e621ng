@@ -26,8 +26,8 @@ RSpec.describe SiteSettingsHelper do
         allow(Danbooru.config.custom_configuration).to receive_messages(enable_visitor_metrics?: true, analytics_client_id: "G-ABC123")
       end
 
-      it "enables analytics and exposes the client id" do
-        expect(settings["Analytics"]).to include("enabled" => true, "client_id" => "G-ABC123")
+      it "enables analytics and exposes the client id and api url" do
+        expect(settings["Analytics"]).to include("enabled" => true, "client_id" => "G-ABC123", "api_url" => "https://op.dragonfru.it/api")
       end
     end
 
@@ -36,8 +36,8 @@ RSpec.describe SiteSettingsHelper do
         allow(Danbooru.config.custom_configuration).to receive_messages(enable_visitor_metrics?: false, analytics_client_id: "G-ABC123")
       end
 
-      it "disables analytics and withholds the client id" do
-        expect(settings["Analytics"]).to include("enabled" => false, "client_id" => nil)
+      it "disables analytics and withholds the client id and api url" do
+        expect(settings["Analytics"]).to include("enabled" => false, "client_id" => nil, "api_url" => nil)
       end
     end
 
@@ -48,6 +48,16 @@ RSpec.describe SiteSettingsHelper do
 
       it "does not enable analytics" do
         expect(settings["Analytics"]).to include("enabled" => false, "client_id" => nil)
+      end
+    end
+
+    context "when the api url is missing" do
+      before do
+        allow(Danbooru.config.custom_configuration).to receive_messages(enable_visitor_metrics?: true, analytics_client_id: "G-ABC123", openpanel_api_url: nil)
+      end
+
+      it "does not enable analytics" do
+        expect(settings["Analytics"]).to include("enabled" => false, "client_id" => nil, "api_url" => nil)
       end
     end
 
