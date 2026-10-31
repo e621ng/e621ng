@@ -51,7 +51,8 @@ function clamp (value: number, min: number, max: number): number {
 /**
  * A draggable, stackable floating dialog wrapping an existing content element.
  * Parameters may also come from `data-*` attributes on that element.
- * Fires `dialog:open`, `dialog:close`, and `dialog:destroy` on the content element.
+ * Fires `dialog:open`, `dialog:close`, and `dialog:destroy` on the content element,
+ * and a native `dialog:move` on the window whenever the frame is repositioned.
  */
 export default class Dialog {
 
@@ -223,6 +224,8 @@ export default class Dialog {
     this.left = left;
     this.top = top;
     this.$dialog.css({ width: this.width, height: this.height, left, top });
+    // Native, so that body-anchored overlays (autocomplete) can follow
+    window.dispatchEvent(new Event("dialog:move"));
   }
 
   // Falls back to the stylesheet's 2rem while the dialog is hidden and unmeasurable

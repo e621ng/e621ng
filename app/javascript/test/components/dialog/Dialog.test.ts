@@ -271,6 +271,24 @@ describe("Dialog", () => {
       expect(dialog.$dialog.hasClass("dragging")).toBe(false);
     });
 
+    it("announces every move on the window", () => {
+      const { header } = build();
+      const moved = vi.fn();
+      window.addEventListener("dialog:move", moved);
+
+      header.trigger(pointer("pointerdown", { button: 0, pointerId: 1, clientX: 100, clientY: 100 }));
+      $(document).trigger(pointer("pointermove", { pointerId: 1, clientX: 150, clientY: 120 }));
+      $(document).trigger(pointer("pointerup", { pointerId: 1 }));
+      expect(moved).toHaveBeenCalledTimes(1);
+
+      // Earlier specs leave dialogs behind, and a resize repositions all of them
+      geometry.setContainer(1000, 600);
+      $(window).trigger("resize");
+      expect(moved.mock.calls.length).toBeGreaterThan(1);
+
+      window.removeEventListener("dialog:move", moved);
+    });
+
     it("ignores other pointers, non-primary buttons, and the close button", () => {
       const { dialog, header, style } = build();
 
