@@ -190,6 +190,9 @@ module FileMethods
   # Without -map ffmpeg only measures the default stream, which could be a silent one.
   def video_max_volume_db(file_path)
     stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-nostats", "-hide_banner", "-vn", "-i", file_path, "-map", "0:a", "-af", "volumedetect", "-f", "null", "-")
+    # ffmpeg echoes container metadata, which is not always valid UTF-8.
+    stdout = stdout.scrub
+    stderr = stderr.scrub
     unless status.success?
       Rails.logger.warn("[FFMPEG VOLUMEDETECT STDOUT] #{stdout.chomp}")
       Rails.logger.warn("[FFMPEG VOLUMEDETECT STDERR] #{stderr.chomp}")
