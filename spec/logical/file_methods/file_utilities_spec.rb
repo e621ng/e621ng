@@ -201,6 +201,15 @@ RSpec.describe FileMethods, type: :model do
       expect { upload.video_has_sound?(path) }.to raise_error(ArgumentError, /unreadable video/)
     end
 
+    it "tolerates non-UTF-8 metadata in ffmpeg's output" do
+      stderr = "HANDLER_NAME: Module de gestion vid\xE9o\n[Parsed_volumedetect_0] max_volume: -91.0 dB\n".b.force_encoding("UTF-8")
+      allow(Open3).to receive(:capture3).and_call_original
+      allow(Open3).to receive(:capture3).with(Danbooru.config.ffmpeg_path, any_args).and_return([+"", stderr, instance_double(Process::Status, success?: true)])
+      upload = build(:upload, file_ext: "mp4")
+      path = file_fixture("sound/tone-aac.mp4").to_s
+      expect(upload.video_has_sound?(path)).to be false
+    end
+
     # ffprobe accepts still images as one-frame videos, so use bytes it can't parse at all.
     it "raises for an unreadable video" do
       upload = build(:upload, file_ext: "mp4")
