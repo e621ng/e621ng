@@ -22,6 +22,7 @@
     "app/javascript/src/js/pages/posts/common/RandomPost.ts",
     "app/javascript/src/js/pages/posts/common/TagListCollapse.ts",
     "app/javascript/src/js/pages/posts/show/EditTab.ts",
+    "app/javascript/src/js/pages/posts/show/FlashPlayer.ts",
     "app/javascript/src/js/pages/posts/show/Navigation.ts",
     "app/javascript/src/js/pages/posts/show/PostActions.ts",
     "app/javascript/src/js/pages/posts/show/RelationshipPreview.ts",

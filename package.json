@@ -10,6 +10,7 @@
   "dependencies": {
     "@openpanel/web": "1.4.2",
     "@rails/ujs": "7.1.600",
+    "@ruffle-rs/ruffle": "0.7.1",
     "@videojs/html": "10.2.0",
     "chart.js": "4.6.1",
     "jquery": "4.0.0",

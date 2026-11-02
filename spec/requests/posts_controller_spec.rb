@@ -195,6 +195,86 @@ RSpec.describe PostsController do
   end
 
   # ---------------------------------------------------------------------------
+  # GET /posts/:id — Flash (SWF) player
+  # ---------------------------------------------------------------------------
+
+  describe "GET /posts/:id for a Flash post" do
+    let(:flash_post) { create(:post, file_ext: "swf", rating: "s") }
+
+    def flash_player
+      Nokogiri::HTML(response.body).at_css("#flash-player")
+    end
+
+    def download_link
+      Nokogiri::HTML(response.body).css("#image-container a").find { |link| link.text.include?("Save this flash") }
+    end
+
+    it "renders the player for the file, with the download link and without the legacy embed" do
+      get post_path(flash_post)
+
+      expect(flash_player).to be_present
+      expect(flash_player["data-swf"]).to eq(flash_post.file_url)
+      expect(flash_player.at_css("canvas.flash-player-frame[width='640'][height='480']")).to be_present
+      expect(flash_player.at_css("button.flash-player-start[hidden]")).to be_present
+      expect(download_link["href"]).to eq(flash_post.file_url)
+      expect(Nokogiri::HTML(response.body).at_css("#image-container object, #image-container embed")).to be_nil
+    end
+
+    it "renders the player on show_seq" do
+      get show_seq_post_path(flash_post)
+      expect(flash_player).to be_present
+    end
+
+    it "does not render a player for an image post" do
+      get post_path(create(:post))
+      expect(flash_player).to be_nil
+    end
+
+    context "when the site is in safe mode" do
+      before { allow(Danbooru.config.custom_configuration).to receive(:safe_mode?).and_return(true) }
+
+      it "renders the player for a safe post" do
+        get post_path(flash_post)
+        expect(flash_player).to be_present
+      end
+
+      it "withholds an explicit post" do
+        get post_path(create(:post, file_ext: "swf", rating: "e"))
+        expect(flash_player).to be_nil
+        expect(response.body).to include("This image is unavailable in safe mode")
+      end
+    end
+
+    it "withholds a post hidden from anonymous users" do
+      get post_path(create(:post, file_ext: "swf", hide_from_anonymous: true))
+      expect(flash_player).to be_nil
+      expect(response.body).to include("You must be logged in to view this image")
+    end
+
+    context "when the post is deleted" do
+      let(:flash_post) { create(:deleted_post, file_ext: "swf") }
+
+      it "withholds it from anonymous users" do
+        get post_path(flash_post)
+        expect(flash_player).to be_nil
+        expect(response.body).to include("You can not view this image")
+      end
+
+      it "withholds it from members" do
+        sign_in_as create(:user)
+        get post_path(flash_post)
+        expect(flash_player).to be_nil
+      end
+
+      it "renders the player with the protected file URL for staff" do
+        sign_in_as create(:janitor_user)
+        get post_path(flash_post)
+        expect(flash_player["data-swf"]).to match(%r{/#{Danbooru.config.protected_path_prefix}/.*#{flash_post.md5}\.swf\?auth=})
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # GET /posts/:id/show_seq — show_seq
   # ---------------------------------------------------------------------------
 

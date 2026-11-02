@@ -96,6 +96,8 @@ class PostsController < ApplicationController
       @comments = Comment.none
     end
 
+    allow_flash_player_csp
+
     respond_with(@post) do |format|
       format.json do
         pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
@@ -124,6 +126,7 @@ class PostsController < ApplicationController
     end
 
     @fixup_post_url = true
+    allow_flash_player_csp
 
     respond_with(@post) do |format|
       format.html { render "posts/show" }
@@ -194,6 +197,16 @@ class PostsController < ApplicationController
   end
 
   private
+
+  # Ruffle, the Flash emulator that plays SWF posts, compiles WebAssembly. Allow that, and nothing else, on the
+  # pages that render the player (the same check as posts/partials/show/content/embedded/_embedded).
+  def allow_flash_player_csp
+    return unless @post.is_flash? && @post.visible?
+
+    policy = current_content_security_policy
+    policy.script_src(*policy.directives["script-src"], :wasm_unsafe_eval)
+    request.content_security_policy = policy
+  end
 
   def tag_query
     return params[:tags] if params[:tags].present?

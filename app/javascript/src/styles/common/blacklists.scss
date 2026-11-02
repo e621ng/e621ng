@@ -239,7 +239,8 @@ article.blacklisted-user {
 
 #image-container.blacklisted {
   img,
-  video {
+  video,
+  .flash-player-frame {
     height: 0px !important;
     width: 0px !important;
     padding: 150px 150px 0px 0px !important;
@@ -256,7 +257,12 @@ article.blacklisted-user {
 
   // Without this, the video player intercepts clicks but
   // does not pass them on to the container element
-  video, .video-player { pointer-events: none; }
+  video, .video-player, .flash-player { pointer-events: none; }
+
+  // The Play button, or a movie that is already running
+  .flash-player-content {
+    display: none;
+  }
 
   media-container {
     background: none !important;

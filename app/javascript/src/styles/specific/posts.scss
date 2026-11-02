@@ -369,6 +369,32 @@ textarea[data-autocomplete="tag-edit"] {
   }
 }
 
+// The frame is a canvas with the movie's size: like an image, it shrinks to fit the page and keeps its aspect
+// ratio. The Play button, messages and the Ruffle player cover it.
+.flash-player {
+  position: relative;
+
+  .flash-player-frame {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    background: var(--color-background);
+  }
+
+  .flash-player-content {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    text-align: center;
+
+    ruffle-player {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
 .image-vote-buttons {
   .post-score {
     padding: 0 $padding-050;

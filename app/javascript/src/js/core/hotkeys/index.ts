@@ -213,7 +213,7 @@ class Hotkeys {
     });
 
 
-    function isInputFocused () { return $(document.activeElement).is("input, textarea, video"); }
+    function isInputFocused () { return $(document.activeElement).is("input, textarea, video, ruffle-player"); }
     function formatKey (input: string) {
       if (/^\w{1}$/.test(input)) return input.toUpperCase();
 

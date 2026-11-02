@@ -1,6 +1,10 @@
-<%= tag.object(width: post.image_width, height: post.image_height, id: "flash-content") do %>
-  <%= tag.params(name: "movie", value: post.file_url) %>
-  <%= tag.embed(src: post.file_url, width: post.image_width, height: post.image_height, allowScriptAccess: "never") %>
+<%= tag.div(id: "flash-player", class: "flash-player", data: { swf: post.file_url }) do %>
+  <%# Takes the movie's size, scaled down like an image to fit the page; the player is laid over it. %>
+  <%= tag.canvas(class: "flash-player-frame", width: post.image_width || 550, height: post.image_height || 400, "aria-hidden": "true") %>
+  <div class="flash-player-content">
+    <button type="button" class="st-button flash-player-start" hidden>Play Flash</button>
+    <p class="flash-player-message">Playing Flash files in the browser requires JavaScript.</p>
+  </div>
 <% end %>
 
 <p><%= link_to "Save this flash (right click and save)", post.file_url %></p>

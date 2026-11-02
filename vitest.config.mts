@@ -10,6 +10,10 @@ export default defineConfig({
     // whitespace: "preserve" mirrors vite.config.mts so templates compile identically
     vue({ template: { compilerOptions: { whitespace: "preserve" } } }),
   ],
+  define: {
+    // Set by the ruffle-assets plugin in vite.config.mts
+    __RUFFLE_ASSET_DIR__: JSON.stringify("ruffle/test/"),
+  },
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./app/javascript/src/js", import.meta.url)),

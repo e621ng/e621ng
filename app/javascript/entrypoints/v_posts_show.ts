@@ -12,6 +12,7 @@ import BlacklistedImage from "@/pages/posts/show/BlacklistedImage";
 import DeleteWithReasonDialog from "@/pages/posts/show/DeleteWithReasonDialog";
 import DetailedRejectionDialog from "@/pages/posts/show/DetailedRejectionDialog";
 import EditTab from "@/pages/posts/show/EditTab";
+import FlashPlayer from "@/pages/posts/show/FlashPlayer";
 import MobileTabs from "@/pages/posts/show/MobileTabs";
 import Navigation from "@/pages/posts/show/Navigation";
 import Note from "@/pages/posts/show/notes";
@@ -38,6 +39,7 @@ State.onReady(() => {
   void PostResizer.instance;
   void SwipeGestureHandler.instance;
   void PostVideo.instance;
+  FlashPlayer.initialize();
 
   void AddToPoolDialog.instance;
   void AddToSetDialog.instance;
