@@ -24,7 +24,8 @@ declare global {
 
 export default class FlashPlayer {
 
-  private loading = false;
+  private state: "idle" | "loading" | "playing" | "failed" = "idle";
+  private player: RufflePlayerElement | null = null;
 
   /** Laid over the frame that gives the player its size; holds the Play button, then messages or the player. */
   private content: HTMLElement;
@@ -37,6 +38,13 @@ export default class FlashPlayer {
     button.addEventListener("click", () => this.start());
     button.hidden = false;
     this.content.querySelector(".flash-player-message")?.remove();
+
+    // On Flash posts, the toolbar's Fullscreen button (and its hotkey) shows the movie fullscreen instead of
+    // opening the file, which browsers can only download.
+    document.querySelector(".ptbr-fullscreen-button")?.addEventListener("click", (event) => this.onFullscreenClick(event));
+
+    // Like a video, the movie stops when the post gets blacklisted
+    $(container).closest("#image-container").on("blk:hide.flashPlayer", () => this.hide());
   }
 
   /** Sets up the player on a post page that contains a Flash file. */
@@ -46,8 +54,8 @@ export default class FlashPlayer {
   }
 
   private async start (): Promise<void> {
-    if (this.loading) return;
-    this.loading = true;
+    if (this.state === "loading" || this.state === "playing") return;
+    this.state = "loading";
     this.showMessage("Loading…");
 
     const url = this.container.dataset.swf;
@@ -61,14 +69,54 @@ export default class FlashPlayer {
 
       const player = ruffle.createPlayer();
       this.content.replaceChildren(player);
-
       await player.ruffle(1).load({ data, swfFileName: new URL(url, document.baseURI).pathname.split("/").pop() });
-      // Like a video, a running movie stops when the post gets blacklisted
-      $(this.container).closest("#image-container").on("blk:hide.flashPlayer", () => player.ruffle(1).suspend());
+
+      this.player = player;
+      this.state = "playing";
+      if (this.isBlacklisted()) this.hide(); // Blacklisted while it was loading
+      else if (this.isFullscreen()) player.focus(); // So that keyboard input goes to the movie
     } catch (error) {
       console.error("Flash player:", error);
-      this.showMessage("The Flash player could not be started. You can still download the file.");
+      this.state = "failed";
+      this.exitFullscreen();
+      this.showFailure();
     }
+  }
+
+  private onFullscreenClick (event: Event): void {
+    event.preventDefault();
+    if (this.isBlacklisted()) return;
+
+    // Requested before anything is awaited: browsers only allow fullscreen right after a click or key press.
+    this.requestFullscreen();
+    void this.start(); // Does nothing if the movie is already playing
+  }
+
+  private hide (): void {
+    this.player?.ruffle(1).suspend();
+    this.exitFullscreen();
+  }
+
+  private isBlacklisted (): boolean {
+    return !!this.container.closest("#image-container.blacklisted");
+  }
+
+  private isFullscreen (): boolean {
+    return !!document.fullscreenElement && document.fullscreenElement === this.container;
+  }
+
+  private requestFullscreen (): void {
+    if (typeof this.container.requestFullscreen !== "function") return; // e.g. iPhone: the movie plays inline
+    try {
+      this.container.requestFullscreen().catch((error) => console.warn("Flash player: fullscreen refused", error));
+    } catch (error) {
+      console.warn("Flash player: fullscreen refused", error);
+    }
+  }
+
+  private exitFullscreen (): void {
+    if (!this.isFullscreen()) return;
+    document.exitFullscreen().catch(() => { /* Already left */ });
   }
 
   private showMessage (text: string): void {
@@ -76,6 +124,16 @@ export default class FlashPlayer {
     message.className = "flash-player-message";
     message.textContent = text;
     this.content.replaceChildren(message);
+  }
+
+  private showFailure (): void {
+    this.showMessage("The Flash player could not be started. You can still download the file.");
+    const retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "st-button flash-player-retry";
+    retry.textContent = "Try again";
+    retry.addEventListener("click", () => this.start());
+    this.content.append(retry);
   }
 
   private static async fetchMovie (url: string): Promise<ArrayBuffer> {
@@ -96,7 +154,8 @@ export default class FlashPlayer {
       polyfills: false, // Only the player created here, never other <object>/<embed> elements on the page
       autoplay: "on", // The user has just pressed Play
       unmuteOverlay: "hidden",
-      showSwfDownload: false, // The page has its own download link
+      letterbox: "on", // Keeps the movie's shape when the player is shown fullscreen
+      showSwfDownload: false, // The post page has its own Download options
       openUrlMode: "deny", // A movie cannot navigate to other sites
       allowScriptAccess: false, // A movie cannot call into the page
       base: new URL(movieUrl, document.baseURI).href, // Relative requests made by the movie resolve next to it

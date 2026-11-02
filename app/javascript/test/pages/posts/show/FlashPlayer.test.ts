@@ -14,8 +14,37 @@ function render ({ player = true } = {}): void {
   document.body.innerHTML = `
     <section id="image-container">
       ${player ? container : ""}
-      <p><a id="download" href="${SWF_URL}">Save this flash (right click and save)</a></p>
-    </section>`;
+    </section>
+    <a href="${SWF_URL}" class="st-button ptbr-fullscreen-button" data-hotkey="fullscreen">Fullscreen</a>`;
+}
+
+/** Clicks the toolbar's Fullscreen button; returns whether its default action (opening the file) was prevented. */
+function clickFullscreen (): boolean {
+  let prevented = false;
+  document.addEventListener("click", (event) => {
+    prevented = event.defaultPrevented;
+    event.preventDefault(); // jsdom cannot navigate
+  }, { once: true });
+  document.querySelector(".ptbr-fullscreen-button").dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
+  return prevented;
+}
+
+function stubFullscreen ({ supported = true, refuse = false } = {}) {
+  let current: Element | null = null;
+  Object.defineProperty(document, "fullscreenElement", { configurable: true, get: () => current });
+  const exit = vi.fn(() => {
+    current = null;
+    return Promise.resolve();
+  });
+  Object.defineProperty(document, "exitFullscreen", { configurable: true, value: exit });
+  // Only the player's container ever goes fullscreen in these tests
+  const request = vi.fn(() => {
+    if (refuse) return Promise.reject(new TypeError("Permissions check failed"));
+    current = document.getElementById("flash-player");
+    return Promise.resolve();
+  });
+  Object.defineProperty(HTMLElement.prototype, "requestFullscreen", { configurable: true, value: supported ? request : undefined });
+  return { request, exit, element: () => current };
 }
 
 async function load () {
@@ -45,7 +74,6 @@ function message (): string | undefined {
 function expectFallback (): void {
   expect(message()).toContain("could not be started");
   expect(document.querySelector("#flash-player .flash-player-frame")).not.toBeNull();
-  expect(document.getElementById("download")?.getAttribute("href")).toBe(SWF_URL);
 }
 
 describe("FlashPlayer", () => {
@@ -61,6 +89,8 @@ describe("FlashPlayer", () => {
   afterEach(() => {
     document.head.querySelectorAll("script").forEach((script) => script.remove());
     delete window.RufflePlayer;
+    for (const property of ["fullscreenElement", "exitFullscreen"]) delete (document as never)[property];
+    delete (HTMLElement.prototype as never)["requestFullscreen"];
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
@@ -108,7 +138,6 @@ describe("FlashPlayer", () => {
     expect(document.querySelector("#flash-player .flash-player-content ruffle-player")).toBe(player);
     expect(document.querySelector("#flash-player .flash-player-frame")).not.toBeNull();
     expect(ruffleLoad).toHaveBeenCalledWith({ data: expect.any(ArrayBuffer), swfFileName: "abcd1234.swf" });
-    expect(document.getElementById("download")).not.toBeNull();
   });
 
   it("suspends a running movie when the post gets blacklisted", async () => {
@@ -175,5 +204,125 @@ describe("FlashPlayer", () => {
     await flush();
 
     expectFallback();
+  });
+
+  describe("toolbar Fullscreen button", () => {
+    const container = () => document.getElementById("flash-player");
+
+    it("is left alone on pages without a Flash file", async () => {
+      render({ player: false });
+      const { request } = stubFullscreen();
+      (await load()).initialize();
+
+      expect(clickFullscreen()).toBe(false);
+      expect(request).not.toHaveBeenCalled();
+    });
+
+    it("goes fullscreen right away, then starts the movie", async () => {
+      render();
+      const { request, element } = stubFullscreen();
+      (await load()).initialize();
+
+      expect(clickFullscreen()).toBe(true);
+      // Synchronously, while the click still counts as a user action
+      expect(request).toHaveBeenCalledTimes(1);
+      expect(request.mock.contexts[0]).toBe(container());
+      expect(fetchMock).toHaveBeenCalledWith(SWF_URL);
+
+      const { load: ruffleLoad } = stubRuffle();
+      ruffleScript().onload(new Event("load"));
+      await flush();
+      expect(ruffleLoad).toHaveBeenCalledTimes(1);
+      expect(element()).toBe(container());
+    });
+
+    it("only goes fullscreen when the movie is already playing", async () => {
+      render();
+      const { request } = stubFullscreen();
+      (await load()).initialize();
+      document.querySelector<HTMLButtonElement>(".flash-player-start").click();
+      const { player } = stubRuffle();
+      ruffleScript().onload(new Event("load"));
+      await flush();
+
+      clickFullscreen();
+      await flush();
+      expect(request).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(document.querySelector("#flash-player ruffle-player")).toBe(player);
+    });
+
+    it("does nothing while the post is blacklisted", async () => {
+      render();
+      document.getElementById("image-container").classList.add("blacklisted");
+      const { request } = stubFullscreen();
+      (await load()).initialize();
+
+      expect(clickFullscreen()).toBe(true); // The file is not opened either
+      expect(request).not.toHaveBeenCalled();
+      expect(fetchMock).not.toHaveBeenCalled();
+    });
+
+    it("plays inline where fullscreen is not supported", async () => {
+      render();
+      stubFullscreen({ supported: false });
+      (await load()).initialize();
+
+      clickFullscreen();
+      const { load: ruffleLoad } = stubRuffle();
+      ruffleScript().onload(new Event("load"));
+      await flush();
+      expect(ruffleLoad).toHaveBeenCalledTimes(1);
+    });
+
+    it("plays inline when fullscreen is refused", async () => {
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      render();
+      const { element } = stubFullscreen({ refuse: true });
+      (await load()).initialize();
+
+      clickFullscreen();
+      const { load: ruffleLoad } = stubRuffle();
+      ruffleScript().onload(new Event("load"));
+      await flush();
+      expect(ruffleLoad).toHaveBeenCalledTimes(1);
+      expect(element()).toBeNull();
+      expect(warn).toHaveBeenCalledWith("Flash player: fullscreen refused", expect.any(TypeError));
+    });
+
+    it("suspends the movie and leaves fullscreen when the post gets blacklisted", async () => {
+      render();
+      const { exit, element } = stubFullscreen();
+      (await load()).initialize();
+      clickFullscreen();
+      const { suspend } = stubRuffle();
+      ruffleScript().onload(new Event("load"));
+      await flush();
+
+      $("#image-container").trigger("blk:hide");
+      expect(suspend).toHaveBeenCalledTimes(1);
+      expect(exit).toHaveBeenCalledTimes(1);
+      expect(element()).toBeNull();
+    });
+
+    it("leaves fullscreen when the movie fails to start, and can try again", async () => {
+      fetchMock.mockResolvedValueOnce({ ok: false, status: 404 });
+      render();
+      const { exit, element } = stubFullscreen();
+      (await load()).initialize();
+
+      clickFullscreen();
+      await flush();
+      expect(exit).toHaveBeenCalledTimes(1);
+      expect(element()).toBeNull();
+      expectFallback();
+
+      document.querySelector<HTMLButtonElement>(".flash-player-retry").click();
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const { load: ruffleLoad } = stubRuffle();
+      ruffleScript().onload(new Event("load"));
+      await flush();
+      expect(ruffleLoad).toHaveBeenCalledTimes(1);
+    });
   });
 });

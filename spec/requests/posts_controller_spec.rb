@@ -205,19 +205,20 @@ RSpec.describe PostsController do
       Nokogiri::HTML(response.body).at_css("#flash-player")
     end
 
-    def download_link
+    def save_link
       Nokogiri::HTML(response.body).css("#image-container a").find { |link| link.text.include?("Save this flash") }
     end
 
-    it "renders the player for the file, with the download link and without the legacy embed" do
+    it "renders the player for the file, without the legacy embed" do
       get post_path(flash_post)
 
       expect(flash_player).to be_present
       expect(flash_player["data-swf"]).to eq(flash_post.file_url)
       expect(flash_player.at_css("canvas.flash-player-frame[width='640'][height='480']")).to be_present
       expect(flash_player.at_css("button.flash-player-start[hidden]")).to be_present
-      expect(download_link["href"]).to eq(flash_post.file_url)
       expect(Nokogiri::HTML(response.body).at_css("#image-container object, #image-container embed")).to be_nil
+      # The toolbar offers the download
+      expect(save_link).to be_nil
     end
 
     it "renders the player on show_seq" do
@@ -270,6 +271,14 @@ RSpec.describe PostsController do
         sign_in_as create(:janitor_user)
         get post_path(flash_post)
         expect(flash_player["data-swf"]).to match(%r{/#{Danbooru.config.protected_path_prefix}/.*#{flash_post.md5}\.swf\?auth=})
+      end
+
+      it "keeps a download link for staff, since the toolbar does not offer one for deleted posts" do
+        sign_in_as create(:janitor_user)
+        get post_path(flash_post)
+        # Both are signed URLs for the protected file (the signature's expiry is computed per URL)
+        expect(save_link["href"].split("?").first).to eq(flash_player["data-swf"].split("?").first)
+        expect(save_link["href"]).to include("auth=")
       end
     end
   end

@@ -393,6 +393,15 @@ textarea[data-autocomplete="tag-edit"] {
       height: 100%;
     }
   }
+
+  // From the toolbar's Fullscreen button: the player fills the screen and Ruffle keeps the movie's shape
+  &:fullscreen {
+    background: #000;
+
+    .flash-player-frame {
+      display: none;
+    }
+  }
 }
 
 .image-vote-buttons {

@@ -7,4 +7,7 @@
   </div>
 <% end %>
 
-<p><%= link_to "Save this flash (right click and save)", post.file_url %></p>
+<%# The toolbar's Download option is not offered for deleted posts; staff who can see them still need the file. %>
+<% if post.is_deleted? %>
+  <p><%= link_to "Save this flash (right click and save)", post.file_url %></p>
+<% end %>
