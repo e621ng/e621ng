@@ -24,16 +24,16 @@
     "@vitejs/plugin-vue": "6.0.10",
     "@vitest/coverage-v8": "4.1.12",
     "@vue/test-utils": "2.5.1",
-    "eslint": "10.13.0",
+    "eslint": "10.14.0",
     "globals": "17.13.0",
     "jsdom": "29.1.1",
-    "sass": "1.106.1",
+    "sass": "1.107.0",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.72.0",
+    "typescript-eslint": "8.72.1",
     "vite": "8.3.5",
     "vite-plugin-ruby": "5.2.6",
     "vitest": "4.1.12",
-    "vue-tsc": "3.3.13"
+    "vue-tsc": "3.3.14"
   },
   "scripts": {
     "lint": "eslint './app/javascript/**/*.{js,ts}' --no-fix --max-warnings 0",
