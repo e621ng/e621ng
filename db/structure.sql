@@ -6622,10 +6622,10 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261103204749'),
 ('20261026161409'),
 ('20261026161404'),
 ('20261020150541'),
-('20261018195809'),
 ('20261006134945'),
 ('20260907205015'),
 ('20260827214903'),
