@@ -1,0 +1,17 @@
+// Accessors for the theme's custom properties.
+// Emits no CSS; theme definitions live in themes/.
+
+@function get($name, $default: null) {
+  @if $default == null {
+    @return var(--#{$name});
+  }
+  @return var(--#{$name}, $default);
+}
+
+@function color($key, $default: null) {
+  @return get("color-#{$key}", $default);
+}
+
+@function image($key, $default: null) {
+  @return get("image-#{$key}", $default);
+}

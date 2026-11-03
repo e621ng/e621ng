@@ -38,7 +38,8 @@ export default defineConfig(({ mode }) => ({
     preprocessorOptions: {
       scss: {
         // TODO: Migrate away from SASS @import to either @use / @forward or css variables
-        silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'legacy-js-api']
+        silenceDeprecations: ['import', 'global-builtin', 'color-functions', 'legacy-js-api'],
+        loadPaths: [fileURLToPath(new URL('./app/javascript/src/styles', import.meta.url))],
       }
     }
   },
