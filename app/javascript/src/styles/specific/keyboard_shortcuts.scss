@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 div#c-static div#a-keyboard-shortcuts {
 
   #hotkeys-wrapper {
@@ -32,14 +35,14 @@ div#c-static div#a-keyboard-shortcuts {
     height: 1.5rem;
     text-align: center;
 
-    background: palette("plain-white");
+    background: palette.color("plain-white");
     font-family: "Roboto", Verdana, Geneva, sans-serif;
     font-size: 1rem;
     line-height: 1rem;
     padding: 0.25rem;
 
-    &[ready="true"] { background-color: palette("background-gold"); }
-    &:hover { background-color: palette("background-gold-l10"); }
+    &[ready="true"] { background-color: palette.color("background-gold"); }
+    &:hover { background-color: palette.color("background-gold-l10"); }
 
     &:first-child {
       @include st-radius-left;
@@ -54,8 +57,8 @@ div#c-static div#a-keyboard-shortcuts {
     padding: 0 0.25rem;
     margin: 0;
     font-size: 0;
-    color: themed("color-link");
-    &:hover { color: themed("color-link-hover"); }
+    color: theme.color("link");
+    &:hover { color: theme.color("link-hover"); }
 
     svg {
       height: 1.25rem;

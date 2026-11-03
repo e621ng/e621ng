@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 div.related-tags {
   display: flex;
   flex-wrap: wrap;
@@ -8,7 +11,7 @@ div.related-tags {
   padding: 0.5rem;
   box-sizing: border-box;
 
-  background: themed("color-section-lighten-5");
+  background: theme.color("section-lighten-5");
   @include st-radius;
 
   .related-section {
@@ -42,7 +45,7 @@ div.related-tags {
   }
 
   .tag-active {
-    background: themed("color-active-tag");
+    background: theme.color("active-tag");
     color: white;
   }
 }
@@ -69,7 +72,7 @@ div.tag-preview {
   margin-bottom: 0.25em;
   padding: 2px;
 
-  background: themed("color-section-lighten-5");
+  background: theme.color("section-lighten-5");
 
   border-radius: $border-radius-half;
 
@@ -78,11 +81,11 @@ div.tag-preview {
     padding-right: 5px;
 
     & .post-count {
-      color: themed("color-text-muted");
+      color: theme.color("text-muted");
     }
 
     & .implied {
-      color: palette("text-green");
+      color: palette.color("text-green");
     }
 
     & .empty,
@@ -90,7 +93,7 @@ div.tag-preview {
     .invalid,
     .duplicate,
     .new {
-      color: palette("text-red");
+      color: palette.color("text-red");
     }
   }
 }

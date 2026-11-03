@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 div#c-post-flags {
   tr.flag-resolved-true {
     background: $negative-record-background !important;
@@ -5,7 +7,7 @@ div#c-post-flags {
 }
 
 .post-flag-note {
-  background: themed("color-section-lighten-5");
+  background: theme.color("section-lighten-5");
   margin: 0.5rem 0;
   @include st-radius;
 

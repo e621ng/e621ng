@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 #c-static #a-discord {
   display: flex;
   flex-flow: column;
@@ -17,7 +19,7 @@
     box-sizing: border-box;
     padding: 1rem;
 
-    background: themed("color-section");
+    background: theme.color("section");
     @include st-radius;
   }
 

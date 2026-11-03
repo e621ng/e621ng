@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 #page { position: relative; }
 
 #dialog-container {
@@ -20,12 +23,12 @@
     &.hidden { display: none; }
 
     // Styles
-    color: themed("color-text");
-    background: themed("color-section");
-    border: 1px solid themed("color-section-darken-5");
+    color: theme.color("text");
+    background: theme.color("section");
+    border: 1px solid theme.color("section-darken-5");
     box-sizing: border-box;
     @include st-radius;
-    box-shadow: 0 0 0.5rem -1px themed("color-background");
+    box-shadow: 0 0 0.5rem -1px theme.color("background");
 
     .simple_form { margin: 0; }
 
@@ -38,7 +41,7 @@
       touch-action: none; // Touch drags must not scroll the page
       user-select: none; // Prevent text selection while dragging
 
-      background-color: themed("color-section-darken-5");
+      background-color: theme.color("section-darken-5");
 
       span {
         font-size: 1rem;
@@ -56,7 +59,7 @@
 
         background-color: transparent;
         &:hover, &:active {
-          background-color: palette("background-red");
+          background-color: palette.color("background-red");
         }
       }
     }

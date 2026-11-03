@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 body.c-static.a-home .home-section.search-rising-list {
   padding: 0 0.5rem 0.5rem;
   &.hidden { padding-bottom: 0; }
@@ -31,7 +33,7 @@ body.c-static.a-home .home-section.search-rising-list {
       align-items: center;
 
       &:hover, &:focus {
-        color: themed("color-link-active");
+        color: theme.color("link-active");
         background: unset;
       }
     }
@@ -85,14 +87,14 @@ div.rising-list {
     font-size: 1rem;
     & > span {
       white-space: unset;
-      background: themed("color-section");
+      background: theme.color("section");
       padding: 0.25rem 0.5rem;
       align-content: center;
       border-radius: 0.25rem;
     }
   }
   span.rising-rank {
-    color: themed("color-text-muted");
+    color: theme.color("text-muted");
     font-size: 0.85rem;
     line-height: 1rem;
     font-family: monospace;
@@ -118,7 +120,7 @@ body.c-search-trend-hourlies.a-index {
     display: flex;
     flex-flow: column;
     width: min-content;
-    background: themed("color-foreground");
+    background: theme.color("foreground");
 
     width: 100%;
     max-width: 448px;
@@ -146,7 +148,7 @@ body.c-search-trend-hourlies.a-index {
     gap: 0.5rem;
     margin: 0.5rem 0;
     padding: 0.5rem;
-    background: themed("color-section");
+    background: theme.color("section");
     width: min-content;
 
     input[type="text"] { width: unset !important }
@@ -155,7 +157,7 @@ body.c-search-trend-hourlies.a-index {
 
 body.c-search-trends.a-track {
   #search-trend-chart {
-    background-color: themed("color-section");
+    background-color: theme.color("section");
     @include st-radius;
     padding: 0.5rem;
     margin: 0.5rem 0;

@@ -1,16 +1,18 @@
+@use "colors/theme";
+
 .post-index .search,
 .post-display .search {
   position: sticky;
   top: 0;
 
-  background: themed("color-foreground");
+  background: theme.color("foreground");
   border-radius: 0.25rem;
 
   // on top of thumbnail labels
   z-index: 11;
 
   #search-sticky {
-    background: themed("color-button-active");
+    background: theme.color("button-active");
     color: black;
   }
 }

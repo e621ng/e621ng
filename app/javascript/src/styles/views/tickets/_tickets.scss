@@ -1,11 +1,13 @@
+@use "colors/palette";
+
 @import "new/new";
 @import "show/show";
 
 .approved-ticket {
-  color: palette("text-green");
+  color: palette.color("text-green");
   font-weight: bold;
 }
 .partial-ticket { 
-  color: palette("text-yellow");
+  color: palette.color("text-yellow");
   font-weight: bold;
 }

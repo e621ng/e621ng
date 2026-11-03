@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 $image-size: var(--thumb-image-size, 150px);
 $image-min: var(--thumb-image-min, 135px);
 $image-max: var(--thumb-image-max, 165px);
@@ -125,7 +128,7 @@ article.thumbnail .thm-desc {
 
   // Rating-dependent colors
   @each $name, $color in ("e": "red", "q": "yellow", "s": "green") {
-    &.thm-rating-#{$name} { background-color: palette("background-#{$color}"); }
+    &.thm-rating-#{$name} { background-color: palette.color("background-#{$color}"); }
   }
 
   // Column A: score, favorites, comments
@@ -136,7 +139,7 @@ article.thumbnail .thm-desc {
     padding: 0.25rem;
 
     @include st-radius-bottom;
-    background: themed("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     overflow: hidden;
     box-shadow: 0 0 0.25rem #0005;
   }
@@ -163,8 +166,8 @@ article.thumbnail .thm-desc-m {
 
   // Score
   &.thm-score {
-    &-positive { color: palette("text-green"); }
-    &-negative { color: palette("text-red"); }
+    &-positive { color: palette.color("text-green"); }
+    &-negative { color: palette.color("text-red"); }
     svg {
       height: 0.9rem;
       margin: -0.075rem 0;
@@ -173,7 +176,7 @@ article.thumbnail .thm-desc-m {
 
   // Fav
   &.thm-favorites {
-    color: palette("background-gold-d10");
+    color: palette.color("background-gold-d10");
     svg {
       height: 0.9rem;
       width: 0.95rem;
@@ -191,7 +194,7 @@ article.thumbnail .thm-desc-m {
 }
 article.thumbnail[data-is-favorited="true"] .thm-desc-m.thm-favorites svg {
   filter: url(#inset-shadow);
-  fill: palette("background-gold-d10");
+  fill: palette.color("background-gold-d10");
   stroke-width: 0;
 }
 
@@ -228,8 +231,8 @@ article.thumbnail[data-tags~=animated] {
     line-height: 0.5rem;
     padding: $badge-padding;
 
-    background-color: themed("color-section");
-    color: themed("color-text");
+    background-color: theme.color("section");
+    color: theme.color("text");
     font-weight: bold;
     text-align: center;
 
@@ -262,7 +265,7 @@ article.thumbnail .thm-extra {
   font-family: $font-stack;
   overflow: hidden;
 
-  background: themed("color-section-lighten-5");
+  background: theme.color("section-lighten-5");
   @include st-radius;
   text-align: center;
 
@@ -305,7 +308,7 @@ article.thumbnail.placeholder {
 
     font-size: calc(0.75 * $image-size);
     font-weight: bold;
-    color: themed("color-foreground");
+    color: theme.color("foreground");
     font-family: "Roboto", Verdana, Geneva, sans-serif;
 
     position: absolute;
@@ -361,7 +364,7 @@ article.thumbnail.blacklisted {
 
 // Post matches blacklist
 article.thumbnail.filter-matches .thm-desc-a {
-  background-color: palette("background-red");
+  background-color: palette.color("background-red");
 }
 
 
@@ -372,7 +375,7 @@ article.thumbnail.filter-matches .thm-desc-a {
 article.thumbnail.avatar {
   &.blacklisted {
     a.thm-link[data-initial]{
-      background: themed("color-section");
+      background: theme.color("section");
 
       &:before {
         content: attr(data-initial);
@@ -383,7 +386,7 @@ article.thumbnail.avatar {
 
         font-size: calc(0.75 * $image-size);
         font-weight: bold;
-        color: themed("color-foreground");
+        color: theme.color("foreground");
 
         position: absolute;
         top: 0;
@@ -401,7 +404,7 @@ article.thumbnail.avatar {
   }
 
   &.no-render[data-initial] {
-    background: themed("color-section");
+    background: theme.color("section");
   }
 }
 

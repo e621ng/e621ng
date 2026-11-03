@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 nav.navigation {
   display: grid;
   grid-template-areas: "logo logo controls";
@@ -13,7 +16,7 @@ nav.navigation {
   .nav-logo {
     grid-area: logo;
 
-    background-color: themed("color-background");
+    background-color: theme.color("background");
     height: 3.75rem;
 
     a.nav-logo-link {
@@ -41,7 +44,7 @@ nav.navigation {
     align-items: center;
 
     font-size: 1.15rem;
-    background-color: themed("color-background");
+    background-color: theme.color("background");
     padding-right: 0.25rem;
     height: 3.75rem;
 
@@ -65,13 +68,13 @@ nav.navigation {
         line-height: 1.5rem;
         padding: 0 0.5rem;
 
-        background: themed("color-foreground");
-        color: themed("color-link-active");
+        background: theme.color("foreground");
+        color: theme.color("link-active");
         border-radius: 0.25rem;
         white-space: nowrap;
       }
 
-      &:hover > span, &:active > span { background: themed("color-section"); }
+      &:hover > span, &:active > span { background: theme.color("section"); }
       &:focus { outline: none; }
     }
 
@@ -97,7 +100,7 @@ nav.navigation {
 
           svg {
             margin: -0.25rem 0;
-            color: themed("color-link-active");
+            color: theme.color("link-active");
           }
         }
       }
@@ -119,26 +122,26 @@ nav.navigation {
   }
 
   .nav-primary {
-    background-color: themed("color-section");
+    background-color: theme.color("section");
     font-size: 1.25rem;
 
     li > a {
-      border-bottom: 1px solid themed("color-foreground");
+      border-bottom: 1px solid theme.color("foreground");
       line-height: 1.25rem;
       padding: 1rem 0.5rem;
     }
-    li.current a { background-color: themed("color-foreground"); }
+    li.current a { background-color: theme.color("foreground"); }
 
     li.nav-hidden { display: none; }
   }
 
   .nav-secondary {
-    background-color: themed("color-foreground");
+    background-color: theme.color("foreground");
     font-size: 1.2rem;
 
     li {
       & > a {
-        border-bottom: 1px solid themed("color-section");
+        border-bottom: 1px solid theme.color("section");
         line-height: 1.2rem;
         padding: 0.7rem;
 
@@ -146,7 +149,7 @@ nav.navigation {
       }
 
       &.divider {
-        border-bottom: 1px solid themed("color-section");
+        border-bottom: 1px solid theme.color("section");
         height: 0.25rem;
       }
 
@@ -166,7 +169,7 @@ nav.navigation {
     font-size: 1.1rem;
     gap: 1rem;
 
-    background-color: themed("color-section");
+    background-color: theme.color("section");
 
     li > a {
       justify-content: center;
@@ -179,11 +182,11 @@ nav.navigation {
 
   .nav-tools {
     grid-template-columns: 1fr 1fr;
-    border-top: 1px solid themed("color-foreground");
+    border-top: 1px solid theme.color("foreground");
     padding: 1rem 1rem 0.5rem;
 
     li {
-      a { background: themed("color-section-lighten-5"); }
+      a { background: theme.color("section-lighten-5"); }
       &.nav-tools-login { grid-column: 1 / -1; }
     }
 
@@ -199,7 +202,7 @@ nav.navigation {
     padding: 0.5rem 1rem 1rem;
 
     li {
-      a { background: themed("color-section-darken-5"); }
+      a { background: theme.color("section-darken-5"); }
       &.nav-help-discord {
         grid-column: 1 / -1;
       }
@@ -226,11 +229,11 @@ body[data-th-stickyheader="true"] nav.navigation {
   top: 0;
 
   @include window-larger-than(50rem) {
-    background-color: themed("color-background");
-    background-image: themed("image-background");
-    background-position: themed("image-background-position");
-    background-repeat: themed("image-background-repeat");
-    background-size: themed("image-background-size");
+    background-color: theme.color("background");
+    background-image: theme.image("background");
+    background-position: theme.image("background-position");
+    background-repeat: theme.image("background-repeat");
+    background-size: theme.image("background-size");
   }
 }
 body.c-static.a-home[data-th-stickyheader="true"] nav.navigation {
@@ -251,7 +254,7 @@ li.notification {
     height: 6px;
     border-radius: 3px;
 
-    background: palette("text-red");
+    background: palette.color("text-red");
 
     position: absolute;
     right: 0.2rem;
@@ -285,8 +288,8 @@ a.nav-controls-notifications span, #nav-notifications-link {
     line-height: .5rem;
     font-weight: bold;
 
-    background: palette("plain-red");
-    color: palette("plain-white");
+    background: palette.color("plain-red");
+    color: palette.color("plain-white");
     border-radius: 50%;
   }
 
@@ -337,7 +340,7 @@ html.nav-toggled {
       display: grid;
     }
     .nav-primary, .nav-tools, .nav-help {
-      box-shadow: -3px 3px 5px -1px themed("color-background");
+      box-shadow: -3px 3px 5px -1px theme.color("background");
     }
   }
 
@@ -454,7 +457,7 @@ nav.navigation, html.nav-toggled nav.navigation {
     }
 
     .nav-tools {
-      background: themed("color-foreground");
+      background: theme.color("foreground");
       z-index: 1;
       border-radius: 0 0.25rem 0.25rem 0;
       margin-right: 0.25rem;
@@ -464,11 +467,11 @@ nav.navigation, html.nav-toggled nav.navigation {
           padding: 0 0.5rem;
 
           svg {
-            color: themed("color-link");
+            color: theme.color("link");
             height: 1.25rem;
             width: 1.25rem;
           }
-          &:hover svg { color: themed("color-link-hover"); }
+          &:hover svg { color: theme.color("link-hover"); }
         }
 
         &.nav-tools-themes, &.nav-tools-settings, &.nav-tools-notifications {
@@ -486,7 +489,7 @@ nav.navigation, html.nav-toggled nav.navigation {
 
       li a img { display: none; }
       li.current a {
-        background-color: themed("color-foreground");
+        background-color: theme.color("foreground");
       }
     }
 
@@ -528,7 +531,7 @@ body.c-static.a-home {
         position: absolute;
         inset: 0;
         bottom: -2rem;
-        background: linear-gradient(to bottom, themed("color-background"), transparent 5rem);
+        background: linear-gradient(to bottom, theme.color("background"), transparent 5rem);
         z-index: -1;
         pointer-events: none;
       }

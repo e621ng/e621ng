@@ -1,6 +1,8 @@
+@use "colors/theme";
+
 body.c-static.a-home {
   background: #012e57; // I am certain this was needed for something
-  background-color: themed("bg-color", #012e57);
+  background-color: theme.get("bg-color", #012e57);
   position: relative;
 
   #page {
@@ -24,7 +26,7 @@ body.c-static.a-home {
 
   // Mascots
   .mascot-section {
-    background-image: themed("bg-image");
+    background-image: theme.get("bg-image");
 
     display: flex;
     $mascot-size: 750px;

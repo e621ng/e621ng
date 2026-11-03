@@ -1,9 +1,11 @@
+@use "colors/theme";
+
 a,
 a:link,
 a:visited,
 .link {
-  color: $hexagon-color-link;
-  color: themed('color-link');
+  color: #b4c7d9;
+  color: theme.color('link');
   text-decoration: none;
 }
 
@@ -12,17 +14,17 @@ a:visited,
 }
 
 a:hover, .link:hover {
-  color: themed('color-link-hover');
+  color: theme.color('link-hover');
   text-decoration: none;
 }
 
 a:active {
-  color: themed('color-link-active');
+  color: theme.color('link-active');
   text-decoration: none;
 }
 
 a.last-page {
-  color: themed('color-link-last-page');
+  color: theme.color('link-last-page');
 }
 
 a.active {

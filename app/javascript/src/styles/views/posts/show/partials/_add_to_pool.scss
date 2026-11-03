@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 #add-to-pool-dialog, #add-to-set-dialog {
   display: flex;
   flex-flow: column;
@@ -7,7 +9,7 @@
   div.input { margin: 0; }
   .dialog-inputs, .dialog-recent {
     padding: 0.5rem;
-    background: themed("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     @include st-radius;
   }
 

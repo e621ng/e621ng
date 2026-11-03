@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 #c-help aside#sidebar {
 
   h1 {
@@ -21,7 +23,7 @@
           width: 0.75rem;
           margin-right: 0.25rem;
           text-align: center;
-          color: themed("color-text");
+          color: theme.color("text");
         }
       }
 

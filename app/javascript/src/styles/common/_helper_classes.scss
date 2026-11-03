@@ -1,46 +1,49 @@
+@use "colors/palette";
+@use "colors/theme";
+
 // Legacy helpers to style UI elements using the current theme
 .bg-background {
-  background-color: themed("color-background");
+  background-color: theme.color("background");
 }
 
 .bg-foreground {
-  background-color: themed("color-foreground");
+  background-color: theme.color("foreground");
 }
 
 .bg-section {
-  background-color: themed("color-section");
+  background-color: theme.color("section");
 }
 
 .bg-highlight {
-  background-color: themed("color-section-lighten-10");
+  background-color: theme.color("section-lighten-10");
 }
 
 .border-background {
-  border: 1px solid themed("color-background");
+  border: 1px solid theme.color("background");
 }
 
 .border-foreground {
-  border: 1px solid themed("color-foreground");
+  border: 1px solid theme.color("foreground");
 }
 
 .border-section {
-  border: 1px solid themed("color-section");
+  border: 1px solid theme.color("section");
 }
 
 .border-highlight {
-  border: 1px solid themed("color-section-lighten-10");
+  border: 1px solid theme.color("section-lighten-10");
 }
 
 .color-text {
-  color: themed("color-text");
+  color: theme.color("text");
 }
 
 .color-muted {
-  color: themed("color-text-muted");
+  color: theme.color("text-muted");
 }
 
 .color-white {
-  color: themed("color-text-white");
+  color: theme.color("text-white");
 }
 
 .vpad-05 {
@@ -56,55 +59,55 @@
   line-height: 1.25rem;
   padding: 0.25rem 0.5rem;
   border: 0;
-  color: themed("color-text-white");
+  color: theme.color("text-white");
 
   &.btn-danger {
-    color: themed("color-text-white");
-    background: themed("color-danger");
+    color: theme.color("text-white");
+    background: theme.color("danger");
     &:hover {
-      background: themed("color-danger-darken-5");
+      background: theme.color("danger-darken-5");
     }
   }
   &.btn-warn {
-    color: themed("color-text-white");
-    background: themed("color-warning");
+    color: theme.color("text-white");
+    background: theme.color("warning");
     &:hover {
-      background: themed("color-warning-darken-5");
+      background: theme.color("warning-darken-5");
     }
   }
   &.btn-success {
-    color: themed("color-text-white");
-    background: themed("color-success");
+    color: theme.color("text-white");
+    background: theme.color("success");
     &:hover {
-      background: themed("color-success-darken-5");
+      background: theme.color("success-darken-5");
     }
   }
   &.btn-neutral {
-    color: themed("color-text-white");
-    background: themed("color-section");
+    color: theme.color("text-white");
+    background: theme.color("section");
     &:hover {
-      background: themed("color-section-lighten-5");
+      background: theme.color("section-lighten-5");
     }
   }
   &.score-positive {
-    color: palette("text-white");
-    background: palette("background-green");
+    color: palette.color("text-white");
+    background: palette.color("background-green");
     &:hover {
-      background: palette("background-green-d5");
+      background: palette.color("background-green-d5");
     }
   }
   &.score-negative {
-    color: palette("text-white");
-    background: palette("background-red");
+    color: palette.color("text-white");
+    background: palette.color("background-red");
     &:hover {
-      background: palette("background-red-d5");
+      background: palette.color("background-red-d5");
     }
   }
   &.score-neutral {
-    color: palette("text-grey");
-    background: themed("color-section");
+    color: palette.color("text-grey");
+    background: theme.color("section");
     &:hover {
-      background: themed("color-section-darken-5");
+      background: theme.color("section-darken-5");
     }
   }
 }

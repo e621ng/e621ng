@@ -1,9 +1,12 @@
+@use "colors/palette";
+@use "colors/theme";
+
 .mascot-preview {
   background-size: contain;
   background-position: top center;
   background-repeat: no-repeat;
 
-  border: 1px solid themed("color-background");
+  border: 1px solid theme.color("background");
   @include st-radius;
 
   height: 9rem;
@@ -33,13 +36,13 @@
   span { text-align: center; }
 
   &[aria-pressed="true"] {
-    background: palette("background-green");
-    &:hover, &:active { background: palette("background-green-d5"); }
+    background: palette.color("background-green");
+    &:hover, &:active { background: palette.color("background-green-d5"); }
     .mascot-active-off { display: none; }
   }
 
   &[aria-pressed="false"] {
-    color: themed("color-text-muted");
+    color: theme.color("text-muted");
     svg, .mascot-active-on { display: none; }
   }
 

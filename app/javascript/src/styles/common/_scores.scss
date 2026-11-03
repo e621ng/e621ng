@@ -1,3 +1,5 @@
+@use "colors/palette";
+
 .score-negative,                                                // Scores and rating are bold everywhere now
 .score-neutral,                                                 // Except if they don't have the class associated (like 'rating' in posts and comments pages)
 .score-positive,
@@ -6,33 +8,33 @@
 }
 
 .score-positive, span.score-positive {
-  color: palette("text-green");
+  color: palette.color("text-green");
 
   a {
-    color: palette("text-green");
+    color: palette.color("text-green");
   }
 }
 .score-negative, span.score-negative {
-  color: palette("text-red");
+  color: palette.color("text-red");
 
   a {
-    color: palette("text-red");
+    color: palette.color("text-red");
   }
 }
 .score-neutral, span.score-neutral {
-  color: palette("text-grey");
+  color: palette.color("text-grey");
 
   a {
-    color: palette("text-grey");
+    color: palette.color("text-grey");
   }
 }
 
 .post-rating-text-safe {
-  color: palette("text-green");
+  color: palette.color("text-green");
 }
 .post-rating-text-questionable {
-  color: palette("text-yellow");
+  color: palette.color("text-yellow");
 }
 .post-rating-text-explicit {
-  color: palette("text-red");
+  color: palette.color("text-red");
 }

@@ -1,3 +1,5 @@
+@use "colors/palette";
+
 .post-sidebar-info {
   margin-bottom: 1em;
   &:last-child { margin-bottom: 0; }
@@ -10,7 +12,7 @@
 
   .post-sidebar-label {
     text-align: right;
-    color: palette("text-grey");
+    color: palette.color("text-grey");
     line-height: 1rem;
   }
 

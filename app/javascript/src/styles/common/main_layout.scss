@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 div#search {
   margin-bottom: 1em;
 }
@@ -11,7 +13,7 @@ body {
 div#page {
   flex: 1;
   overflow: visible;
-  padding: $padding-050 $padding-025 themed("content-padding-bottom");
+  padding: $padding-050 $padding-025 theme.get("content-padding-bottom");
 
   @include window-larger-than(800px) {
     border-radius: $border-radius-full;
@@ -20,12 +22,12 @@ div#page {
     padding-right: $padding-050;
   }
 
-  background-color: $hexagon-color-foreground;
-  background-color: themed("color-foreground");
-  background-image: themed("image-foreground");
-  background-position: themed("image-foreground-position");
-  background-repeat: themed("image-foreground-repeat");
-  background-size: themed("image-foreground-size");
+  background-color: #152f56;
+  background-color: theme.color("foreground");
+  background-image: theme.image("foreground");
+  background-position: theme.image("foreground-position");
+  background-repeat: theme.image("foreground-repeat");
+  background-size: theme.image("foreground-size");
 
   // Fix failure to contain contents in bounding box.
   &:after {
@@ -36,7 +38,7 @@ div#page {
   }
 
   div.site-notice {
-    background-color: themed("color-section");
+    background-color: theme.color("section");
     padding: $padding-050;
     text-align: center;
     position: relative;
@@ -53,7 +55,7 @@ div#page {
   }
 
   div.ban-notice {
-    background-color: themed("color-section");
+    background-color: theme.color("section");
     margin-bottom: 0.5rem;
     padding: 1rem;
 

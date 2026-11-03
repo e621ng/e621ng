@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 #auth-overlay {
   position: fixed;
   inset: 0;
@@ -19,7 +22,7 @@
     width: 2rem;
     font-size: 1.5rem;
     padding: 0.25rem;
-    box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
+    box-shadow: 0 0 0.75rem -0.25rem theme.color("background");
   }
 }
 
@@ -43,12 +46,12 @@
     gap: 0.5rem;
 
     // Theme
-    background-color: themed("color-section");
-    background-image: themed("image-foreground");
-    background-position: themed("image-foreground-position");
-    background-repeat: themed("image-foreground-repeat");
-    background-size: themed("image-foreground-size");
-    box-shadow: 0 0 0.75rem -0.25rem themed("color-background");
+    background-color: theme.color("section");
+    background-image: theme.image("foreground");
+    background-position: theme.image("foreground-position");
+    background-repeat: theme.image("foreground-repeat");
+    background-size: theme.image("foreground-size");
+    box-shadow: 0 0 0.75rem -0.25rem theme.color("background");
     @include st-radius;
 
     h1 {
@@ -83,7 +86,7 @@
 
     hr {
       width: 100%;
-      border-color: themed("color-section-lighten-10");
+      border-color: theme.color("section-lighten-10");
       border-style: solid;
     }
 
@@ -95,7 +98,7 @@
     #auth-error {
       text-align: center;
       font-weight: bold;
-      color: palette("text-red");
+      color: palette.color("text-red");
     }
   }
 }
@@ -119,7 +122,7 @@
     transition: all 0.15s ease-out;
   }
   &.focused {
-    box-shadow: 0 0 0.25rem themed("color-link-active") inset;
+    box-shadow: 0 0 0.25rem theme.color("link-active") inset;
   }
   &.focused, &.contentful {
     span.label-text {

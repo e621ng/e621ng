@@ -1,9 +1,11 @@
+@use "colors/theme";
+
 .wiki-excerpt {
   display: flex;
   flex-flow: column;
   position: relative;
 
-  background: themed("color-section");
+  background: theme.color("section");
   border-radius: 0.25rem;
 
   &.hidden { display: none; }
@@ -101,7 +103,7 @@
 
     span {
       padding: 0.5rem 1rem;
-      background: themed("color-section");
+      background: theme.color("section");
       border-radius: 0.25rem;
     }
   }

@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 // Base formatting constants
 $border-radius-half: 3px;
 $border-radius-full: 6px;
@@ -31,14 +33,14 @@ $box-shadow-size: 2px 2px 5px;
   top: 0.5rem;
   padding: 2px 4px;
 
-  background-color: themed("color-section");
-  color: themed("color-text");
+  background-color: theme.color("section");
+  color: theme.color("text");
   font-size: 60%;
   font-weight: bold;
   text-align: center;
 
   border-radius: 0 $border-radius-half $border-radius-half 0;
-  border: 1px solid themed("color-text-muted");
+  border: 1px solid theme.color("text-muted");
   border-left: 0;
   
   content: $text;

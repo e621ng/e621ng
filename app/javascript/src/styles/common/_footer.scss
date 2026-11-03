@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 footer.footer-wrapper {
   background: var(--color-foreground);
   margin-top: 1rem;
@@ -28,7 +30,7 @@ footer.footer-wrapper {
       // Aligning the logo with the line below
       margin-right: -3.25rem;
 
-      background: themed("color-background") themed("image-background");
+      background: theme.color("background") theme.image("background");
       border-radius: 25%;
       padding: 0.5rem;
     }

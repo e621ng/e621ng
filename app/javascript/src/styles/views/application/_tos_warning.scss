@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 // Prevents scrolling of the body when the modal is open
 body.scroll-lock {
   height: 0;
@@ -18,7 +20,7 @@ body.scroll-lock {
   align-items: center;
   justify-content: center;
 
-  background: themed("color-background");
+  background: theme.color("background");
 }
 
 // Dialog element
@@ -52,7 +54,7 @@ body.scroll-lock {
     box-sizing: border-box;
     padding: 0.5rem;
 
-    background: themed("color-foreground");
+    background: theme.color("foreground");
     @include st-radius;
   }
 
@@ -99,7 +101,7 @@ body.scroll-lock {
       width: 1rem;
       cursor: pointer;
       &:focus-visible {
-        outline: 1px solid themed("color-link-active");
+        outline: 1px solid theme.color("link-active");
       }
     }
 

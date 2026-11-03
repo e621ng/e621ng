@@ -1,14 +1,16 @@
+@use "colors/palette";
+
 @each $name in ("red", "yellow", "green", "grey") {
   .background-#{$name} {
-    background: palette("background-#{$name}") !important;
+    background: palette.color("background-#{$name}") !important;
   }
   .text-#{$name} {
-    color: palette("text-#{$name}") !important;
+    color: palette.color("text-#{$name}") !important;
   }
 }
 
 .text-error {
-  color: palette("text-red") !important;
+  color: palette.color("text-red") !important;
   font-weight: bold;
 }
 

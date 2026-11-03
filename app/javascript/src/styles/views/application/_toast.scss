@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 #toast-container {
   position: fixed;
   z-index: 1001; // Above the TOS modal (z-index: 1000)
@@ -29,12 +32,12 @@
   line-height: 1.25rem;
   font-size: 0.85rem;
 
-  background-color: palette("background-green-d5");
-  border: 1px solid palette("background-green-d10");
-  border-left: 0.25rem solid palette("background-green");
+  background-color: palette.color("background-green-d5");
+  border: 1px solid palette.color("background-green-d10");
+  border-left: 0.25rem solid palette.color("background-green");
 
-  box-shadow: 0.125rem 0 0.5rem -0.25rem themed("color-background"),
-              -0.125rem 0 0.5rem -0.25rem themed("color-background");
+  box-shadow: 0.125rem 0 0.5rem -0.25rem theme.color("background"),
+              -0.125rem 0 0.5rem -0.25rem theme.color("background");
 
   &[data-counter="1"] {
     grid-template-columns: 1fr min-content;
@@ -64,24 +67,24 @@
 
   /** ===== Variants ===== */
   &.toast-alert {
-    background-color: palette("background-red-d5");
-    border-color: palette("background-red-d10");
-    border-left-color: palette("background-red");
+    background-color: palette.color("background-red-d5");
+    border-color: palette.color("background-red-d10");
+    border-left-color: palette.color("background-red");
 
     .toast-close:hover svg {
-      background-color: palette("background-red-d10");
+      background-color: palette.color("background-red-d10");
     }
   }
 
   &.toast-error { @extend .toast-alert; }
 
   &.toast-info {
-    background-color: palette("background-blue");
-    border-color: palette("background-blue-d10");
-    border-left-color: palette("background-blue-l10");
+    background-color: palette.color("background-blue");
+    border-color: palette.color("background-blue-d10");
+    border-left-color: palette.color("background-blue-l10");
 
     .toast-close:hover svg {
-      background-color: palette("background-blue-d10");
+      background-color: palette.color("background-blue-d10");
     }
   }
 
@@ -117,7 +120,7 @@
     border-radius: 0;
 
     background: unset;
-    color: themed("color-link");
+    color: theme.color("link");
 
     svg {
       padding: 0.5rem;
@@ -125,9 +128,9 @@
     }
 
     &:hover {
-      color: themed("color-link-hover");
+      color: theme.color("link-hover");
       svg {
-        background-color: palette("background-green-d10");
+        background-color: palette.color("background-green-d10");
       }
     }
   }

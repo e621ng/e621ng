@@ -1,9 +1,11 @@
+@use "colors/theme";
+
 div#c-post-replacements {
   .disabled-link {
     pointer-events: none;
     cursor: default;
     text-decoration: none;
-    color: themed("color-text-muted");
+    color: theme.color("text-muted");
   }
 
   .upload_preview_img {

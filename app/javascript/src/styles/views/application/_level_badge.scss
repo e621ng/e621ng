@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 $user-levels: (
   "unactivated"
   "blocked"
@@ -20,13 +23,13 @@ $user-level-text: (
   font-size: 0.65rem;
   color: black;
 
-  background: themed("color-user-member");
+  background: theme.color("user-member");
   padding: 0.1rem 0.25rem;
   @include st-radius;
 
   @each $level in $user-levels {
     &.user-#{$level} {
-      background-color: themed("color-user-#{$level}", themed("color-user-member"));
+      background-color: theme.color("user-#{$level}", theme.color("user-member"));
     }
   }
   @each $level, $color in $user-level-text {
@@ -36,7 +39,7 @@ $user-level-text: (
   }
 
   &.level-unactivated {
-    background: palette("background-red");
+    background: palette.color("background-red");
     color: #ffffff;
   }
 }

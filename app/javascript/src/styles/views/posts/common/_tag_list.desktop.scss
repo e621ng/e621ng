@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 h5.tag-list-header {
   font-size: 0.85rem;
 }
@@ -66,8 +68,8 @@ ul.tag-list {
 
   li.blacklisted {
     .tag-list-quick-blacklist svg {
-      color: themed("color-text-muted");
-      &:hover { color: themed("color-link-hover"); }
+      color: theme.color("text-muted");
+      &:hover { color: theme.color("link-hover"); }
       .line { color: transparent; }
     }
   }

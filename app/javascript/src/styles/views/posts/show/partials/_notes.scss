@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 #image-container {
   position: relative;
   display: flex;
@@ -26,7 +29,7 @@
     border: 1px solid white;
     box-sizing: border-box;
     @include st-radius;
-    box-shadow: 0 0 0.25rem themed("color-background");
+    box-shadow: 0 0 0.25rem theme.color("background");
 
     // Note highlighted by URL anchor
     &.highlighted {
@@ -35,7 +38,7 @@
 
     // Note with pending unsaved changes
     &.pending{
-      border: 2px dotted palette("background-orange-d10");
+      border: 2px dotted palette.color("background-orange-d10");
 
       &:not(.tiny)::before {
         content: "Not Saved";
@@ -44,7 +47,7 @@
         left: 50%;
         transform: translateX(-50%);
 
-        background: palette("background-orange-d10");
+        background: palette.color("background-orange-d10");
         border-radius: 0.25rem;
         font-size: 0.75rem;
         padding: 0.125rem 0.25rem;
@@ -85,8 +88,8 @@
         margin: 0.25rem;
 
         background: white;
-        box-shadow: 0 0 0.125rem themed("color-background");
-        border: 1px solid themed("color-background");
+        box-shadow: 0 0 0.125rem theme.color("background");
+        border: 1px solid theme.color("background");
         border-radius: 2px;
       }
 

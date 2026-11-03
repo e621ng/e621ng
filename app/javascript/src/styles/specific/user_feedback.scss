@@ -1,34 +1,36 @@
+@use "colors/palette";
+
 .user-feedback-positive {
-  color: palette("text-green");
+  color: palette.color("text-green");
 }
 
 .user-feedback-neutral {
-  color: palette("text-grey");
+  color: palette.color("text-grey");
 }
 
 .user-feedback-negative {
-  color: palette("text-red");
+  color: palette.color("text-red");
 }
 
 .user-feedback-deleted {
-  color: palette("text-yellow");
+  color: palette.color("text-yellow");
 }
 
 div#c-user-feedbacks, div#c-staff-moderator-dashboards .activity-container {
   .feedback-category-positive {
-    background: palette("background-green");
+    background: palette.color("background-green");
   }
 
   .feedback-category-neutral {
-    background: palette("background-grey");
+    background: palette.color("background-grey");
   }
 
   .feedback-category-negative {
-    background: palette("background-red");
+    background: palette.color("background-red");
   }
 
   tr.user-feedback[data-is-deleted="true"] {
-    background: palette("background-yellow");
+    background: palette.color("background-yellow");
   }
 
   blockquote {

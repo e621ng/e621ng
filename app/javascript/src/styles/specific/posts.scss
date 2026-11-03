@@ -1,5 +1,5 @@
-
-
+@use "colors/palette";
+@use "colors/theme";
 
 #has-parent-relationship-preview, #has-children-relationship-preview {
   display: flex;
@@ -22,7 +22,7 @@ div#c-posts, div#c-uploads, div#c-post-replacements {
 
     @include window-larger-than(50rem) {
       &:hover {
-        a, s { background: themed("color-background"); }
+        a, s { background: theme.color("background"); }
         z-index: 2;
         overflow: visible;
         position: relative;
@@ -30,7 +30,7 @@ div#c-posts, div#c-uploads, div#c-post-replacements {
       }
     }
 
-    .source-invalid { color: palette("text-red"); }
+    .source-invalid { color: palette.color("text-red"); }
   }
 }
 
@@ -68,13 +68,13 @@ div#c-posts {
     }
 
     &.notice-parent, &.notice-child, &.notice-pending, &.notice-resized {
-      background-color: themed("color-section");
-      border: 1px solid themed("color-foreground");
+      background-color: theme.color("section");
+      border: 1px solid theme.color("foreground");
     }
 
     &.notice-no-shortcuts, &.notice-flagged, &.notice-deleted {
-      background-color: themed("color-danger-darken-10");
-      border: 1px solid themed("color-foreground");
+      background-color: theme.color("danger-darken-10");
+      border: 1px solid theme.color("foreground");
     }
 
     .delete-with-reason-link[data-move-favs="true"] {
@@ -102,7 +102,7 @@ div#c-posts {
     gap: 0.125rem;
 
     margin-bottom: $padding-050;
-    background-color: themed('color-section');
+    background-color: theme.color('section');
     position: relative;
 
     p {
@@ -194,7 +194,7 @@ div#c-posts {
         position: sticky;
         bottom: 0;
 
-        background: themed("color-section");
+        background: theme.color("section");
         width: min-content;
         padding: 1rem 1rem 1rem 0.5rem;
         margin: 0;
@@ -207,7 +207,7 @@ div#c-posts {
       }
       div#tag-string-editor.pending textarea {
         min-height: 5rem;
-        background: themed("color-text-muted");
+        background: theme.color("text-muted");
         border-radius: 2px;
         color: black;
         font-family: monospace;
@@ -216,20 +216,20 @@ div#c-posts {
       }
 
       #post_rating_e:checked + label {
-        background-color: themed("color-rating-explicit");
+        background-color: theme.color("rating-explicit");
       }
 
       #post_rating_q:checked + label {
-        background-color: themed("color-rating-questionable");
+        background-color: theme.color("rating-questionable");
       }
 
       #post_rating_s:checked + label {
-        background-color: themed("color-rating-safe");
+        background-color: theme.color("rating-safe");
       }
     }
 
     .nav-block {
-      background: themed("color-section");
+      background: theme.color("section");
 
       li {
         display: flex;
@@ -247,7 +247,7 @@ div#c-posts {
           }
         }
         a.nav-link:hover {
-          background: themed("color-section-lighten-5");
+          background: theme.color("section-lighten-5");
         }
         span.nav-name {
           flex-grow: 2;
@@ -306,8 +306,8 @@ div#avoid-posting-notice {
   line-height: 1.5rem;
   padding: $padding-025 $padding-050;
 
-  background-color: themed("color-section");
-  border: 1px solid themed("color-foreground");
+  background-color: theme.color("section");
+  border: 1px solid theme.color("foreground");
 
   ul {
     list-style: disc;

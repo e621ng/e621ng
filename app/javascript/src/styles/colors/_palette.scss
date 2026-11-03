@@ -1,11 +1,11 @@
 // Base color palette.
 // These colors should not normally change between
 // themes, but could still be overriden if need be.
+// Emits no CSS; see themes/_palette_default.scss.
 
 @use "sass:color";
 
-// Palette definitions
-$palette: (
+$base: (
   // Red
   "background-red": #76312e,
   "background-red-d5": #{color.adjust(#76312e, $lightness: -5%)},
@@ -60,16 +60,12 @@ $palette: (
   "plain-red": #ff5050,
 );
 
-:root {
-  @each $name, $color in $palette {
-    --palette-#{$name}: #{$color};
-  }
-}
-
-// Helper function
-@function palette($key) {
+@function color($key) {
   @return var(--palette-#{$key});
 }
 
-// Element-specific
-$background-article-hidden: palette("background-red");
+@mixin properties($map) {
+  @each $name, $value in $map {
+    --palette-#{$name}: #{$value};
+  }
+}

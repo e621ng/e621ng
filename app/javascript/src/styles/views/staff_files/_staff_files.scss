@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 #c-staff-files #a-show {
   .staff-file-preview {
     max-width: 50rem;
@@ -19,13 +21,13 @@
       max-width: 20rem;
       padding: 1rem;
 
-      box-shadow: inset 0 0 0.5rem themed("color-section-darken-5");
-      background: themed("color-section");
+      box-shadow: inset 0 0 0.5rem theme.color("section-darken-5");
+      background: theme.color("section");
       border-radius: 0.25rem;
 
       &::before {
         content: "Preview Unavailable";
-        color: themed("color-text");
+        color: theme.color("text");
         font-size: 1rem;
         margin-bottom: 0.25rem;
       }

@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 .appeal-new-form {
   background: none;
 
@@ -38,7 +41,7 @@
   &-title {
     line-height: 1.25rem;
     b {
-      background: palette("background-red");
+      background: palette.color("background-red");
       @include st-radius;
       padding: 0.125rem 0.25rem;
     }
@@ -48,14 +51,14 @@
 // Flag Appeals
 .appeal-flag {
   &-info {
-    background: palette("background-red");
+    background: palette.color("background-red");
     padding: 0.5rem;
     @include st-radius;
   }
 
   &-post {
     width: max-content;
-    background: themed("color-section");
+    background: theme.color("section");
     padding: 0.5rem;
     @include st-radius;
 

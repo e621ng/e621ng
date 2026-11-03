@@ -1,5 +1,7 @@
+@use "colors/theme";
+
 #avoid-posting-label {
-  background: themed("color-section");
+  background: theme.color("section");
 
   width: max-content;
   min-width: 20rem;
@@ -9,7 +11,7 @@
   @include st-padding(050);
   @include st-radius;
 
-  border-left: 0.25rem solid themed("color-tag-artist");
+  border-left: 0.25rem solid theme.color("tag-artist");
 
   h3 {
     margin-bottom: 0.5rem;

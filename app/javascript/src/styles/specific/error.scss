@@ -1,10 +1,10 @@
-
+@use "colors/theme";
 
 ul.backtrace {
   font-family: monospace;
   font-size: 1.2em;
   list-style-type: none;
-  background: themed('color-section');
+  background: theme.color('section');
   padding: 1em;
   margin-bottom: 1em;
 }

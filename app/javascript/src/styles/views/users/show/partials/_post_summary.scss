@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 .posts-section {
   display: flex;
   flex-flow: column;
@@ -33,14 +35,14 @@
     height: 100%;
     padding: 0.5em;
     border-radius: 6px;
-    background-color: themed("color-section");
+    background-color: theme.color("section");
 
     &:hover {
-      background-color: themed("color-section-lighten-5");
+      background-color: theme.color("section-lighten-5");
     }
     &:focus, &:active {
       outline: 0;
-      color: themed("color-link-active");
+      color: theme.color("link-active");
     }
   }
 
@@ -68,7 +70,7 @@
 
     span {
       padding: 0.5em;
-      color: themed("color-text-muted");
+      color: theme.color("text-muted");
     }
 
     .spacer { display: none; }

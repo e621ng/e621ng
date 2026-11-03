@@ -1,4 +1,6 @@
-$palette: (
+@use "colors/palette";
+
+$colors: (
   "background-red": #76312e,
   "background-red-d5": #{darken(#76312e, 5%)},
   "background-red-d10": #{darken(#76312e, 10%)},
@@ -26,9 +28,5 @@ $palette: (
 );
 
 body[data-th-palette="trit"] {
-
-  @each $name, $color in $palette {
-    --palette-#{$name}: #{$color};
-  }
-
+  @include palette.properties($colors);
 }

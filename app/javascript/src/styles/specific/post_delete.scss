@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 div#c-confirm-delete {
 
   // Raw text input and clear-all button
@@ -54,27 +56,27 @@ div#c-confirm-delete {
       // Highlight enabled elements
       &.enabled::before { content: "-"; }
 
-      color: themed("color-link");
+      color: theme.color("link");
 
       &:hover {
-        color: themed("color-link-hover");
+        color: theme.color("link-hover");
         input[type="text"] {
-          color: themed("color-link-hover");
-          border-color: themed("color-link-hover");
+          color: theme.color("link-hover");
+          border-color: theme.color("link-hover");
         }
       }
 
       input[type="text"] {
-        border-bottom: 1px solid themed("color-link");
-        color: themed("color-link");
-        &:focus { color: themed("color-link") !important; }
+        border-bottom: 1px solid theme.color("link");
+        color: theme.color("link");
+        &:focus { color: theme.color("link") !important; }
       }
 
       &.enabled {
-        color: themed("color-link-active");
+        color: theme.color("link-active");
         input[type="text"] {
-          color: themed("color-link-active");
-          border-color: themed("color-link-active");
+          color: theme.color("link-active");
+          border-color: theme.color("link-active");
         }
       }
     }
