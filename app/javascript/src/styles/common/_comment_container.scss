@@ -8,7 +8,7 @@
   grid-template-columns: 165px 1fr;
 
   .author-info {
-    padding: $padding-025 $padding-050;
+    padding: 0.25rem 0.5rem;
     grid-column: 1;
     grid-row: 1;
     background: $lighten-background-5;
@@ -22,7 +22,7 @@
   .content {
     grid-column: 2;
     grid-row: 1;
-    padding: $padding-025 $padding-050;
+    padding: 0.25rem 0.5rem;
 
     .content-menu { margin-top: 1rem; }
   }
@@ -47,7 +47,7 @@
         display: grid;
         grid-template-columns: auto 1fr;
         grid-template-rows: auto auto 1fr;
-        grid-column-gap: $padding-050;
+        grid-column-gap: 0.5rem;
 
         .name-rank {
           grid-column: 2;

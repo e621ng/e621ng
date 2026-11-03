@@ -1,7 +1,7 @@
 @use "colors/theme";
 
 .user-greeting-outer {
-  padding: $padding-025 0 $padding-025;
+  padding: 0.25rem 0 0.25rem;
   span.user-greeting {
     color: $user-home-greeting-color;
     cursor: help;

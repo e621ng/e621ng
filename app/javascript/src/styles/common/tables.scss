@@ -10,7 +10,7 @@ table.striped {
   tbody {
     tr {
       td {
-        padding: $padding-050 $padding-025;
+        padding: 0.5rem 0.25rem;
 
         &.full-width-link {
           padding: 0;
@@ -19,7 +19,7 @@ table.striped {
           > a {
             width: 100%;
             display: inline-block;
-            padding: $padding-050 $padding-025;
+            padding: 0.5rem 0.25rem;
             box-sizing: border-box;
           }
         }
@@ -80,7 +80,7 @@ table.search {
 
   th {
     text-align: right;
-    padding-right: $base-padding;
+    padding-right: 1rem;
     vertical-align: top;
   }
 

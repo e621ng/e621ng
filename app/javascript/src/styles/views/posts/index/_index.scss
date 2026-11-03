@@ -48,7 +48,7 @@ body.c-favorites.a-index {
     box-shadow: inset 0px -0.25rem 0.25rem -0.25rem theme.color("background");
 
     h1 {
-      font-size: $h3-size;
+      font-size: 1.16667em;
     }
 
     // Align the controls properly
@@ -151,7 +151,7 @@ body.c-favorites.a-index {
 
       // Match the searchbox
       padding: 0.5em;
-      font-family: $base_font_family;
+      font-family: inherit;
       font-size: 1.05em;
     }
   }
