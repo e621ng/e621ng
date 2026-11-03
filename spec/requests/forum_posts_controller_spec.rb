@@ -228,6 +228,28 @@ RSpec.describe ForumPostsController do
       post forum_posts_path(format: :json), params: { forum_post: { body: "", topic_id: forum_topic.id } }
       expect(response).to have_http_status(:unprocessable_content)
     end
+
+    it "bumps the topic by default" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as user
+      post forum_posts_path, params: { forum_post: { body: "xaxaxa", topic_id: forum_topic.id } }
+      expect(forum_topic.reload.last_bumped_at).to be_within(5.seconds).of(Time.current)
+    end
+
+    it "bumps the topic when do_not_bump_topic is 0" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as user
+      post forum_posts_path, params: { forum_post: { body: "xaxaxa", topic_id: forum_topic.id, do_not_bump_topic: "0" } }
+      expect(forum_topic.reload.last_bumped_at).to be_within(5.seconds).of(Time.current)
+    end
+
+    it "does not bump the topic when do_not_bump_topic is 1" do
+      forum_topic.update_columns(last_bumped_at: 1.hour.ago)
+      sign_in_as user
+      expect do
+        post forum_posts_path, params: { forum_post: { body: "xaxaxa", topic_id: forum_topic.id, do_not_bump_topic: "1" } }
+      end.not_to(change { forum_topic.reload.last_bumped_at })
+    end
   end
 
   # forum_posts PATCH  /forum_posts/:id(.:format)         forum_posts#update
@@ -266,6 +288,37 @@ RSpec.describe ForumPostsController do
       sign_in_as user
       put forum_post_path(forum_post), params: { forum_post: { body: "nope" } }
       expect(response).to have_http_status(:forbidden)
+    end
+
+    describe "bumping" do
+      let(:admin) { create(:admin_user) }
+      let(:reply) { CurrentUser.scoped(user) { create(:forum_post, topic_id: forum_topic.id, body: "a reply") } }
+
+      before do
+        reply
+        forum_topic.update_columns(last_bumped_at: 1.day.ago)
+      end
+
+      it "does not bump the topic when the creator edits a reply" do
+        sign_in_as user
+        put forum_post_path(reply), params: { forum_post: { body: "edited reply" } }
+        expect(reply.reload.body).to eq("edited reply")
+        expect(forum_topic.reload.last_bumped_at).to be < 1.hour.ago
+      end
+
+      it "does not bump the topic when an admin edits a reply" do
+        sign_in_as admin
+        put forum_post_path(reply), params: { forum_post: { body: "admin edit" } }
+        expect(reply.reload.body).to eq("admin edit")
+        expect(forum_topic.reload.last_bumped_at).to be < 1.hour.ago
+      end
+
+      it "does not bump the topic when an admin edits the original post" do
+        sign_in_as admin
+        put forum_post_path(forum_post), params: { forum_post: { body: "admin edit" } }
+        expect(forum_post.reload.body).to eq("admin edit")
+        expect(forum_topic.reload.last_bumped_at).to be < 1.hour.ago
+      end
     end
   end
 

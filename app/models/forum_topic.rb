@@ -20,11 +20,21 @@ class ForumTopic < ApplicationRecord
   accepts_nested_attributes_for :original_post
   after_update :update_original_post
   before_destroy :create_mod_action_for_delete
+
+  before_save(if: ->(rec) { rec.new_record? || (!rec.do_not_bump.to_s.truthy? && rec.watched_attributes_changed?) }) do |rec|
+    rec.last_bumped_at = Time.current
+  end
   after_save(:if => ->(rec) {rec.saved_change_to_is_locked?}) do |rec|
     ModAction.log(rec.is_locked ? :forum_topic_lock : :forum_topic_unlock, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
   end
   after_save(:if => ->(rec) {rec.saved_change_to_is_sticky?}) do |rec|
     ModAction.log(rec.is_sticky ? :forum_topic_stick : :forum_topic_unstick, {forum_topic_id: rec.id, forum_topic_title: rec.title, user_id: rec.creator_id})
+  end
+
+  attr_accessor(:do_not_bump)
+
+  def watched_attributes_changed?
+    title_changed? || category_id_changed?
   end
 
   module AccessMethods
@@ -114,6 +124,10 @@ class ForumTopic < ApplicationRecord
     end
 
     def sticky_first
+      order(is_sticky: :desc, last_bumped_at: :desc)
+    end
+
+    def sticky_updated_first
       order(is_sticky: :desc, updated_at: :desc)
     end
 
@@ -142,6 +156,18 @@ class ForumTopic < ApplicationRecord
       case params[:order]
       when "sticky"
         q = q.sticky_first
+      when "sticky_updated"
+        q = q.sticky_updated_first
+      when "created_at", "created_at_desc"
+        q = q.order(created_at: :desc)
+      when "created_at_asc"
+        q = q.order(created_at: :asc)
+      when "updated_at", "updated_at_desc"
+        q = q.order(updated_at: :desc)
+      when "updated_at_asc"
+        q = q.order(updated_at: :asc)
+      when "bumped"
+        q = q.order(last_bumped_at: :desc)
       else
         q = q.apply_basic_order(params)
       end

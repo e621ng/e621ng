@@ -24,12 +24,12 @@ class ForumUpdater
   end
 
   def create_response(body)
-    forum_topic.posts.create(body: body, bypass_limits: true)
+    forum_topic.posts.create(body: body, bypass_limits: true, do_not_bump_topic: true)
   end
 
   def update_title(title_tag)
     if forum_topic.title == expected_title
-      forum_topic.update(:title => "[#{title_tag}] #{forum_topic.title}")
+      forum_topic.update(title: "[#{title_tag}] #{forum_topic.title}", do_not_bump: true)
     end
   end
 

@@ -18,6 +18,10 @@
       <%= f.input :is_locked, :label => "Locked" %>
     <% end %>
 
+    <% if forum_topic.persisted? %>
+      <%= f.input(:do_not_bump, label: "Do Not Bump", as: :boolean) %>
+    <% end %>
+
     <%= f.button :submit, "Submit" %>
   <% end %>
 </div>

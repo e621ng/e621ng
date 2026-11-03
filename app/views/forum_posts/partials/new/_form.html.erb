@@ -8,5 +8,7 @@
   <% end %>
   <%= f.input :body, as: :dtext, limit: Danbooru.config.forum_post_max_size %>
 
+  <%= f.input(:do_not_bump_topic, label: "Do Not Bump Topic", as: :boolean) %>
+
   <%= f.button :submit, "Submit" %>
 <% end %>

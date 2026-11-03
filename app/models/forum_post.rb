@@ -39,7 +39,7 @@ class ForumPost < ApplicationRecord
     ModAction.log(:forum_post_delete, { forum_post_id: rec.id, forum_topic_id: rec.topic_id, user_id: rec.creator_id })
   end
 
-  attr_accessor :bypass_limits
+  attr_accessor(:bypass_limits, :do_not_bump_topic)
 
   module AccessMethods
     ### Standard Permissions ###
@@ -212,7 +212,8 @@ class ForumPost < ApplicationRecord
   def update_topic_updated_at_on_create
     if topic
       # need to do this to bypass the topic's original post from getting touched
-      ForumTopic.where(:id => topic.id).update_all(["updater_id = ?, response_count = response_count + 1, updated_at = ?", CurrentUser.id, Time.now])
+      bump = do_not_bump_topic.to_s.truthy? ? "" : ", last_bumped_at = :now"
+      ForumTopic.where(id: topic_id).update_all(["updater_id = :updater_id, response_count = response_count + 1, updated_at = :now#{bump}", { updater_id: CurrentUser.id, now: Time.now }])
       topic.response_count += 1
     end
   end
