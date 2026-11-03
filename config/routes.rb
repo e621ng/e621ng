@@ -337,6 +337,7 @@ Rails.application.routes.draw do
   end
   resources :deleted_posts, only: %i[index]
   resources :p, only: %i[show], controller: "posts_short"
+  get "/a/*name" => "artists_short#show", as: :short_artist, format: false
   resources :posts, only: %i[index show update] do
     resources :replacements, only: %i[index new create], controller: "post_replacements"
     resource :votes, controller: "post_votes", only: %i[create destroy]

@@ -2,6 +2,7 @@
 
 class ArtistsController < ApplicationController
   include ConditionalSearchCount
+  include ArtistShowPage
 
   respond_to :html, :json
   before_action :member_only, except: %i[index show show_or_new]
@@ -46,12 +47,7 @@ class ArtistsController < ApplicationController
         return
       end
     end
-    @post_set = PostSets::Post.new(@artist.name, 1, limit: 10)
-
-    if CurrentUser.user.is_staff?
-      @staff_wikis = StaffWiki.joins(:references).where(references: { related_type: "Artist", related_id: @artist.id }).distinct
-    end
-
+    load_artist_show_page
     respond_with(@artist, methods: [:domains], include: [:urls])
   end
 

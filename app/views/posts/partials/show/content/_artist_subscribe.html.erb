@@ -5,7 +5,7 @@
   <% tags.each do |tag| %>
     <div class="subscribe-banner">
       <div class="subscribe-banner-name">
-        <%= link_to tag.name, show_or_new_artists_path(name: tag.name), class: "tag-type-#{tag.category}" %>
+        <%= link_to tag.name, short_artist_path(tag.name), class: "tag-type-#{tag.category}" %>
       </div>
       <div class="subscribe-banner-actions">
         <%= render "wiki_pages/subscribe_button", tag: tag, subscription: subscriptions[tag.id] %>
