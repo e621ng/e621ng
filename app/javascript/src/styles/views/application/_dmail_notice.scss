@@ -27,7 +27,7 @@
     font-size: 1.125rem;
     font-weight: bold;
     line-height: 1.25rem;
-    @include st-radius;
+    border-radius: 0.25rem;
 
     color: theme.color("text");
     .dmail-notice-highlight { color: theme.color("link"); }
@@ -38,7 +38,7 @@
       height: 100%; // Proper height if the message linebreaks
       padding: 0 0.625rem;
       background-color: palette.color("background-red");
-      @include st-radius;
+      border-radius: 0.25rem;
     }
 
     .dmail-notice-text {
@@ -52,7 +52,7 @@
     align-items: center;
     background: theme.color("section");
     padding: 0.625rem;
-    @include st-radius;
+    border-radius: 0.25rem;
 
     color: theme.color("link");
     &:hover { color: theme.color("link-hover"); }

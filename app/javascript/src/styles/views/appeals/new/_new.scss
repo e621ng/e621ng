@@ -17,14 +17,14 @@
   display: flex;
   flex-flow: column;
   gap: 0.5rem;
-  @include st-max-width;
+  max-width: 50rem;
 }
 
 .appeal-reason {
   background: var(--color-section);
   padding: 0.5rem;
-  @include st-radius;
-  @include st-max-width;
+  border-radius: 0.25rem;
+  max-width: 50rem;
 
   div.input { margin-bottom: 0; }
 }
@@ -35,14 +35,14 @@
   gap: 0.5rem;
   background: var(--color-section);
   padding: 0.5rem;
-  @include st-radius;
-  @include st-max-width;
+  border-radius: 0.25rem;
+  max-width: 50rem;
 
   &-title {
     line-height: 1.25rem;
     b {
       background: palette.color("background-red");
-      @include st-radius;
+      border-radius: 0.25rem;
       padding: 0.125rem 0.25rem;
     }
   }
@@ -53,14 +53,14 @@
   &-info {
     background: palette.color("background-red");
     padding: 0.5rem;
-    @include st-radius;
+    border-radius: 0.25rem;
   }
 
   &-post {
     width: max-content;
     background: theme.color("section");
     padding: 0.5rem;
-    @include st-radius;
+    border-radius: 0.25rem;
 
     --thumb-image-size: 256px;
   }

@@ -21,7 +21,7 @@ div#post-recommendations {
     button {
       background: unset;
       color: theme.color("text");
-      @include st-radius-top;
+      border-radius: 0.25rem 0.25rem 0 0;
       user-select: none;
 
       &:hover, &:focus {
@@ -55,7 +55,7 @@ div#post-recommendations {
     background: theme.color("section");
     padding: $padding-size;
     margin-bottom: 0.25rem;
-    @include st-radius;
+    border-radius: 0.25rem;
 
     --thumb-image-size: #{$thumb-size}; // Passed on to thumbnails
     height: calc(var(--thumb-image-size) + 1.25rem);

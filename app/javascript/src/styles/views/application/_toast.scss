@@ -27,7 +27,7 @@
 
   margin: 0 auto 0.5rem;
   box-sizing: border-box;
-  @include st-radius;
+  border-radius: 0.25rem;
 
   line-height: 1.25rem;
   font-size: 0.85rem;
@@ -124,7 +124,7 @@
 
     svg {
       padding: 0.5rem;
-      @include st-radius;
+      border-radius: 0.25rem;
     }
 
     &:hover {

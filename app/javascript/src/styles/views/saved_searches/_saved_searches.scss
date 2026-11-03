@@ -41,7 +41,7 @@
 
     padding: $padding-050;
     background: theme.color("section");
-    border-radius: $border-radius-full;
+    border-radius: 0.25rem;
   }
 
   .ss-name {
@@ -112,9 +112,9 @@
       grid-template-areas: "name query status created actions";
       border-radius: 0;
 
-      &:first-child { border-radius: $border-radius-full $border-radius-full 0 0; }
-      &:last-child { border-radius: 0 0 $border-radius-full $border-radius-full; }
-      &:only-child { border-radius: $border-radius-full; }
+      &:first-child { border-radius: 0.25rem 0.25rem 0 0; }
+      &:last-child { border-radius: 0 0 0.25rem 0.25rem; }
+      &:only-child { border-radius: 0.25rem; }
 
       &:hover { background: theme.color("section-lighten-5"); }
     }
@@ -168,9 +168,9 @@
     padding: $padding-050;
     background: theme.color("section");
 
-    &:first-child { border-radius: $border-radius-full $border-radius-full 0 0; }
-    &:last-child { border-radius: 0 0 $border-radius-full $border-radius-full; }
-    &:only-child { border-radius: $border-radius-full; }
+    &:first-child { border-radius: 0.25rem 0.25rem 0 0; }
+    &:last-child { border-radius: 0 0 0.25rem 0.25rem; }
+    &:only-child { border-radius: 0.25rem; }
   }
 
   .ts-name {

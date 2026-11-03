@@ -9,7 +9,7 @@ div#c-post-flags {
 .post-flag-note {
   background: theme.color("section-lighten-5");
   margin: 0.5rem 0;
-  @include st-radius;
+  border-radius: 0.25rem;
 
   &-header {
     display: none; // flex

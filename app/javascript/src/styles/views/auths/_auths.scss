@@ -52,7 +52,7 @@
     background-repeat: theme.image("foreground-repeat");
     background-size: theme.image("foreground-size");
     box-shadow: 0 0 0.75rem -0.25rem theme.color("background");
-    @include st-radius;
+    border-radius: 0.25rem;
 
     h1 {
       margin: 1rem 0 0.25rem;

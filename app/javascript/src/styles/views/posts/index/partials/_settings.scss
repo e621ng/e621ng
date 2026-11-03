@@ -18,7 +18,7 @@
   background: theme.color("section");
   padding: 0.5rem;
   line-height: 1rem;
-  @include st-radius;
+  border-radius: 0.25rem;
 
   min-width: 16rem;
   box-shadow: 1px 1px 4px 0px #0006;
@@ -76,8 +76,8 @@
     input:not(:checked) + label { opacity: 0.5; }
 
     input[type="checkbox"]:checked + label              { border-radius: 0; }
-    input[type="checkbox"]:checked + label:first-of-type { @include st-radius-top; }
-    input[type="checkbox"]:checked + label:last-of-type  { @include st-radius-bottom; }
+    input[type="checkbox"]:checked + label:first-of-type { border-radius: 0.25rem 0.25rem 0 0; }
+    input[type="checkbox"]:checked + label:last-of-type  { border-radius: 0 0 0.25rem 0.25rem; }
   }
 
   label:has(.sort-asc-btn) {

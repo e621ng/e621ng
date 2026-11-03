@@ -14,12 +14,12 @@ $info_border: 0.25rem;
   display: flex;
   flex-flow: column;
   gap: 0.5rem;
-  @include st-max-width;
+  max-width: 50rem;
 
   &-section {
     background: theme.color("section");
     padding: 0.5rem;
-    @include st-radius;
+    border-radius: 0.25rem;
   }
 }
 
@@ -29,7 +29,7 @@ $info_border: 0.25rem;
   grid-template-areas: "adr-avatar adr-creator"
                        "adr-avatar adr-reason";
   gap: 0.125rem 0.25rem;
-  @include st-max-width;
+  max-width: 50rem;
 
   &-avatar {
     grid-area: adr-avatar;
@@ -75,7 +75,7 @@ $info_border: 0.25rem;
   width: $avatar_size;
   height: $avatar_size;
   background: theme.color("section");
-  @include st-radius;
+  border-radius: 0.25rem;
 }
 
 

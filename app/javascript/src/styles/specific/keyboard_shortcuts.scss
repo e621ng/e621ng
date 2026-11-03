@@ -45,10 +45,10 @@ div#c-static div#a-keyboard-shortcuts {
     &:hover { background-color: palette.color("background-gold-l10"); }
 
     &:first-child {
-      @include st-radius-left;
+      border-radius: 0.25rem 0 0 0.25rem;
     }
     &:last-child {
-      @include st-radius-right;
+      border-radius: 0 0.25rem 0.25rem 0;
     }
   }
 

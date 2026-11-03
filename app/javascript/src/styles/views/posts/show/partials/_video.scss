@@ -212,7 +212,7 @@
     background: var(--color-section-lighten-10);
     display: none;
     padding: 0;
-    @include st-radius-top;
+    border-radius: 0.25rem 0.25rem 0 0;
     // The mute button below is .kinetic: on :active it translates down by $kinetic-active
     // (0.125rem), opening a gap the open-on-hover popup would fall through and close.
     // Extend the popup's hit area down by that exact amount to bridge it.
@@ -236,7 +236,7 @@
   .volume-slider {
     margin: .25rem;
     margin-bottom: 0;
-    @include st-radius;
+    border-radius: 0.25rem;
     background: var(--color-foreground);
     position: relative;
 
@@ -337,7 +337,7 @@
     top: 50%;
     right: $offset;
     background: var(--color-foreground);
-    @include st-radius;
+    border-radius: 0.25rem;
     display: flex;
     align-items: center;
     flex-direction: column;

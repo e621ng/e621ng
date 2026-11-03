@@ -6,7 +6,7 @@
   grid-template-columns: 1fr;
   grid-template-rows: repeat(auto-fit, minmax(min-content, 5rem));
   background: theme.color("section");
-  @include st-radius;
+  border-radius: 0.25rem;
 
   @include breakpoints.above(38rem) { grid-template-columns: 1fr 1fr; }
   @include breakpoints.desktop { grid-template-columns: 1fr; }

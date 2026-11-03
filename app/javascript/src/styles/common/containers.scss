@@ -4,7 +4,7 @@
   background-color: theme.color("section");
   padding: $base-padding;
   margin-bottom: 1.5rem;
-  border-radius: $border-radius-half;
+  border-radius: 0.25rem;
 
   // For some reason, link hover color was overriden in the original stylesheet.
   &.background-green, &.background-grey, &.background-red, &.background-yellow {

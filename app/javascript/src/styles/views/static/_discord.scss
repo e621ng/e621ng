@@ -20,7 +20,7 @@
     padding: 1rem;
 
     background: theme.color("section");
-    @include st-radius;
+    border-radius: 0.25rem;
   }
 
   form {

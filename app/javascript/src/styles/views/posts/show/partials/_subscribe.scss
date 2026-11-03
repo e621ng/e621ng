@@ -10,8 +10,8 @@ div#post-artist-subscribe {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    @include st-max-width;
-    @include st-radius;
+    max-width: 50rem;
+    border-radius: 0.25rem;
     padding: 0.5rem;
     box-sizing: border-box;
 

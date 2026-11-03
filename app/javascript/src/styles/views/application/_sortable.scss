@@ -34,7 +34,7 @@ ul.sortable {
 
     background: rgba(0, 124, 186, 0.1);
     border: 2px dashed #007cba;
-    @include st-radius;
+    border-radius: 0.25rem;
     pointer-events: auto;
   }
 }

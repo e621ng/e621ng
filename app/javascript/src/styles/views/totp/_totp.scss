@@ -11,7 +11,7 @@
     background: white;
     color: black;
     text-align: center;
-    @include st-radius;
+    border-radius: 0.25rem;
   }
 
   .totp-explanation {
@@ -51,7 +51,7 @@
     color: black;
     font-family: monospace;
     text-align: center;
-    @include st-radius;
+    border-radius: 0.25rem;
   }
 
   .totp-backup-codes-actions {

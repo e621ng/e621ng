@@ -32,7 +32,7 @@
       padding: 0.4rem 0.75rem;
       background: theme.color("section-lighten-5");
       box-shadow: 0 0 0.5rem -0.25rem theme.color("section-darken-5");
-      @include st-radius;
+      border-radius: 0.25rem;
       cursor: pointer;
       user-select: none;
     }
@@ -59,7 +59,7 @@
 
     background: theme.color("section-lighten-5");
     box-shadow: 0 0 0.5rem -0.25rem theme.color("section-darken-5");
-    @include st-radius;
+    border-radius: 0.25rem;
     user-select: none;
     cursor: pointer;
 

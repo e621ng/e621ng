@@ -38,7 +38,7 @@ $replacement-variants: (
   position: relative;
   background: theme.color("foreground");
   border: 1px solid theme.color("section");
-  @include st-radius;
+  border-radius: 0.25rem;
   margin-bottom: 0.75rem;
   box-shadow: 0 0 0.125rem theme.color("background");
 

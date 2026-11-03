@@ -3,9 +3,9 @@
 #c-tickets #a-show {
   .ticket-block {
     background-color: theme.color("section");
-    @include st-margin-tb(050);
-    @include st-radius;
-    @include st-padding(050);
+    margin: 0.5rem 0;
+    border-radius: 0.25rem;
+    padding: 0.5rem;
     width: 100%;
     box-sizing: border-box;
 

@@ -51,7 +51,7 @@ ul.forum-post-vote-list {
       overflow: hidden;
 
       background: theme.color("section-darken-5");
-      @include st-radius;
+      border-radius: 0.25rem;
     }
 
     li a {

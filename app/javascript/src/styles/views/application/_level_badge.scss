@@ -25,7 +25,7 @@ $user-level-text: (
 
   background: theme.color("user-member");
   padding: 0.1rem 0.25rem;
-  @include st-radius;
+  border-radius: 0.25rem;
 
   @each $level in $user-levels {
     &.user-#{$level} {

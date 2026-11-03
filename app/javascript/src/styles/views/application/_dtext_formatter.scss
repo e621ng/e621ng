@@ -10,7 +10,7 @@
     "df-footer  df-footer ";
   
   max-width: 50rem;
-  @include st-radius;
+  border-radius: 0.25rem;
 
   &.pending {
     border-top: 2.25rem solid rgba(0,0,0,.2);
@@ -42,7 +42,7 @@
     font-family: "Roboto", Verdana, Geneva, sans-serif;
     white-space: nowrap; // Fixes overflow on small screens
 
-    @include st-radius-top;
+    border-radius: 0.25rem 0.25rem 0 0;
 
     &:hover { background: theme.color("section-lighten-10") !important; }
   }
@@ -76,7 +76,7 @@
 
   border: 0;
   outline: 0 !important;
-  @include st-radius-bottom;
+  border-radius: 0 0 0.25rem 0.25rem;
 }
 
 
@@ -137,7 +137,7 @@
     background: none;
     color: #ffffffbb;
     padding: 0.5rem;
-    @include st-radius;
+    border-radius: 0.25rem;
 
     &:hover { background: theme.color("section-lighten-10"); }
     svg { margin: -0.25rem; }

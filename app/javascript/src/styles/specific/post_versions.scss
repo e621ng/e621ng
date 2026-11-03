@@ -33,7 +33,7 @@ div#c-post-versions {
 
       background-color: theme.color("section");
       box-shadow: 0px 0px 1rem theme.color("background");
-      @include st-radius;
+      border-radius: 0.25rem;
 
       h2 {
         display: flex;

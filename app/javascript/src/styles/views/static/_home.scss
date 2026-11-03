@@ -58,7 +58,7 @@ body.c-static.a-home {
     backdrop-filter: blur(8px);
 
     padding: 1rem;
-    @include st-radius;
+    border-radius: 0.25rem;
     text-align: center;
 
     box-sizing: border-box;
@@ -83,7 +83,7 @@ body.c-static.a-home {
       display: flex;
       padding: 0.5rem;
       border: 0;
-      @include st-radius-left;
+      border-radius: 0.25rem 0 0 0.25rem;
 
       background: white;
       color: black;
@@ -101,7 +101,7 @@ body.c-static.a-home {
 
     button[type="submit"] {
       background: white;
-      @include st-radius-right;
+      border-radius: 0 0.25rem 0.25rem 0;
       padding: 0 0.5rem;
 
       svg {
@@ -150,7 +150,7 @@ body.c-static.a-home {
     width: 100%;
     z-index: 1;
 
-    @include st-radius-top;
+    border-radius: 0.25rem 0.25rem 0 0;
 
     button#mascot-swap {
       margin: -0.5rem;
@@ -167,7 +167,7 @@ body.c-static.a-home {
     width: 100%;
     z-index: 1;
 
-    @include st-radius-bottom;
+    border-radius: 0 0 0.25rem 0.25rem;
 
     .home-footer-links {
       margin-top: 0.5rem;

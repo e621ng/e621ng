@@ -3,7 +3,7 @@
 
 div#c-takedowns {
   .takedown-vericode {
-    @include st-radius;
+    border-radius: 0.25rem;
     padding: 1rem;
     font-weight: bold;
     cursor: default;
@@ -36,8 +36,8 @@ div#c-takedowns {
     gap: 0.25rem;
     padding: 0.5rem;
     background: theme.color("foreground");
-    @include st-max-width;
-    @include st-radius;
+    max-width: 50rem;
+    border-radius: 0.25rem;
     margin: 1rem 0;
   }
 
