@@ -46,6 +46,11 @@ RSpec.describe Post do
       expect(tags.map(&:id)).to eq(Tag.where(name: tags.map(&:name)).order(post_count: :desc).pluck(:id))
     end
 
+    it "orders verified artist tags with equal post counts by name" do
+      Tag.where(name: %w[small_(artist) big_(artist)]).update_all(post_count: 50)
+      expect(Post.find(post.id).verified_artist_tags.map(&:name)).to eq(["big_(artist)", "small_(artist)"])
+    end
+
     it "looks up all artists in a single query" do
       queries = artist_queries do
         post.artists_with_linked_users

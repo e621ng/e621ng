@@ -1209,11 +1209,11 @@ class Post < ApplicationRecord
     end
 
     ## DB!
-    # Artist tags that have a linked user, most posts first.
+    # Artist tags that have a linked user, most posts first, ties broken by name.
     def verified_artist_tags
       @verified_artist_tags ||= begin
         names = artists_with_linked_users.to_set(&:name)
-        artist_tags.select { |tag| names.include?(tag.name) }.sort_by { |tag| -tag.post_count }
+        artist_tags.select { |tag| names.include?(tag.name) }.sort_by { |tag| [-tag.post_count, tag.name] }
       end
     end
 
