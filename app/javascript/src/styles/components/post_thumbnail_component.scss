@@ -259,6 +259,26 @@ article.thumbnail[data-tags~=animated] {
   }
 }
 
+// Video duration, mirrors the file type badge on the opposite side
+article.thumbnail .thm-duration {
+  position: absolute;
+  z-index: 5;
+  right: 0;
+  bottom: 5%;
+
+  font-size: 0.5rem;
+  line-height: 0.5rem;
+  padding: 0.25rem;
+  font-variant-numeric: tabular-nums;
+
+  background-color: themed("color-section");
+  color: themed("color-text");
+  font-weight: bold;
+
+  @include st-radius-left;
+}
+article.thumbnail.no-type-badges .thm-duration { display: none; }
+
 // Extra info (IQDB, pools)
 article.thumbnail .thm-extra {
   width: $image-size;

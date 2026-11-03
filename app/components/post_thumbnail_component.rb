@@ -160,6 +160,18 @@ class PostThumbnailComponent < ViewComponent::Base
     attributes
   end
 
+  # Formats the duration as m:ss, or h:mm:ss for longer videos.
+  # Seconds are floored, but sub-second clips still read as 0:01.
+  def duration_text
+    return nil if post.duration.blank? || post.duration <= 0
+
+    total = [post.duration.floor, 1].max
+    hours, remainder = total.divmod(3600)
+    minutes, seconds = remainder.divmod(60)
+    return format("%<h>d:%<m>02d:%<s>02d", h: hours, m: minutes, s: seconds) if hours > 0
+    format("%<m>d:%<s>02d", m: minutes, s: seconds)
+  end
+
   ##############################
   ####  Post Stat Section  #####
   ##############################

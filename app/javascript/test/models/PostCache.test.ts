@@ -8,6 +8,7 @@ const ATTRS: Record<string, string> = {
   "flags": "pending",
   "rating": "q",
   "file-ext": "png",
+  "duration": "12.5",
   "width": "1200",
   "height": "800",
   "size": "34567",
@@ -32,6 +33,7 @@ const DEFERRED: DeferredPostData = {
   pools: "10 20",
   rating: "q",
   file_ext: "png",
+  duration: 12.5,
   width: 1200,
   height: 800,
   size: 34567,
@@ -56,6 +58,7 @@ const EXPECTED = {
   flags: ["pending"],
   rating: "q",
   file_ext: "png",
+  duration: 12.5,
   width: 1200,
   height: 800,
   size: 34567,
@@ -109,14 +112,14 @@ describe("PostCache", () => {
       const post = PostCache.fromThumbnail(thumb({
         "tags": "", "flags": "", "pools": null, "width": null, "height": null, "size": null,
         "score": null, "fav-count": null, "is-favorited": null, "comment-count": null,
-        "uploader": null, "uploader-id": null, "file-ext": null,
+        "uploader": null, "uploader-id": null, "file-ext": null, "duration": null,
         "md5": null, "preview-url": null, "preview-webp": null, "sample-url": null, "file-url": null,
       }));
       expect(post).toMatchObject({
         tags: [], tag_string: "", tagcount: 0, flags: [], pools: [],
         width: -1, height: -1, size: -1, uploader_id: -1,
         score: 0, fav_count: 0, is_favorited: false, comment_count: 0,
-        uploader: "", file_ext: "",
+        uploader: "", file_ext: "", duration: 0,
         md5: "", preview_url: "", preview_webp: "", sample_url: "", file_url: "",
       });
       expect(post!.isUnavailable).toBe(true);

@@ -1980,6 +1980,7 @@ class Post < ApplicationRecord
         tags: tag_string,
         rating: rating,
         file_ext: file_ext,
+        duration: duration&.to_f,
 
         width: image_width,
         height: image_height,

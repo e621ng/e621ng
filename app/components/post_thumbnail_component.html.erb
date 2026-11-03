@@ -13,6 +13,10 @@
       <% end %>
     <% end %>
 
+    <% if duration_text %>
+      <span class="thm-duration"><%= duration_text %></span>
+    <% end %>
+
     <% RIBBON_SIDE.each do |side| %>
       <% if should_show_ribbon? side %>
         <div

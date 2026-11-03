@@ -68,6 +68,9 @@ export default class ThumbnailEngine {
     if (!post.isUnavailable && (!post.isDeleted || canSeeDeleted))
       link.appendChild(this.renderPicture(post, previewUrl, previewWebp));
 
+    if (post.duration > 0)
+      link.appendChild(this.renderDuration(post.duration));
+
     // CachedPost carries no parent/child data, so only the right ribbon can be rendered
     if (post.isFlagged || post.isPending)
       link.appendChild(this.renderRibbon(post));
@@ -129,6 +132,13 @@ export default class ThumbnailEngine {
     return picture;
   }
 
+  private static renderDuration (duration: number): HTMLSpanElement {
+    const span = document.createElement("span");
+    span.className = "thm-duration";
+    span.textContent = this.formatDuration(duration);
+    return span;
+  }
+
   // Mirrors PostThumbnailComponent#ribbon_tooltip(:right)
   private static renderRibbon (post: CachedPost): HTMLDivElement {
     const content = [];
@@ -156,6 +166,16 @@ export default class ThumbnailEngine {
     if (svg) span.appendChild(svg);
     span.appendChild(document.createTextNode(this.shortenValue(value)));
     return span;
+  }
+
+  // Mirrors PostThumbnailComponent#duration_text
+  private static formatDuration (duration: number): string {
+    const total = Math.max(Math.floor(duration), 1);
+    const hours = Math.floor(total / 3600);
+    const minutes = Math.floor((total % 3600) / 60);
+    const seconds = String(total % 60).padStart(2, "0");
+    if (hours > 0) return `${hours}:${String(minutes).padStart(2, "0")}:${seconds}`;
+    return `${minutes}:${seconds}`;
   }
 
   // Mirrors PostThumbnailComponent#shortened_value

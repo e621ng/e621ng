@@ -40,6 +40,7 @@ export default class PostCache {
       pools: data.pools || "",
       rating: data.rating || "",
       file_ext: data.fileExt || "",
+      duration: parseFloat(data.duration) || 0,
 
       width: parseInt(data.width) || -1,
       height: parseInt(data.height) || -1,
@@ -78,6 +79,7 @@ export default class PostCache {
       pools: data.pools || "",
       rating: data.rating || "",
       file_ext: data.file_ext || "",
+      duration: data.duration || 0,
 
       width: data.width || -1,
       height: data.height || -1,
@@ -121,6 +123,7 @@ export default class PostCache {
       flags: splitWords(raw.flags),
       rating: rating,
       file_ext: raw.file_ext,
+      duration: raw.duration,
 
       width: raw.width,
       height: raw.height,
@@ -432,6 +435,7 @@ export class CachedPost implements CachedPostData {
   public flags: string[];
   public rating: "s" | "q" | "e";
   public file_ext: string;
+  public duration: number;
 
   public width: number;
   public height: number;
@@ -474,6 +478,7 @@ export class CachedPost implements CachedPostData {
       "data-flags": this.flags.join(" "),
       "data-rating": this.rating,
       "data-file-ext": this.file_ext,
+      "data-duration": this.duration,
 
       "data-width": this.width,
       "data-height": this.height,
@@ -539,6 +544,9 @@ export interface DeferredPostData extends BasicPostData {
   flags: string,
   pools: string,
 
+  /** Seconds; null for posts without a duration */
+  duration?: number | null,
+
   // Absent from deleted posts
   md5?: string,
   preview_url?: string,
@@ -557,6 +565,9 @@ export interface CachedPostData extends BasicPostData {
   flags: string[],
   pools: number[],
 
+  /** Seconds; 0 for posts without a duration */
+  duration: number,
+
   md5: string,
   preview_url: string,
   preview_webp: string,
@@ -571,6 +582,7 @@ interface RawPostData {
   pools: string,
   rating: string,
   file_ext: string,
+  duration: number,
 
   width: number,
   height: number,

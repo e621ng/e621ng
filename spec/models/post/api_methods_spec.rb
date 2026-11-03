@@ -62,6 +62,16 @@ RSpec.describe Post do
         attrs = post.thumbnail_attributes
         expect(attrs).to include(:preview_url)
       end
+
+      it "includes the duration as a float" do
+        post = create(:post, file_ext: "webm", duration: 12.5)
+        expect(post.thumbnail_attributes[:duration]).to eq(12.5)
+      end
+
+      it "includes a nil duration for posts without one" do
+        post = create(:post, duration: nil)
+        expect(post.thumbnail_attributes[:duration]).to be_nil
+      end
     end
 
     describe "#method_attributes" do

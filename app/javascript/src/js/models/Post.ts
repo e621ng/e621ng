@@ -9,6 +9,8 @@ export interface PostThumbnailJSON {
   created_at: string;
   md5: string | null;
   file_ext: string;
+  /** Seconds; null for posts without a duration. */
+  duration: number | null;
   width: number;
   height: number;
   size: number;

@@ -3,7 +3,7 @@ import { setSiteData } from "../helpers";
 
 const BASE = {
   id: 42, tags: "fox wolf", flags: "", rating: "q", pools: "",
-  file_ext: "png", width: 1000, height: 800, size: 12345,
+  file_ext: "png", duration: null as number | null, width: 1000, height: 800, size: 12345,
   score: 5, fav_count: 7, is_favorited: false, comment_count: 3,
   uploader: "Someone", uploader_id: 9, md5: "abc",
   preview_url: "/data/preview/abc.jpg", preview_webp: "/data/preview/abc.webp",
@@ -169,6 +169,29 @@ describe("ThumbnailEngine", () => {
         expect(el.classList.contains("flagged")).toBe(true);
         expect(el.classList.contains("pending")).toBe(true);
         expect(el.querySelector<HTMLDivElement>(".ribbon.right")!.title).toBe("Flagged for deletion and pending for approval.");
+      });
+    });
+
+    describe("duration", () => {
+      it("renders nothing for a post without a duration", async () => {
+        const { ThumbnailEngine, post } = await load();
+        const el = ThumbnailEngine.render(post())![0];
+        expect(el.querySelector(".thm-duration")).toBeNull();
+      });
+
+      it.each([
+        [0.4, "0:01"],
+        [24.83, "0:24"],
+        [60, "1:00"],
+        [604.2, "10:04"],
+        [3599.9, "59:59"],
+        [3600, "1:00:00"],
+        [3725, "1:02:05"],
+      ])("formats %s seconds as %s", async (duration, expected) => {
+        const { ThumbnailEngine, post } = await load();
+        const el = ThumbnailEngine.render(post({ file_ext: "webm", duration }))![0];
+        expect(el.querySelector("a.thm-link > .thm-duration")!.textContent).toBe(expected);
+        expect(el.dataset.duration).toBe(String(duration));
       });
     });
 

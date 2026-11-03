@@ -13,6 +13,9 @@ class PostThumbnailBlueprint < Blueprinter::Base
   field :image_width, name: :width
   field :image_height, name: :height
   field :file_size, name: :size
+  field :duration do |post|
+    post.duration&.to_f
+  end
 
   field :preview_url do |post|
     post.visible? ? post.preview_file_url : nil
