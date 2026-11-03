@@ -23,7 +23,7 @@ ul.tag-list {
     background: theme.color("section");
     border: 0.125rem solid theme.color("section-lighten-5");
     border-left-width: 0.25rem;
-    @include st-radius;
+    border-radius: 0.25rem;
 
     @each $tag-category, $tag-category-name in $tag-categories {
       &.tag-#{$tag-category-name} {
@@ -46,7 +46,7 @@ ul.tag-list {
   .tag-list-inc,
   .tag-list-exl,
   .tag-list-count {
-    @include st-padding-yx(025, 050);
+    padding: 0.25rem 0.5rem;
     user-select: none;
   }
 
@@ -57,7 +57,7 @@ ul.tag-list {
     .tag-list-name {
       border: 1px solid theme.color("section-lighten-5");
       border-width: 0 1px 0 1px;
-      @include st-padding;
+      padding: 0.25rem;
 
       .hisc { color: transparent; }
     }

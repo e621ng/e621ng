@@ -63,14 +63,14 @@ input:disabled {
 // Password validation
 .password-input {
   input[type="password"] {
-    border-radius: radius() radius() 0 0 !important;
+    border-radius: 0.25rem 0.25rem 0 0 !important;
     padding-bottom: 0 !important;
   }
 
   .password-strength {
     width: 100%;
     height: 0.25rem;
-    border-radius: 0 0 radius() radius() !important;
+    border-radius: 0 0 0.25rem 0.25rem !important;
 
     background: white;
     overflow: hidden;

@@ -8,8 +8,8 @@
 
   margin: 0.5rem 0;
   padding: 0.5rem;
-  @include st-padding(050);
-  @include st-radius;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
 
   border-left: 0.25rem solid theme.color("tag-artist");
 

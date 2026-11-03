@@ -1,4 +1,3 @@
-@use "sass:math";
 @use "colors/palette";
 @use "colors/theme";
 
@@ -6,7 +5,6 @@
 // Could be applied to either a button or a link
 // Semi-expected to have an icon
 .st-button {
-  $button-font-size: st-value(100);
   $button-background: theme.color("section-lighten-5");
   $button-background-hover: theme.color("section-lighten-10");
   $button-text-color: theme.color("text");
@@ -15,16 +13,16 @@
   $button-stealth-color-hover: theme.color("link-hover");
 
   display: inline-flex;
-  gap: math.div(st-value(100), 4);
-  border-radius: radius(025);
+  gap: 0.25rem;
+  border-radius: 0.25rem;
 
   // Button final size
   // Font           1rem
   // Padding  2 * 0.5rem
-  font-size: st-value(100);
-  line-height: st-value(100);
-  padding: math.div(st-value(100), 2);
-  height: st-value(100) * 2;
+  font-size: 1rem;
+  line-height: 1rem;
+  padding: 0.5rem;
+  height: 2rem;
   box-sizing: border-box;
   justify-content: center;
   align-items: center;
@@ -43,12 +41,12 @@
   & > svg {
     // Icon should be slightly larger than text,
     // with padding to fill the entire button height
-    height: st-value(100) * 1.5;      // 1.5rem
-    width: st-value(100) * 1.5;       // 1.5rem
-    margin: -#{math.div(st-value(100), 2)} 0;  // 0.5rem
-    padding: math.div(st-value(100), 4);       // 0.25rem
+    height: 1.5rem;
+    width: 1.5rem;
+    margin: -0.5rem 0;
+    padding: 0.25rem;
 
-    border-radius: radius(025);
+    border-radius: 0.25rem;
     pointer-events: none; // Simplifies event targetting
   }
   & > span {
@@ -64,7 +62,7 @@
 
   &.stealth {
     background: none;
-    padding: math.div(st-value(100), 2) 0;
+    padding: 0.5rem 0;
 
     svg { background: $button-background; }
     span { color: $button-stealth-color; }
@@ -75,7 +73,7 @@
   }
 
   &.icon {
-    padding: math.div(st-value(100), 2) 0;
+    padding: 0.5rem 0;
   }
 
   &.active {
@@ -122,12 +120,12 @@
     border-right: 1px var(--color-foreground) solid;
 
     &:first-child {
-      @include st-radius-left;
+      border-radius: 0.25rem 0 0 0.25rem;
     }
 
     &:last-child {
       border-right: unset;
-      @include st-radius-right;
+      border-radius: 0 0.25rem 0.25rem 0;
     }
   }
 }
@@ -240,7 +238,7 @@ label.sto-toggle {
   position: relative;
 
   cursor: pointer;
-  @include st-radius;
+  border-radius: 0.25rem;
   background-color: theme.color("section-darken-5");
   font-size: 1rem;
   line-height: 1rem;
@@ -259,7 +257,7 @@ label.sto-toggle {
     left: 0rem;
 
     background: theme.color("link-active");
-    @include st-radius;
+    border-radius: 0.25rem;
     transition: left 100ms;
   }
 
@@ -325,8 +323,8 @@ label.sto-toggle--tri {
     user-select: none;
     cursor: pointer;
 
-    &:first-of-type { @include st-radius-top;}
-    &:last-of-type { @include st-radius-bottom;}
+    &:first-of-type { border-radius: 0.25rem 0.25rem 0 0;}
+    &:last-of-type { border-radius: 0 0 0.25rem 0.25rem;}
 
     svg {
       width: 1rem;
@@ -337,7 +335,7 @@ label.sto-toggle--tri {
   input[type="checkbox"]:checked + label {
     background: theme.color("link-active");
     color: palette.color("plain-black");
-    @include st-radius;
+    border-radius: 0.25rem;
   }
 }
 

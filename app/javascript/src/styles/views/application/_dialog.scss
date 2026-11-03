@@ -27,7 +27,7 @@
     background: theme.color("section");
     border: 1px solid theme.color("section-darken-5");
     box-sizing: border-box;
-    @include st-radius;
+    border-radius: 0.25rem;
     box-shadow: 0 0 0.5rem -1px theme.color("background");
 
     .simple_form { margin: 0; }
@@ -35,7 +35,7 @@
     // === Header Element ===
     &-header {
       display: flex;
-      @include st-radius-top;
+      border-radius: 0.25rem 0.25rem 0 0;
       cursor: grab;
       height: 2rem; // Dialog.ts falls back to this while the dialog is hidden
       touch-action: none; // Touch drags must not scroll the page

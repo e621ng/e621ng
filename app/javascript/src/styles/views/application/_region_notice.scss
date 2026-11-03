@@ -13,7 +13,7 @@
   color: theme.color("text");
   background: theme.color("section");
   border: 1px solid theme.color("section-darken-5");
-  @include st-radius;
+  border-radius: 0.25rem;
   box-shadow: 0 1rem 3rem #0008;
 
   &::backdrop {

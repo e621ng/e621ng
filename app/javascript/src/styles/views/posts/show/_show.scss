@@ -148,7 +148,7 @@ body.c-posts.a-show-seq {
       font-size: 1rem;
       line-height: 1rem;
       padding: 0.5rem 1rem;
-      @include st-radius-top;
+      border-radius: 0.25rem 0.25rem 0 0;
     }
   }
 

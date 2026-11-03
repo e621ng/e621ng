@@ -92,7 +92,7 @@ body.c-favorites.a-index {
       box-sizing: border-box;
       margin-top: 0.25rem;
       padding: 0.25rem;
-      @include st-radius;
+      border-radius: 0.25rem;
       text-align: center;
     }
   }

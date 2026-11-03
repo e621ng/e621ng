@@ -12,7 +12,7 @@
     flex: 1 0 0;
 
     background-color: theme.color("section");
-    @include st-radius;
+    border-radius: 0.25rem;
     padding: 1rem;
     box-sizing: border-box;
 
@@ -29,7 +29,7 @@
     flex-direction: column;
     gap: 0.5rem;
 
-    @include st-max-width;
+    max-width: 50rem;
     padding: 0.75rem 0;
     border-bottom: 1px solid theme.color("section-darken-5");
 
@@ -105,7 +105,7 @@
 #uploader .similar-posts {
   min-height: 10.5rem;
   padding: 0.5rem;
-  @include st-radius;
+  border-radius: 0.25rem;
   background: theme.color("section-lighten-5");
   box-sizing: border-box;
 
@@ -144,7 +144,7 @@
         width: 8rem;
         height: 8rem;
         object-fit: cover;
-        @include st-radius;
+        border-radius: 0.25rem;
       }
 
       // Viewer-hidden match (deleted / safe-mode blocked): no thumbnail to show.
@@ -159,7 +159,7 @@
         text-align: center;
         font-size: 0.85rem;
         background: theme.color("section-darken-5");
-        @include st-radius;
+        border-radius: 0.25rem;
         box-sizing: border-box;
       }
 
@@ -298,7 +298,7 @@
     text-align: center;
     white-space: nowrap;
     user-select: none;
-    @include st-radius;
+    border-radius: 0.25rem;
 
     &.active {
       background-color: theme.color("button-active");
@@ -319,7 +319,7 @@
       width: 8rem;
       height: 8rem;
       object-fit: cover;
-      @include st-radius;
+      border-radius: 0.25rem;
     }
   }
 }
@@ -342,5 +342,5 @@
 
 // Upload limit warning
 body.c-uploads.a-new #post-uploads-remaining {
-  @include st-max-width;
+  max-width: 50rem;
 }

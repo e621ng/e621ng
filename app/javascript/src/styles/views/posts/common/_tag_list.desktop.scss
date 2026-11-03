@@ -24,13 +24,13 @@ ul.tag-list {
   .tag-list-wiki,
   .tag-list-inc,
   .tag-list-exl {
-    @include st-padding-lr;
+    padding: 0 0.25rem;
   }
 
   // Section 2: Tag Data
   .tag-list-search {
     display: block;
-    @include st-padding-lr;
+    padding: 0 0.25rem;
 
     .tag-list-name {
       border: 0;
@@ -39,7 +39,7 @@ ul.tag-list {
 
     .tag-list-count {
       display: inline-block;
-      @include st-padding-lr;
+      padding: 0 0.25rem;
     }
   }
 

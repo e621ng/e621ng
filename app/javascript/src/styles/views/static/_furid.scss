@@ -18,7 +18,7 @@
     padding: 0.5rem;
 
     background: theme.color("section-lighten-5");
-    @include st-radius;
+    border-radius: 0.25rem;
 
     @include breakpoints.above(51rem) {
       grid-column-start: 2;

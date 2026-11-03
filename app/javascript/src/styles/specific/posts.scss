@@ -283,7 +283,7 @@ div#c-posts {
 
 // Shared by posts#index and favorites#index
 div#quick-edit-div {
-  @include st-max-width;
+  max-width: 50rem;
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.2s ease-out;

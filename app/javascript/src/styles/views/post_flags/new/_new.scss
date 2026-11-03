@@ -34,8 +34,8 @@
       gap: 0.5rem;
       cursor: pointer;
 
-      &:first-of-type { @include st-radius-top; }
-      &:last-of-type { @include st-radius-bottom; }
+      &:first-of-type { border-radius: 0.25rem 0.25rem 0 0; }
+      &:last-of-type { border-radius: 0 0 0.25rem 0.25rem; }
       &:hover {
         background-color: theme.color("section-lighten-10");
       }
@@ -64,7 +64,7 @@
       margin-left: 0.25rem;
 
       background: palette.color("background-red");
-      @include st-radius;
+      border-radius: 0.25rem;
     }
 
     // Option explanation
@@ -78,7 +78,7 @@
       background: theme.color("section");
       margin-bottom: 1rem;
       padding: 0.5rem 1rem;
-      @include st-radius;
+      border-radius: 0.25rem;
       max-width: 20rem;
 
       div.input {

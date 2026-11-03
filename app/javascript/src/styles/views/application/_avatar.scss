@@ -7,14 +7,14 @@ nav.navigation .simple-avatar {
   .avatar-name {
     color: inherit;
     display: none;
-    @include st-radius-left;
+    border-radius: 0.25rem 0 0 0.25rem;
     touch-action: manipulation;
   }
 
   .avatar-image {
     padding: 0;
     border-radius: 0;
-    @include st-radius-left;
+    border-radius: 0.25rem 0 0 0.25rem;
     overflow: hidden;
     position: relative;
     background: theme.color("section");
@@ -43,7 +43,7 @@ nav.navigation .simple-avatar {
   }
 
   .avatar-more {
-    @include st-radius-right;
+    border-radius: 0 0.25rem 0.25rem 0;
     padding: 0;
     min-width: unset;
     position: relative;
@@ -74,7 +74,7 @@ nav.navigation .simple-avatar {
     }
 
     .avatar-image {
-      @include st-radius-right;
+      border-radius: 0 0.25rem 0.25rem 0;
     }
   }
 
@@ -99,7 +99,7 @@ nav.navigation .simple-avatar {
       height: 3rem;
       width: 3rem;
       margin-top: 0.25rem;
-      @include st-radius-left;
+      border-radius: 0.25rem 0 0 0.25rem;
       background: theme.color("foreground");
 
       img {
@@ -119,7 +119,7 @@ nav.navigation .simple-avatar {
 
     &.auth-login-link {
       .avatar-image {
-        @include st-radius;
+        border-radius: 0.25rem;
       }
     }
   }
@@ -146,7 +146,7 @@ nav.navigation .simple-avatar-menu {
 
   background: theme.color("section");
   box-shadow: 0px 2px 4px -1px theme.color("background");
-  @include st-radius;
+  border-radius: 0.25rem;
 
   &.hidden { display: none; }
 
@@ -170,7 +170,7 @@ nav.navigation .simple-avatar-menu {
 
       margin: -0.25rem 0;
       padding: 0.25rem;
-      @include st-radius;
+      border-radius: 0.25rem;
     }
 
     &.secondary {
@@ -262,7 +262,7 @@ div.savm-profile {
 
       width: 2rem;
       height: 2rem;
-      @include st-radius;
+      border-radius: 0.25rem;
       background: theme.color("section-darken-5");
 
       picture {

@@ -20,7 +20,7 @@
   .ticket-warning {
     display: block;
     background: theme.color("section-lighten-5");
-    @include st-radius;
+    border-radius: 0.25rem;
     padding: 0.5rem;
     margin-bottom: 1rem;
   
@@ -36,7 +36,7 @@
     gap: 0.5em;
 
     background: theme.color("section-lighten-5");
-    @include st-radius;
+    border-radius: 0.25rem;
     padding: 0.5rem;
     margin-bottom: 1rem;
     margin-top: 1rem;
@@ -57,8 +57,8 @@
       color: palette.color("text-white");
       padding: 0.25rem;
 
-      &:first-child { @include st-radius-top; }
-      &:last-child { @include st-radius-bottom; }
+      &:first-child { border-radius: 0.25rem 0.25rem 0 0; }
+      &:last-child { border-radius: 0 0 0.25rem 0.25rem; }
     }
   }
 
@@ -90,8 +90,8 @@
       gap: 0.5rem;
       cursor: pointer;
 
-      &:first-child { @include st-radius-top; }
-      &:last-child { @include st-radius-bottom; }
+      &:first-child { border-radius: 0.25rem 0.25rem 0 0; }
+      &:last-child { border-radius: 0 0 0.25rem 0.25rem; }
       &:hover { background-color: theme.color("section-lighten-10"); }
       &.selected { background-color: theme.color("section-lighten-5"); }
     }
@@ -109,7 +109,7 @@
   // Redirects to other pages
   .report-unusual {
     background: theme.color("section");
-    @include st-radius;
+    border-radius: 0.25rem;
     padding: 1rem;
 
     .report-unusual-buttons {

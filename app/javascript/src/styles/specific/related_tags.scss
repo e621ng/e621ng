@@ -12,7 +12,7 @@ div.related-tags {
   box-sizing: border-box;
 
   background: theme.color("section-lighten-5");
-  @include st-radius;
+  border-radius: 0.25rem;
 
   .related-section {
     display: flex;
@@ -34,7 +34,7 @@ div.related-tags {
 
     background: rgba(1, 1, 1, 0.15);
     border: 1px solid rgba(0, 0, 0, 0.15);
-    @include st-radius;
+    border-radius: 0.25rem;
 
     .related-item {
       max-width: 15rem;

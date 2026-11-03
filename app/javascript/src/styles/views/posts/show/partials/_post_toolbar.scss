@@ -30,7 +30,7 @@
 // Voting section
 #ptbr-wrapper .ptbr-vote {
   display: flex;
-  @include st-radius;
+  border-radius: 0.25rem;
   position: relative;
 
 
@@ -38,8 +38,8 @@
   button {
     svg { margin: -0.5rem -0.5rem; }  // Makes buttons square
 
-    &[data-action="-1"] { @include st-radius-right; }
-    &[data-action="1"] { @include st-radius-left; }
+    &[data-action="-1"] { border-radius: 0 0.25rem 0.25rem 0; }
+    &[data-action="1"] { border-radius: 0.25rem 0 0 0.25rem; }
   }
 
   // Vote states
@@ -79,7 +79,7 @@
 
     &.anonymous {
       border-color: transparent;
-      @include st-radius;
+      border-radius: 0.25rem;
     }
   }
 
@@ -101,7 +101,7 @@
     font-family: "Roboto", Verdana, Geneva, sans-serif;
     font-size: 1rem;
     line-height: 1rem;
-    @include st-radius;
+    border-radius: 0.25rem;
 
     box-shadow: 0 0 0.5rem black;
 
@@ -176,7 +176,7 @@
 // Share button
 #ptbr-share-menu {
   background: theme.color("section-lighten-5");
-  @include st-radius;
+  border-radius: 0.25rem;
   padding: 0.75rem 0.5rem;
 
   &.hidden { display: none; }
@@ -191,8 +191,8 @@
     max-width: 20rem;
 
     background: theme.color("foreground");
-    @include st-radius;
-    @include st-padding(050);
+    border-radius: 0.25rem;
+    padding: 0.5rem;
 
     input {
       background: transparent;
@@ -277,7 +277,7 @@
   margin-top: 0.5rem;
 
   background: theme.color("section");
-  @include st-radius;
+  border-radius: 0.25rem;
   box-shadow: 0 0 0.5rem -0.25rem theme.color("background");
 
   &.hidden { display: none; }

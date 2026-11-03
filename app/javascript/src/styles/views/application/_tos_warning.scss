@@ -55,7 +55,7 @@ body.scroll-lock {
     padding: 0.5rem;
 
     background: theme.color("foreground");
-    @include st-radius;
+    border-radius: 0.25rem;
   }
 
   &-text {
@@ -68,7 +68,7 @@ body.scroll-lock {
     color: black;
     font-size: 0.85rem;
     line-height: 1rem;
-    @include st-radius;
+    border-radius: 0.25rem;
 
     overflow: hidden auto;
 
