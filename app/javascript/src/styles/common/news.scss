@@ -1,4 +1,4 @@
-
+@use "base/breakpoints";
 
 div#page div#news {
   display: flex;
@@ -6,7 +6,7 @@ div#page div#news {
   align-items: center;
 
   padding: 0;
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     margin: -0.5rem -0.5rem 0.5rem;
   }
   border-radius: 0.25rem;

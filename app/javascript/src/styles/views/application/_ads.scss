@@ -1,13 +1,15 @@
+@use "base/breakpoints";
+
 .adzone-wrapper {
   display: flex;
   justify-content: center;
   margin-bottom: 0.5rem; // Account for the post counter height
 
   &[data-has-mobile="false"] {
-    @include window-smaller-than(800px, true) { display: none; }
+    @include breakpoints.mobile { display: none; }
   }
   &[data-has-desktop="false"] {
-    @include window-larger-than(800px, false) { display: none; }
+    @include breakpoints.desktop { display: none; }
   }
 
   .adzone {
@@ -22,7 +24,7 @@
       width: 100%;
       aspect-ratio: 320 / 100; // Prevent layout shift when the ad loads
 
-      @include window-larger-than(800px, true) {
+      @include breakpoints.desktop {
         max-height: 90px;
         max-width: 728px;
         aspect-ratio: 728 / 90;
@@ -39,7 +41,7 @@
       // Extra margin to move it away from the UI
       margin-top: 3rem;
 
-      @include window-larger-than(800px, true) {
+      @include breakpoints.desktop {
         max-height: 600px;
         max-width: 160px;
         aspect-ratio: 160 / 600;
@@ -58,6 +60,6 @@
 }
 
 // Work around the post count margin
-@include window-larger-than(1300px) {
+@include breakpoints.above(1300px) {
   #c-posts #a-index .adzone-wrapper { margin-bottom: unset; }
 }

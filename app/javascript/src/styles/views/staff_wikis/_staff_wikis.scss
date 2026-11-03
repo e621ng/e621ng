@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 body.c-staff-wikis.a-show #page {
   padding: 0;
@@ -49,7 +50,7 @@ body.c-staff-wikis.a-show #bulk-import-dialog {
     box-shadow: inset 0 0.25rem .25rem -.25rem theme.color("background");
   }
 
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     grid-template-columns: auto min-content;
 
     .staff-wiki-content {

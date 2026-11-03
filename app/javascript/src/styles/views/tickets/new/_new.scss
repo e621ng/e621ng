@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 #c-tickets #a-new {
   h2 {
@@ -69,7 +70,7 @@
     gap: 1rem;
     margin-bottom: 1rem;
 
-    @include window-larger-than(50rem) {
+    @include breakpoints.desktop {
       flex-flow: row;
     }
   }

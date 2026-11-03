@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 .profile-user-info {
   display: grid;
@@ -7,8 +8,8 @@
   background: theme.color("section");
   @include st-radius;
 
-  @include window-larger-than(38rem) { grid-template-columns: 1fr 1fr; }
-  @include window-larger-than(50rem) { grid-template-columns: 1fr; }
+  @include breakpoints.above(38rem) { grid-template-columns: 1fr 1fr; }
+  @include breakpoints.desktop { grid-template-columns: 1fr; }
 
   .profile-line {
     display: grid;

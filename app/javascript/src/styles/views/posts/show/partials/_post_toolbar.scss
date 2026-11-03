@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 // Post Toolbar
 #ptbr-wrapper {
@@ -10,7 +11,7 @@
   margin: 0.5rem 0;
   gap: 0.75rem 0.5rem;
 
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     justify-content: flex-start;
   }
 }

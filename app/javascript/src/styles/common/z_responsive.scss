@@ -1,8 +1,10 @@
+@use "base/breakpoints";
+
 .mobile-only {
   display: none;
 }
 
-@media screen and (max-width: 800px) {
+@include breakpoints.mobile {
   .mobile-only {
     display: unset;
   }
@@ -162,7 +164,7 @@
   }
 }
 
-@media screen and (max-width: 660px) {
+@include breakpoints.below(660px) {
   body.resp {
     #c-forum-topics, #c-forum-posts {
 
@@ -177,7 +179,7 @@
   }
 }
 
-@media screen and (max-width: 440px) {
+@include breakpoints.below(440px) {
   body.resp {
     body {
       width: 100%;

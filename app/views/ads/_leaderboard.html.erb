@@ -24,8 +24,9 @@
       <%= javascript_tag nonce: true do -%>
         (function() {
           var zones = <%= raw(Danbooru.config.ads_config[:areas][area].to_json) %>;
-          var zone = (window.innerWidth || screen.width) < 800 ? zones.mobile : zones.desktop;
-          if (!zone.zone) return;
+          // Mirrors breakpoints.$desktop in base/_breakpoints.scss
+          var zone = window.matchMedia("(min-width: 50rem)").matches ? zones.desktop : zones.mobile;
+          if (!zone || !zone.zone) return;
 
           var el = document.getElementById('ad-insert-element-<%= area.to_s %>');
           if (!el) return;

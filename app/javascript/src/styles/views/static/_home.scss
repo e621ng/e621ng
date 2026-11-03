@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 body.c-static.a-home {
   background: #012e57; // I am certain this was needed for something
@@ -46,7 +47,7 @@ body.c-static.a-home {
     pointer-events: none;
 
     // Offset for the navbar
-    @include window-larger-than(50rem) { margin-top: -3.75rem; }
+    @include breakpoints.desktop { margin-top: -3.75rem; }
   }
 
 

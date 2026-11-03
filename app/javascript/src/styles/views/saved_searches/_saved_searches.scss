@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 #c-saved-searches #a-index {
   .saved-search-header {
@@ -97,7 +98,7 @@
     border-radius: 1rem;
   }
 
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     .saved-search-header {
       flex-direction: row;
     }
@@ -183,7 +184,7 @@
     white-space: nowrap;
   }
 
-  @include window-smaller-than(30rem) {
+  @include breakpoints.below(30rem) {
     .tag-subscription-item {
       grid-template-columns: minmax(0, 1fr) auto;
     }

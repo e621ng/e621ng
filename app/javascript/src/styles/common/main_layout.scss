@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 div#search {
   margin-bottom: 1em;
@@ -15,7 +16,7 @@ div#page {
   overflow: visible;
   padding: $padding-050 $padding-025 theme.get("content-padding-bottom");
 
-  @include window-larger-than(800px) {
+  @include breakpoints.desktop {
     border-radius: $border-radius-full;
     margin: 0.5rem 1rem 0;
     padding-left: $padding-050;

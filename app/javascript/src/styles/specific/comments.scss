@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 div.comments-for-post {
   div.notices {
@@ -107,7 +108,7 @@ div#c-comments {
 }
 
 
-@media screen and (max-width: 800px) {
+@include breakpoints.mobile {
   body.resp {
     div#c-comments {
       div#a-index {

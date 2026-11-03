@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 $image-size: var(--thumb-image-size, 150px);
 $image-min: var(--thumb-image-min, 135px);
@@ -23,7 +24,7 @@ section.posts-container {
   --thumb-image-size: 200px;
   --thumb-image-min: 180px;
   --thumb-image-max: 220px;
-  @include window-larger-than(800px, $or-equal: true) {
+  @include breakpoints.desktop {
     grid-template-columns: repeat(auto-fill, minmax(#{$image-min}, 1fr));
   }
 
@@ -419,7 +420,7 @@ article.thumbnail.avatar {
     --thumb-image-size: #{$width};
     --thumb-image-min: #{$min};
     --thumb-image-max: #{$max};
-    @include window-smaller-than(800px) {
+    @include breakpoints.mobile {
       grid-template-columns: repeat(#{$cols}, 1fr);
     }
   }
@@ -428,7 +429,7 @@ body section.posts-container.default-size { --thumb-image-size: 200px; }
 
 // Hide comments on small thumbnails
 body:not([data-st-size="l"]) article.thumbnail {
-  @include window-smaller-than(500px) {
+  @include breakpoints.below(500px) {
     .thm-desc {
       grid-template-columns: auto 0.75rem;
       .thm-comments { display: none; }

@@ -1,3 +1,5 @@
+@use "base/breakpoints";
+
 body.c-db-exports.a-index {
   .exports-description {
     margin-bottom: 1.5rem;
@@ -52,14 +54,14 @@ body.c-db-exports.a-index {
         border-bottom: none;
       }
 
-      @media (min-width: 801px) {
+      @include breakpoints.desktop {
         &:hover .cell {
           background-color: var(--color-section-lighten-10);
         }
       }
     }
 
-    @media (max-width: 800px) {
+    @include breakpoints.mobile {
       grid-template-columns: 1fr;
       gap: 1rem;
 

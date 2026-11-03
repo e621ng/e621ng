@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 body.c-oauth-applications.a-index,
 body.c-oauth-applications.a-mine {
@@ -99,14 +100,14 @@ body.c-oauth-authorized-applications {
         border-bottom: none;
       }
 
-      @media (min-width: 801px) {
+      @include breakpoints.desktop {
         &:hover .cell {
           background-color: var(--color-section-lighten-10);
         }
       }
     }
 
-    @media (max-width: 800px) {
+    @include breakpoints.mobile {
       grid-template-columns: 1fr;
       gap: 1rem;
 

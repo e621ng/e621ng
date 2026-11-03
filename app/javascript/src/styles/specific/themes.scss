@@ -1,9 +1,11 @@
+@use "base/breakpoints";
+
 .theme-form {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.5rem 1rem;
 
-  @include window-larger-than(30rem) {
+  @include breakpoints.above(30rem) {
     grid-template-columns: min-content auto;
     max-width: 30rem;
     gap: 1rem;

@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 // Post replacement cards — a collapsible timeline of status-colored cards.
 // Rendered by PostReplacementCardComponent; used on the replacements index
@@ -89,7 +90,7 @@ $replacement-variants: (
                        "repl-dot repl-thumb"
                        "repl-dot repl-body";
 
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     grid-template-areas: "repl-dot repl-head  repl-head"
                         "repl-dot repl-thumb repl-body";
     grid-template-columns: min-content 256px auto;
@@ -307,7 +308,7 @@ $replacement-variants: (
   .replacement-action-spacer { margin-left: auto; }
 }
 
-@include window-smaller-than(35rem) {
+@include breakpoints.below(35rem) {
   .replacement-card-actions .replacement-approve-action,
   .replacement-card-actions .replacement-reject-action {
     flex: 1;

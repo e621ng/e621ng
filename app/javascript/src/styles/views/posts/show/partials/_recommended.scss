@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 div#post-recommendations {
   display: grid;
@@ -28,7 +29,7 @@ div#post-recommendations {
       }
     }
 
-    @include window-smaller-than(30rem) {
+    @include breakpoints.below(30rem) {
       .desktop-only { display: none; }
     }
   }
@@ -63,7 +64,7 @@ div#post-recommendations {
     scrollbar-width: none; /* Firefox */
     &::-webkit-scrollbar { display: none; }
 
-    @include window-smaller-than(30rem) {
+    @include breakpoints.below(30rem) {
       --thumb-image-size: calc((100vw - 2.55rem) / 3);
       height: unset;
       min-height: calc(2* (var(--thumb-image-size) + 1.25rem));

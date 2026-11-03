@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 nav.navigation .simple-avatar {
 
@@ -78,13 +79,13 @@ nav.navigation .simple-avatar {
   }
 
   // Tablet
-  @include window-larger-than(34rem) {
+  @include breakpoints.above(34rem) {
     .avatar-name { display: flex; }
     .avatar-image { border-radius: 0; }
   }
 
   // Desktop
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     .avatar-name {
       background: theme.color("background");
       color: inherit;
@@ -125,7 +126,7 @@ nav.navigation .simple-avatar {
 }
 
 // do not show avatar name background if we're on the home page and on desktop layout
-@include window-larger-than(50rem) {
+@include breakpoints.desktop {
   body.a-home nav.navigation .simple-avatar .avatar-name {
     background: none;
   }
@@ -197,12 +198,12 @@ nav.navigation .simple-avatar-menu {
   }
 
   // Mobile, Reasonable
-  @include window-larger-than(21rem) {
+  @include breakpoints.above(21rem) {
     right: 4.25rem;
   }
 
   // Desktop
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     right: 0;
   }
 }

@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 .dmail-notice {
   display: flex;
@@ -13,7 +14,7 @@
   border-radius: 0;
 
   margin: 0.5rem; // Squished on mobile otherwise
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     margin: 0;
   }
 

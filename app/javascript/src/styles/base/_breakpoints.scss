@@ -1,13 +1,28 @@
-@mixin window-larger-than($value, $or-equal: false) {
-  @if $or-equal { $value: $value - 0.1px; }
-  @media (min-width: $value) {
+// Desktop layout starts here. Mirrored in MobileTabs.ts and ads/_leaderboard.html.erb.
+$desktop: 50rem;
+
+// width >= $width
+@mixin above($width) {
+  @media (min-width: $width) {
     @content;
   }
 }
 
-@mixin window-smaller-than($value, $or-equal: false) {
-  @if $or-equal { $value: $value + 0.1px; }
-  @media (max-width: $value) {
+// width < $width; the exact complement of above()
+@mixin below($width) {
+  @media not all and (min-width: $width) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @include above($desktop) {
+    @content;
+  }
+}
+
+@mixin mobile {
+  @include below($desktop) {
     @content;
   }
 }

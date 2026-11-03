@@ -44,7 +44,8 @@ export default class MobileTabs {
     });
 
     // Comment anchor links will not work on mobile unless the user has the comments tab open.
-    if (window.innerWidth > 800 || CStorage.Posts.MobileTabState === "comments") return;
+    // Mirrors breakpoints.$desktop in base/_breakpoints.scss
+    if (window.matchMedia("(min-width: 50rem)").matches || CStorage.Posts.MobileTabState === "comments") return;
     const commentID = window.location.hash.match(/^#?comment-(\d+)/)?.[1];
     if (!commentID) return;
     const comment = $(`article[data-comment-id="${commentID}"]`);

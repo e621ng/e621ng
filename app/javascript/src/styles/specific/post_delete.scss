@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 div#c-confirm-delete {
 
@@ -17,7 +18,7 @@ div#c-confirm-delete {
     margin-bottom: 0.5rem;
 
     flex-flow: column;
-    @include window-larger-than(500px) {
+    @include breakpoints.above(500px) {
       flex-flow: row;
     }
 

@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 .posts-section {
   display: flex;
@@ -7,7 +8,7 @@
 
   // Hack to fix spacing on mobile
   margin-top: 1rem;
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     margin-top: 0;
   }
 
@@ -18,7 +19,7 @@
                    "p-posts";
     gap: 0.5em 0;
 
-    @include window-larger-than(50rem) {
+    @include breakpoints.desktop {
       grid-template: "p-header p-links"
                      "p-posts p-posts";
       grid-template-columns: 12em 1fr;
@@ -56,7 +57,7 @@
       width: 100%;
     }
 
-    @include window-larger-than(800px) {
+    @include breakpoints.desktop {
       a { border-radius: 6px 6px 0 0; }
     }
   }
@@ -79,7 +80,7 @@
       grid-column: 3;
     }
 
-    @include window-larger-than(50rem) {
+    @include breakpoints.desktop {
       display: flex;
       a { height: min-content; }
       .spacer { display: block; }
@@ -100,7 +101,7 @@
     border-radius: 6px;
 
     // Desktop
-    @include window-larger-than(50rem) {
+    @include breakpoints.desktop {
       flex-wrap: nowrap;
       border-top-left-radius: 0;
       justify-content: flex-start;

@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 #c-wiki-pages, #c-wiki-page-versions {
   #a-show #content {
@@ -25,7 +26,7 @@
     &.wiki-featured-hero article.thumbnail {
       --thumb-image-size: 380px;
 
-      @include window-smaller-than(30rem) {
+      @include breakpoints.below(30rem) {
         img { max-width: calc(100vw - 1rem); }
       }
     }

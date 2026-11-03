@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 nav.pagination {
   display: flex;
@@ -65,7 +66,7 @@ nav.pagination {
 
 
   // Tablet
-  @include window-larger-than(35rem) {
+  @include breakpoints.above(35rem) {
     justify-content: center;
     gap: 0.125rem;
 
@@ -81,7 +82,7 @@ nav.pagination {
     .next { margin-left: 1rem; }
   }
 
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     a, span, button {
       padding: 0.75rem 0.5rem;
       font-size: 0.95rem;

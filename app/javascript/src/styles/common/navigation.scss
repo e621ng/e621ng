@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 nav.navigation {
   display: grid;
@@ -228,7 +229,7 @@ body[data-th-stickyheader="true"] nav.navigation {
   position: sticky;
   top: 0;
 
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     background-color: theme.color("background");
     background-image: theme.image("background");
     background-position: theme.image("background-position");
@@ -238,7 +239,7 @@ body[data-th-stickyheader="true"] nav.navigation {
 }
 body.c-static.a-home[data-th-stickyheader="true"] nav.navigation {
   // do not alter background on home page
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     background: transparent;
   }
 }
@@ -260,7 +261,7 @@ li.notification {
     right: 0.2rem;
     top: 1.25rem;
 
-    @include window-larger-than(50rem) {
+    @include breakpoints.desktop {
       top: 0.2rem;
     }
   }
@@ -353,7 +354,7 @@ html.nav-toggled {
 
 // Desktop
 nav.navigation, html.nav-toggled nav.navigation {
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     grid-template-areas:
       "logo primary   help      help  controls"
       "logo secondary secondary tools controls";
@@ -513,14 +514,14 @@ nav.navigation, html.nav-toggled nav.navigation {
 
 // Anonymous desktop tweak
 body[data-user-is-anonymous="true"] nav.navigation {
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     grid-template-columns: min-content min-content minmax(0, 1fr) min-content 3.25rem;
   }
 }
 
 // Tweak for the secondary menu on desktop
 body.c-static.a-home {
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     nav.navigation {
       grid-template-areas:
         "logo primary  help  .     controls"
@@ -545,7 +546,7 @@ body.c-static.a-home {
     menu.nav-tools { border-radius: 0.25rem; }
   }
 
-  @include window-smaller-than(50rem) {
+  @include breakpoints.mobile {
     // Only show the primary navbar on mobile
     // since the secondary is empty anyways
     nav.navigation {
