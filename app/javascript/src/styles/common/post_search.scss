@@ -1,3 +1,5 @@
+@use "base/breakpoints";
+
 // Searchbar
 .post-search {
   display: flex;
@@ -15,7 +17,7 @@
 
     // Make way for the settings button
     margin-right: 5rem;
-    @include window-larger-than(50rem) {
+    @include breakpoints.desktop {
       margin-right: unset;
     }
 
@@ -78,7 +80,7 @@
       }
     }
 
-    @include window-larger-than(800px) {
+    @include breakpoints.desktop {
       textarea { font-size: 0.85rem; }
       button[type="submit"] svg {
         height: 1.25rem;

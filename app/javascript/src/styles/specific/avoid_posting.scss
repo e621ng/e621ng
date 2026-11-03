@@ -1,3 +1,5 @@
+@use "base/breakpoints";
+
 #c-static #a-avoid-posting {
   margin-left: 0.25em;
 
@@ -55,7 +57,7 @@
     }
   }
 
-  @media screen and (max-width: 800px) {
+  @include breakpoints.mobile {
     table.dnp-list {
       thead {
         display: block;

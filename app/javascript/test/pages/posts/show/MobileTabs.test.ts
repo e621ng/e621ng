@@ -1,4 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+function stubViewport (desktop: boolean): void {
+  vi.stubGlobal("matchMedia", vi.fn((query: string) => ({ matches: desktop, media: query })));
+}
 
 function render (): void {
   document.body.innerHTML = `
@@ -7,7 +11,8 @@ function render (): void {
       <button class="post-mobile-tab" data-action="comments" aria-selected="false">Comments</button>
       <button class="post-mobile-tab" data-action="bogus">Bogus</button>
     </div>
-    <div class="go-up"><button>Up</button></div>`;
+    <div class="go-up"><button>Up</button></div>
+    <article data-comment-id="42"></article>`;
 }
 
 async function load () {
@@ -21,6 +26,9 @@ const display = () => document.querySelector<HTMLElement>(".post-display");
 const tab = (action: string) => document.querySelector<HTMLButtonElement>(`.post-mobile-tab[data-action="${action}"]`);
 
 describe("MobileTabs", () => {
+  beforeEach(() => stubViewport(true));
+  afterEach(() => { window.location.hash = ""; });
+
   it("switches tabs and remembers the choice", async () => {
     render();
     const { CStorage } = await load();
@@ -48,5 +56,23 @@ describe("MobileTabs", () => {
 
     document.querySelector<HTMLButtonElement>(".go-up button").click();
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: "smooth" });
+  });
+
+  it("opens the comments tab for a comment anchor on mobile", async () => {
+    stubViewport(false);
+    window.location.hash = "#comment-42";
+    render();
+    await load();
+
+    expect(display().dataset.tabState).toBe("comments");
+    expect(window.matchMedia).toHaveBeenCalledWith("(min-width: 50rem)");
+  });
+
+  it("leaves the tabs alone for a comment anchor on desktop", async () => {
+    window.location.hash = "#comment-42";
+    render();
+    await load();
+
+    expect(display().dataset.tabState).toBe("tags");
   });
 });

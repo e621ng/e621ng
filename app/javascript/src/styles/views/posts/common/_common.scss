@@ -1,5 +1,7 @@
+@use "base/breakpoints";
+
 @import "tag_list";
 
-@include window-larger-than(50rem) {
+@include breakpoints.desktop {
   @import "tag_list.desktop";
 }

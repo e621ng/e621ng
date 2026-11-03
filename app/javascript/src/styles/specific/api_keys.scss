@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 body.c-api-keys.a-index {
   .instructions {
@@ -59,7 +60,7 @@ body.c-api-keys.a-index {
         border-bottom: none;
       }
 
-      @media (min-width: 801px) {
+      @include breakpoints.desktop {
         &:hover .cell {
           background-color: var(--color-section-lighten-10);
         }
@@ -71,7 +72,7 @@ body.c-api-keys.a-index {
       font-weight: bold;
     }
 
-    @media (max-width: 800px) {
+    @include breakpoints.mobile {
       grid-template-columns: 1fr;
       gap: 1rem;
 

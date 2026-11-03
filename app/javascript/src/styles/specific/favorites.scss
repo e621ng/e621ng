@@ -1,11 +1,11 @@
-
+@use "base/breakpoints";
 
 div#c-favorites {
   section#content > h1 {
     font-size: $h3-size;
   }
 
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     .post-index > .sidebar {
       padding-top: 0.5rem;
     }

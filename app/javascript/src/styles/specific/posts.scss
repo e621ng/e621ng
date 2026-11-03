@@ -1,5 +1,6 @@
 @use "colors/palette";
 @use "colors/theme";
+@use "base/breakpoints";
 
 #has-parent-relationship-preview, #has-children-relationship-preview {
   display: flex;
@@ -20,7 +21,7 @@ div#c-posts, div#c-uploads, div#c-post-replacements {
     white-space: nowrap;
     max-width: 90vw;
 
-    @include window-larger-than(50rem) {
+    @include breakpoints.desktop {
       &:hover {
         a, s { background: theme.color("background"); }
         z-index: 2;

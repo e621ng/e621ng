@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 #c-users #a-edit {
 
@@ -188,7 +189,7 @@ tab-submit {
   margin-top: 0.5rem;
 }
 
-@include window-larger-than(50rem) {
+@include breakpoints.desktop {
   tabs-menu {
     input[name="search"] {
       width: unset;

@@ -1,3 +1,5 @@
+@use "base/breakpoints";
+
 .profile-staff-info {
   display: grid;
   grid-template-columns: min-content 1fr;
@@ -10,7 +12,7 @@
   .block { grid-column: 1 / -1; }
   h4.block { margin-bottom: -0.25rem; }
 
-  @include window-larger-than(50rem) {
+  @include breakpoints.desktop {
     grid-template-columns: min-content 1fr min-content 1fr;
   }
 }

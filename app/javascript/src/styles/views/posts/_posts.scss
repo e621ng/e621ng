@@ -1,4 +1,5 @@
 @use "base/settings";
+@use "base/breakpoints";
 
 // Common
 @import "common/common";
@@ -7,7 +8,7 @@
 @import "index/index";
 @import "show/show";
 
-@include window-larger-than(50rem) {
+@include breakpoints.desktop {
   @import "index/index.desktop";
   @import "show/show.desktop";
 }
@@ -18,7 +19,7 @@
 @import "index/partials/info_bar";
 @import "index/partials/settings";
 
-@include window-larger-than(50rem) {
+@include breakpoints.desktop {
   @include settings.when("fullscreen", "true") {
     @import "index/partials/fullscreen";
   }

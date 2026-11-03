@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 /*** Quick Edit Form ***/
 #blacklist-edit-dialog {
@@ -250,7 +251,7 @@ article.blacklisted-user {
     background-size: contain;
     background-color: unset !important; // Prevent custom color from showing through
 
-    @media screen and (max-width: 800px) {
+    @include breakpoints.mobile {
       background-size: 100px !important;
       padding: 100px 100px 0px 0px !important;
     }

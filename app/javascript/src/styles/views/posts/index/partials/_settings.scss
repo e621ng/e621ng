@@ -1,6 +1,7 @@
 @use "colors/palette";
 @use "colors/theme";
 @use "base/settings";
+@use "base/breakpoints";
 
 #advanced-search-container,
 #layout-settings-container {
@@ -118,7 +119,7 @@ tab-entry[tab="blacklist"] textarea {
 }
 
 // Desktop Only
-@include window-larger-than(50rem) {
+@include breakpoints.desktop {
   #advanced-search-container,
   #layout-settings-container {
     top: 0.5rem;

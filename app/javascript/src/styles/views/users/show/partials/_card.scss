@@ -1,4 +1,5 @@
 @use "colors/theme";
+@use "base/breakpoints";
 
 $avatar-height: 4.5rem;
 
@@ -7,7 +8,7 @@ $avatar-height: 4.5rem;
   flex-flow: column;
   gap: 0.5rem;
 
-  @include window-larger-than(30rem) {
+  @include breakpoints.above(30rem) {
     flex-flow: row;
   }
 }
