@@ -1202,13 +1202,21 @@ class Post < ApplicationRecord
     end
 
     ## DB!
+    # Returns all artist tags that have linked users.
+    # Sends a db request to look up the artist data.
+    def artists_with_linked_users
+      @artists_with_linked_users ||= artist_tags.filter_map(&:artist).select(&:linked_user_id?)
+    end
+
+    def verified_artist_tags
+      @verified_artist_tags ||= artists_with_linked_users.map(&:tag)
+    end
+
+    ## DB!
     # Fetches ALL linked users for the post's artist tags and returns the user IDs.
     # Sends a db request to look up the artist data.
     def linked_users
-      @linked_users ||= begin
-        tags = artist_tags.filter_map(&:artist).select(&:linked_user_id?)
-        tags.map(&:linked_user_id)
-      end
+      @linked_users ||= artists_with_linked_users.map(&:linked_user_id)
     end
 
     ## DB!

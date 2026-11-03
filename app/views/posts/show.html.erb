@@ -168,6 +168,21 @@
         </div>
       <% end %>
 
+      <% if CurrentUser.user.is_logged_in? && @post.verified_artist_tags.any? %>
+        <div id="post-artist-subscribe">
+          <% @post.verified_artist_tags.each do |tag| %>
+            <div class="subscribe-banner">
+              <div class="subscribe-banner-name">
+                <%= link_to tag.name, show_or_new_artists_path(name: tag.name), class: "tag-type-#{tag.category}" %>
+              </div>
+              <div class="subscribe-banner-actions">
+                <%= render "wiki_pages/subscribe_button", tag: tag, skip_alias_check: true %>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+
       <section id="note-staging" style="display: none;">
         <% if @post.can_have_notes? && @post.has_notes?  %>
           <% cache("p/#{@post.id}/n/#{@post.last_noted_at.to_i}") do %>
