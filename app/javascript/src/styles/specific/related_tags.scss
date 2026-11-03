@@ -82,7 +82,7 @@ div.tag-preview {
     }
 
     & .implied {
-      color: themed("palette-text-green");
+      color: palette("text-green");
     }
 
     & .empty,
@@ -90,7 +90,7 @@ div.tag-preview {
     .invalid,
     .duplicate,
     .new {
-      color: themed("palette-text-red");
+      color: palette("text-red");
     }
   }
 }
