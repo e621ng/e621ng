@@ -8,7 +8,7 @@
       <thead>
         <tr>
           <th>User</th>
-          <th>Change</th>
+          <th>Change (Total)</th>
           <th>Post</th>
           <th>Reason</th>
           <th>By</th>
@@ -21,7 +21,7 @@
               <%= link_to_user event.user %>
               <%= link_to "»", upload_karma_events_path(search: params[:search].merge(user_id: event.user_id)) %>
             </td>
-            <td><%= format("%+d", event.delta) %> → <%= event.balance %></td>
+            <td><%= format("%+d", event.delta) %> (<%= event.balance %>)</td>
             <td>
               <% if event.post_id.present? %>
                 <%= link_to "post ##{event.post_id}", post_path(event.post_id) %>
