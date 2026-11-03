@@ -1,5 +1,4 @@
 import HTTP from "@/utility/HTTP";
-import State from "@/utility/StateUtils";
 import Toast from "@/utility/Toast";
 
 type SubscribeResponse = {
@@ -8,27 +7,44 @@ type SubscribeResponse = {
 };
 
 /**
- * Toggles the wiki page's tag subscription in place. Without JS, the link falls back to
- * rails-ujs and a full-page round trip.
+ * Toggles tag subscription buttons in place. Without JS, the links fall back to rails-ujs
+ * and a full-page round trip.
  */
 export default class SubscribeTag {
 
-  public static bootstrap (): void {
-    const link = document.getElementById("tag-subscription-toggle") as HTMLAnchorElement | null;
-    if (!link) return;
+  /* ============================== */
+  /* ===== Singleton pattern ====== */
+  /* ============================== */
 
-    link.addEventListener("click", (event) => {
-      event.preventDefault();
-      // Keeps rails-ujs's delegated data-method handler from also submitting
-      event.stopImmediatePropagation();
-      if (link.dataset.busy === "true") return;
-      link.dataset.busy = "true";
-      const action = link.dataset.subscribed === "true" ? this.unsubscribe(link) : this.subscribe(link);
-      action.finally(() => { delete link.dataset.busy; });
-    });
+  private static _instance: SubscribeTag | null = null;
+  public static get instance (): SubscribeTag {
+    if (!SubscribeTag._instance)
+      SubscribeTag._instance = new SubscribeTag();
+    return SubscribeTag._instance;
   }
 
-  private static async subscribe (link: HTMLAnchorElement): Promise<void> {
+
+  /* ============================== */
+  /* ======= Initialization ======= */
+  /* ============================== */
+
+  private constructor () {
+    if (SubscribeTag._instance)
+      throw new Error("SubscribeTag is a singleton class. Use SubscribeTag.instance to access the instance.");
+
+    for (const link of document.querySelectorAll<HTMLAnchorElement>("a.tag-subscription-toggle"))
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        // Keeps rails-ujs's delegated data-method handler from also submitting
+        event.stopImmediatePropagation();
+        if (link.dataset.busy === "true") return;
+        link.dataset.busy = "true";
+        const action = link.dataset.subscribed === "true" ? this.unsubscribe(link) : this.subscribe(link);
+        action.finally(() => { delete link.dataset.busy; });
+      });
+  }
+
+  private async subscribe (link: HTMLAnchorElement): Promise<void> {
     const body = new URLSearchParams({ tag_name: link.dataset.tag ?? "" });
     let result: SubscribeResponse;
     try {
@@ -46,7 +62,7 @@ export default class SubscribeTag {
     this.render(link, true, `/tag_subscriptions/${added.id}`);
   }
 
-  private static async unsubscribe (link: HTMLAnchorElement): Promise<void> {
+  private async unsubscribe (link: HTMLAnchorElement): Promise<void> {
     const response = await HTTP.request(`${link.pathname}.json`, { method: "DELETE" }).catch(() => null);
     // A 404 means it was already gone, which is the state the user asked for
     if (!response || (!response.ok && response.status !== 404)) {
@@ -57,7 +73,7 @@ export default class SubscribeTag {
     this.render(link, false, `/tag_subscriptions?${params}`);
   }
 
-  private static render (link: HTMLAnchorElement, subscribed: boolean, href: string): void {
+  private render (link: HTMLAnchorElement, subscribed: boolean, href: string): void {
     link.dataset.subscribed = String(subscribed);
     link.dataset.method = subscribed ? "delete" : "post";
     link.href = href;
@@ -69,5 +85,3 @@ export default class SubscribeTag {
       : "Count new posts with this tag in your subscriptions";
   }
 }
-
-State.onReady(() => SubscribeTag.bootstrap());

@@ -3,6 +3,7 @@
 import ModuleRegistry from "@/utility/ModuleRegistry";
 import State from "@/utility/StateUtils";
 
+import SubscribeTag from "@/components/SubscribeTag";
 import CurrentPost from "@/models/CurrentPost";
 import "@/pages/comments/comments";
 import AddToPoolDialog from "@/pages/posts/show/AddToPoolDialog";
@@ -51,6 +52,7 @@ State.onReady(() => {
   void RelationshipPreview.instance;
   void EditTab.instance;
   void ReownerDialog.instance;
+  void SubscribeTag.instance;
 
   ModuleRegistry.register("v_posts_show", { Note, CurrentPost, PostResizer: PostResizer.instance });
 });
