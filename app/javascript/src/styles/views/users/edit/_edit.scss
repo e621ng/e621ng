@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 #c-users #a-edit {
 
   form.simple_form {
@@ -28,13 +30,13 @@
 
   tab-submit {
     input[type="submit"] {
-      background: themed("color-tag-artist");
+      background: theme.color("tag-artist");
       font-size: 1.25rem;
       padding: 0.25rem 1rem;
       margin: 0.5rem;
       border-radius: 0.25rem;
 
-      &:hover, &:active { background: themed("color-tag-artist-alt"); }
+      &:hover, &:active { background: theme.color("tag-artist-alt"); }
     }
   }
 }
@@ -55,14 +57,14 @@ tabs-menu {
 
   & > button {
     background: unset;
-    color: themed("color-link");
+    color: theme.color("link");
     padding: 0.5rem 1rem;
-    border-bottom: 2px solid themed("color-section");
+    border-bottom: 2px solid theme.color("section");
     font-size: 1rem;
     line-height: 1rem;
 
     &.active {
-      background: themed("color-section");
+      background: theme.color("section");
       border-radius: 0.25rem 0.25rem 0 0;
       &:first-child {
         border-bottom-left-radius: 0.25rem;
@@ -72,7 +74,7 @@ tabs-menu {
 
   span.spacer {
     flex: 1;
-    border-bottom: 2px solid themed("color-section");
+    border-bottom: 2px solid theme.color("section");
   }
 
   input[name="search"] {
@@ -101,7 +103,7 @@ tabs-content {
     padding: 0.5rem 0.75rem 0.5rem;
     margin: 0.5rem 0 0;
 
-    background: themed("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     border-radius: 0.25rem 0.25rem 0 0;
   }
 
@@ -115,7 +117,7 @@ tabs-content {
     align-items: center;
     gap: 0.25rem;
 
-    background: themed("color-section");
+    background: theme.color("section");
     padding: 0.5rem;
     
     tab-head {
@@ -134,7 +136,7 @@ tabs-content {
       grid-area: hint;
 
       font-size: 90%;
-      color: themed("color-text-muted");
+      color: theme.color("text-muted");
     }
 
     &.inline {
@@ -180,7 +182,7 @@ tab-submit {
   position: sticky;
   bottom: 0;
 
-  background: themed("color-section");
+  background: theme.color("section");
   border-radius: 0.25rem;
   width: min-content;
   margin-top: 0.5rem;
@@ -191,7 +193,7 @@ tab-submit {
     input[name="search"] {
       width: unset;
       border-radius: 0.25rem 0.25rem 0.25rem 0;
-      border-bottom: 2px solid themed("color-section");
+      border-bottom: 2px solid theme.color("section");
     }
   }
 

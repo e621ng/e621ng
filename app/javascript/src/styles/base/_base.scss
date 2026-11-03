@@ -1,12 +1,14 @@
+@use "colors/theme";
+
 body {
   color: #ffffff;
-  color: themed("color-text");
+  color: theme.color("text");
   background-color: #020f23;
-  background-color: themed("color-background");
-  background-image: themed("image-background");
-  background-position: themed("image-background-position");
-  background-repeat: themed("image-background-repeat");
-  background-size: themed("image-background-size");
+  background-color: theme.color("background");
+  background-image: theme.image("background");
+  background-position: theme.image("background-position");
+  background-repeat: theme.image("background-repeat");
+  background-size: theme.image("background-size");
   font-family: $base_font_family;
   font-size: $font-size;
   line-height: 1.25em;
@@ -94,13 +96,13 @@ table tfoot {
 }
 
 .hint {
-  color: themed("color-text-muted");
+  color: theme.color("text-muted");
   font-style: italic;
   max-width: 70%;
 }
 
 .info {
-  color: themed("color-text-muted");
+  color: theme.color("text-muted");
   font-style: italic;
   font-size: 80%;
 }

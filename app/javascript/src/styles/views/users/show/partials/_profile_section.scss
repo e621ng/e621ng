@@ -1,8 +1,10 @@
+@use "colors/theme";
+
 .profile-section {
-  background: themed("color-section");
+  background: theme.color("section");
 
   .profile-section-header {
-    background: themed("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     @include st-radius;
     padding: 0.25rem 0.5rem;
     cursor: pointer;

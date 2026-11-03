@@ -1,4 +1,4 @@
-
+@use "colors/theme";
 
 @mixin grid-col($start, $end) {
     grid-column-start: $start;
@@ -31,8 +31,8 @@ div#c-post-versions {
       z-index: 10;
       transform: translate(-50%, -50%);
 
-      background-color: themed("color-section");
-      box-shadow: 0px 0px 1rem themed("color-background");
+      background-color: theme.color("section");
+      box-shadow: 0px 0px 1rem theme.color("background");
       @include st-radius;
 
       h2 {
@@ -58,7 +58,7 @@ div#c-post-versions {
     .pv-label {
       border-bottom: 1px solid $post-version-grid-border;
       border-right: 1px solid $post-version-grid-border;
-      background: themed("color-section");
+      background: theme.color("section");
       padding: 0.25rem 0.5rem;
     }
 
@@ -79,7 +79,7 @@ div#c-post-versions {
       grid-row-start: 1;
       grid-row-end: 7;
       grid-column: 1;
-      background-color: themed("color-section-lighten-5");
+      background-color: theme.color("section-lighten-5");
     }
 
     .pv-check.without-original {

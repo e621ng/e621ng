@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 #c-wiki-pages, #c-wiki-page-versions {
   #a-show #content {
     container-type: inline-size;
@@ -47,8 +50,8 @@
     padding: 0.5rem;
     margin: 0.5rem 0;
     
-    background: themed("color-section");
-    border-left: 0.25rem solid palette("background-orange");
+    background: theme.color("section");
+    border-left: 0.25rem solid palette.color("background-orange");
     border-radius: 0.25rem;
 
     h3 {
@@ -78,7 +81,7 @@
     margin: 0.5rem 0 1rem;
 
     .featured-posts-preview-error {
-      color: palette("text-red");
+      color: palette.color("text-red");
       margin-bottom: 0.5rem;
     }
 

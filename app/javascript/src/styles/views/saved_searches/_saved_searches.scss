@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 #c-saved-searches #a-index {
   .saved-search-header {
     display: flex;
@@ -36,7 +39,7 @@
     gap: 0.5rem 1rem;
 
     padding: $padding-050;
-    background: themed("color-section");
+    background: theme.color("section");
     border-radius: $border-radius-full;
   }
 
@@ -71,7 +74,7 @@
   .ss-created {
     grid-area: created;
     font-size: 0.85rem;
-    color: themed("color-text-muted");
+    color: theme.color("text-muted");
   }
 
   .ss-actions {
@@ -83,14 +86,14 @@
 
   .ss-muted {
     font-weight: normal;
-    color: themed("color-text-muted");
+    color: theme.color("text-muted");
   }
 
   .saved-search-new-count {
     padding: 0 0.5em;
     font-weight: bold;
-    background: palette("plain-red");
-    color: palette("plain-white");
+    background: palette.color("plain-red");
+    color: palette.color("plain-white");
     border-radius: 1rem;
   }
 
@@ -112,7 +115,7 @@
       &:last-child { border-radius: 0 0 $border-radius-full $border-radius-full; }
       &:only-child { border-radius: $border-radius-full; }
 
-      &:hover { background: themed("color-section-lighten-5"); }
+      &:hover { background: theme.color("section-lighten-5"); }
     }
 
     .ss-query {
@@ -130,7 +133,7 @@
   }
 
   .ts-muted {
-    color: themed("color-text-muted");
+    color: theme.color("text-muted");
   }
 
   .tag-subscription-add {
@@ -162,7 +165,7 @@
     align-items: center;
     gap: 0.5rem 1rem;
     padding: $padding-050;
-    background: themed("color-section");
+    background: theme.color("section");
 
     &:first-child { border-radius: $border-radius-full $border-radius-full 0 0; }
     &:last-child { border-radius: 0 0 $border-radius-full $border-radius-full; }
@@ -176,7 +179,7 @@
 
   .ts-count, .ts-created {
     font-size: 0.85rem;
-    color: themed("color-text-muted");
+    color: theme.color("text-muted");
     white-space: nowrap;
   }
 

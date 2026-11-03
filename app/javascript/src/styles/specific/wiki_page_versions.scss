@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 div#c-wiki-page-versions {
   #a-index {
     table {
@@ -7,7 +9,7 @@ div#c-wiki-page-versions {
 
   #a-show {
     span.version {
-      color: themed("color-text-muted");
+      color: theme.color("text-muted");
     }
   }
 }

@@ -1,3 +1,5 @@
+@use "colors/palette";
+
 .image-crop-widget {
   display: inline-block;
   user-select: none;
@@ -15,7 +17,7 @@
     cursor: move;
 
     &.size-warning {
-      border-color: palette("background-orange");
+      border-color: palette.color("background-orange");
 
       &:after {
         content: "Crop area is too small";
@@ -25,17 +27,17 @@
         font-size: 0.85rem;
         padding: 0.125rem 0.25rem;
 
-        background-color: palette("background-orange");
+        background-color: palette.color("background-orange");
         @include st-radius;
       }
     }
 
     &.size-warning.nice-warning {
-      border-color: palette("background-gold");
+      border-color: palette.color("background-gold");
       &:after {
         content: "Crop area is very nice";
-        background-color: palette("background-gold");
-        color: palette("plain-black");
+        background-color: palette.color("background-gold");
+        color: palette.color("plain-black");
       }
     }
 
@@ -60,7 +62,7 @@
   }
 
   &-nice {
-    color: palette("background-gold");
+    color: palette.color("background-gold");
     margin-top: 0.5em;
   }
 }

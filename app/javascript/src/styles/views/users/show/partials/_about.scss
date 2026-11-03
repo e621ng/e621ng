@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 tabs-menu, tabs-content {
   max-width: 100rem;
 }
@@ -34,11 +36,11 @@ tabs-menu, tabs-content {
       font-size: 1rem;
       line-height: 1rem;
 
-      background: themed("color-section-lighten-10");
-      color: themed("color-text");
+      background: theme.color("section-lighten-10");
+      color: theme.color("text");
 
       &:hover {
-        background: themed("color-section-lighten-5");
+        background: theme.color("section-lighten-5");
       }
     }
 

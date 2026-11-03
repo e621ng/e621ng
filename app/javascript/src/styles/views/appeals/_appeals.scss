@@ -1,17 +1,19 @@
+@use "colors/palette";
+
 body.c-appeals {
   &.a-new { @import "new/new"; }
   &.a-show { @import "show/show"; }
 }
 
 .approved-appeal {
-  color: palette("text-green");
+  color: palette.color("text-green");
   font-weight: bold;
 }
 .partial-appeal {
-  color: palette("text-yellow");
+  color: palette.color("text-yellow");
   font-weight: bold;
 }
 .rejected-appeal {
-  color: palette("text-red");
+  color: palette.color("text-red");
   font-weight: bold;
 }

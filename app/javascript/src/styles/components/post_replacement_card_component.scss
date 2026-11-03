@@ -1,13 +1,15 @@
+@use "colors/theme";
+
 // Post replacement cards — a collapsible timeline of status-colored cards.
 // Rendered by PostReplacementCardComponent; used on the replacements index
 // (timeline mode) and embedded in ticket views (no rail).
 
 $replacement-variants: (
-  "pending": "color-warning",
-  "approved": "color-success",
-  "rejected": "color-danger",
-  "promoted": "color-success",
-  "original": "color-text-muted",
+  "pending": "warning",
+  "approved": "success",
+  "rejected": "danger",
+  "promoted": "success",
+  "original": "text-muted",
 );
 
 .replacement-timeline {
@@ -22,7 +24,7 @@ $replacement-variants: (
     top: 0.5rem;
     bottom: 0.5rem;
     width: 2px;
-    background: themed("color-section");
+    background: theme.color("section");
   }
 }
 
@@ -33,11 +35,11 @@ $replacement-variants: (
   grid-template-columns: min-content 4rem auto;
 
   position: relative;
-  background: themed("color-foreground");
-  border: 1px solid themed("color-section");
+  background: theme.color("foreground");
+  border: 1px solid theme.color("section");
   @include st-radius;
   margin-bottom: 0.75rem;
-  box-shadow: 0 0 0.125rem themed("color-background");
+  box-shadow: 0 0 0.125rem theme.color("background");
 
   &.has-timeline {
     margin-left: 1.5rem;
@@ -52,9 +54,9 @@ $replacement-variants: (
     width: 1.25rem;
     height: 1.25rem;
     border-radius: 50%;
-    border: 0.25rem solid themed("color-foreground");
+    border: 0.25rem solid theme.color("foreground");
     box-sizing: border-box;
-    background: themed("color-text-muted");
+    background: theme.color("text-muted");
 
     display: flex;
     justify-content: center;
@@ -62,22 +64,22 @@ $replacement-variants: (
   }
 
   &.is-current {
-    border-color: themed("color-success");
+    border-color: theme.color("success");
 
     .replacement-dot {
-      outline: 2px solid themed("color-section");
+      outline: 2px solid theme.color("section");
 
       &::before {
         content: "✓";
         font-size: 0.5rem;
         font-weight: bold;
-        color: themed("color-foreground");
+        color: theme.color("foreground");
       }
     }
   }
 
   &.is-processing {
-    background: themed("color-warning-darken-5");
+    background: theme.color("warning-darken-5");
   }
 }
 
@@ -97,8 +99,8 @@ $replacement-variants: (
 // Status accent: dot fill + status text color, keyed by variant.
 @each $variant, $token in $replacement-variants {
   .replacement-card.is-#{$variant} {
-    .replacement-dot { background: themed($token); }
-    .replacement-status { color: themed($token); font-weight: bold; }
+    .replacement-dot { background: theme.color($token); }
+    .replacement-status { color: theme.color($token); font-weight: bold; }
   }
 }
 
@@ -116,7 +118,7 @@ $replacement-variants: (
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-color: themed("color-section");
+  background-color: theme.color("section");
 
   // Override the global 256px cap for the compact header thumbnail.
   img {
@@ -130,7 +132,7 @@ $replacement-variants: (
 .replacement-card.is-expanded .replacement-card-thumb {
   width: 256px;
   height: 100%;
-  border-top: 1px solid themed("color-section");
+  border-top: 1px solid theme.color("section");
   background-color: transparent;
 
   img {
@@ -153,7 +155,7 @@ $replacement-variants: (
   gap: 0.75rem;
   padding: 0 0.75rem;
   cursor: pointer;
-  background: themed("color-section");
+  background: theme.color("section");
 
   height: 4rem;
 }
@@ -196,7 +198,7 @@ $replacement-variants: (
   }
 
   .replacement-card-meta {
-    color: themed("color-text-muted");
+    color: theme.color("text-muted");
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -211,7 +213,7 @@ $replacement-variants: (
 }
 
 .replacement-annotation {
-  color: themed("color-text-muted");
+  color: theme.color("text-muted");
   font-weight: normal;
 }
 
@@ -219,7 +221,7 @@ $replacement-variants: (
   flex: none;
   background: none;
   border: none;
-  color: themed("color-text-muted");
+  color: theme.color("text-muted");
   cursor: pointer;
   padding: 0.25rem;
   display: flex;
@@ -243,7 +245,7 @@ $replacement-variants: (
   display: none;
   flex-direction: column;
   gap: 0.75rem;
-  border-top: 1px solid themed("color-section");
+  border-top: 1px solid theme.color("section");
   padding: 0.75rem;
 }
 
@@ -262,7 +264,7 @@ $replacement-variants: (
 }
 
 .replacement-field-label {
-  color: themed("color-text-muted");
+  color: theme.color("text-muted");
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -294,7 +296,7 @@ $replacement-variants: (
   flex-wrap: wrap;
   gap: 0.5rem;
   align-items: center;
-  border-top: 1px solid themed("color-section");
+  border-top: 1px solid theme.color("section");
   padding-top: 0.5rem;
   margin-top: auto;
 

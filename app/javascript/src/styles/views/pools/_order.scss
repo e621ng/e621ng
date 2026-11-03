@@ -1,10 +1,12 @@
+@use "colors/theme";
+
 #ordering-form {
   padding: 0.5rem 1rem;
   margin: 0.5rem auto;
 
   width: min-content;
-  background-color: themed("color-section-lighten-5");
-  box-shadow: 0 0 0.25rem themed("color-foreground");
+  background-color: theme.color("section-lighten-5");
+  box-shadow: 0 0 0.25rem theme.color("foreground");
   @include st-radius;
 
   &.changed {

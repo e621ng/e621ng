@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 .c-staff-automod-rules {
 
   .automod-applies {
@@ -10,7 +12,7 @@
 
     &-toggle {
       display: flex;
-      background: themed("color-section-lighten-5");
+      background: theme.color("section-lighten-5");
       padding: 0.25rem 0.75rem;
       gap: 0.5rem;
       align-items: center;

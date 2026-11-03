@@ -1,6 +1,8 @@
+@use "colors/theme";
+
 #c-tickets #a-show {
   .ticket-block {
-    background-color: themed("color-section");
+    background-color: theme.color("section");
     @include st-margin-tb(050);
     @include st-radius;
     @include st-padding(050);

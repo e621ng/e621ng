@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 .styled-dtext .spoiler {
   background: $spoiler-background;
   // Also hides emojis
@@ -14,9 +16,9 @@
     color: $spoiler-hover-color;
 
     a {
-      color: themed('color-spoiler-link');
+      color: theme.color('spoiler-link');
       &:hover {
-        color: themed('color-spoiler-link-hover');
+        color: theme.color('spoiler-link-hover');
       }
     }
 

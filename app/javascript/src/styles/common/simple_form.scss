@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 .simple_form {
   margin: 0 0 1em 0;
 
@@ -59,7 +61,7 @@
     }
 
     input:checked + label { 
-      background-color: themed("color-button-active");
+      background-color: theme.color("button-active");
     }
   }
 }

@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 div#post-artist-subscribe {
   display: flex;
   flex-flow: column;
@@ -13,8 +15,8 @@ div#post-artist-subscribe {
     padding: 0.5rem;
     box-sizing: border-box;
 
-    background: themed("color-section");
-    background: linear-gradient(135deg, themed("color-section-lighten-5") 0%, themed("color-section") 30%, themed("color-section") 100%);
+    background: theme.color("section");
+    background: linear-gradient(135deg, theme.color("section-lighten-5") 0%, theme.color("section") 30%, theme.color("section") 100%);
     box-shadow: 0 0 0.25rem -0.125rem black;
 
     &-name {

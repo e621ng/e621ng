@@ -1,4 +1,4 @@
-@use "../colors/palette";
+@use "colors/palette";
 
 :root {
   @include palette.properties(palette.$base);

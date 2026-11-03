@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 // Post Toolbar
 #ptbr-wrapper {
   display: flex;
@@ -42,18 +45,18 @@
   // data-vote on the wrapper indicates user's current vote on the post
   // data-action on the button indicates whether the button is for upvote or downvote
   &[data-vote="-1"] button[data-action="-1"] {
-    background-color: palette("background-red");
-    &:hover, &:focus { background-color: palette("background-red-d5"); }
+    background-color: palette.color("background-red");
+    &:hover, &:focus { background-color: palette.color("background-red-d5"); }
 
-    box-shadow: 0 0.25rem palette("background-red-d10");
-    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette("background-red-d10"); }
+    box-shadow: 0 0.25rem palette.color("background-red-d10");
+    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette.color("background-red-d10"); }
   }
   &[data-vote="1"] button[data-action="1"] {
-    background-color: palette("background-green");
-    &:hover, &:focus { background-color: palette("background-green-d5"); }
+    background-color: palette.color("background-green");
+    &:hover, &:focus { background-color: palette.color("background-green-d5"); }
 
-    box-shadow: 0 0.25rem palette("background-green-d10");
-    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette("background-green-d10"); }
+    box-shadow: 0 0.25rem palette.color("background-green-d10");
+    &:active, &[processing="true"].anim { box-shadow: 0 0.125rem palette.color("background-green-d10"); }
   }
 
 
@@ -69,7 +72,7 @@
 
     // Separators between buttons and score
     border-width: 0 1px;
-    border-color: themed("color-foreground");
+    border-color: theme.color("foreground");
     border-style: solid;
     border-radius: 0;
 
@@ -80,8 +83,8 @@
   }
 
   // Score states
-  &[data-state="1"] .ptbr-score { color: palette("text-green"); }
-  &[data-state="-1"] .ptbr-score { color: palette("text-red"); }
+  &[data-state="1"] .ptbr-score { color: palette.color("text-green"); }
+  &[data-state="-1"] .ptbr-score { color: palette.color("text-red"); }
 
 
   // Score breakdown popup
@@ -93,7 +96,7 @@
     translate: -50% 0;
     text-wrap: nowrap;
 
-    background: themed("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     font-family: "Roboto", Verdana, Geneva, sans-serif;
     font-size: 1rem;
     line-height: 1rem;
@@ -111,7 +114,7 @@
 
       border-width: 0.5rem;
       border-style: solid;
-      border-color: themed("color-section-lighten-5") transparent transparent transparent;
+      border-color: theme.color("section-lighten-5") transparent transparent transparent;
     }
 
     & > span {
@@ -122,14 +125,14 @@
           content: "▲";
           padding-right: 0.25rem;
         }
-        color: palette("text-green");
+        color: palette.color("text-green");
       }
       &:last-child {
         &:after {
           content: "▼";
           padding-left: 0.25rem;
         }
-        color: palette("text-red");
+        color: palette.color("text-red");
       }
     }
 
@@ -141,12 +144,12 @@
 // Favorite button
 #ptbr-wrapper .ptbr-favorite-button {
   font-family: "Roboto", Verdana, Geneva, sans-serif;
-  color: palette("background-gold-d10");
+  color: palette.color("background-gold-d10");
 
   &[favorited="true"] {
     svg {
       filter: url(#inset-shadow);
-      fill: palette("background-gold-d10");
+      fill: palette.color("background-gold-d10");
       stroke-width: 0;
     }
   }
@@ -171,7 +174,7 @@
 
 // Share button
 #ptbr-share-menu {
-  background: themed("color-section-lighten-5");
+  background: theme.color("section-lighten-5");
   @include st-radius;
   padding: 0.75rem 0.5rem;
 
@@ -186,13 +189,13 @@
     gap: 0.5rem;
     max-width: 20rem;
 
-    background: themed("color-foreground");
+    background: theme.color("foreground");
     @include st-radius;
     @include st-padding(050);
 
     input {
       background: transparent;
-      color: themed("color-text");
+      color: theme.color("text");
       width: 100%;
       border: 1px solid transparent;
 
@@ -200,7 +203,7 @@
       font-size: 1rem;
 
       &:focus {
-        border-color: themed("color-section-lighten-5");
+        border-color: theme.color("section-lighten-5");
         outline: none;
       }
     }
@@ -215,15 +218,15 @@
   padding: 0 0.5rem;
 
   font-family: "Roboto", Verdana, Geneva, sans-serif;
-  color: palette("text-white");
+  color: palette.color("text-white");
   font-size: 1rem;
   line-height: 1rem;
 
   cursor: pointer;
-  background: themed("color-section-lighten-5");
-  box-shadow: 0 0.25rem themed("color-section");
+  background: theme.color("section-lighten-5");
+  box-shadow: 0 0.25rem theme.color("section");
 
-  &:hover, &:focus { background: themed("color-section-lighten-10"); }
+  &:hover, &:focus { background: theme.color("section-lighten-10"); }
 }
 
 
@@ -272,9 +275,9 @@
   padding: 0.25rem 0.25rem;
   margin-top: 0.5rem;
 
-  background: themed("color-section");
+  background: theme.color("section");
   @include st-radius;
-  box-shadow: 0 0 0.5rem -0.25rem themed("color-background");
+  box-shadow: 0 0 0.5rem -0.25rem theme.color("background");
 
   &.hidden { display: none; }
 

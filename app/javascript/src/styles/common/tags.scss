@@ -1,4 +1,4 @@
-
+@use "colors/theme";
 
 @each $tag-category, $tag-category-name in $tag-categories {
   .category-#{$tag-category} a,
@@ -7,11 +7,11 @@
   .ui-widget-content a.tag-type-#{$tag-category} {
 
     &, &:link, &:visited {
-      color: themed("color-tag-#{$tag-category-name}");
+      color: theme.color("tag-#{$tag-category-name}");
     }
 
     &:hover {
-      color: themed("color-tag-#{$tag-category-name}-alt");
+      color: theme.color("tag-#{$tag-category-name}-alt");
     }
 
     &.selected {
@@ -20,14 +20,14 @@
   }
 
   .ui-widget-content .ui-state-active a.tag-type-#{$tag-category} {
-    color: themed("color-tag-#{$tag-category-name}-alt");
+    color: theme.color("tag-#{$tag-category-name}-alt");
 
     &:link, &:visited {
-      color: themed("color-tag-#{$tag-category-name}");
+      color: theme.color("tag-#{$tag-category-name}");
     }
 
     &:hover {
-      color: themed("color-tag-#{$tag-category-name}-alt");
+      color: theme.color("tag-#{$tag-category-name}-alt");
     }
 
     &.selected {

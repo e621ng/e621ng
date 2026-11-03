@@ -1,4 +1,5 @@
-
+@use "colors/palette";
+@use "colors/theme";
 
 div#c-takedowns {
   .takedown-vericode {
@@ -34,7 +35,7 @@ div#c-takedowns {
     flex-flow: column;
     gap: 0.25rem;
     padding: 0.5rem;
-    background: themed("color-foreground");
+    background: theme.color("foreground");
     @include st-max-width;
     @include st-radius;
     margin: 1rem 0;
@@ -89,16 +90,16 @@ div#c-takedowns {
   }
 
   .takedown-post-keep {
-    background-color: palette("background-green");
+    background-color: palette.color("background-green");
     &:hover {
-      background-color: palette("background-green-d5");
+      background-color: palette.color("background-green-d5");
     }
   }
 
   .takedown-post-delete {
-    background-color: palette("background-red");
+    background-color: palette.color("background-red");
     &:hover {
-      background-color: palette("background-red-d5");
+      background-color: palette.color("background-red-d5");
     }
   }
 }

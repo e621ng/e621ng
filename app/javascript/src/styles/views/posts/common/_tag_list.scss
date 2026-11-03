@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 h5.tag-list-header {
   font-size: 1.25rem;
   cursor: pointer;
@@ -17,18 +20,18 @@ ul.tag-list {
     display: flex;
     width: fit-content;
 
-    background: themed("color-section");
-    border: 0.125rem solid themed("color-section-lighten-5");
+    background: theme.color("section");
+    border: 0.125rem solid theme.color("section-lighten-5");
     border-left-width: 0.25rem;
     @include st-radius;
 
     @each $tag-category, $tag-category-name in $tag-categories {
       &.tag-#{$tag-category-name} {
-        border-left-color: themed("color-tag-#{$tag-category-name}");
-        &:hover { border-left-color: themed("color-tag-#{$tag-category-name}-alt"); }
+        border-left-color: theme.color("tag-#{$tag-category-name}");
+        &:hover { border-left-color: theme.color("tag-#{$tag-category-name}-alt"); }
 
-        a, a:link { color: themed("color-tag-#{$tag-category-name}"); }
-        a:hover, a:active { color: themed("color-tag-#{$tag-category-name}-alt"); }
+        a, a:link { color: theme.color("tag-#{$tag-category-name}"); }
+        a:hover, a:active { color: theme.color("tag-#{$tag-category-name}-alt"); }
       }
     }
 
@@ -52,7 +55,7 @@ ul.tag-list {
     display: flex;
 
     .tag-list-name {
-      border: 1px solid themed("color-section-lighten-5");
+      border: 1px solid theme.color("section-lighten-5");
       border-width: 0 1px 0 1px;
       @include st-padding;
 
@@ -60,9 +63,9 @@ ul.tag-list {
     }
 
     .tag-list-count {
-      color: themed("color-text-muted");
+      color: theme.color("text-muted");
       font-size: 85%;
-      &.low-post-count { color: palette("text-red"); }
+      &.low-post-count { color: palette.color("text-red"); }
     }
   }
 
@@ -75,14 +78,14 @@ ul.tag-list {
     button {
       display: flex;
       align-items: center;
-      color: themed("color-link");
+      color: theme.color("link");
 
       // default button styles
       padding: 0;
       border-radius: 0;
       background: none;
 
-      &:hover { color: themed("color-link-hover"); }
+      &:hover { color: theme.color("link-hover"); }
       
       svg {
         width: 1rem;

@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 .ui-autocomplete-dropdown {
   position: absolute;
   z-index: 1000;
@@ -10,10 +12,10 @@
 
   font-size: 0.9em;
   list-style: none;
-  border: 1px solid themed("color-section-darken-5");
+  border: 1px solid theme.color("section-darken-5");
   border-top: none;
-  background-color: themed("color-section-lighten-5");
-  box-shadow: 0 0.25rem 0.5rem -0.25rem themed("color-background");
+  background-color: theme.color("section-lighten-5");
+  box-shadow: 0 0.25rem 0.5rem -0.25rem theme.color("background");
   border-radius: 0.25rem;
 
   > li {

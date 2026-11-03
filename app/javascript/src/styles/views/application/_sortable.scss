@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 ul.sortable {
   display: grid;
   grid-template-columns: repeat(auto-fill, var(--thumb-image-size, 150px));
@@ -65,7 +67,7 @@ ul.sortable {
     font-size: 1rem;
     border-radius: 0 0 0.25rem 0.25rem;
 
-    background: themed("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
     cursor: grab;
     touch-action: none; // required for pointermove to fire on touch instead of scrolling
 
@@ -73,7 +75,7 @@ ul.sortable {
     &::before {
       content: ":::";
       display: block;
-      color: themed("color-text-muted");
+      color: theme.color("text-muted");
     }
 
     &:active { cursor: grabbing; }

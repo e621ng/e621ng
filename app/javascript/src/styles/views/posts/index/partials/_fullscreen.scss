@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 // Fullscreen mode
 // Only relevant on desktop
 
@@ -6,7 +8,7 @@
   .search {
     display: flex;
     border-radius: 0.25rem 0.25rem 0 0;
-    box-shadow: inset 0px -0.25rem 0.25rem -0.25rem themed("color-background");
+    box-shadow: inset 0px -0.25rem 0.25rem -0.25rem theme.color("background");
     padding: 0.25rem 0.75rem 0.5rem 0.5rem;
 
     flex-wrap: wrap;
@@ -16,7 +18,7 @@
     .post-search { width: 100%; }
 
     #toggle-fullscreen {
-      background: themed("color-button-active");
+      background: theme.color("button-active");
       color: black;
 
       svg path.fullscreen-arrow {

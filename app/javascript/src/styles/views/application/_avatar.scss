@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 nav.navigation .simple-avatar {
 
   .avatar-name {
@@ -13,7 +16,7 @@ nav.navigation .simple-avatar {
     @include st-radius-left;
     overflow: hidden;
     position: relative;
-    background: themed("color-section");
+    background: theme.color("section");
     color: inherit;
     touch-action: manipulation;
 
@@ -31,7 +34,7 @@ nav.navigation .simple-avatar {
     &::before {
       position: absolute;
       content: attr(data-name);
-      color: themed("color-background");
+      color: theme.color("background");
       font-weight: bold;
       font-size: 2.25rem;
       font-family: "Roboto", Verdana, Geneva, sans-serif;
@@ -59,8 +62,8 @@ nav.navigation .simple-avatar {
     height: 0.5rem;
     margin: 0.125rem 0.25rem;
 
-    background: palette("text-red");
-    box-shadow: -1px -1px 3px themed("color-section");
+    background: palette.color("text-red");
+    box-shadow: -1px -1px 3px theme.color("section");
     border-radius: 50%;
   }
 
@@ -83,7 +86,7 @@ nav.navigation .simple-avatar {
   // Desktop
   @include window-larger-than(50rem) {
     .avatar-name {
-      background: themed("color-background");
+      background: theme.color("background");
       color: inherit;
 
       height: 1.5rem;
@@ -96,7 +99,7 @@ nav.navigation .simple-avatar {
       width: 3rem;
       margin-top: 0.25rem;
       @include st-radius-left;
-      background: themed("color-foreground");
+      background: theme.color("foreground");
 
       img {
         height: 3rem;
@@ -105,7 +108,7 @@ nav.navigation .simple-avatar {
     }
 
     &:hover, &:active {
-      .avatar-name { background: themed("color-background"); }
+      .avatar-name { background: theme.color("background"); }
     }
 
     .avatar-more {
@@ -140,8 +143,8 @@ nav.navigation .simple-avatar-menu {
   width: 15rem;
   padding-bottom: 0.25rem;
 
-  background: themed("color-section");
-  box-shadow: 0px 2px 4px -1px themed("color-background");
+  background: theme.color("section");
+  box-shadow: 0px 2px 4px -1px theme.color("background");
   @include st-radius;
 
   &.hidden { display: none; }
@@ -158,7 +161,7 @@ nav.navigation .simple-avatar-menu {
     font-size: 0.9rem;
     line-height: 1rem;
 
-    &:hover { background: themed("color-section-darken-5"); }
+    &:hover { background: theme.color("section-darken-5"); }
 
     svg {
       height: 1rem;
@@ -172,7 +175,7 @@ nav.navigation .simple-avatar-menu {
     &.secondary {
       padding-left: 1rem;
       svg {
-        color: themed("color-text-muted");
+        color: theme.color("text-muted");
       }
     }
   }
@@ -188,8 +191,8 @@ nav.navigation .simple-avatar-menu {
     height: 0.5rem;
     margin: 0.125rem 0.25rem;
 
-    background: palette("text-red");
-    box-shadow: -1px -1px 3px themed("color-section");
+    background: palette.color("text-red");
+    box-shadow: -1px -1px 3px theme.color("section");
     border-radius: 50%;
   }
 
@@ -236,7 +239,7 @@ nav.navigation .simple-avatar-menu {
 /** Layout Elements **/
 div.savm-profile {
   display: flex;
-  box-shadow: inset 0 0 0.5rem themed("color-section-darken-5");
+  box-shadow: inset 0 0 0.5rem theme.color("section-darken-5");
 
   a.savm-profile-link {
     display: grid;
@@ -259,7 +262,7 @@ div.savm-profile {
       width: 2rem;
       height: 2rem;
       @include st-radius;
-      background: themed("color-section-darken-5");
+      background: theme.color("section-darken-5");
 
       picture {
         position: absolute;
@@ -279,7 +282,7 @@ div.savm-profile {
         display: flex;
         justify-content: center;
         align-items: center;
-        color: themed("color-section-lighten-5");
+        color: theme.color("section-lighten-5");
         font-weight: bold;
         font-size: 2.25rem;
         font-family: "Roboto", Verdana, Geneva, sans-serif;
@@ -299,11 +302,11 @@ div.savm-profile {
       grid-area: savm-ptitle;
       text-transform: uppercase;
       font-size: 0.65rem;
-      color: themed("color-text-muted");
+      color: theme.color("text-muted");
     }
 
     &:hover {
-      background-color: themed("color-section-darken-5");
+      background-color: theme.color("section-darken-5");
     }
   }
   a.savm-profile-mail {
@@ -317,7 +320,7 @@ div.savm-profile {
       border-top-right-radius: 0.25rem;
     }
     &:hover svg {
-      background: themed("color-section-darken-5");
+      background: theme.color("section-darken-5");
     }
   }
 }
@@ -335,7 +338,7 @@ span.savm-divider {
   line-height: 1rem;
   font-family: "Roboto", Verdana, Geneva, sans-serif;
   white-space: nowrap;
-  color: themed("color-text-muted");
+  color: theme.color("text-muted");
   letter-spacing: 0.125rem;
   user-select: none;
 
@@ -344,7 +347,7 @@ span.savm-divider {
     height: 1px;
     max-width: 1rem;
     width: 100%;
-    background: themed("color-section-lighten-5");
+    background: theme.color("section-lighten-5");
   }
   &:after { max-width: unset; }
 }

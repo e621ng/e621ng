@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 div.list-of-forum-posts {
   article.forum-post {
     margin: 1em 0em;
@@ -19,15 +22,15 @@ div.list-of-forum-posts {
     }
 
     .vote-score-up {
-      color: palette("text-green");
+      color: palette.color("text-green");
     }
 
     .vote-score-meh {
-      color: palette("text-yellow");
+      color: palette.color("text-yellow");
     }
 
     .vote-score-down {
-      color: palette("text-red");
+      color: palette.color("text-red");
     }
 
     div.content-menu {
@@ -54,7 +57,7 @@ div#c-forum-topics {
   }
 
   span.locked-topic {
-    color: themed("color-link-last-page");
+    color: theme.color("link-last-page");
   }
 
   tr.forum-topic-row {

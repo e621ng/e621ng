@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 .dmail-notice {
   display: flex;
   justify-content: center;
@@ -19,21 +22,21 @@
     display: flex;
     align-items: center;
 
-    background: themed("color-section");
+    background: theme.color("section");
     font-size: 1.125rem;
     font-weight: bold;
     line-height: 1.25rem;
     @include st-radius;
 
-    color: themed("color-text");
-    .dmail-notice-highlight { color: themed("color-link"); }
-    &:hover .dmail-notice-highlight { color: themed("color-link-hover"); }
-    &:active .dmail-notice-highlight { color: themed("color-link-active"); }
+    color: theme.color("text");
+    .dmail-notice-highlight { color: theme.color("link"); }
+    &:hover .dmail-notice-highlight { color: theme.color("link-hover"); }
+    &:active .dmail-notice-highlight { color: theme.color("link-active"); }
 
     svg {
       height: 100%; // Proper height if the message linebreaks
       padding: 0 0.625rem;
-      background-color: palette("background-red");
+      background-color: palette.color("background-red");
       @include st-radius;
     }
 
@@ -46,13 +49,13 @@
   & &-hide {
     display: flex;
     align-items: center;
-    background: themed("color-section");
+    background: theme.color("section");
     padding: 0.625rem;
     @include st-radius;
 
-    color: themed("color-link");
-    &:hover { color: themed("color-link-hover"); }
-    &:active { color: themed("color-link-active"); }
+    color: theme.color("link");
+    &:hover { color: theme.color("link-hover"); }
+    &:active { color: theme.color("link-active"); }
   }
 
   svg {

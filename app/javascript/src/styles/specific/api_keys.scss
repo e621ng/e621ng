@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 body.c-api-keys.a-index {
   .instructions {
     margin-bottom: 1em;
@@ -126,7 +129,7 @@ body.c-api-keys.a-new,
 body.c-api-keys.a-create {
   form {
     max-width: 50rem;
-    background: themed("color-section");
+    background: theme.color("section");
     padding: 1rem;
     border-radius: 0.25rem;
     margin: 1rem 0;
@@ -160,7 +163,7 @@ body.c-api-keys.a-create {
 
       .hint {
         font-size: 90%;
-        color: themed("color-text-muted");
+        color: theme.color("text-muted");
         margin-top: 0.25rem;
       }
 
@@ -175,14 +178,14 @@ body.c-api-keys.a-create {
       margin-top: 2em;
 
       input[type="submit"] {
-        background: themed("color-tag-artist");
+        background: theme.color("tag-artist");
         font-size: 1.25rem;
         padding: 0.25rem 1rem;
         border-radius: 0.25rem;
 
         &:hover,
         &:active {
-          background: themed("color-tag-artist-alt");
+          background: theme.color("tag-artist-alt");
         }
       }
     }
@@ -195,8 +198,8 @@ body.c-api-keys.a-create {
     margin-bottom: 1rem;
 
     span {
-      background-color: palette("background-red");
-      color: palette("text-white");
+      background-color: palette.color("background-red");
+      color: palette.color("text-white");
       padding: 0.25rem;
 
       border-radius: 0.25rem;

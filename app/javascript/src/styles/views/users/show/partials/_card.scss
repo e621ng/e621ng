@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 $avatar-height: 4.5rem;
 
 .user-header {
@@ -16,7 +18,7 @@ $avatar-height: 4.5rem;
   width: 22rem;
   gap: 0.5rem;
 
-  background: themed("color-section");
+  background: theme.color("section");
   border-radius: 0.25rem;
   padding: 0.5rem 0.5rem;
 
@@ -25,7 +27,7 @@ $avatar-height: 4.5rem;
     position: relative;
 
     article.thumbnail {
-      box-shadow: 0 0 0.5rem -0.25rem themed("color-background");
+      box-shadow: 0 0 0.5rem -0.25rem theme.color("background");
     }
   }
 
@@ -62,7 +64,7 @@ $avatar-height: 4.5rem;
         overflow: hidden;
         line-height: 1.5rem;
         font-size: 1.25rem; // When adjusting this, also adjust the value in ProfileCard.ts
-        color: themed("color-text");
+        color: theme.color("text");
       }
     }
 
@@ -70,7 +72,7 @@ $avatar-height: 4.5rem;
       line-height: 1rem;
       font-size: 0.75rem;
       font-family: "Roboto";
-      color: themed("color-text-muted");
+      color: theme.color("text-muted");
     }
 
     .user-card-rank {

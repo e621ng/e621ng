@@ -1,0 +1,6 @@
+// Scopes rules to a user setting, exposed as body[data-st-*].
+@mixin when($key, $value) {
+  body[data-st-#{$key}="#{$value}"] {
+    @content;
+  }
+}

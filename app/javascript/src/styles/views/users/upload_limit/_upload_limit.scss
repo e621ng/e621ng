@@ -1,7 +1,10 @@
+@use "colors/palette";
+@use "colors/theme";
+
 body.c-users.a-upload-limit {
 
   .profile-container {
-    background: themed("color-section");
+    background: theme.color("section");
     @include st-radius;
     padding: 0.5rem;
 
@@ -11,7 +14,7 @@ body.c-users.a-upload-limit {
   }
 
   .profile-notice {
-    background: palette("background-red");
+    background: palette.color("background-red");
     @include st-radius;
     @include st-padding;
   }
@@ -42,7 +45,7 @@ body.c-users.a-upload-limit {
         gap: 0.5rem;
         @include st-radius;
 
-        background: themed("color-foreground");
+        background: theme.color("foreground");
       }
     }
   }
@@ -71,12 +74,12 @@ body.c-users.a-upload-limit {
 
     cursor: help;
 
-    &.upl-base { background: palette("background-grey"); }
-    &.upl-approved { background: palette("background-green"); }
-    &.upl-deleted { background: palette("background-red"); }
-    &.upl-max { background: palette("background-orange-d10"); }
-    &.upl-pending { background: palette("background-yellow"); }
-    &.upl-total { background: themed("color-section-lighten-5"); }
+    &.upl-base { background: palette.color("background-grey"); }
+    &.upl-approved { background: palette.color("background-green"); }
+    &.upl-deleted { background: palette.color("background-red"); }
+    &.upl-max { background: palette.color("background-orange-d10"); }
+    &.upl-pending { background: palette.color("background-yellow"); }
+    &.upl-total { background: theme.color("section-lighten-5"); }
   }
 
 }

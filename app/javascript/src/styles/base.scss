@@ -1,7 +1,7 @@
+@use "themes"; // Emits all theme definitions
+
 @import "base/breakpoints";
 @import "base/functions";
-@import "base/palette";
-@import "base/themable"; //Drags in themes automatically
 @import "base/colors";
 @import "base/vars";
 @import "base/reset";

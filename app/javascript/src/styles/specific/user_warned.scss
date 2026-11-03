@@ -1,3 +1,5 @@
+@use "colors/theme";
+
 .user-warning em {
-  color: themed("color-rating-explicit");
+  color: theme.color("rating-explicit");
 }

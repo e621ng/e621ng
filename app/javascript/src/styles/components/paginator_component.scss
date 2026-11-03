@@ -1,9 +1,11 @@
+@use "colors/theme";
+
 nav.pagination {
   display: flex;
   flex-wrap: wrap;
 
   justify-content: space-evenly;
-  background-color: themed("color-foreground");
+  background-color: theme.color("foreground");
   border-radius: 0.25rem;
 
   width: max-content;
@@ -24,7 +26,7 @@ nav.pagination {
     border-radius: 0.25rem;
 
     &:hover {
-      background: themed("color-section");
+      background: theme.color("section");
     }
   }
 

@@ -1,4 +1,4 @@
-
+@use "colors/palette";
 
 div#c-tags {
   div#a-index table.striped {
@@ -49,8 +49,8 @@ div#c-tags {
     width: 1em;
     margin: -0.125em;
 
-    &.face-frown { color: palette("text-red"); }
-    &.face-meh { color: palette("text-yellow"); }
-    &.face-smile { color: palette("text-green"); }
+    &.face-frown { color: palette.color("text-red"); }
+    &.face-meh { color: palette.color("text-yellow"); }
+    &.face-smile { color: palette.color("text-green"); }
   }
 }

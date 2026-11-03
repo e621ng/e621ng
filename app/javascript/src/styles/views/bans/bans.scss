@@ -1,3 +1,6 @@
+@use "colors/palette";
+@use "colors/theme";
+
 #c-bans #a-new,
 #c-bans #a-edit {
   #ban_user_name {
@@ -17,8 +20,8 @@
 
       input[type="radio"] { display: none; }
       input[type="radio"]:checked + label.ban-duration-preset {
-        background: themed("color-link-active");
-        color: palette("plain-black");
+        background: theme.color("link-active");
+        color: palette.color("plain-black");
       }
     }
 
@@ -27,8 +30,8 @@
       align-items: center;
       gap: 0.5rem;
       padding: 0.4rem 0.75rem;
-      background: themed("color-section-lighten-5");
-      box-shadow: 0 0 0.5rem -0.25rem themed("color-section-darken-5");
+      background: theme.color("section-lighten-5");
+      box-shadow: 0 0 0.5rem -0.25rem theme.color("section-darken-5");
       @include st-radius;
       cursor: pointer;
       user-select: none;
@@ -54,8 +57,8 @@
     padding: 0.5rem;
     min-width: 15rem;
 
-    background: themed("color-section-lighten-5");
-    box-shadow: 0 0 0.5rem -0.25rem themed("color-section-darken-5");
+    background: theme.color("section-lighten-5");
+    box-shadow: 0 0 0.5rem -0.25rem theme.color("section-darken-5");
     @include st-radius;
     user-select: none;
     cursor: pointer;
