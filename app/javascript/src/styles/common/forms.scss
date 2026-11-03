@@ -56,7 +56,7 @@ input:disabled {
 
 .simple_form {
   padding: $padding-050;
-  border-radius: $border-radius-half;
+  border-radius: 0.25rem;
   background-color: theme.color("section");
 }
 

@@ -8,7 +8,7 @@ div.comments-for-post {
 
   div.list-of-comments {
     article.comment {
-      border-radius: $border-radius-half;
+      border-radius: 0.25rem;
       margin-bottom: $padding-050;
 
       &:target {
@@ -26,7 +26,7 @@ div.comments-for-post {
       div.content {
         .comment-vote-up-link:hover, .comment-vote-down-link:hover {
           background-color: $comment-vote-background;
-          border-radius: $border-radius-half;
+          border-radius: 0.25rem;
         }
       }
     }
