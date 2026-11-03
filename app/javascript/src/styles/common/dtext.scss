@@ -35,11 +35,11 @@
   }
 
   pre, blockquote {
-    padding: $padding-025;
+    padding: 0.25rem;
   }
 
   details {
-    padding: $padding-050;
+    padding: 0.5rem;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -52,27 +52,27 @@
   }
 
   h1 {
-    font-size: $dtext_h1_size;
+    font-size: 2em;
   }
 
   h2 {
-    font-size: $dtext_h2_size;
+    font-size: 1.8em;
   }
 
   h3 {
-    font-size: $dtext_h3_size;
+    font-size: 1.6em;
   }
 
   h4 {
-    font-size: $dtext_h4_size;
+    font-size: 1.4em;
   }
 
   h5 {
-    font-size: $dtext_h5_size;
+    font-size: 1.2em;
   }
 
   h6 {
-    font-size: $dtext_h6_size;
+    font-size: 1em;
   }
 
   ul {

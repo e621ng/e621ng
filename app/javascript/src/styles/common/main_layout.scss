@@ -14,13 +14,13 @@ body {
 div#page {
   flex: 1;
   overflow: visible;
-  padding: $padding-050 $padding-025 theme.get("content-padding-bottom");
+  padding: 0.5rem 0.25rem theme.get("content-padding-bottom");
 
   @include breakpoints.desktop {
     border-radius: 0.25rem;
     margin: 0.5rem 1rem 0;
-    padding-left: $padding-050;
-    padding-right: $padding-050;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
 
   background-color: #152f56;
@@ -40,14 +40,14 @@ div#page {
 
   div.site-notice {
     background-color: theme.color("section");
-    padding: $padding-050;
+    padding: 0.5rem;
     text-align: center;
     position: relative;
     border: 0;
     margin-bottom: 0.5rem;
 
     h1 {
-      font-size: $h2-size;
+      font-size: 1.5em;
     }
     
     p:last-child {
@@ -74,7 +74,7 @@ div#page {
     float: left;
 
     h1 {
-      font-size: $h3-size;
+      font-size: 1.16667em;
     }
 
     #search-box {

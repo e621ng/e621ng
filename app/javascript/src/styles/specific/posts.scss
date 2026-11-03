@@ -39,10 +39,10 @@ div#c-posts {
 
   div.parent-children {
     display: flex;
-    margin: 0 (-$padding-025);
-    margin-bottom: $padding-025;
+    margin: 0 (-0.25rem);
+    margin-bottom: 0.25rem;
     div.notice {
-      margin: 0 $padding-025;
+      margin: 0 0.25rem;
     }
     div.notice-parent {
       flex-grow: 1;
@@ -102,7 +102,7 @@ div#c-posts {
     flex-flow: column;
     gap: 0.125rem;
 
-    margin-bottom: $padding-050;
+    margin-bottom: 0.5rem;
     background-color: theme.color('section');
     position: relative;
 
@@ -113,13 +113,13 @@ div#c-posts {
   }
 
   aside#sidebar #tag-list h2 {
-    font-size: $h4_size;
+    font-size: 1em;
   }
 
   div#a-index {
     menu#post-sections {
       margin-bottom: 0.5em;
-      font-size: $h3-size;
+      font-size: 1.16667em;
 
       li {
         padding: 0 1em 0.5em 0;
@@ -138,7 +138,7 @@ div#c-posts {
 
     menu#post-sections {
       margin: 0;
-      font-size: $h3-size;
+      font-size: 1.16667em;
 
       li {
         padding: 0 1em 0 0;
@@ -305,7 +305,7 @@ div#quick-edit-div {
 div#avoid-posting-notice {
   font-size: 1.25rem;
   line-height: 1.5rem;
-  padding: $padding-025 $padding-050;
+  padding: 0.25rem 0.5rem;
 
   background-color: theme.color("section");
   border: 1px solid theme.color("foreground");
@@ -372,7 +372,7 @@ textarea[data-autocomplete="tag-edit"] {
 
 .image-vote-buttons {
   .post-score {
-    padding: 0 $padding-050;
+    padding: 0 0.5rem;
   }
 }
 
@@ -403,7 +403,7 @@ body[data-user-can-approve-posts="true"] .notice {
     .button {
       font-size: 1.25rem;
       line-height: 1.5rem;
-      padding: $padding-025 $padding-050;
+      padding: 0.25rem 0.5rem;
     }
   }
 }

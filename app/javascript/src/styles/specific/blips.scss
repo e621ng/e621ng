@@ -1,6 +1,6 @@
 div#c-blips {
   article.blip {
-    margin-bottom: $base-padding;
+    margin-bottom: 1rem;
 
     &[data-is-deleted="true"] {
       background-color: $background-article-hidden;

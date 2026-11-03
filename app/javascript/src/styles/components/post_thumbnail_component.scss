@@ -271,11 +271,11 @@ article.thumbnail .thm-duration {
   padding: 0.25rem;
   font-variant-numeric: tabular-nums;
 
-  background-color: themed("color-section");
-  color: themed("color-text");
+  background-color: theme.color("section");
+  color: theme.color("text");
   font-weight: bold;
 
-  @include st-radius-left;
+  border-radius: 0.25rem 0 0 0.25rem;
 }
 article.thumbnail.no-type-badges .thm-duration { display: none; }
 

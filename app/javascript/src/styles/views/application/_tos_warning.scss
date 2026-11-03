@@ -32,14 +32,14 @@ body.scroll-lock {
   max-width: 600px;
   width: 100%;
 
-  font-family: "Roboto", $base_font_family;
+  font-family: "Roboto", Verdana, Geneva, sans-serif;
 
 
   // Header title
   &-header {
     margin: 0 0.5rem;  // align with dialog padding
 
-    font-family: "Roboto", $base_font_family;
+    font-family: "Roboto", Verdana, Geneva, sans-serif;
     font-size: 1.75rem;
     line-height: 1.75rem;
   }

@@ -39,7 +39,7 @@
     align-items: center;
     gap: 0.5rem 1rem;
 
-    padding: $padding-050;
+    padding: 0.5rem;
     background: theme.color("section");
     border-radius: 0.25rem;
   }
@@ -165,7 +165,7 @@
     grid-template-columns: minmax(0, 1fr) auto auto auto;
     align-items: center;
     gap: 0.5rem 1rem;
-    padding: $padding-050;
+    padding: 0.5rem;
     background: theme.color("section");
 
     &:first-child { border-radius: 0.25rem 0.25rem 0 0; }

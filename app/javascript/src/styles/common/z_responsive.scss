@@ -22,16 +22,16 @@
 
     .mobile-search {
       display: block;
-      margin: $padding-050 $padding-050 $padding-150;
+      margin: 0.5rem 0.5rem 1.5rem;
       .search-help {
-        font-size: $font-size;
+        font-size: 85%;
       }
     }
     .mobile-search > .search-form > form {
       box-sizing: border-box;
       display: flex;
       width: 100%;
-      margin-bottom: $padding-025;
+      margin-bottom: 0.25rem;
       .search-input {
         width: 100%;
         input {
