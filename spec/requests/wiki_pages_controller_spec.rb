@@ -143,7 +143,7 @@ RSpec.describe WikiPagesController do
     it "offers Subscribe to a signed-in member on a tag's page" do
       sign_in_as user
       get wiki_page_path(wiki_page)
-      expect(response.body).to include(%(id="tag-subscription-toggle"))
+      expect(response.body).to include("tag-subscription-toggle")
       expect(response.body).to include(tag_subscriptions_path(tag_name: tag.name))
     end
 

@@ -96,10 +96,9 @@ class PostReplacement < ApplicationRecord
   end
 
   ## DB!
-  # Fetches the data for the artist tags to find any that have the linked artists matching the creator.
-  # Sends a db request to look up the artist data.
+  # Names of the post's artist tags whose linked user is the replacement creator.
   def uploader_linked_artists
-    @uploader_linked_artists ||= post.artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == creator.id }.map(&:name)
+    @uploader_linked_artists ||= post.artists_with_linked_users.select { |artist| artist.linked_user_id == creator.id }.map(&:name)
   end
 
   def self.calculate_sequence_number(post_id)

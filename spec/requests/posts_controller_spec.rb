@@ -192,6 +192,62 @@ RSpec.describe PostsController do
       get post_path(post), params: { post_set_id: ["12345"] }
       assert_response :success
     end
+
+    describe "artist subscribe banners" do
+      let(:member) { create(:user) }
+      let(:banners) { Nokogiri::HTML(response.body).css("#post-artist-subscribe .subscribe-banner-name a").map(&:text) }
+
+      # Verified artists with ascending post counts, plus one unlinked artist
+      let!(:artist_post) do
+        names = Array.new(7) { |i| "verified#{i}_(artist)" }
+        names.each { |name| create(:artist, name: name, linked_user: create(:user)) }
+        create(:artist, name: "plain_(artist)")
+        created = create(:post, tag_string: "#{names.join(' ')} plain_(artist) solo")
+        names.each_with_index { |name, i| Tag.where(name: name).update_all(category: Tag.categories.artist, post_count: (i + 1) * 10) }
+        Tag.where(name: "plain_(artist)").update_all(category: Tag.categories.artist, post_count: 1000)
+        created
+      end
+
+      it "shows the five verified artists with the most posts" do
+        sign_in_as member
+        get post_path(artist_post)
+        expect(banners).to eq(%w[verified6_(artist) verified5_(artist) verified4_(artist) verified3_(artist) verified2_(artist)])
+      end
+
+      it "reflects the member's subscriptions" do
+        sub = create(:tag_subscription, user: member, tag: Tag.find_by(name: "verified6_(artist)"))
+        sign_in_as member
+        get post_path(artist_post)
+        doc = Nokogiri::HTML(response.body)
+        expect(doc.css(%(a.tag-subscription-toggle[data-subscribed="true"])).pluck("href")).to eq([tag_subscription_path(sub)])
+        expect(doc.css(%(a.tag-subscription-toggle[data-subscribed="false"])).size).to eq(4)
+      end
+
+      it "loads the subscriptions in a single query" do
+        sign_in_as member
+        queries = []
+        callback = ->(*, payload) { queries << payload[:sql] if payload[:sql].include?(%(FROM "tag_subscriptions")) }
+        ActiveSupport::Notifications.subscribed(callback, "sql.active_record") { get post_path(artist_post) }
+        expect(queries.size).to eq(1)
+      end
+
+      it "is hidden from anonymous users" do
+        get post_path(artist_post)
+        expect(response.body).not_to include("post-artist-subscribe")
+      end
+
+      it "is hidden from blocked users" do
+        sign_in_as create(:banned_user)
+        get post_path(artist_post)
+        expect(response.body).not_to include("post-artist-subscribe")
+      end
+
+      it "is hidden on posts without verified artists" do
+        sign_in_as member
+        get post_path(post)
+        expect(response.body).not_to include("post-artist-subscribe")
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------

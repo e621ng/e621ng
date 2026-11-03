@@ -1,19 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { jsonResponse } from "../../helpers";
+import { jsonResponse } from "../helpers";
 
 const alertSpy = vi.fn();
 vi.mock("@/utility/Toast", () => ({ default: { alert: (msg: string) => alertSpy(msg), create: vi.fn() } }));
 
+function linkHTML (subscribed: boolean, tag = "fox", id = 7) {
+  const href = subscribed ? `/tag_subscriptions/${id}` : `/tag_subscriptions?tag_name=${tag}`;
+  return `<a class="button ${subscribed ? "btn-neutral" : "btn-success"} tag-subscription-toggle"
+    href="${href}" data-method="${subscribed ? "delete" : "post"}" data-tag="${tag}" data-subscribed="${subscribed}">x</a>`;
+}
+
 function render (subscribed: boolean) {
-  const href = subscribed ? "/tag_subscriptions/7" : "/tag_subscriptions?tag_name=fox";
-  document.body.innerHTML = `<a id="tag-subscription-toggle" class="button ${subscribed ? "btn-neutral" : "btn-success"}"
-    href="${href}" data-method="${subscribed ? "delete" : "post"}" data-tag="fox" data-subscribed="${subscribed}">x</a>`;
-  return document.getElementById("tag-subscription-toggle") as HTMLAnchorElement;
+  document.body.innerHTML = linkHTML(subscribed);
+  return document.querySelector("a.tag-subscription-toggle") as HTMLAnchorElement;
 }
 
 async function load () {
   vi.resetModules();
-  await import("@/pages/wiki_pages/show/SubscribeTag");
+  const { default: SubscribeTag } = await import("@/components/SubscribeTag");
+  void SubscribeTag.instance;
 }
 
 async function click (link: HTMLAnchorElement) {
@@ -88,5 +93,19 @@ describe("SubscribeTag", () => {
     await click(link);
     document.removeEventListener("click", documentHandler);
     expect(documentHandler).not.toHaveBeenCalled();
+  });
+
+  it("toggles each of several buttons independently", async () => {
+    const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ added: [{ id: 12, tag_name: "wolf" }], skipped: [] }));
+    document.body.innerHTML = linkHTML(true, "fox", 7) + linkHTML(false, "wolf");
+    const [fox, wolf] = document.querySelectorAll<HTMLAnchorElement>("a.tag-subscription-toggle");
+    await load();
+    await click(wolf);
+
+    expect(String(fetchSpy.mock.calls[0][1]?.body)).toBe("tag_name=wolf");
+    expect(wolf.dataset.subscribed).toBe("true");
+    expect(wolf.getAttribute("href")).toBe("/tag_subscriptions/12");
+    expect(fox.dataset.subscribed).toBe("true");
+    expect(fox.getAttribute("href")).toBe("/tag_subscriptions/7");
   });
 });

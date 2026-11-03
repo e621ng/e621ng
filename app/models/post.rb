@@ -9,6 +9,7 @@ class Post < ApplicationRecord
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
   NON_KNOWN_ARTIST_TAGS = %w[unknown_artist anonymous_artist third-party_edit].freeze
+  SUBSCRIBE_BANNER_LIMIT = 5
 
   # Seconds of age worth one log10 unit of score in the `order:hot` ranking (~5 days).
   # Smaller favours fresher posts; larger lets posts stay hot longer.
@@ -1145,7 +1146,7 @@ class Post < ApplicationRecord
     # Sends a db request to look up the tag data.
     def categorized_tags
       @categorized_tags ||= begin
-        tag_data = Tag.where(name: tag_array).select(:name, :post_count, :category).index_by(&:name)
+        tag_data = Tag.where(name: tag_array).select(:id, :name, :post_count, :category).index_by(&:name)
         ordered = tag_array.map do |name|
           tag_data[name] || Tag.new(name: name).freeze
         end
@@ -1172,7 +1173,7 @@ class Post < ApplicationRecord
     def artist_tags
       @artist_tags ||= begin
         if @categorized_tags.nil?
-          Tag.where(name: tag_array, category: Tag.categories.artist).select(:name, :post_count, :category).filter do |tag|
+          Tag.where(name: tag_array, category: Tag.categories.artist).select(:id, :name, :post_count, :category).filter do |tag|
             NON_ARTIST_TAGS.exclude?(tag.name)
           end
         else
@@ -1192,24 +1193,28 @@ class Post < ApplicationRecord
     end
 
     ## DB!
-    # Fetches the data for the artist tags to find any that have the linked artists matching the uploader
-    # Sends a db request to look up the artist data.
+    # Names of the artist tags whose linked user is the uploader.
     def uploader_linked_artists
-      @uploader_linked_artists ||= begin
-        tags = artist_tags.filter_map(&:artist).select { |artist| artist.linked_user_id == uploader_id }
-        tags.map(&:name)
+      @uploader_linked_artists ||= artists_with_linked_users.select { |artist| artist.linked_user_id == uploader_id }.map(&:name)
+    end
+
+    ## DB!
+    # Returns all artists for the post's artist tags that have linked users.
+    # Sends a single db request to look up the artist data.
+    def artists_with_linked_users
+      @artists_with_linked_users ||= begin
+        names = artist_tags.map(&:name)
+        names.empty? ? [] : Artist.where(name: names).where.not(linked_user_id: nil).to_a
       end
     end
 
     ## DB!
-    # Returns all artist tags that have linked users.
-    # Sends a db request to look up the artist data.
-    def artists_with_linked_users
-      @artists_with_linked_users ||= artist_tags.filter_map(&:artist).select(&:linked_user_id?)
-    end
-
+    # Artist tags that have a linked user, most posts first.
     def verified_artist_tags
-      @verified_artist_tags ||= artists_with_linked_users.map(&:tag)
+      @verified_artist_tags ||= begin
+        names = artists_with_linked_users.to_set(&:name)
+        artist_tags.select { |tag| names.include?(tag.name) }.sort_by { |tag| -tag.post_count }
+      end
     end
 
     ## DB!
@@ -2343,7 +2348,10 @@ class Post < ApplicationRecord
     @typed_tags = nil
     @categorized_tags = nil
     @artist_tags = nil
+    @artists_with_linked_users = nil
+    @verified_artist_tags = nil
     @uploader_linked_artists = nil
+    @linked_users = nil
     @avoid_posting_tags = nil
 
     @has_dimensions = nil
