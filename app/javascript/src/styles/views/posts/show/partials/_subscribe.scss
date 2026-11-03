@@ -20,5 +20,10 @@ div#post-artist-subscribe {
     &-name {
       font-size: 1rem;
     }
+
+    a.tag-subscription-toggle {
+      min-width: 7.5rem;
+      text-align: center;
+    }
   }
 }

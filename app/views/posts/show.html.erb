@@ -169,7 +169,7 @@
       <% end %>
 
       <% if CurrentUser.user.is_member? && @post.verified_artist_tags.any? %>
-        <%= render "posts/partials/show/artist_subscribe", post: @post %>
+        <%= render "posts/partials/show/content/artist_subscribe", post: @post %>
       <% end %>
 
       <section id="note-staging" style="display: none;">
