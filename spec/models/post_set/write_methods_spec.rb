@@ -55,6 +55,34 @@ RSpec.describe PostSet do
     end
   end
 
+  describe "large set statement timeout" do
+    let(:conn) { PostSet.connection }
+    let(:post) { create(:post) }
+
+    before { set.update_columns(post_ids: (-1_000..-1).to_a, post_count: 1_000) }
+
+    it "raises the timeout for the update" do
+      seen = nil
+      allow(conn.raw_connection).to receive(:exec_params).and_wrap_original do |original, sql, *args|
+        seen = conn.select_value("SHOW statement_timeout") if sql.start_with?("UPDATE post_sets")
+        original.call(sql, *args)
+      end
+
+      set.add!(post)
+
+      expect(seen).to eq("30s")
+    end
+
+    it "restores the previous timeout afterwards" do
+      previous = conn.select_value("SHOW statement_timeout")
+
+      set.add!(post)
+      set.remove!(post)
+
+      expect(conn.select_value("SHOW statement_timeout")).to eq(previous)
+    end
+  end
+
   describe "#destroy" do
     it "enqueues a reindex for the set's members" do
       posts = create_list(:post, 2)
