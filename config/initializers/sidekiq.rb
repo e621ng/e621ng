@@ -3,8 +3,11 @@
 require "sidekiq-unique-jobs"
 require "sidekiq-cron"
 require_relative "../../lib/sidekiq_capsules"
+require_relative "../../lib/json_log_formatter"
 
 Sidekiq.logger.level = Logger::WARN if Rails.env.test?
+# Same one-line JSON as Rails.logger (see production.rb); the default formatter emits ANSI colours.
+Sidekiq.logger.formatter = JsonLogFormatter.new if ENV["RAILS_LOG_TO_STDOUT"].present?
 
 # The four tag jobs defer enqueue to transaction commit via TransactionalEnqueue
 # (client_class: TransactionAwareClient). transactional_push! would strip client_class

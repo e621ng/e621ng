@@ -41,14 +41,17 @@ Rails.application.configure do
 
   # Log to STDOUT when containerized (journald/docker capture it); bare-metal
   # hosts keep the default log/production.log file logger.
+  # One JSON object per line, so multi-line messages survive the journal.
   if ENV["RAILS_LOG_TO_STDOUT"].present?
+    require_relative "../../lib/json_log_formatter"
     config.logger = ActiveSupport::Logger.new($stdout)
-                                         .tap { |logger| logger.formatter = Logger::Formatter.new }
+                                         .tap { |logger| logger.formatter = JsonLogFormatter.new }
                                          .then { |logger| ActiveSupport::TaggedLogging.new(logger) }
   end
 
   # Prepend all log lines with the following tags.
-  config.log_tags = [:request_id]
+  # key=value, so the JSON formatter turns it into a request_id field.
+  config.log_tags = [->(request) { "request_id=#{request.request_id}" }]
 
   # "info" includes generic and useful information about system operation, but avoids logging too much
   # information to avoid inadvertent exposure of personally identifiable information (PII). If you
