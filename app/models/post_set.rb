@@ -257,9 +257,6 @@ class PostSet < ApplicationRecord
         return [] if post_count >= max
         return [] if post_ids.include?(pid)
 
-        conn = PostSet.connection
-        conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
-
         update_sql = <<~SQL.squish
           UPDATE post_sets
           SET post_ids = array_append(post_ids, $1),
@@ -268,7 +265,7 @@ class PostSet < ApplicationRecord
           WHERE id = $3
             AND post_count < $4
         SQL
-        result = conn.raw_connection.exec_params(update_sql, [pid, Time.current.utc, id, max])
+        result = with_large_set_timeout { |conn| conn.raw_connection.exec_params(update_sql, [pid, Time.current.utc, id, max]) }
 
         return result.cmd_tuples > 0 ? [pid] : []
       end
@@ -290,8 +287,6 @@ class PostSet < ApplicationRecord
       end
       return [] if new_ids.empty?
 
-      conn = PostSet.connection
-      conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
       sql = <<~SQL.squish
         WITH input AS (
           SELECT id, ord
@@ -328,7 +323,7 @@ class PostSet < ApplicationRecord
       SQL
 
       pg_array_literal = "{#{new_ids.join(',')}}"
-      result = conn.raw_connection.exec_params(sql, [pg_array_literal, id, max, Time.current.utc])
+      result = with_large_set_timeout { |conn| conn.raw_connection.exec_params(sql, [pg_array_literal, id, max, Time.current.utc]) }
       result.column_values(0).map!(&:to_i)
     end
 
@@ -365,9 +360,6 @@ class PostSet < ApplicationRecord
         pid = ids.first
         return [] unless post_ids.include?(pid)
 
-        conn = PostSet.connection
-        conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
-
         update_sql = <<~SQL.squish
           UPDATE post_sets
           SET post_ids = array_remove(post_ids, $1),
@@ -375,7 +367,7 @@ class PostSet < ApplicationRecord
               updated_at = $2
           WHERE id = $3
         SQL
-        result = conn.raw_connection.exec_params(update_sql, [pid, Time.current.utc, id])
+        result = with_large_set_timeout { |conn| conn.raw_connection.exec_params(update_sql, [pid, Time.current.utc, id]) }
 
         return result.cmd_tuples > 0 ? [pid] : []
       end
@@ -385,8 +377,6 @@ class PostSet < ApplicationRecord
       existing_ids = ids & current_ids
       return [] if existing_ids.empty?
 
-      conn = PostSet.connection
-      conn.execute("SET LOCAL statement_timeout = '30s'") if post_count >= 1000
       sql = <<~SQL.squish
         WITH input AS (
           SELECT id FROM unnest($1::int[]) AS t(id)
@@ -419,7 +409,7 @@ class PostSet < ApplicationRecord
       SQL
 
       pg_array_literal = "{#{existing_ids.join(',')}}"
-      result = conn.raw_connection.exec_params(sql, [pg_array_literal, id, Time.current.utc])
+      result = with_large_set_timeout { |conn| conn.raw_connection.exec_params(sql, [pg_array_literal, id, Time.current.utc]) }
       result.column_values(0).map!(&:to_i)
     end
 
@@ -454,6 +444,21 @@ class PostSet < ApplicationRecord
     end
 
     private
+
+    # Large sets get a longer timeout. SET LOCAL needs a transaction and lasts until it ends,
+    # so open one if needed, and restore the previous value to keep it from leaking into the caller's.
+    def with_large_set_timeout
+      conn = PostSet.connection
+      return yield conn if post_count < 1000
+
+      PostSet.transaction do
+        previous = conn.select_value("SHOW statement_timeout")
+        conn.execute("SET LOCAL statement_timeout = '30s'")
+        result = yield conn
+        conn.execute("SET LOCAL statement_timeout = #{conn.quote(previous)}")
+        result
+      end
+    end
 
     # Only run after_save synchronization if post_ids changed and it was changed via the attribute writer.
     # SQL helpers don't use the writer and won't set this flag.
