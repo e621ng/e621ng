@@ -1,6 +1,6 @@
 <%= tag.div(id: "flash-player", class: "flash-player", data: { swf: post.file_url }) do %>
   <%# Takes the movie's size, scaled down like an image to fit the page; the player is laid over it. %>
-  <%= tag.canvas(class: "flash-player-frame", width: post.image_width || 550, height: post.image_height || 400, "aria-hidden": "true") %>
+  <%= tag.canvas(class: "flash-player-frame", width: post.image_width || 550, height: post.image_height || 400, aria: { hidden: true }) %>
   <div class="flash-player-content">
     <button type="button" class="st-button flash-player-start" hidden>Play Flash</button>
     <p class="flash-player-message">Playing Flash files in the browser requires JavaScript.</p>
