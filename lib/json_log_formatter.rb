@@ -14,7 +14,8 @@ class JsonLogFormatter < Logger::Formatter
   # wins: tags become fields instead of a message prefix.
   include ActiveSupport::TaggedLogging::Formatter
 
-  KEY_VALUE_TAG = /\A\S+=\S*(?: \S+=\S*)*\z/
+  # Keys exclude "=", so each pair splits only one way (no backtracking blowup).
+  KEY_VALUE_TAG = /\A[^\s=]+=\S*(?: [^\s=]+=\S*)*\z/
 
   def call(severity, time, progname, msg)
     event = { "time" => time.utc.iso8601(6), "level" => severity, "pid" => Process.pid }

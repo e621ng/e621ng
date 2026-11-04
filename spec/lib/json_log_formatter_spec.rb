@@ -35,6 +35,12 @@ RSpec.describe JsonLogFormatter do
     )
   end
 
+  it "splits a pair on its first = only" do
+    logger.tagged("q=a=b empty=") { logger.info("pairs") }
+
+    expect(event).to include("q" => "a=b", "empty" => "")
+  end
+
   it "does not let tag fields replace the base fields" do
     logger.tagged("level=fake msg=fake pid=0") { logger.info("real") }
 
