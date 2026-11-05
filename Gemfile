@@ -25,9 +25,9 @@ gem "sidekiq-cron", "2.4.0"
 gem "sidekiq-unique-jobs", "8.1.0"
 
 # Views and serialization
-gem "blueprinter", "1.2.1"
-gem "draper", "4.0.2"
-gem "simple_form", "5.3.0"
+gem "blueprinter", "1.3.0"
+gem "draper", "4.0.6"
+gem "simple_form", "5.4.1"
 gem "sitemap_generator", "7.0.1"
 gem "view_component", "4.12.0"
 gem "vite_rails", "3.10.0"
