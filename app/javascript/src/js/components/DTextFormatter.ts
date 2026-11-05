@@ -294,11 +294,13 @@ export default class DTextFormatter {
           DeferredPostLoader.loadPostData(response.posts);
           DeferredPostLoader.renderDTextThumbnails();
         },
-        error: (_xhr, _status, error) => {
+        error: (xhr, _status, error) => {
           console.error("DText preview error:", error);
+          // Surface the server's reason (login required, body too long, throttled).
+          const reason = xhr.responseJSON?.reason ?? xhr.responseJSON?.message;
           this.$preview
             .attr("loading", "false")
-            .text("Unable to fetch DText preview.");
+            .text(typeof reason === "string" && reason ? reason : "Unable to fetch DText preview.");
           this._parsedInputCache = null;
         },
       });

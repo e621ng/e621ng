@@ -460,6 +460,11 @@ module Danbooru
       250_000
     end
 
+    # Largest body accepted by POST /dtext_preview. Tracks the largest stored DText field.
+    def dtext_preview_max_size
+      wiki_page_max_size
+    end
+
     def wiki_page_max_featured_posts
       6
     end
