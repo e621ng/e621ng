@@ -11,7 +11,7 @@ gem "bootsnap", "1.26.1"
 gem "rack-cors", "3.0.0"
 gem "rails-settings-cached", "2.10.0"
 gem "request_store", "1.7.0"
-gem "responders", "3.1.1"
+gem "responders", "3.2.1"
 
 # Data stores
 gem "dalli", "3.2.8"
