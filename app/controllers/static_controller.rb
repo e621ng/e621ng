@@ -49,6 +49,18 @@ class StaticController < ApplicationController
     render "static/robots", formats: [:text], layout: false
   end
 
+  def sitemap
+    data = SitemapGeneratorJob.read("sitemap.xml.gz")
+    if data.nil?
+      # Not generated since the key was lost (or first deploy); the job's lock dedupes repeat hits
+      SitemapGeneratorJob.perform_async
+      return head(404)
+    end
+
+    expires_in 6.hours, public: true
+    send_data data, type: "application/gzip", disposition: "inline"
+  end
+
   def home
     @mascot_id = cookies[:mascot].to_i
     mascot_list = Mascot.active_for_browser

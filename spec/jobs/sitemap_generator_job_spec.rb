@@ -9,10 +9,25 @@ RSpec.describe SitemapGeneratorJob do
     # index rebuild can leave the `hotness` field transiently unmapped, making the
     # `order:hot` sort fail with a `[400] ... in order to sort on` error. Stub
     # tag_match (as other specs do) to keep this test off the shared index.
-    before { allow(Post).to receive(:tag_match).and_return(Post.none) }
+    # Dev and test share Redis DB 0; stub the write to leave the dev sitemap alone.
+    let(:written) { {} }
+
+    before do
+      allow(Post).to receive(:tag_match).and_return(Post.none)
+      allow(Cache.redis).to receive(:set) { |key, value| written[key] = value }
+    end
 
     it "generates the sitemap without error" do
       expect { described_class.new.perform }.not_to raise_error
+    end
+
+    it "stores the gzipped sitemap in Redis" do
+      described_class.new.perform
+
+      key = "sitemap:#{Danbooru.config.hostname}:sitemap.xml.gz"
+      expect(written.keys).to eq([key])
+      xml = ActiveSupport::Gzip.decompress(written[key])
+      expect(xml).to include("<urlset").and include("/static/site_map")
     end
   end
 end

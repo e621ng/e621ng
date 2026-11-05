@@ -3,7 +3,7 @@
 require "sitemap_generator"
 
 class SitemapGeneratorJob < ApplicationJob
-  sidekiq_options queue: "low_prio"
+  sidekiq_options queue: "low_prio", lock: :until_executed, lock_ttl: 1.hour.to_i
 
   module SitemapMethods
     def include_static_page(path, wiki_page_title)
@@ -17,10 +17,32 @@ class SitemapGeneratorJob < ApplicationJob
   end
   private_constant :SitemapMethods
 
+  # Stores sitemaps in Redis instead of public/: the image's public/ is read-only,
+  # and Redis is shared by every app host. Served by StaticController#sitemap.
+  class RedisAdapter
+    def write(location, raw_data)
+      filename = location.filename.to_s
+      data = filename.end_with?(".gz") ? ActiveSupport::Gzip.compress(raw_data) : raw_data
+      Cache.redis.set(SitemapGeneratorJob.redis_key(filename), data)
+    end
+  end
+  private_constant :RedisAdapter
+
+  def self.redis_key(filename)
+    "sitemap:#{Danbooru.config.hostname}:#{filename}"
+  end
+
+  def self.read(filename)
+    Cache.redis.get(redis_key(filename))
+  end
+
   def perform
     SitemapGenerator::Interpreter.include SitemapMethods unless SitemapGenerator::Interpreter.include?(SitemapMethods)
 
     SitemapGenerator::Sitemap.default_host = "https://#{Danbooru.config.hostname}"
+    SitemapGenerator::Sitemap.adapter = RedisAdapter.new
+    # Verbose output stats the (nonexistent) files on disk
+    SitemapGenerator::Sitemap.verbose = false
 
     Post.without_timeout do # rubocop:disable Metrics/BlockLength
       SitemapGenerator::Sitemap.create do # rubocop:disable Metrics/BlockLength
