@@ -23,7 +23,8 @@ module DtextHelper
 
   def format_plaintext(text)
     return "" if text.nil?
-    strip_tags(format_text(text).gsub(/<[^>]+>/, " ")).squish
+    # Decoded so tag helpers escape it exactly once
+    CGI.unescapeHTML(strip_tags(format_text(text).gsub(/<[^>]+>/, " "))).squish
   end
 end
 

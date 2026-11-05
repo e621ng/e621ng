@@ -6,12 +6,12 @@ source "https://rubygems.org/"
 gem "dotenv", "3.1.0", require: "dotenv/load"
 
 # Framework
-gem "rails", "8.1.3.1"
-gem "bootsnap", "1.18.3"
+gem "rails", "8.1.4.1"
+gem "bootsnap", "1.26.1"
 gem "rack-cors", "3.0.0"
-gem "rails-settings-cached", "2.9.6"
+gem "rails-settings-cached", "2.10.0"
 gem "request_store", "1.7.0"
-gem "responders", "3.1.1"
+gem "responders", "3.2.1"
 
 # Data stores
 gem "dalli", "3.2.8"
