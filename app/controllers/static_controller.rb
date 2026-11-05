@@ -51,7 +51,11 @@ class StaticController < ApplicationController
 
   def sitemap
     data = SitemapGeneratorJob.read("sitemap.xml.gz")
-    return head(404) if data.nil?
+    if data.nil?
+      # Not generated since the key was lost (or first deploy); the job's lock dedupes repeat hits
+      SitemapGeneratorJob.perform_async
+      return head(404)
+    end
 
     expires_in 6.hours, public: true
     send_data data, type: "application/gzip", disposition: "inline"

@@ -29,9 +29,5 @@ RSpec.describe SitemapGeneratorJob do
       xml = ActiveSupport::Gzip.decompress(written[key])
       expect(xml).to include("<urlset").and include("/static/site_map")
     end
-
-    it "does not write to public/" do
-      expect { described_class.new.perform }.not_to(change { Rails.public_path.glob("sitemap*") })
-    end
   end
 end

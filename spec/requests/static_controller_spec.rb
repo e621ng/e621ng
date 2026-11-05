@@ -60,11 +60,17 @@ RSpec.describe StaticController do
       expect(response.body.b).to eq(data.b)
     end
 
-    it "returns 404 when no sitemap has been generated" do
+    it "returns 404 and regenerates when no sitemap is stored" do
       allow(SitemapGeneratorJob).to receive(:read).with("sitemap.xml.gz").and_return(nil)
 
-      get sitemap_path
+      expect { get sitemap_path }.to enqueue_sidekiq_job(SitemapGeneratorJob)
       expect(response).to have_http_status(:not_found)
+    end
+
+    it "does not regenerate when a sitemap is stored" do
+      allow(SitemapGeneratorJob).to receive(:read).with("sitemap.xml.gz").and_return("data")
+
+      expect { get sitemap_path }.not_to enqueue_sidekiq_job(SitemapGeneratorJob)
     end
   end
 
