@@ -20,7 +20,7 @@ gem "pg", "1.7.0"
 gem "redis", "6.0.0"
 
 # Background jobs
-gem "sidekiq", "8.1.2"
+gem "sidekiq", "8.1.7"
 gem "sidekiq-cron", "2.4.0"
 gem "sidekiq-unique-jobs", "8.1.0"
 
