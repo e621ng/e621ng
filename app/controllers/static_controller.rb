@@ -49,6 +49,14 @@ class StaticController < ApplicationController
     render "static/robots", formats: [:text], layout: false
   end
 
+  def sitemap
+    data = SitemapGeneratorJob.read("sitemap.xml.gz")
+    return head(404) if data.nil?
+
+    expires_in 6.hours, public: true
+    send_data data, type: "application/gzip", disposition: "inline"
+  end
+
   def home
     @mascot_id = cookies[:mascot].to_i
     mascot_list = Mascot.active_for_browser

@@ -49,6 +49,25 @@ RSpec.describe StaticController do
     end
   end
 
+  describe "GET /sitemap.xml.gz" do
+    it "serves the stored sitemap" do
+      data = ActiveSupport::Gzip.compress("<urlset/>")
+      allow(SitemapGeneratorJob).to receive(:read).with("sitemap.xml.gz").and_return(data)
+
+      get sitemap_path
+      expect(response).to have_http_status(:ok)
+      expect(response.media_type).to eq("application/gzip")
+      expect(response.body.b).to eq(data.b)
+    end
+
+    it "returns 404 when no sitemap has been generated" do
+      allow(SitemapGeneratorJob).to receive(:read).with("sitemap.xml.gz").and_return(nil)
+
+      get sitemap_path
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
   # ---------------------------------------------------------------------------
   # not_found — the catch-all route renders static/404 with status 404
   # ---------------------------------------------------------------------------

@@ -643,6 +643,7 @@ Rails.application.routes.draw do
   get "/static/furid" => "static#furid", as: "furid"
   get "/meta_searches/tags" => "meta_searches#tags", :as => "meta_searches_tags"
   get "/robots.txt" => "static#robots", as: :robots
+  get "/sitemap.xml.gz" => "static#sitemap", as: :sitemap, format: false
 
   # Load balancer health checks
   get "status" => "rails/health#show", as: :rails_health_check
