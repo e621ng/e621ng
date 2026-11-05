@@ -6,7 +6,7 @@ source "https://rubygems.org/"
 gem "dotenv", "3.1.0", require: "dotenv/load"
 
 # Framework
-gem "rails", "8.1.3.1"
+gem "rails", "8.1.4.1"
 gem "bootsnap", "1.18.3"
 gem "rack-cors", "3.0.0"
 gem "rails-settings-cached", "2.9.6"

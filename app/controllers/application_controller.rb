@@ -51,10 +51,10 @@ class ApplicationController < ActionController::Base
   # here, so calling `rescue_exception` would cause a double render error.
   rescue_from ActionController::InvalidCrossOriginRequest, with: -> {}
 
-  # Raised when HTTP_CLIENT_IP and HTTP_X_FORWARDED_FOR disagree.
+  # Raised when HTTP_CLIENT_IP, HTTP_FORWARDED and HTTP_X_FORWARDED_FOR disagree.
   # Likely scanner probes. Not actionable - no need to send these to the exception log.
   rescue_from ActionDispatch::RemoteIp::IpSpoofAttackError, with: -> {
-    Rails.logger.warn("IP spoof attempt: CLIENT_IP=#{request.env['HTTP_CLIENT_IP'].inspect} XFF=#{request.env['HTTP_X_FORWARDED_FOR'].inspect} UA=#{request.user_agent.inspect}")
+    Rails.logger.warn("IP spoof attempt: CLIENT_IP=#{request.env['HTTP_CLIENT_IP'].inspect} FORWARDED=#{request.env['HTTP_FORWARDED'].inspect} XFF=#{request.env['HTTP_X_FORWARDED_FOR'].inspect} UA=#{request.user_agent.inspect}")
     head 400
   }
 
