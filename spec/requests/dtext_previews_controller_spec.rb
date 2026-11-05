@@ -124,6 +124,13 @@ RSpec.describe DtextPreviewsController do
         end
       end
 
+      # DANBOORU_* environment overrides arrive as strings.
+      it "accepts a string-valued cap from the environment" do
+        allow(Danbooru.config.custom_configuration).to receive(:dtext_preview_max_size).and_return("10")
+        post dtext_preview_path(format: :json), params: { body: "a" * 11 }
+        expect(response).to have_http_status(:content_too_large)
+      end
+
       it "returns 413 when the rendered output exceeds the output cap" do
         stub_const("DtextPreviewsController::MAX_OUTPUT_BYTES", 16)
         post dtext_preview_path(format: :json), params: { body: "[b]bold[/b]" }

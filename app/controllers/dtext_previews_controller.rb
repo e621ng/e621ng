@@ -10,7 +10,7 @@ class DtextPreviewsController < ApplicationController
   def create
     body = params[:body]
     body = "" unless body.is_a?(String)
-    max_size = Danbooru.config.dtext_preview_max_size
+    max_size = Danbooru.config.dtext_preview_max_size.to_i
     return render_expected_error(413, "Preview input is too long (max #{max_size} characters)") if body.length > max_size
 
     dtext = helpers.format_text(body, allow_color: params[:allow_color].to_s.truthy?)
