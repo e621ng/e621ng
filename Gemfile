@@ -15,7 +15,7 @@ gem "responders", "3.2.1"
 
 # Data stores
 gem "dalli", "3.2.15" # Held on 3.2.x: 5.x needs memcached 1.6+ and 4.x+ crashes Ruby < 3.3.8 (bug #21195)
-gem "opensearch-ruby", "3.2.0"
+gem "opensearch-ruby", "3.4.0"
 gem "pg", "1.5.6"
 gem "redis", "6.0.0"
 
