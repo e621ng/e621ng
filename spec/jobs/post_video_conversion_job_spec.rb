@@ -249,6 +249,16 @@ RSpec.describe PostVideoConversionJob do
       captured_args[captured_args.index("-vf") + 1]
     end
 
+    it "caps decoder threads before -i and encoder threads after it" do
+      file = job.generate_mp4_video(post)
+      input_args = captured_args[0...captured_args.index("-i")]
+      output_args = captured_args[captured_args.index("-i")..]
+      expect(input_args.each_cons(2)).to include(["-threads", described_class::DECODE_THREADS.to_s])
+      expect(input_args.each_cons(2)).to include(["-filter_threads", described_class::FILTER_THREADS.to_s])
+      expect(output_args.each_cons(2)).to include(["-threads", described_class::ENCODE_THREADS.to_s])
+      file.close!
+    end
+
     context "when the source has a colour space swscale can't convert from" do
       before { allow(ImageSampler).to receive(:colorspace_relabel_filter).with(post.file_path).and_return("setparams=colorspace=bt709") }
 
