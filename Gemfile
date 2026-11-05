@@ -28,9 +28,9 @@ gem "sidekiq-unique-jobs", "8.1.0"
 gem "blueprinter", "1.3.0"
 gem "draper", "4.0.6"
 gem "simple_form", "5.4.1"
-gem "sitemap_generator", "7.0.1"
-gem "view_component", "4.12.0"
-gem "vite_rails", "3.10.0"
+gem "sitemap_generator", "7.1.1"
+gem "view_component", "4.21.0"
+gem "vite_rails", "3.11.1"
 
 # Text processing and versioning
 gem "diffy", "3.4.2"
