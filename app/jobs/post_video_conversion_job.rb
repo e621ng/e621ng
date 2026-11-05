@@ -6,6 +6,12 @@ class PostVideoConversionJob < ApplicationJob
   sidekiq_options queue: "video", lock: :until_and_while_executing, lock_args_method: :lock_args,
                   lock_ttl: 6.hours.to_i, on_conflict: { server: :reschedule }, schedule_in: 30, retry: 3
 
+  # Unset, ffmpeg sizes each thread pool to nproc. -threads only applies to the
+  # side of -i it is placed on, so decoder and encoder are capped separately.
+  DECODE_THREADS = 2
+  FILTER_THREADS = 2
+  ENCODE_THREADS = 4
+
   def self.lock_args(args)
     [args[0]]
   end
@@ -145,6 +151,8 @@ class PostVideoConversionJob < ApplicationJob
     file = Tempfile.new(["video-sample", ".mp4"], binmode: true)
     args = [
       "-y",
+      "-threads", DECODE_THREADS.to_s,
+      "-filter_threads", FILTER_THREADS.to_s,
       "-i",
       post.file_path,
 
@@ -152,7 +160,7 @@ class PostVideoConversionJob < ApplicationJob
       *format_args,
       "-vf", vf_params.compact.join(","),
 
-      "-threads", "4",
+      "-threads", ENCODE_THREADS.to_s,
       "-max_muxing_queue_size", "4096",
 
       "-map_metadata", "-1",

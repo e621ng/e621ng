@@ -139,7 +139,7 @@ module ImageSampler
   def gen_video_snapshot(file_path)
     output_file = Tempfile.new(["video-preview", ".png"], binmode: true)
     decoder_args = video_alpha_decoder_args(file_path)
-    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-y", *decoder_args, "-i", file_path, "-vf", video_snapshot_filter(file_path), "-frames:v", "1", output_file.path)
+    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-y", *decoder_args, "-threads", "2", "-filter_threads", "1", "-i", file_path, "-vf", video_snapshot_filter(file_path), "-frames:v", "1", output_file.path)
 
     unless status == 0
       Rails.logger.warn("[FFMPEG PREVIEW STDOUT] #{stdout.chomp!}")
