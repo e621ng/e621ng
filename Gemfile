@@ -9,7 +9,7 @@ gem "dotenv", "3.1.0", require: "dotenv/load"
 gem "rails", "8.1.4.1"
 gem "bootsnap", "1.26.1"
 gem "rack-cors", "3.0.0"
-gem "rails-settings-cached", "2.9.6"
+gem "rails-settings-cached", "2.10.0"
 gem "request_store", "1.7.0"
 gem "responders", "3.1.1"
 
