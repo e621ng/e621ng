@@ -33,8 +33,8 @@ gem "view_component", "4.21.0"
 gem "vite_rails", "3.11.1"
 
 # Text processing and versioning
-gem "diffy", "3.4.2"
-gem "rugged", "1.7.2"
+gem "diffy", "3.4.4"
+gem "rugged", "1.9.6"
 
 # Set LOCAL_DTEXT=true to develop against a checkout in vendor/dtext
 if ENV["LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext")
