@@ -288,9 +288,14 @@ class User < ApplicationRecord
     end
 
     def password_is_secure
-      analysis = ZXCVBN_TESTER.test(password, [name, email])
+      begin
+        analysis = ZXCVBN_TESTER.test(password, [name, email])
+      rescue Zxcvbn::PasswordTooLong
+        errors.add(:password, "is too long")
+        return
+      end
       return unless analysis.score < 2
-      if analysis.feedback.warning
+      if analysis.feedback.warning.present?
         errors.add(:password, "is insecure: #{analysis.feedback.warning}")
       else
         errors.add(:password, "is insecure")
