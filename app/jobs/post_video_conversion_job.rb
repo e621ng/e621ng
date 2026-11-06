@@ -29,7 +29,7 @@ class PostVideoConversionJob < ApplicationJob
 
     # Begin the video conversion process
     Post.transaction do
-      original = FFMPEG::Movie.new(post.file_path)
+      original = VideoProbe.new(post.file_path)
       raise "Invalid video file: #{post.file_path}" unless original.valid?
 
       video_samples = generate_samples(post, original)
@@ -202,7 +202,7 @@ class PostVideoConversionJob < ApplicationJob
   # Generates the metadata block to store in the database
   def generate_metadata(samples)
     samples.transform_values do |file|
-      video = FFMPEG::Movie.new(file.path)
+      video = VideoProbe.new(file.path)
       raise "Invalid video file: #{file.path}" unless video.valid?
       {
         width: video.width,

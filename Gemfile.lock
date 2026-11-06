@@ -440,8 +440,6 @@ GEM
     simplecov (1.3.2)
     sitemap_generator (7.1.1)
       builder (~> 3.0)
-    streamio-ffmpeg (3.0.2)
-      multi_json (~> 1.8)
     stringio (3.2.0)
     thor (1.5.0)
     timeout (0.6.1)
@@ -540,7 +538,6 @@ DEPENDENCIES
   simple_form (= 5.4.1)
   simplecov (= 1.3.2)
   sitemap_generator (= 7.1.1)
-  streamio-ffmpeg (= 3.0.2)
   stringio (= 3.2.0)
   view_component (= 4.21.0)
   vite_rails (= 3.11.1)
@@ -720,7 +717,6 @@ CHECKSUMS
   simple_form (5.4.1) sha256=58c3d229034c7e5545035c3271b6f030ef730c340b9d7d8eb730e0a385b20808
   simplecov (1.3.2) sha256=2a22ec1759f1b8db60881a2e038758956fc69ef93ed669be0bde0678de6d0e85
   sitemap_generator (7.1.1) sha256=ab2a133d512a7b33ed713a27a9977f61d8379c9943e3b79900243fc1c4f7f81d
-  streamio-ffmpeg (3.0.2) sha256=9f2434d4bf010b8b8d4da47c876ff35f4b775690123f3301e43b9c01d88fddda
   stringio (3.2.0) sha256=c37cb2e58b4ffbd33fe5cd948c05934af997b36e0b6ca6fdf43afa234cf222e1
   thor (1.5.0) sha256=e3a9e55fe857e44859ce104a84675ab6e8cd59c650a49106a05f55f136425e73
   timeout (0.6.1) sha256=78f57368a7e7bbadec56971f78a3f5ecbcfb59b7fcbb0a3ed6ddc08a5094accb

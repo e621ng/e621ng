@@ -156,7 +156,7 @@ module FileMethods
   end
 
   def video(file_path)
-    @video ||= FFMPEG::Movie.new(file_path)
+    @video ||= VideoProbe.new(file_path)
   end
 
   # Pass a precomputed +animated+ (e.g. from #is_animated_file?) to avoid a

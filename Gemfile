@@ -51,7 +51,6 @@ end
 ### Media
 gem "marcel", "1.2.1" # Held on 1.x: activestorage requires marcel ~> 1.0, even though it isn't loaded
 gem "ruby-vips", "2.3.0"
-gem "streamio-ffmpeg", "3.0.2"
 
 ### Authentication
 gem "bcrypt", "3.1.22"

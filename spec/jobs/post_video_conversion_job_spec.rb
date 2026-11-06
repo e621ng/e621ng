@@ -14,9 +14,9 @@ RSpec.describe PostVideoConversionJob do
     instance_double(Process::Status).tap { |s| allow(s).to receive(:==).with(0).and_return(true) }
   end
 
-  # Represents the original video file as reported by ffmpeg-ruby.
+  # Represents the original video file as reported by ffprobe.
   let(:original_movie) do
-    instance_double(FFMPEG::Movie,
+    instance_double(VideoProbe,
                     valid?: true,
                     video_codec: "vp9",
                     frame_rate: 24.0,
@@ -26,7 +26,7 @@ RSpec.describe PostVideoConversionJob do
 
   # Returned for all transcoded sample files (non-original paths).
   let(:sample_movie) do
-    instance_double(FFMPEG::Movie,
+    instance_double(VideoProbe,
                     valid?: true,
                     video_codec: "h264",
                     frame_rate: 24.0,
@@ -43,7 +43,7 @@ RSpec.describe PostVideoConversionJob do
     described_class.new
   end
 
-  # Stubs FFMPEG, Open3, and StorageManager so no real transcoding or I/O occurs.
+  # Stubs VideoProbe, Open3, and StorageManager so no real transcoding or I/O occurs.
   #
   # IMPORTANT: Call this AFTER `post` has been created. Creating the post first
   # ensures the factory's after_create callbacks (e.g. check_for_ai_content) use
@@ -54,8 +54,8 @@ RSpec.describe PostVideoConversionJob do
   def stub_ffmpeg_and_storage
     allow(Danbooru.config.custom_configuration).to receive(:storage_manager).and_return(storage)
     allow(Post).to receive(:find).with(post.id).and_return(post)
-    allow(FFMPEG::Movie).to receive(:new).and_return(sample_movie)
-    allow(FFMPEG::Movie).to receive(:new).with(post.file_path).and_return(original_movie)
+    allow(VideoProbe).to receive(:new).and_return(sample_movie)
+    allow(VideoProbe).to receive(:new).with(post.file_path).and_return(original_movie)
     allow(Open3).to receive(:capture3).and_return(["", "", ok_status])
   end
 
@@ -116,7 +116,7 @@ RSpec.describe PostVideoConversionJob do
     context "with an h264 mp4 post" do
       let(:post) { create(:post, file_ext: "mp4", image_width: 1280, image_height: 720) }
       let(:original_movie) do
-        instance_double(FFMPEG::Movie,
+        instance_double(VideoProbe,
                         valid?: true,
                         video_codec: "h264",
                         frame_rate: 24.0,
@@ -128,8 +128,8 @@ RSpec.describe PostVideoConversionJob do
         post  # Force eager creation before mocks
         allow(Danbooru.config.custom_configuration).to receive(:storage_manager).and_return(storage)
         allow(Post).to receive(:find).with(post.id).and_return(post)
-        allow(FFMPEG::Movie).to receive(:new).and_return(sample_movie)
-        allow(FFMPEG::Movie).to receive(:new).with(post.file_path).and_return(original_movie)
+        allow(VideoProbe).to receive(:new).and_return(sample_movie)
+        allow(VideoProbe).to receive(:new).with(post.file_path).and_return(original_movie)
         allow(Open3).to receive(:capture3).and_return(["", "", ok_status])
       end
 
@@ -155,7 +155,7 @@ RSpec.describe PostVideoConversionJob do
     after { fake_tempfile.close! rescue nil } # rubocop:disable Style/RescueModifier
 
     def make_original(codec:, frame_rate:)
-      instance_double(FFMPEG::Movie, video_codec: codec, frame_rate: frame_rate)
+      instance_double(VideoProbe, video_codec: codec, frame_rate: frame_rate)
     end
 
     context "when the codec is not h264" do
@@ -379,7 +379,7 @@ RSpec.describe PostVideoConversionJob do
 
     let(:fake_file) { instance_spy(Tempfile, path: "/tmp/fake_video.mp4") }
     let(:movie) do
-      instance_double(FFMPEG::Movie,
+      instance_double(VideoProbe,
                       valid?: true,
                       video_codec: "h264",
                       frame_rate: 24.0,
@@ -388,7 +388,7 @@ RSpec.describe PostVideoConversionJob do
                       size: 5_000)
     end
 
-    before { allow(FFMPEG::Movie).to receive(:new).with(fake_file.path).and_return(movie) }
+    before { allow(VideoProbe).to receive(:new).with(fake_file.path).and_return(movie) }
 
     it "returns a metadata hash for a valid video" do
       result = job.generate_metadata({ sample: fake_file })
