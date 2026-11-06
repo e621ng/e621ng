@@ -156,6 +156,7 @@ GEM
     faraday-retry (2.4.0)
       faraday (~> 2.0)
     ffi (1.17.4)
+    ffi (1.17.4-x86_64-linux-gnu)
     ffi (1.17.4-x86_64-linux-musl)
     fugit (1.12.1)
       et-orbi (~> 1.4)
@@ -164,6 +165,7 @@ GEM
       activesupport (>= 6.1)
     hashdiff (1.2.1)
     herb (0.11.2)
+    herb (0.11.2-x86_64-linux-gnu)
     herb (0.11.2-x86_64-linux-musl)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
@@ -212,6 +214,7 @@ GEM
     mjml-rails (5.0.0)
     mrml (1.10.0)
       rb_sys
+    mrml (1.10.0-x86_64-linux)
     mrml (1.10.0-x86_64-linux-musl)
     msgpack (1.8.3)
     multi_json (1.15.0)
@@ -232,6 +235,8 @@ GEM
     nokogiri (1.19.5)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
+    nokogiri (1.19.5-x86_64-linux-gnu)
+      racc (~> 1.4)
     nokogiri (1.19.5-x86_64-linux-musl)
       racc (~> 1.4)
     opensearch-ruby (3.4.0)
@@ -244,6 +249,7 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.7.0)
+    pg (1.7.0-x86_64-linux)
     pg (1.7.0-x86_64-linux-musl)
     pitchfork (0.18.2)
       logger
@@ -472,6 +478,7 @@ GEM
 
 PLATFORMS
   ruby
+  x86_64-linux
   x86_64-linux-musl
 
 DEPENDENCIES
@@ -592,11 +599,13 @@ CHECKSUMS
   faraday-net_http (3.1.0) sha256=1627be414960d0131691190ff524506ba6607402a50fb6eccda9e64ca60f859f
   faraday-retry (2.4.0) sha256=7b79c48fb7e56526faf247b12d94a680071ff40c9fda7cf1ec1549439ad11ebe
   ffi (1.17.4) sha256=bcd1642e06f0d16fc9e09ac6d49c3a7298b9789bcb58127302f934e437d60acf
+  ffi (1.17.4-x86_64-linux-gnu) sha256=9d3db14c2eae074b382fa9c083fe95aec6e0a1451da249eab096c34002bc752d
   ffi (1.17.4-x86_64-linux-musl) sha256=3fdf9888483de005f8ef8d1cf2d3b20d86626af206cbf780f6a6a12439a9c49e
   fugit (1.12.1) sha256=5898f478ede9b415f0804e42b8f3fd53f814bd85eebffceebdbc34e1107aaf68
   globalid (1.4.0) sha256=037f12fbf1d9d7a014d501c2d5c77356fd4ddd96d7a7991d6700bba96706f427
   hashdiff (1.2.1) sha256=9c079dbc513dfc8833ab59c0c2d8f230fa28499cc5efb4b8dd276cf931457cd1
   herb (0.11.2) sha256=926f16b6c552a077755f686d30f795db049a5596814a0dfd8133cbe36be787ba
+  herb (0.11.2-x86_64-linux-gnu) sha256=2627fe909e7e6b0548926573d87a2e12b6d65bc85964832d34abf5ba165bfc37
   herb (0.11.2-x86_64-linux-musl) sha256=aa6e7aa38d44de757d3076e331234f55ed2f392c2bd0203a3aa4ceea0b6bdd3e
   i18n (1.15.2) sha256=00f9eb62412fe593b2a65a97daa75300d37abb8f7202ec748e94b6d46a9dd1b5
   io-console (0.8.2) sha256=d6e3ae7a7cc7574f4b8893b4fca2162e57a825b223a177b7afa236c5ef9814cc
@@ -620,6 +629,7 @@ CHECKSUMS
   minitest (6.0.6) sha256=153ea36d1d987a62942382b61075745042a2b3123b1cd48f4c3675af9cc7d6f1
   mjml-rails (5.0.0) sha256=93efdd03a0ca2865e777ec151c88a159f72d1b393a70de6477c93b04cf639bfb
   mrml (1.10.0) sha256=cc9b71c712888e23bd5060db8bc9aa31af3da7de9192cea97f35b616d653d68d
+  mrml (1.10.0-x86_64-linux) sha256=4c4740121fd25440019ee72e48f021c35b5176e1011b86543bed5ba5f6951a4b
   mrml (1.10.0-x86_64-linux-musl) sha256=909e39241451194cef5c50dddaaaaa938a47e755596c8a2fc4502882b3707672
   msgpack (1.8.3) sha256=8bda4a6428d3244e50d6bd55854d354edbada88a4e1f4f5731a39a0f86bee6a1
   multi_json (1.15.0) sha256=1fd04138b6e4a90017e8d1b804c039031399866ff3fbabb7822aea367c78615d
@@ -632,12 +642,14 @@ CHECKSUMS
   net-smtp (0.5.1) sha256=ed96a0af63c524fceb4b29b0d352195c30d82dd916a42f03c62a3a70e5b70736
   nio4r (2.7.5) sha256=6c90168e48fb5f8e768419c93abb94ba2b892a1d0602cb06eef16d8b7df1dca1
   nokogiri (1.19.5) sha256=d7ff830dfbe32fa03191412d8ef9dbf0d2db77bc4587e683dc38ec55813c8e03
+  nokogiri (1.19.5-x86_64-linux-gnu) sha256=2a32516e91fd53aa32bb281a1edbbd1b9b8440a14f43b1f22035ca504ad46091
   nokogiri (1.19.5-x86_64-linux-musl) sha256=6c55a0c8ecb376ed19f248cf248841cc5bf41d94b3256a45af8da80fb1b24114
   opensearch-ruby (3.4.0) sha256=0a8621686bed3c59b4c23e08cbaef873685a3fe4568e9d2703155ca92b8ca05d
   parallel (1.24.0) sha256=5bf38efb9b37865f8e93d7a762727f8c5fc5deb19949f4040c76481d5eee9397
   parallel_tests (5.9.0) sha256=593169873cfeefe54f233103238cb3b078320e6eac0155d0f1107b39233f98f8
   parser (3.3.13.0) sha256=e02f9b63c2fe05b0c68f692ba4df89b3cb113b663964f75d988fbebfd6c3deca
   pg (1.7.0) sha256=f7b536501284e883d4c9ef86dbde0313063e4aaafc23575b0017b0d572a26afb
+  pg (1.7.0-x86_64-linux) sha256=d0a24f448b3c874c8b2658d4efbbbefce7315c228ede84f6f6f42089d1d704b6
   pg (1.7.0-x86_64-linux-musl) sha256=0c9bc93b6e0aca2a5b07daef00b7ec4f9882bfe21ef3872b4371f8ecffe1f1e1
   pitchfork (0.18.2) sha256=95d0b5a25792ebc94d627abd8a206652ff22acff1cc32ecd42c71669ead4ab94
   pp (0.6.4) sha256=dfcb0fce700c41456265922884f9fe195d7fbb0674a3578e6c0f69588e82b570
