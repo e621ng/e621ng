@@ -77,6 +77,20 @@ RSpec.describe ExceptionLog do
       expect(log.extra_params["user_agent"]).to eq("Mozilla/5.0")
     end
 
+    it "stores binary request headers holding non-ASCII bytes" do
+      request = make_request(
+        referrer:   "https://example.com/ünïcödé".b,
+        user_agent: "Mozilla/5.0 Ünïcödé".b,
+      )
+      log = ExceptionLog.add(make_exception, CurrentUser.id, request)
+      expect(log.reload.extra_params).to include("referrer" => "https://example.com/ünïcödé", "user_agent" => "Mozilla/5.0 Ünïcödé")
+    end
+
+    it "scrubs request headers holding invalid UTF-8" do
+      log = ExceptionLog.add(make_exception, CurrentUser.id, make_request(user_agent: "bad \xFF agent".b))
+      expect(log.reload.extra_params["user_agent"]).to eq("bad \uFFFD agent")
+    end
+
     it "generates a unique UUID code for each record" do
       log1 = ExceptionLog.add(make_exception, CurrentUser.id, make_request)
       log2 = ExceptionLog.add(make_exception, CurrentUser.id, make_request)
