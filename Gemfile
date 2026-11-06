@@ -62,10 +62,10 @@ gem "mjml-rails", "5.0.0"
 gem "mrml", "1.10.0"
 
 # Outbound HTTP
-gem "addressable", "2.9.0"
-gem "faraday", "2.14.3"
-gem "faraday-follow_redirects", "0.3.0"
-gem "faraday-retry", "2.2.1"
+gem "addressable", "2.9.2"
+gem "faraday", "2.15.1"
+gem "faraday-follow_redirects", "0.5.0"
+gem "faraday-retry", "2.4.0"
 
 # Monitoring
 gem "datadog", "2.38.0", require: "datadog/auto_instrument"
