@@ -3,7 +3,7 @@
 source "https://rubygems.org/"
 
 # Must stay first: populates ENV before any other gem is required.
-gem "dotenv", "3.1.0", require: "dotenv/load"
+gem "dotenv", "3.2.0", require: "dotenv/load"
 
 # Framework
 gem "rails", "8.1.4.1"
@@ -40,11 +40,11 @@ gem "rugged", "1.9.6"
 if ENV["LOCAL_DTEXT"] == "true" && File.directory?("vendor/dtext")
   gem "dtext", path: "vendor/dtext"
 else
-  gem "dtext", "2.0.6"
+  gem "dtext", "2.0.7"
 end
 
 # Media
-gem "marcel", "1.2.1"
+gem "marcel", "1.2.1" # Held on 1.x: activestorage requires marcel ~> 1.0, even though it isn't loaded
 gem "ruby-vips", "2.3.0"
 gem "streamio-ffmpeg", "3.0.2"
 
