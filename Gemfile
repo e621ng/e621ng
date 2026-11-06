@@ -45,7 +45,7 @@ end
 
 # Media
 gem "marcel", "1.2.1"
-gem "ruby-vips", "2.2.1"
+gem "ruby-vips", "2.3.0"
 gem "streamio-ffmpeg", "3.0.2"
 
 # Authentication
