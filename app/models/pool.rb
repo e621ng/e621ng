@@ -82,10 +82,16 @@ class Pool < ApplicationRecord
       case params[:order]
       when "name"
         q = q.order("pools.name")
+      when "name_desc"
+        q = q.order("pools.name desc")
       when "created_at"
         q = q.order("pools.created_at desc")
+      when "updated_at_asc"
+        q = q.order(updated_at: :asc)
       when "post_count"
         q = q.order(Arel.sql("cardinality(post_ids) desc")).default_order
+      when "post_count_asc"
+        q = q.order(Arel.sql("cardinality(post_ids) asc")).default_order
       else
         q = q.apply_basic_order(params)
       end
