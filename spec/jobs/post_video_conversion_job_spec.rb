@@ -82,10 +82,14 @@ RSpec.describe PostVideoConversionJob do
         stub_ffmpeg_and_storage
       end
 
-      it "calls delete_video_samples! before processing" do
-        allow(post).to receive(:delete_video_samples!).and_call_original
+      it "replaces the old samples once the new ones exist" do
+        calls = []
+        allow(ExternalCommand).to receive(:run) { calls << :transcode and ["", "", ok_status] }
+        allow(storage).to receive(:delete_video_samples) { calls << :delete }
+        allow(storage).to receive(:store) { calls << :store }
         perform
-        expect(post).to have_received(:delete_video_samples!)
+        expect(calls.index(:delete)).to be > calls.rindex(:transcode)
+        expect(calls.index(:delete)).to be < calls.index(:store)
       end
 
       it "raises when the original file is reported invalid by ffmpeg" do
@@ -100,10 +104,10 @@ RSpec.describe PostVideoConversionJob do
         expect { perform }.to raise_error(StandardError, /unable to transcode files/)
       end
 
-      it "stops without retrying when ffmpeg times out" do
+      it "keeps the old samples when the transcode fails" do
         allow(ExternalCommand).to receive(:run).and_raise(ExternalCommand::TimeoutError, "ffmpeg timed out after 600 seconds")
-        expect { perform }.not_to raise_error
-        expect(post.reload.video_samples["variants"]).to be_empty
+        expect { perform }.to raise_error(ExternalCommand::TimeoutError)
+        expect(storage).not_to have_received(:delete_video_samples)
       end
 
       it "updates video_samples with the original codec and fps" do
@@ -298,6 +302,23 @@ RSpec.describe PostVideoConversionJob do
         expect(File.size(file.path)).to be > 0
         file.close!
       end
+    end
+  end
+
+  describe "retries" do
+    let(:retry_in) { described_class.sidekiq_retry_in_block }
+    let(:timeout) { ExternalCommand::TimeoutError.new("ffmpeg timed out after 600 seconds") }
+
+    it "retries a first timeout after the peak" do
+      expect(retry_in.call(0, timeout)).to eq(3.hours.to_i)
+    end
+
+    it "sends a second timeout to the dead set" do
+      expect(retry_in.call(1, timeout)).to eq(:kill)
+    end
+
+    it "uses the default backoff for other errors" do
+      expect(retry_in.call(0, RuntimeError.new("boom"))).to be_nil
     end
   end
 

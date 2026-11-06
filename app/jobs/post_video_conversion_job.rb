@@ -16,6 +16,15 @@ class PostVideoConversionJob < ApplicationJob
   MIN_TRANSCODE_TIMEOUT = 10.minutes
   TRANSCODE_TIMEOUT_FACTOR = 3
 
+  # A timeout can come from a busy host rather than the file (the video queue runs at low CPU
+  # priority), so it gets one late retry to wait out the peak. A second one goes to the dead set.
+  TIMEOUT_RETRY_DELAY = 3.hours
+
+  sidekiq_retry_in do |count, exception|
+    next unless exception.is_a?(ExternalCommand::TimeoutError)
+    count == 0 ? TIMEOUT_RETRY_DELAY.to_i : :kill
+  end
+
   def self.lock_args(args)
     [args[0]]
   end
@@ -27,24 +36,17 @@ class PostVideoConversionJob < ApplicationJob
       return
     end
 
-    # Delete the old video samples, since it is possible that the video dimensions
-    # have changed, and thus some of the sample sizes may no longer be valid.
-    post.delete_video_samples!
-
     # Begin the video conversion process
-    convert(post)
-  rescue ExternalCommand::TimeoutError => e
-    # A file that timed out will time out again, so don't retry. The post plays from the original.
-    logger.error "Video conversion for post #{id} stopped: #{e.message}"
-  end
-
-  def convert(post)
     Post.transaction do
       original = VideoProbe.new(post.file_path)
       raise "Invalid video file: #{post.file_path}" unless original.valid?
 
       video_samples = generate_samples(post, original)
       post.reload # Make sure post had not been deleted in the meantime
+
+      # The old samples go only once the new ones exist, so a failed run keeps them.
+      # The dimensions may have changed, so sizes that weren't regenerated go too.
+      post.delete_video_samples!
 
       move_videos(post, video_samples)
       post.reload
