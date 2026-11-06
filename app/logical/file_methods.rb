@@ -180,7 +180,7 @@ module FileMethods
     return false unless is_video?
     movie = video(file_path)
     raise ArgumentError, "unreadable video: #{file_path}" unless movie.valid?
-    return false if movie.audio_streams.empty?
+    return false unless movie.has_audio?
 
     max_volume = video_max_volume_db(file_path)
     max_volume.present? && max_volume > Danbooru.config.sound_detection_threshold_db

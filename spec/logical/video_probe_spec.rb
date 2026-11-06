@@ -25,8 +25,7 @@ RSpec.describe VideoProbe do
         duration: 2.0,
         size: File.size(file_fixture("file_validator/animated-vp9.webm")),
       )
-      expect(video.audio_streams).to be_empty
-      expect(video.video_streams.size).to eq(1)
+      expect(video).not_to have_audio
     end
   end
 
@@ -36,7 +35,7 @@ RSpec.describe VideoProbe do
     it "reads the audio stream" do
       expect(video).to be_valid
       expect(video).to have_attributes(container: "mov,mp4,m4a,3gp,3g2,mj2", video_codec: "h264", audio_codec: "aac", frame_rate: Rational(25, 1))
-      expect(video.audio_streams.size).to eq(1)
+      expect(video).to have_audio
     end
   end
 
@@ -56,7 +55,7 @@ RSpec.describe VideoProbe do
     video = probe("staff_file.txt")
     expect(video).not_to be_valid
     expect(video).to have_attributes(duration: 0, container: nil, video_codec: nil)
-    expect(video.audio_streams).to be_empty
+    expect(video).not_to have_audio
   end
 
   it "raises for a missing file" do

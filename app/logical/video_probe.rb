@@ -4,14 +4,14 @@
 class VideoProbe
   UNSUPPORTED_CODEC_PATTERN = /^Unsupported codec with id (\d+) for input stream (\d+)$/
 
-  attr_reader :path, :container, :duration, :video_streams, :audio_streams,
-              :video_codec, :colorspace, :width, :height, :sar, :frame_rate, :audio_codec
+  attr_reader :path, :container, :duration, :video_codec, :colorspace, :width, :height, :sar, :frame_rate, :audio_codec
 
   def initialize(path)
     raise Errno::ENOENT, "the file '#{path}' does not exist" unless File.exist?(path)
 
     @path = path
     # No -v error: validity depends on ffprobe's default-level stderr messages.
+    # A failed run leaves stdout empty, so the parse below raises.
     stdout, stderr, _status = Open3.capture3(Danbooru.config.ffprobe_path, "-i", path, "-print_format", "json", "-show_format", "-show_streams", "-show_error")
     # ffprobe echoes container metadata, which is not always valid UTF-8.
     stdout = stdout.scrub
@@ -24,10 +24,9 @@ class VideoProbe
     end
 
     streams = metadata["streams"].to_a
-    @video_streams = streams.select { |stream| stream["codec_type"] == "video" }
-    @audio_streams = streams.select { |stream| stream["codec_type"] == "audio" }
-    video_stream = @video_streams.first
-    audio_stream = @audio_streams.first
+    video_stream = streams.find { |stream| stream["codec_type"] == "video" }
+    audio_stream = streams.find { |stream| stream["codec_type"] == "audio" }
+    @has_audio = audio_stream.present?
 
     if metadata.key?("error")
       @duration = 0
@@ -51,13 +50,15 @@ class VideoProbe
 
     unsupported = stderr.each_line.filter_map { |line| line[UNSUPPORTED_CODEC_PATTERN, 2]&.to_i }
     unusable = ->(stream) { stream.nil? || unsupported.include?(stream["index"]) }
-    @valid = !(unusable.call(video_stream) && unusable.call(audio_stream)) &&
-             !metadata.key?("error") &&
-             stderr.exclude?("could not find codec parameters")
+    @valid = !(unusable.call(video_stream) && unusable.call(audio_stream)) && !metadata.key?("error")
   end
 
   def valid?
     @valid
+  end
+
+  def has_audio?
+    @has_audio
   end
 
   def size
