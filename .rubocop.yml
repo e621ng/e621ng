@@ -7,7 +7,7 @@ inherit_mode:
     - Exclude
     - Include
 
-require:
+plugins:
   - rubocop-erb
   - rubocop-rails
   - rubocop-rspec
@@ -76,7 +76,7 @@ Metrics/ModuleLength:
 Metrics/PerceivedComplexity:
   Enabled: false
 
-Naming/PredicateName:
+Naming/PredicatePrefix:
   Enabled: false
 
 Rails/BulkChangeTable:

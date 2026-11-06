@@ -92,20 +92,20 @@ group :development, :test do
 end
 
 group :development do
-  gem "debug", "1.9.2", require: false
+  gem "debug", "1.11.1", require: false
 
   # Linting
-  gem "rubocop", "1.63.4", require: false
-  gem "rubocop-erb", "0.4.0", require: false
-  gem "rubocop-rails", "2.24.1", require: false
-  gem "rubocop-rspec", "3.4.0", require: false
-  gem "rubocop-rspec_rails", "2.30.0", require: false
+  gem "rubocop", "1.92.2", require: false
+  gem "rubocop-erb", "0.8.2", require: false
+  gem "rubocop-rails", "2.38.0", require: false
+  gem "rubocop-rspec", "3.10.2", require: false
+  gem "rubocop-rspec_rails", "2.33.0", require: false
 
   # Editor tooling
-  gem "ruby-lsp", "0.26.9"
+  gem "ruby-lsp", "0.26.11"
   gem "ruby-lsp-rails", "0.4.8"
   gem "ruby-lsp-rspec", "0.1.29", require: false
 
   # Must stay below pg, which it patches
-  gem "rack-mini-profiler", "4.0.1"
+  gem "rack-mini-profiler", "5.0.0"
 end
