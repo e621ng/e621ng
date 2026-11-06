@@ -17,6 +17,9 @@ module FileMethods
 
   VIDEO_FILE_TYPES = %w[webm mp4].freeze
 
+  FFPROBE_TIMEOUT = 10
+  VOLUMEDETECT_TIMEOUT = 45
+
   def is_of_type?(type)
     file_ext == FileMethods::FILE_TYPE[type]
   end
@@ -139,7 +142,7 @@ module FileMethods
 
   def calculate_dimensions(file_path)
     if is_video?
-      stdout, stderr, status = Open3.capture3(Danbooru.config.ffprobe_path, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", file_path)
+      stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffprobe_path, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", file_path, timeout: FFPROBE_TIMEOUT)
       unless status.success?
         Rails.logger.warn("[FFPROBE STDERR] #{stderr.chomp}")
         raise Upload::Error, "Could not retrieve video dimensions"
@@ -189,7 +192,7 @@ module FileMethods
   # Peak level in dBFS across every audio stream, or nil when no samples were decoded.
   # Without -map ffmpeg only measures the default stream, which could be a silent one.
   def video_max_volume_db(file_path)
-    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-nostats", "-hide_banner", "-vn", "-threads", "1", "-filter_threads", "1", "-i", file_path, "-map", "0:a", "-af", "volumedetect", "-f", "null", "-")
+    stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffmpeg_path, "-nostats", "-hide_banner", "-vn", "-threads", "1", "-filter_threads", "1", "-i", file_path, "-map", "0:a", "-af", "volumedetect", "-f", "null", "-", timeout: VOLUMEDETECT_TIMEOUT)
     # ffmpeg echoes container metadata, which is not always valid UTF-8.
     stdout = stdout.scrub
     stderr = stderr.scrub

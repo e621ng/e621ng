@@ -11,8 +11,7 @@ class VideoProbe
 
     @path = path
     # No -v error: validity depends on ffprobe's default-level stderr messages.
-    # A failed run leaves stdout empty, so the parse below raises.
-    stdout, stderr, _status = Open3.capture3(Danbooru.config.ffprobe_path, "-i", path, "-print_format", "json", "-show_format", "-show_streams", "-show_error")
+    stdout, stderr, _status = ExternalCommand.run(Danbooru.config.ffprobe_path, "-i", path, "-print_format", "json", "-show_format", "-show_streams", "-show_error", timeout: FileMethods::FFPROBE_TIMEOUT)
     # ffprobe echoes container metadata, which is not always valid UTF-8.
     stdout = stdout.scrub
     stderr = stderr.scrub

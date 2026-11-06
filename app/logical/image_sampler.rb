@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 module ImageSampler
+  SNAPSHOT_TIMEOUT = 45
+
   module_function
 
   def generate_post_images(post)
@@ -139,7 +141,7 @@ module ImageSampler
   def gen_video_snapshot(file_path)
     output_file = Tempfile.new(["video-preview", ".png"], binmode: true)
     decoder_args = video_alpha_decoder_args(file_path)
-    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, "-y", *decoder_args, "-threads", "2", "-filter_threads", "1", "-i", file_path, "-vf", video_snapshot_filter(file_path), "-frames:v", "1", output_file.path)
+    stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffmpeg_path, "-y", *decoder_args, "-threads", "2", "-filter_threads", "1", "-i", file_path, "-vf", video_snapshot_filter(file_path), "-frames:v", "1", output_file.path, timeout: SNAPSHOT_TIMEOUT)
 
     unless status == 0
       Rails.logger.warn("[FFMPEG PREVIEW STDOUT] #{stdout.chomp!}")
@@ -156,12 +158,13 @@ module ImageSampler
   # alpha_mode=1; the native FFmpeg decoders ignore it, only the libvpx variants
   # decode it correctly.
   def video_alpha_decoder_args(file_path)
-    stdout, _stderr, status = Open3.capture3(
+    stdout, _stderr, status = ExternalCommand.run(
       Danbooru.config.ffprobe_path, "-v", "error",
       "-select_streams", "v:0",
       "-show_entries", "stream=codec_name:stream_tags=alpha_mode",
       "-of", "default=noprint_wrappers=1",
-      file_path
+      file_path,
+      timeout: FileMethods::FFPROBE_TIMEOUT
     )
     return [] unless status == 0
 
@@ -196,19 +199,24 @@ module ImageSampler
   end
 
   # Returns the `-vf` filter chain for the snapshot.
+  # `thumbnail` holds 100 frames to pick from, so frames are first shrunk to the largest
+  # size a sample can use (twice large_image_width on the long side). Never upscales.
   def video_snapshot_filter(file_path)
-    [colorspace_relabel_filter(file_path), "thumbnail"].compact.join(",")
+    box = Danbooru.config.large_image_width * 2
+    scale = "scale='min(iw,#{box})':'min(ih,#{box})':force_original_aspect_ratio=decrease:flags=lanczos"
+    [colorspace_relabel_filter(file_path), scale, "thumbnail"].compact.join(",")
   end
 
   # Returns the video stream's tagged YCbCr matrix (e.g. "bt709", "ictcp"),
   # or an empty string if it can't be determined.
   def video_colorspace(file_path)
-    stdout, _stderr, status = Open3.capture3(
+    stdout, _stderr, status = ExternalCommand.run(
       Danbooru.config.ffprobe_path, "-v", "error",
       "-select_streams", "v:0",
       "-show_entries", "stream=color_space",
       "-of", "default=noprint_wrappers=1:nokey=1",
-      file_path
+      file_path,
+      timeout: FileMethods::FFPROBE_TIMEOUT
     )
     return "" unless status == 0
 

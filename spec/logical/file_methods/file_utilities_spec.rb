@@ -95,7 +95,7 @@ RSpec.describe FileMethods, type: :model do
     context "when ffprobe fails to retrieve video dimensions" do
       it "raises an error" do
         upload = build(:upload, file_ext: "mp4")
-        allow(Open3).to receive(:capture3).with(Danbooru.config.ffprobe_path, any_args).and_return(["", "ffprobe error", instance_double(Process::Status, success?: false)])
+        allow(ExternalCommand).to receive(:run).with(Danbooru.config.ffprobe_path, any_args, timeout: anything).and_return(["", "ffprobe error", instance_double(Process::Status, success?: false)])
         expect { upload.calculate_dimensions("/path/to/video.mp4") }.to raise_error(Upload::Error, "Could not retrieve video dimensions")
       end
     end
@@ -172,13 +172,13 @@ RSpec.describe FileMethods, type: :model do
     end
 
     it "returns false for videos without an audio track without decoding them" do
-      allow(Open3).to receive(:capture3).and_call_original
+      allow(ExternalCommand).to receive(:run).and_call_original
       %w[mp4 webm].each do |ext|
         upload = build(:upload, file_ext: ext)
         path = file_fixture("animated.#{ext}").to_s
         expect(upload.video_has_sound?(path)).to be false
       end
-      expect(Open3).not_to have_received(:capture3).with(Danbooru.config.ffmpeg_path, any_args)
+      expect(ExternalCommand).not_to have_received(:run).with(Danbooru.config.ffmpeg_path, any_args, timeout: anything)
     end
 
     it "respects the configured threshold" do
@@ -194,24 +194,24 @@ RSpec.describe FileMethods, type: :model do
     end
 
     it "raises when ffmpeg fails to decode the audio" do
-      allow(Open3).to receive(:capture3).and_call_original
-      allow(Open3).to receive(:capture3).with(Danbooru.config.ffmpeg_path, any_args).and_return([+"", +"boom", instance_double(Process::Status, success?: false)])
+      allow(ExternalCommand).to receive(:run).and_call_original
+      allow(ExternalCommand).to receive(:run).with(Danbooru.config.ffmpeg_path, any_args, timeout: anything).and_return([+"", +"boom", instance_double(Process::Status, success?: false)])
       upload = build(:upload, file_ext: "mp4")
       path = file_fixture("sound/tone-aac.mp4").to_s
       expect { upload.video_has_sound?(path) }.to raise_error(ArgumentError, /unreadable video/)
     end
 
     it "caps ffmpeg's decoder and filter threads" do
-      allow(Open3).to receive(:capture3).and_call_original
+      allow(ExternalCommand).to receive(:run).and_call_original
       upload = build(:upload, file_ext: "mp4")
       upload.video_has_sound?(file_fixture("sound/tone-aac.mp4").to_s)
-      expect(Open3).to have_received(:capture3).with(Danbooru.config.ffmpeg_path, "-nostats", "-hide_banner", "-vn", "-threads", "1", "-filter_threads", "1", "-i", any_args)
+      expect(ExternalCommand).to have_received(:run).with(Danbooru.config.ffmpeg_path, "-nostats", "-hide_banner", "-vn", "-threads", "1", "-filter_threads", "1", "-i", any_args, timeout: anything)
     end
 
     it "tolerates non-UTF-8 metadata in ffmpeg's output" do
       stderr = "HANDLER_NAME: Module de gestion vid\xE9o\n[Parsed_volumedetect_0] max_volume: -91.0 dB\n".b.force_encoding("UTF-8")
-      allow(Open3).to receive(:capture3).and_call_original
-      allow(Open3).to receive(:capture3).with(Danbooru.config.ffmpeg_path, any_args).and_return([+"", stderr, instance_double(Process::Status, success?: true)])
+      allow(ExternalCommand).to receive(:run).and_call_original
+      allow(ExternalCommand).to receive(:run).with(Danbooru.config.ffmpeg_path, any_args, timeout: anything).and_return([+"", stderr, instance_double(Process::Status, success?: true)])
       upload = build(:upload, file_ext: "mp4")
       path = file_fixture("sound/tone-aac.mp4").to_s
       expect(upload.video_has_sound?(path)).to be false

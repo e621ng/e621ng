@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
 class PostVideoConversionJob < ApplicationJob
+  LOCK_TTL = 6.hours
+  # All transcodes together must finish well before the lock expires, or a duplicate could start.
+  JOB_TIME_LIMIT = LOCK_TTL - 1.hour
+
   # perform is destructive, so same-post runs must not overlap: until_and_while_executing
   # serializes per post, and reschedule re-queues a concurrent arrival instead of dropping it.
   sidekiq_options queue: "video", lock: :until_and_while_executing, lock_args_method: :lock_args,
-                  lock_ttl: 6.hours.to_i, on_conflict: { server: :reschedule }, schedule_in: 30, retry: 3
+                  lock_ttl: LOCK_TTL.to_i, on_conflict: { server: :reschedule }, schedule_in: 30, retry: 3
 
   # Unset, ffmpeg sizes each thread pool to nproc. -threads only applies to the
   # side of -i it is placed on, so decoder and encoder are capped separately.
@@ -12,20 +16,30 @@ class PostVideoConversionJob < ApplicationJob
   FILTER_THREADS = 2
   ENCODE_THREADS = 4
 
+  # A transcode may take up to 3x the video's length, and at least 10 minutes.
+  MIN_TRANSCODE_TIMEOUT = 10.minutes
+  TRANSCODE_TIMEOUT_FACTOR = 3
+
+  # A timeout can come from a busy host rather than the file (the video queue runs at low CPU
+  # priority), so it gets one late retry to wait out the peak. A second one goes to the dead set.
+  TIMEOUT_RETRY_DELAY = 3.hours
+
+  sidekiq_retry_in do |count, exception|
+    next unless exception.is_a?(ExternalCommand::TimeoutError)
+    count == 0 ? TIMEOUT_RETRY_DELAY.to_i : :kill
+  end
+
   def self.lock_args(args)
     [args[0]]
   end
 
   def perform(id)
+    @deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + JOB_TIME_LIMIT
     post = Post.find(id)
     unless post.is_video?
       logger.info "Exiting: post #{id} is not a video"
       return
     end
-
-    # Delete the old video samples, since it is possible that the video dimensions
-    # have changed, and thus some of the sample sizes may no longer be valid.
-    post.delete_video_samples!
 
     # Begin the video conversion process
     Post.transaction do
@@ -34,6 +48,10 @@ class PostVideoConversionJob < ApplicationJob
 
       video_samples = generate_samples(post, original)
       post.reload # Make sure post had not been deleted in the meantime
+
+      # The old samples go only once the new ones exist, so a failed run keeps them.
+      # The dimensions may have changed, so sizes that weren't regenerated go too.
+      post.delete_video_samples!
 
       move_videos(post, video_samples)
       post.reload
@@ -173,7 +191,9 @@ class PostVideoConversionJob < ApplicationJob
       file.path,
     ]
 
-    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, *args)
+    timeout = [transcode_timeout(post), remaining_time].min
+    raise ExternalCommand::TimeoutError, "video conversion exceeded its #{JOB_TIME_LIMIT.inspect} limit" if timeout <= 0
+    stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffmpeg_path, *args, timeout: timeout, cpu: timeout * (DECODE_THREADS + FILTER_THREADS + ENCODE_THREADS))
 
     unless status == 0
       logger.warn("[FFMPEG TRANSCODE STDOUT] #{stdout.chomp}")
@@ -182,6 +202,18 @@ class PostVideoConversionJob < ApplicationJob
     end
 
     file
+  end
+
+  # Unknown durations get the longest allowed video's budget, so older posts aren't cut short.
+  def transcode_timeout(post)
+    duration = post.duration.presence || Danbooru.config.max_video_duration
+    [MIN_TRANSCODE_TIMEOUT, duration.to_f * TRANSCODE_TIMEOUT_FACTOR].max.ceil
+  end
+
+  # Seconds left of the whole job's budget; unlimited when not running through perform.
+  def remaining_time
+    return Float::INFINITY unless @deadline
+    @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
 
   def move_videos(post, videos)
