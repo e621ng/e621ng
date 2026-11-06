@@ -68,10 +68,10 @@ gem "faraday-follow_redirects", "0.5.0"
 gem "faraday-retry", "2.4.0"
 
 # Monitoring
-gem "datadog", "2.38.0", require: "datadog/auto_instrument"
+gem "datadog", "2.48.0", require: "datadog/auto_instrument"
 
 group :production do
-  gem "pitchfork", "0.13.0"
+  gem "pitchfork", "0.18.2"
 end
 
 group :development, :test do
