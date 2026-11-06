@@ -51,7 +51,7 @@ class IqdbQueriesController < ApplicationController
         render json: @matches, root: "posts"
       end
     end
-  rescue Downloads::File::Error => e
+  rescue Downloads::File::Error, IqdbProxy::TooLargeError => e
     render_iqdb_error(422, e.message)
   rescue IqdbProxy::BusyError => e
     render_iqdb_error(429, e.message)
