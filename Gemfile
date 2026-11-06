@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
-source "https://rubygems.org/"
+# Supply-chain quarantine: never resolve a gem version published less than 3 days ago.
+# Bypass with `--cooldown 0` only for a justified critical security fix.
+source "https://rubygems.org/", cooldown: 3
 
 # Must stay first: populates ENV before any other gem is required.
 gem "dotenv", "3.2.0", require: "dotenv/load"

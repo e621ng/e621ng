@@ -35,3 +35,29 @@ updates:
       # TypeScript 7 ships no JS API yet (typescript-eslint and vue-tsc cannot load it).
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: bundler
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Same policy as npm above; the Gemfile's source `cooldown:` also enforces the quarantine locally.
+    versioning-strategy: increase
+    cooldown:
+      default-days: 3
+    groups:
+      gems:
+        applies-to: version-updates
+        patterns:
+          - "*"
+    labels:
+      - "Type: Dependencies"
+    commit-message:
+      prefix: "[Gems] "
+    ignore:
+      # 4.x+ crashes Ruby < 3.3.8 (bug #21195); 5.x also needs memcached 1.6+.
+      - dependency-name: dalli
+        versions: [">= 4"]
+      # activestorage requires marcel ~> 1.0.
+      - dependency-name: marcel
+        versions: [">= 2"]
