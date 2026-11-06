@@ -12,6 +12,9 @@ gem "rack-cors", "3.0.0"
 gem "rails-settings-cached", "2.10.0"
 gem "request_store", "1.7.0"
 gem "responders", "3.2.1"
+# Nothing depends on these since rdoc 8; unpinned, Ruby's older bundled psych/stringio would load instead
+gem "psych", "5.4.0"
+gem "stringio", "3.2.0"
 
 # Data stores
 gem "dalli", "3.2.15" # Held on 3.2.x: 5.x needs memcached 1.6+ and 4.x+ crashes Ruby < 3.3.8 (bug #21195)
