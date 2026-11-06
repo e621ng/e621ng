@@ -60,7 +60,8 @@ module Downloads
 
       res = conn.get(uncached_url, nil, strategy.headers) do |req|
         req.options.on_data = ->(chunk, overall_recieved_bytes, env) do
-          next if [301, 302].include?(env.status)
+          # Redirect bodies aren't part of the file; follow_redirects fetches the target next.
+          next if Faraday::FollowRedirects::Middleware::REDIRECT_CODES.include?(env.status)
 
           raise Error, "File is too large (max size: #{max_size})" if overall_recieved_bytes > max_size
           file.write(chunk)
