@@ -50,8 +50,8 @@ gem "streamio-ffmpeg", "3.0.2"
 
 # Authentication
 gem "bcrypt", "3.1.22"
-gem "doorkeeper", "5.9.1"
-gem "doorkeeper-openid_connect", "1.10.1"
+gem "doorkeeper", "5.9.9"
+gem "doorkeeper-openid_connect", "2.1.0"
 gem "rotp", "6.3.0"
 gem "rqrcode", "3.2.0"
 gem "zxcvbn-ruby", "1.2.0", require: "zxcvbn"
