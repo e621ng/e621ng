@@ -58,6 +58,11 @@ RSpec.describe VideoProbe do
     expect(video).not_to have_audio
   end
 
+  it "raises when ffprobe times out" do
+    allow(ExternalCommand).to receive(:run).and_raise(ExternalCommand::TimeoutError, "ffprobe timed out after 10 seconds")
+    expect { probe("animated.mp4") }.to raise_error(ExternalCommand::TimeoutError)
+  end
+
   it "raises for a missing file" do
     expect { described_class.new("/nonexistent/video.webm") }.to raise_error(Errno::ENOENT)
   end

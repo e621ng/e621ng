@@ -50,7 +50,7 @@ RSpec.describe ImageSampler do
         it "raises a RuntimeError matching 'Could not generate video snapshot'" do
           fake_status = instance_double(Process::Status)
           allow(fake_status).to receive(:==).with(0).and_return(false)
-          allow(Open3).to receive(:capture3).and_return([+"stdout output", +"stderr output", fake_status])
+          allow(ExternalCommand).to receive(:run).and_return([+"stdout output", +"stderr output", fake_status])
 
           expect do
             described_class.image_from_path(file_fixture("animated.mp4").to_s, is_video: true)

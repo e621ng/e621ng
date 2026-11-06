@@ -12,6 +12,10 @@ class PostVideoConversionJob < ApplicationJob
   FILTER_THREADS = 2
   ENCODE_THREADS = 4
 
+  # A transcode may take up to 3x the video's length, and at least 10 minutes.
+  MIN_TRANSCODE_TIMEOUT = 10.minutes
+  TRANSCODE_TIMEOUT_FACTOR = 3
+
   def self.lock_args(args)
     [args[0]]
   end
@@ -28,6 +32,13 @@ class PostVideoConversionJob < ApplicationJob
     post.delete_video_samples!
 
     # Begin the video conversion process
+    convert(post)
+  rescue ExternalCommand::TimeoutError => e
+    # A file that timed out will time out again, so don't retry. The post plays from the original.
+    logger.error "Video conversion for post #{id} stopped: #{e.message}"
+  end
+
+  def convert(post)
     Post.transaction do
       original = VideoProbe.new(post.file_path)
       raise "Invalid video file: #{post.file_path}" unless original.valid?
@@ -173,7 +184,8 @@ class PostVideoConversionJob < ApplicationJob
       file.path,
     ]
 
-    stdout, stderr, status = Open3.capture3(Danbooru.config.ffmpeg_path, *args)
+    timeout = transcode_timeout(post)
+    stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffmpeg_path, *args, timeout: timeout, cpu: timeout * (DECODE_THREADS + FILTER_THREADS + ENCODE_THREADS))
 
     unless status == 0
       logger.warn("[FFMPEG TRANSCODE STDOUT] #{stdout.chomp}")
@@ -182,6 +194,12 @@ class PostVideoConversionJob < ApplicationJob
     end
 
     file
+  end
+
+  # Unknown durations get the longest allowed video's budget, so older posts aren't cut short.
+  def transcode_timeout(post)
+    duration = post.duration.presence || Danbooru.config.max_video_duration
+    [MIN_TRANSCODE_TIMEOUT, duration.to_f * TRANSCODE_TIMEOUT_FACTOR].max.ceil
   end
 
   def move_videos(post, videos)

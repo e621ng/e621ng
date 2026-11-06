@@ -36,7 +36,7 @@ RSpec.describe ImageSampler do
       it "returns no extra decoder args" do
         fake_status = instance_double(Process::Status)
         allow(fake_status).to receive(:==).with(0).and_return(false)
-        allow(Open3).to receive(:capture3).and_return([+"", +"boom", fake_status])
+        allow(ExternalCommand).to receive(:run).and_return([+"", +"boom", fake_status])
 
         args = described_class.video_alpha_decoder_args(file_fixture("animated-transparent-vp9.webm").to_s)
         expect(args).to eq([])

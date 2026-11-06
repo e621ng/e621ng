@@ -43,7 +43,7 @@ RSpec.describe PostVideoConversionJob do
     described_class.new
   end
 
-  # Stubs VideoProbe, Open3, and StorageManager so no real transcoding or I/O occurs.
+  # Stubs VideoProbe, ExternalCommand, and StorageManager so no real transcoding or I/O occurs.
   #
   # IMPORTANT: Call this AFTER `post` has been created. Creating the post first
   # ensures the factory's after_create callbacks (e.g. check_for_ai_content) use
@@ -56,7 +56,7 @@ RSpec.describe PostVideoConversionJob do
     allow(Post).to receive(:find).with(post.id).and_return(post)
     allow(VideoProbe).to receive(:new).and_return(sample_movie)
     allow(VideoProbe).to receive(:new).with(post.file_path).and_return(original_movie)
-    allow(Open3).to receive(:capture3).and_return(["", "", ok_status])
+    allow(ExternalCommand).to receive(:run).and_return(["", "", ok_status])
   end
 
   describe "#perform" do
@@ -96,8 +96,14 @@ RSpec.describe PostVideoConversionJob do
       it "raises when ffmpeg transcoding exits with a non-zero status" do
         bad_status = instance_double(Process::Status)
         allow(bad_status).to receive(:==).with(0).and_return(false)
-        allow(Open3).to receive(:capture3).and_return(["stdout output", "stderr output", bad_status])
+        allow(ExternalCommand).to receive(:run).and_return(["stdout output", "stderr output", bad_status])
         expect { perform }.to raise_error(StandardError, /unable to transcode files/)
+      end
+
+      it "stops without retrying when ffmpeg times out" do
+        allow(ExternalCommand).to receive(:run).and_raise(ExternalCommand::TimeoutError, "ffmpeg timed out after 600 seconds")
+        expect { perform }.not_to raise_error
+        expect(post.reload.video_samples["variants"]).to be_empty
       end
 
       it "updates video_samples with the original codec and fps" do
@@ -130,7 +136,7 @@ RSpec.describe PostVideoConversionJob do
         allow(Post).to receive(:find).with(post.id).and_return(post)
         allow(VideoProbe).to receive(:new).and_return(sample_movie)
         allow(VideoProbe).to receive(:new).with(post.file_path).and_return(original_movie)
-        allow(Open3).to receive(:capture3).and_return(["", "", ok_status])
+        allow(ExternalCommand).to receive(:run).and_return(["", "", ok_status])
       end
 
       it "does not generate an mp4 variant" do
@@ -239,7 +245,7 @@ RSpec.describe PostVideoConversionJob do
 
     before do
       post # Force eager creation before mocks so callbacks use real storage
-      allow(Open3).to receive(:capture3) do |*args|
+      allow(ExternalCommand).to receive(:run) do |*args, **|
         captured_args.replace(args)
         ["", "", ok_status]
       end
@@ -284,7 +290,7 @@ RSpec.describe PostVideoConversionJob do
     # relabel, the scale filter graph fails to build on ffmpeg 8.x and the
     # transcode aborts with "unable to transcode files".
     context "with a video mistagged as ICtCp" do
-      before { allow(Open3).to receive(:capture3).and_call_original }
+      before { allow(ExternalCommand).to receive(:run).and_call_original }
 
       it "still transcodes successfully" do
         allow(post).to receive(:file_path).and_return(file_fixture("mislabeled-ictcp.mp4").to_s)
@@ -292,6 +298,25 @@ RSpec.describe PostVideoConversionJob do
         expect(File.size(file.path)).to be > 0
         file.close!
       end
+    end
+  end
+
+  describe "#transcode_timeout" do
+    subject(:job) { job_instance }
+
+    it "allows three times the video's duration" do
+      post.duration = 1_000
+      expect(job.transcode_timeout(post)).to eq(3_000)
+    end
+
+    it "allows at least ten minutes" do
+      post.duration = 5
+      expect(job.transcode_timeout(post)).to eq(600)
+    end
+
+    it "uses the longest allowed video when the duration is unknown" do
+      post.duration = nil
+      expect(job.transcode_timeout(post)).to eq(Danbooru.config.max_video_duration * 3)
     end
   end
 
