@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails_helper"
+require "webmock"
 
 RSpec.describe Downloads::File do
   include_context "as member"
@@ -351,15 +352,40 @@ RSpec.describe Downloads::File do
       expect { downloader.download! }
         .to raise_error(Downloads::File::Error, /Couldn't download the file/)
     end
+  end
 
-    # FIXME: The on_data streaming callback (which enforces max_size) is never invoked
-    # when Faraday::Connection#get is stubbed at the object level — the block configuring
-    # req.options.on_data is not called, so the size check cannot be triggered this way.
-    # Testing this path requires lower-level HTTP interception (e.g. WebMock with streaming
-    # support) that is not currently set up in this project.
-    # it "raises Downloads::File::Error when the file exceeds max_size" do
-    #   expect { downloader.download!(max_size: 0) }
-    #     .to raise_error(Downloads::File::Error, /too large/)
-    # end
+  # Runs the real Faraday stack so the on_data callback is exercised. WebMock is
+  # enabled only around these examples to keep it out of the rest of the suite.
+  describe "#download! over HTTP" do
+    include WebMock::API
+
+    let(:url) { "https://example.com/image.jpg" }
+
+    around do |example|
+      WebMock.enable!
+      example.run
+    ensure
+      WebMock.reset!
+      WebMock.disable!
+    end
+
+    it "returns the response body" do
+      stub_request(:get, url).to_return(status: 200, body: "IMAGE")
+      expect(make_downloader(url).download!.read).to eq("IMAGE")
+    end
+
+    [301, 302, 303, 307, 308].each do |status|
+      it "does not write the body of a #{status} redirect into the file" do
+        stub_request(:get, url).to_return(status: status, headers: { "Location" => "https://example.com/real.jpg" }, body: "<html>Moved</html>")
+        stub_request(:get, "https://example.com/real.jpg").to_return(status: 200, body: "IMAGE")
+        expect(make_downloader(url).download!.read).to eq("IMAGE")
+      end
+    end
+
+    it "raises Downloads::File::Error when the file exceeds max_size" do
+      stub_request(:get, url).to_return(status: 200, body: "IMAGE")
+      expect { make_downloader(url).download!(max_size: 4) }
+        .to raise_error(Downloads::File::Error, /too large/)
+    end
   end
 end
