@@ -61,3 +61,23 @@ updates:
       # activestorage requires marcel ~> 1.0.
       - dependency-name: marcel
         versions: [">= 2"]
+
+  - package-ecosystem: github-actions
+    # "/" only scans .github/workflows; the composite action has to be listed separately.
+    directories:
+      - /
+      - /.github/prepare-docker-image
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 3
+    groups:
+      actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
+    labels:
+      - "Type: Dependencies"
+    commit-message:
+      prefix: "[Actions] "
