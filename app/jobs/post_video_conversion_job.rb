@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
 class PostVideoConversionJob < ApplicationJob
+  LOCK_TTL = 6.hours
+  # All transcodes together must finish well before the lock expires, or a duplicate could start.
+  JOB_TIME_LIMIT = LOCK_TTL - 1.hour
+
   # perform is destructive, so same-post runs must not overlap: until_and_while_executing
   # serializes per post, and reschedule re-queues a concurrent arrival instead of dropping it.
   sidekiq_options queue: "video", lock: :until_and_while_executing, lock_args_method: :lock_args,
-                  lock_ttl: 6.hours.to_i, on_conflict: { server: :reschedule }, schedule_in: 30, retry: 3
+                  lock_ttl: LOCK_TTL.to_i, on_conflict: { server: :reschedule }, schedule_in: 30, retry: 3
 
   # Unset, ffmpeg sizes each thread pool to nproc. -threads only applies to the
   # side of -i it is placed on, so decoder and encoder are capped separately.
@@ -30,6 +34,7 @@ class PostVideoConversionJob < ApplicationJob
   end
 
   def perform(id)
+    @deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + JOB_TIME_LIMIT
     post = Post.find(id)
     unless post.is_video?
       logger.info "Exiting: post #{id} is not a video"
@@ -186,7 +191,8 @@ class PostVideoConversionJob < ApplicationJob
       file.path,
     ]
 
-    timeout = transcode_timeout(post)
+    timeout = [transcode_timeout(post), remaining_time].min
+    raise ExternalCommand::TimeoutError, "video conversion exceeded its #{JOB_TIME_LIMIT.inspect} limit" if timeout <= 0
     stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffmpeg_path, *args, timeout: timeout, cpu: timeout * (DECODE_THREADS + FILTER_THREADS + ENCODE_THREADS))
 
     unless status == 0
@@ -202,6 +208,12 @@ class PostVideoConversionJob < ApplicationJob
   def transcode_timeout(post)
     duration = post.duration.presence || Danbooru.config.max_video_duration
     [MIN_TRANSCODE_TIMEOUT, duration.to_f * TRANSCODE_TIMEOUT_FACTOR].max.ceil
+  end
+
+  # Seconds left of the whole job's budget; unlimited when not running through perform.
+  def remaining_time
+    return Float::INFINITY unless @deadline
+    @deadline - Process.clock_gettime(Process::CLOCK_MONOTONIC)
   end
 
   def move_videos(post, videos)

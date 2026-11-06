@@ -322,6 +322,32 @@ RSpec.describe PostVideoConversionJob do
     end
   end
 
+  describe "job time limit" do
+    let(:job) { job_instance }
+
+    before do
+      post # Force eager creation before mocks so callbacks use real storage
+      allow(ImageSampler).to receive(:colorspace_relabel_filter).and_return(nil)
+      allow(ExternalCommand).to receive(:run).and_return(["", "", ok_status])
+    end
+
+    it "limits a transcode to the time left in the job" do
+      allow(job).to receive(:remaining_time).and_return(100.0)
+      job.generate_mp4_video(post).close!
+      expect(ExternalCommand).to have_received(:run).with(Danbooru.config.ffmpeg_path, any_args, timeout: 100.0, cpu: 800.0)
+    end
+
+    it "stops once the job's time is used up" do
+      allow(job).to receive(:remaining_time).and_return(0.0)
+      expect { job.generate_mp4_video(post) }.to raise_error(ExternalCommand::TimeoutError, /exceeded its 5 hours limit/)
+      expect(ExternalCommand).not_to have_received(:run)
+    end
+
+    it "stays below the lock's lifetime" do
+      expect(described_class::JOB_TIME_LIMIT).to be < described_class::LOCK_TTL
+    end
+  end
+
   describe "#transcode_timeout" do
     subject(:job) { job_instance }
 

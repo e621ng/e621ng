@@ -65,6 +65,26 @@ RSpec.describe ExternalCommand do
       expect(status.exitstatus).to eq(7)
     end
 
+    it "kills the command when the waiting thread is interrupted" do
+      pid_file = Tempfile.new("command-pid")
+      waiter = Thread.new { described_class.run("sh", "-c", "echo $$ > #{pid_file.path}; exec sleep 30", timeout: 60) }
+      waiter.report_on_exception = false
+      sleep 0.05 until File.size?(pid_file.path)
+
+      waiter.raise(RuntimeError, "shutdown")
+      expect { waiter.join }.to raise_error(RuntimeError, "shutdown")
+      expect(still_running_after_one_second?(File.read(pid_file.path).to_i)).to be(false)
+    ensure
+      pid_file&.close!
+    end
+
+    it "keeps only the end of long output" do
+      stdout, _stderr, _status = described_class.run("sh", "-c", "yes x | head -c 3000000; echo TAIL", timeout: 30)
+      expect(stdout.bytesize).to eq(described_class::OUTPUT_LIMIT)
+      expect(stdout).to end_with("TAIL\n")
+      expect(stdout.encoding).to eq(Encoding.default_external)
+    end
+
     it "does not let commands write core dumps" do
       stdout, _stderr, _status = described_class.run("sh", "-c", "ulimit -c", timeout: 5)
       expect(stdout).to eq("0\n")

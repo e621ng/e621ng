@@ -14,6 +14,9 @@ module ExternalCommand
   # SIGXCPU arrives at the CPU limit; SIGKILL follows this much later for commands that
   # catch it (ffmpeg treats SIGXCPU like SIGTERM and exits with an ordinary error).
   CPU_KILL_GRACE = 10
+  # Only the end of each output stream is kept, so a file that makes ffmpeg print errors
+  # for the whole timeout can't fill the worker's memory. The end holds what callers parse.
+  OUTPUT_LIMIT = 1.megabyte
 
   module_function
 
@@ -27,17 +30,11 @@ module ExternalCommand
     # Core dumps are disabled so a command that crashes at the memory limit can't fill the disk.
     Open3.popen3(*argv, rlimit_as: memory.to_i, rlimit_cpu: [cpu, cpu + CPU_KILL_GRACE], rlimit_core: 0, pgroup: true) do |stdin, stdout, stderr, wait_thr|
       stdin.close
-      out_reader = Thread.new { stdout.read }
-      err_reader = Thread.new { stderr.read }
+      out_reader = Thread.new { read_tail(stdout) }
+      err_reader = Thread.new { read_tail(stderr) }
 
       unless wait_thr.join(timeout)
-        # Kill the whole process group, in case the command started children of its own.
-        begin
-          Process.kill(:KILL, -wait_thr.pid)
-        rescue Errno::ESRCH
-          nil
-        end
-        wait_thr.join
+        kill(wait_thr)
         out_reader.join
         err_reader.join
         raise TimeoutError, "#{program} timed out after #{timeout.to_i} seconds"
@@ -47,6 +44,31 @@ module ExternalCommand
       raise TimeoutError, "#{program} exceeded its CPU time limit of #{cpu} seconds" if status.termsig == Signal.list["XCPU"]
 
       [out_reader.value, err_reader.value, status]
+    ensure
+      # An exception raised into this thread (e.g. a Sidekiq hard shutdown) would otherwise
+      # leave popen3 waiting for the command to finish on its own.
+      kill(wait_thr) if wait_thr&.alive?
     end
   end
+
+  # Kills the whole process group, in case the command started children of its own.
+  def kill(wait_thr)
+    Process.kill(:KILL, -wait_thr.pid)
+  rescue Errno::ESRCH
+    nil
+  ensure
+    wait_thr.join
+  end
+
+  def read_tail(io)
+    output = +"".b
+    loop do
+      output << io.readpartial(64.kilobytes)
+      output = output.byteslice(-OUTPUT_LIMIT, OUTPUT_LIMIT) if output.bytesize > OUTPUT_LIMIT
+    end
+  rescue EOFError
+    output.force_encoding(Encoding.default_external)
+  end
+
+  private_class_method :kill, :read_tail
 end
