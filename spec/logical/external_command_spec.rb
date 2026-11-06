@@ -11,6 +11,22 @@ RSpec.describe ExternalCommand do
     Process.clock_gettime(Process::CLOCK_MONOTONIC) - started_at
   end
 
+  # A killed orphan is reparented to PID 1, which may never reap it, so a zombie counts as dead.
+  def running?(pid)
+    File.read("/proc/#{pid}/stat")[/\) (\S)/, 1] != "Z"
+  rescue Errno::ENOENT
+    false
+  end
+
+  def still_running_after_one_second?(pid)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 1
+    while running?(pid)
+      return true if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+      sleep 0.05
+    end
+    false
+  end
+
   describe ".run" do
     it "returns stdout, stderr and the exit status" do
       stdout, stderr, status = described_class.run("sh", "-c", "echo out; echo err >&2; exit 3", timeout: 5)
@@ -32,7 +48,7 @@ RSpec.describe ExternalCommand do
 
       child_pid = File.read(pid_file.path).to_i
       expect(child_pid).to be > 0
-      expect { Process.kill(0, child_pid) }.to raise_error(Errno::ESRCH)
+      expect(still_running_after_one_second?(child_pid)).to be(false)
     ensure
       pid_file&.close!
     end
