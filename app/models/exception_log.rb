@@ -39,9 +39,22 @@ class ExceptionLog < ApplicationRecord
       code: SecureRandom.uuid,
       version: GitHelper.version,
       user_id: user_id,
-      extra_params: extra_params,
+      extra_params: utf8_strings(extra_params),
     )
   end
+
+  # Request headers and SQL binds can be binary strings, which JSON refuses once they hold non-ASCII bytes
+  def self.utf8_strings(value)
+    case value
+    when String
+      value = value.dup.force_encoding(Encoding::UTF_8) unless value.encoding == Encoding::UTF_8
+      value.valid_encoding? ? value : value.scrub
+    when Hash then value.transform_values { |v| utf8_strings(v) }
+    when Array then value.map { |v| utf8_strings(v) }
+    else value
+    end
+  end
+  private_class_method :utf8_strings
 
   def user
     # Prior to September 2025, user IDs were only stored in the extra_params["user_id"] field,
