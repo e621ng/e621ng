@@ -110,15 +110,13 @@ class PostVideoConversionJob < ApplicationJob
     if post.image_width == post.image_height
       "#{clamp}:#{clamp}"
     elsif post.image_width < post.image_height
-      ratio = post.image_width / clamp
-      # if width is less than height, clamp width to a
-      # but if height is greater than b, clamp height to b
-      post.image_height * ratio > (clamp * 2) ? "-2:#{clamp * 2}" : "#{clamp}:-2"
+      # Fit the width to clamp, unless that makes the height more than twice clamp.
+      scaled_height = post.image_height * clamp.to_f / post.image_width
+      scaled_height > clamp * 2 ? "-2:#{clamp * 2}" : "#{clamp}:-2"
     else
-      ratio = post.image_height / clamp
-      # if height is less than width, clamp height to a
-      # but if width is greater than b, clamp width to b
-      post.image_width * ratio > (clamp * 2) ? "#{clamp * 2}:-2" : "-2:#{clamp}"
+      # Fit the height to clamp, unless that makes the width more than twice clamp.
+      scaled_width = post.image_width * clamp.to_f / post.image_height
+      scaled_width > clamp * 2 ? "#{clamp * 2}:-2" : "-2:#{clamp}"
     end
   end
 
