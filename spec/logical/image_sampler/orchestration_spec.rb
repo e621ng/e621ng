@@ -119,8 +119,8 @@ RSpec.describe ImageSampler do
 
     context "when the image is large enough to require a sample (1000x1000)" do
       before do
-        # Dimensions are taken from the loaded image, not the post record.
-        allow(described_class).to receive(:image_from_path).and_return(Vips::Image.black(1000, 1000))
+        # Dimensions are read from the file, not the post record.
+        allow(described_class).to receive(:oriented_dimensions).and_return([1000, 1000])
       end
 
       it "stores 2 thumbnail files and 2 sample files (4 store calls total)" do

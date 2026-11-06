@@ -8,30 +8,32 @@ module ImageSampler
   def generate_post_images(post)
     return unless File.exist?(post.file_path)
     return if post.is_flash? # Cannot generate any kind of thumbnail
-    image = image_from_path(post.file_path, is_video: post.is_video?)
-    # Use the loaded image's dimensions – stored post dimensions may predate EXIF autorotation and be swapped.
-    dimensions = [image.width, image.height]
 
-    sm = Danbooru.config.storage_manager
+    with_still_image(post.file_path, is_video: post.is_video?) do |source_path|
+      # Read from the file – stored post dimensions may predate EXIF autorotation and be swapped.
+      dimensions = oriented_dimensions(source_path)
 
-    # Generate thumbnails
-    thumbnail(image, dimensions, background: post.bg_color).each do |ext, file|
-      path = sm.post_file_path(post, :"preview_#{ext}")
-      sm.store(file, path)
-    ensure
-      file&.close!
-    end
+      sm = Danbooru.config.storage_manager
 
-    # Generate samples
-    # Animated GIFs, APNGs, and WEBPs are not needed, Flash files are not supported.
-    # All video files need samples to be used as a poster in the player.
-    return if post.is_gif? || post.is_animated_png?(post.file_path) || post.is_animated_webp?(post.file_path)
-    return unless post.is_video? || dimensions.min > Danbooru.config.large_image_width || dimensions.max > Danbooru.config.large_image_width * 2
-    sample(image, dimensions, background: post.bg_color).each do |ext, file|
-      path = sm.post_file_path(post, :"sample_#{ext}")
-      sm.store(file, path)
-    ensure
-      file&.close!
+      # Generate thumbnails
+      thumbnail(source_path, dimensions, background: post.bg_color).each do |ext, file|
+        path = sm.post_file_path(post, :"preview_#{ext}")
+        sm.store(file, path)
+      ensure
+        file&.close!
+      end
+
+      # Generate samples
+      # Animated GIFs, APNGs, and WEBPs are not needed, Flash files are not supported.
+      # All video files need samples to be used as a poster in the player.
+      return if post.is_gif? || post.is_animated_png?(post.file_path) || post.is_animated_webp?(post.file_path)
+      return unless post.is_video? || dimensions.min > Danbooru.config.large_image_width || dimensions.max > Danbooru.config.large_image_width * 2
+      sample(source_path, dimensions, background: post.bg_color).each do |ext, file|
+        path = sm.post_file_path(post, :"sample_#{ext}")
+        sm.store(file, path)
+      ensure
+        file&.close!
+      end
     end
   end
 
@@ -76,60 +78,55 @@ module ImageSampler
   def generate_replacement_images(replacement)
     return unless File.exist?(replacement.replacement_file_path)
     return if replacement.file_ext == "swf" # Cannot generate any kind of thumbnail
-    image = image_from_path(replacement.replacement_file_path, is_video: replacement.is_video?)
-    dimensions = [image.width, image.height]
 
-    # Generate thumbnails
-    thumb = thumbnail(image, dimensions)[:jpg]
-    Danbooru.config.storage_manager.store_replacement(thumb, replacement, :preview)
-    thumb&.close!
-  end
-
-  # Creates a Vips::Image object from the provided file path.
-  # If the file is a video, generates a snapshot using ffmpeg.
-  def image_from_path(file_path, is_video: false)
-    if is_video
-      snapshot = gen_video_snapshot(file_path)
-      # Keep `snapshot` referenced here so Ruby's GC doesn't finalize
-      # (and unlink) the Tempfile before libvips has fully read it.
-      image = Vips::Image.new_from_file(snapshot.path).copy_memory
-      snapshot.close!
-      image
-    else
-      # autorot applies the EXIF orientation tag (and removes it), so
-      # generated images match what browsers display for the original.
-      Vips::Image.new_from_file(file_path).autorot
+    with_still_image(replacement.replacement_file_path, is_video: replacement.is_video?) do |source_path|
+      # Generate thumbnails
+      thumb, webp = thumbnail(source_path, oriented_dimensions(source_path)).values_at(:jpg, :webp)
+      webp&.close!
+      Danbooru.config.storage_manager.store_replacement(thumb, replacement, :preview)
+      thumb&.close!
     end
   end
 
-  # Generates a pair of thumbnails from the provided image.
+  # Yields the path of a still image of the file: the file itself, or for a video,
+  # a snapshot generated with ffmpeg that is deleted afterwards.
+  def with_still_image(file_path, is_video: false)
+    return yield(file_path) unless is_video
+
+    snapshot = gen_video_snapshot(file_path)
+    yield snapshot.path
+  ensure
+    snapshot&.close!
+  end
+
+  # Width and height as browsers display the image, with EXIF orientation applied.
+  # Only reads the header.
+  def oriented_dimensions(file_path)
+    image = Vips::Image.new_from_file(file_path)
+    orientation = image.get_typeof("orientation") == 0 ? 1 : image.get("orientation")
+    orientation.between?(5, 8) ? [image.height, image.width] : [image.width, image.height]
+  end
+
+  # Generates a pair of thumbnails from the image file.
   # Parameters:
-  #   - image: the image to be resized
-  #   - dimensions: an array containing the width and height of the final image
+  #   - file_path: the image to be resized
+  #   - dimensions: the image's width and height, as displayed (see oriented_dimensions)
   #   - background: the background color to be used
   # Returns a hash containing the paths to the generated jpg and webp thumbnails.
   # The keys are :jpg and :webp, and the values are Tempfile objects.
-  def thumbnail(image, dimensions, background: "000000")
-    gen_target_image(image, dimensions, Danbooru.config.small_image_width, crop: true, background: background)
+  def thumbnail(file_path, dimensions, background: "000000")
+    gen_target_image(file_path, dimensions, Danbooru.config.small_image_width, crop: true, background: background)
   end
 
-  def thumbnail_from_path(file_path, dimensions, background: "000000", is_video: false)
-    thumbnail(image_from_path(file_path, is_video: is_video), dimensions, background: background)
-  end
-
-  # Generates a sample image from the provided image.
+  # Generates a sample image from the image file.
   # Parameters:
-  #   - image: the image to be resized
-  #   - dimensions: an array containing the width and height of the final image
+  #   - file_path: the image to be resized
+  #   - dimensions: the image's width and height, as displayed (see oriented_dimensions)
   #   - background: the background color to be used
   # Returns a hash containing the paths to the generated jpg and webp samples.
   # The keys are :jpg and :webp, and the values are Tempfile objects.
-  def sample(image, dimensions, background: "000000")
-    gen_target_image(image, dimensions, Danbooru.config.large_image_width, crop: false, background: background)
-  end
-
-  def sample_from_path(file_path, dimensions, background: "000000", is_video: false)
-    sample(image_from_path(file_path, is_video: is_video), dimensions, background: background)
+  def sample(file_path, dimensions, background: "000000")
+    gen_target_image(file_path, dimensions, Danbooru.config.large_image_width, crop: false, background: background)
   end
 
   ### Utility Methods ###
@@ -281,27 +278,26 @@ module ImageSampler
     [r, g, b]
   end
 
-  # Generates a pair of samples from the provided image.
+  # Generates a pair of samples from the image file.
   # A sample is created by scaling the image to fit within the specified dimensions.
   # If the final image is larger than twice the specified dimensions, it will be cropped.
   #
   # Parameters:
-  #   - image: the image to be resized
-  #   - original_dims: an array containing the original width and height of the image
+  #   - file_path: the image to be resized
+  #   - original_dims: the image's width and height, as displayed
   #   - target_side: the maximum width or height of the final image
   #   - background: the background color to be used
   #
   # Returns a hash containing the paths to the generated jpg and webp thumbnails.
   # The keys are :jpg and :webp, and the values are Tempfile objects.
-  def gen_target_image(image, original_dims, target_size, crop: false, background: "000000")
-    # scale
+  def gen_target_image(file_path, original_dims, target_size, crop: false, background: "000000")
     new_scale, crop_area = calc_dimensions(original_dims[0], original_dims[1], target_size, crop: crop)
-    result = image.resize(new_scale)
+    width, height = crop_area || original_dims.map { |side| [(side * new_scale).round, 1].max }
 
-    # crop
-    unless crop_area.nil?
-      result = result.smartcrop(crop_area[0], crop_area[1], interesting: :entropy)
-    end
+    # thumbnail shrinks while loading where the format allows it, and applies the EXIF
+    # orientation after shrinking, so the full-size image is never held in memory.
+    # When cropping it scales to cover the box, then crops the least interesting edges.
+    result = Vips::Image.thumbnail(file_path, width, height: height, crop: crop_area ? :entropy : :none)
 
     # Convert embedded colour spaces to sRGB for compatibility.
     if result.get_typeof("icc-profile-data") != 0
@@ -313,6 +309,8 @@ module ImageSampler
     end
 
     # save
+    # The source is read sequentially, so keep the small result in memory for the two saves.
+    result = result.copy_memory
     jpg_image = Tempfile.new(["image-thumb", ".jpg"], binmode: true)
     webp_image = Tempfile.new(["image-thumb", ".webp"], binmode: true)
 

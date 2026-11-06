@@ -45,14 +45,16 @@ RSpec.describe ImageSampler do
   end
 
   # -------------------------------------------------------------------------
-  # .image_from_path
+  # .with_still_image
   #
   # End-to-end: decoding a transparent WebM into a snapshot must preserve the
   # alpha plane, otherwise the generated thumbnails get an opaque background.
   # -------------------------------------------------------------------------
-  describe ".image_from_path" do
+  describe ".with_still_image" do
     shared_examples "a transparent video snapshot" do |fixture|
-      let(:image) { described_class.image_from_path(file_fixture(fixture).to_s, is_video: true) }
+      let(:image) do
+        described_class.with_still_image(file_fixture(fixture).to_s, is_video: true) { |path| Vips::Image.new_from_file(path).copy_memory }
+      end
 
       it "returns a Vips::Image" do
         expect(image).to be_a(Vips::Image)

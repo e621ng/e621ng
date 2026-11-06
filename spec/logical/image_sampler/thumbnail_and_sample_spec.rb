@@ -10,54 +10,91 @@ RSpec.describe ImageSampler do
     )
   end
 
+  let(:tempfiles) { [] }
+
+  after { tempfiles.each(&:close!) }
+
+  # Writes a plain grey image of the given size and returns its path.
+  def image_file(width, height)
+    file = Tempfile.new(["image-sampler", ".png"])
+    tempfiles << file
+    (Vips::Image.black(width, height, bands: 3) + 128).cast(:uchar).pngsave(file.path)
+    file.path
+  end
+
+  def dimensions_of(result)
+    image = Vips::Image.new_from_file(result[:jpg].path)
+    [image.width, image.height]
+  end
+
   # -------------------------------------------------------------------------
   # .thumbnail
   # -------------------------------------------------------------------------
   describe ".thumbnail" do
-    let(:image) { Vips::Image.new_from_file(file_fixture("sample.jpg").to_s) }
-    # sample.jpg is 256×256; dimensions passed explicitly to calc_dimensions
-    let(:dimensions) { [256, 256] }
-    let(:result) { described_class.thumbnail(image, dimensions) }
+    let(:file_path) { file_fixture("sample.jpg").to_s }
+    # sample.jpg is 256×256
+    let(:result) { described_class.thumbnail(file_path, [256, 256]) }
 
     after { result.each_value(&:close!) }
 
-    it "returns a hash with :jpg and :webp keys" do
+    it "returns non-empty :jpg and :webp Tempfiles" do
       expect(result.keys).to contain_exactly(:jpg, :webp)
+      expect(result.values).to all(be_a(Tempfile))
+      expect(result.values.map { |file| File.size(file.path) }).to all(be > 0)
     end
 
-    it ":jpg value is a non-empty Tempfile" do
-      expect(result[:jpg]).to be_a(Tempfile)
+    it "keeps a square image at the thumbnail size" do
+      expect(dimensions_of(result)).to eq([256, 256])
+    end
+
+    it "accepts a custom background color" do
+      result = described_class.thumbnail(file_path, [256, 256], background: "ff0000")
       expect(File.size(result[:jpg].path)).to be > 0
+      result.each_value(&:close!)
     end
 
-    it ":webp value is a non-empty Tempfile" do
-      expect(result[:webp]).to be_a(Tempfile)
-      expect(File.size(result[:webp].path)).to be > 0
-    end
+    context "with a landscape image" do
+      let(:result) { described_class.thumbnail(image_file(400, 300), [400, 300]) }
 
-    it "both Tempfiles can be close!'d without error" do
-      expect { result.each_value(&:close!) }.not_to raise_error
-    end
-
-    context "with portrait dimensions that trigger cropping (calc_dimensions sees [100, 400])" do
-      # scale = 256/100 = 2.56; scaled height = 400*2.56 = 1024 > 512 → smartcrop fires
-      # The actual image is 256×256 but will be scaled to 655×655 before cropping.
-      it "still returns valid :jpg and :webp Tempfiles" do
-        result = described_class.thumbnail(image, [100, 400])
-        expect(result[:jpg]).to be_a(Tempfile)
-        expect(File.size(result[:jpg].path)).to be > 0
-        expect(result[:webp]).to be_a(Tempfile)
-        expect(File.size(result[:webp].path)).to be > 0
-        result.each_value(&:close!)
+      it "fits the short side to the thumbnail size" do
+        expect(dimensions_of(result)).to eq([341, 256])
       end
     end
 
-    context "with a custom background color" do
-      it "accepts a hex background string without raising" do
-        expect do
-          result = described_class.thumbnail(image, dimensions, background: "ff0000")
-          result.each_value(&:close!)
-        end.not_to raise_error
+    context "with a portrait image more than twice as tall as wide" do
+      let(:result) { described_class.thumbnail(image_file(100, 400), [100, 400]) }
+
+      it "crops the long side to twice the thumbnail size" do
+        expect(dimensions_of(result)).to eq([256, 512])
+      end
+    end
+
+    context "with a JPEG rotated via EXIF orientation" do
+      # exif-orientation.jpg: 40x30 raster with orientation=8 (90° CCW).
+      let(:file_path) { file_fixture("exif-orientation.jpg").to_s }
+      let(:result) { described_class.thumbnail(file_path, described_class.oriented_dimensions(file_path)) }
+
+      it "comes out rotated" do
+        expect(dimensions_of(result)).to eq([256, 341])
+      end
+    end
+
+    context "with an embedded colour profile" do
+      # Pure sRGB red stored with a Display P3 profile: the raw values are not 255/0/0,
+      # so getting red back means the profile was applied.
+      let(:file_path) do
+        file = Tempfile.new(["image-sampler", ".jpg"])
+        tempfiles << file
+        red = (Vips::Image.black(300, 300, bands: 3) + [255, 0, 0]).cast(:uchar).copy(interpretation: :srgb)
+        red.icc_transform("p3", input_profile: "srgb").jpegsave(file.path)
+        file.path
+      end
+
+      it "converts the result to sRGB" do
+        expect(Vips::Image.new_from_file(file_path).getpoint(150, 150).first).to be < 245
+        red, green, = Vips::Image.new_from_file(result[:jpg].path).getpoint(128, 128)
+        expect(red).to be > 245
+        expect(green).to be < 15
       end
     end
   end
@@ -66,62 +103,17 @@ RSpec.describe ImageSampler do
   # .sample
   # -------------------------------------------------------------------------
   describe ".sample" do
-    let(:image) { Vips::Image.new_from_file(file_fixture("sample.jpg").to_s) }
-    let(:dimensions) { [256, 256] }
-    let(:result) { described_class.sample(image, dimensions) }
+    let(:result) { described_class.sample(image_file(2000, 1000), [2000, 1000]) }
 
     after { result.each_value(&:close!) }
 
-    it "returns a hash with :jpg and :webp keys" do
+    it "returns non-empty :jpg and :webp Tempfiles" do
       expect(result.keys).to contain_exactly(:jpg, :webp)
+      expect(result.values.map { |file| File.size(file.path) }).to all(be > 0)
     end
 
-    it ":jpg file has non-zero size" do
-      expect(File.size(result[:jpg].path)).to be > 0
-    end
-
-    it ":webp file has non-zero size" do
-      expect(File.size(result[:webp].path)).to be > 0
-    end
-  end
-
-  # -------------------------------------------------------------------------
-  # .thumbnail_from_path
-  # -------------------------------------------------------------------------
-  describe ".thumbnail_from_path" do
-    let(:file_path) { file_fixture("sample.jpg").to_s }
-    let(:dimensions) { [256, 256] }
-    let(:result) { described_class.thumbnail_from_path(file_path, dimensions) }
-
-    after { result.each_value(&:close!) }
-
-    it "returns a hash with :jpg and :webp keys" do
-      expect(result.keys).to contain_exactly(:jpg, :webp)
-    end
-
-    it "loads the image from disk and produces non-empty output files" do
-      expect(File.size(result[:jpg].path)).to be > 0
-      expect(File.size(result[:webp].path)).to be > 0
-    end
-  end
-
-  # -------------------------------------------------------------------------
-  # .sample_from_path
-  # -------------------------------------------------------------------------
-  describe ".sample_from_path" do
-    let(:file_path) { file_fixture("sample.jpg").to_s }
-    let(:dimensions) { [256, 256] }
-    let(:result) { described_class.sample_from_path(file_path, dimensions) }
-
-    after { result.each_value(&:close!) }
-
-    it "returns a hash with :jpg and :webp keys" do
-      expect(result.keys).to contain_exactly(:jpg, :webp)
-    end
-
-    it "loads the image from disk and produces non-empty output files" do
-      expect(File.size(result[:jpg].path)).to be > 0
-      expect(File.size(result[:webp].path)).to be > 0
+    it "fits the short side to the sample size, capping the long side at twice that" do
+      expect(dimensions_of(result)).to eq([1700, 850])
     end
   end
 end

@@ -54,17 +54,17 @@ RSpec.describe ImageSampler do
   end
 
   # -------------------------------------------------------------------------
-  # .image_from_path
+  # .with_still_image
   #
   # End-to-end regression: without the colour-space relabel, ffmpeg aborts
   # with "Impossible to convert between the formats" and no snapshot is
   # produced, surfacing as "Could not generate video snapshot".
   # -------------------------------------------------------------------------
-  describe ".image_from_path" do
+  describe ".with_still_image" do
     context "with a video mistagged as ICtCp" do
       it "still generates a snapshot" do
-        image = described_class.image_from_path(file_fixture("mislabeled-ictcp.mp4").to_s, is_video: true)
-        expect(image).to be_a(Vips::Image)
+        width = described_class.with_still_image(file_fixture("mislabeled-ictcp.mp4").to_s, is_video: true) { |path| Vips::Image.new_from_file(path).width }
+        expect(width).to eq(64)
       end
     end
   end
