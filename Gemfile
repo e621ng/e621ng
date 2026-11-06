@@ -52,9 +52,9 @@ gem "streamio-ffmpeg", "3.0.2"
 gem "bcrypt", "3.1.22"
 gem "doorkeeper", "5.9.9"
 gem "doorkeeper-openid_connect", "2.1.0"
-gem "rotp", "6.3.0"
+gem "rotp", "6.4.0"
 gem "rqrcode", "3.2.0"
-gem "zxcvbn-ruby", "1.2.0", require: "zxcvbn"
+gem "zxcvbn-ruby", "2.0.1", require: "zxcvbn"
 
 # Email
 gem "mailgun-ruby", "1.2.14"
