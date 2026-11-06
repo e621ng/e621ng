@@ -25,10 +25,10 @@ RSpec.describe FileValidator, type: :model do
     [FileValidator.new(upload, path), upload.video(path)]
   end
 
-  # Helper to build a validator backed by a fake FFMPEG::Movie double.
+  # Helper to build a validator backed by a fake VideoProbe double.
   def validator_with_video_double(file_ext: "webm", **video_attrs)
     upload = build(:upload, file_ext: file_ext)
-    video  = instance_double(FFMPEG::Movie, { valid?: true }.merge(video_attrs))
+    video  = instance_double(VideoProbe, { valid?: true }.merge(video_attrs))
     [FileValidator.new(upload, ""), upload, video]
   end
 
