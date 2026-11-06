@@ -191,18 +191,14 @@ jobs:
             -exec sed -i "s|\"/app/|\"${GITHUB_WORKSPACE}/|g" {} \;
           bundle exec ruby -e "
             require 'simplecov'
-            require 'simplecov_json_formatter'
             files = Dir['coverage-shards/**/.resultset.json']
             abort 'No resultset files found' if files.empty?
             SimpleCov.collate(files, 'rails') do
-              formatter SimpleCov::Formatter::MultiFormatter.new([
-                SimpleCov::Formatter::HTMLFormatter,
-                SimpleCov::Formatter::JSONFormatter,
-              ])
-              add_group 'Components', ['app/blueprints', 'app/components']
-              add_group 'Decorators', ['app/decorators', 'app/presenters', 'app/inputs']
-              add_group 'Logical', ['app/concerns', 'app/indexes', 'app/logical']
-              groups.delete('Channels')
+              project_name 'e621ng'
+              enable_coverage :branch
+              group 'Components', ['app/blueprints', 'app/components']
+              group 'Decorators', ['app/decorators', 'app/presenters', 'app/inputs']
+              group 'Logical', ['app/concerns', 'app/indexes', 'app/logical']
             end
           "
 
@@ -212,6 +208,13 @@ jobs:
           name: coverage-report
           path: coverage/.resultset.json
           include-hidden-files: true
+
+      # Self-contained HTML report, viewable directly from the run page
+      - name: Upload coverage HTML
+        uses: actions/upload-artifact@v7
+        with:
+          path: coverage/index.html
+          archive: false
 
   coverage-report:
     runs-on: ubuntu-22.04

@@ -10,8 +10,7 @@ This document covers only codebase-specific conventions. Standard RSpec/FactoryB
 |------|---------|---------|
 | [RSpec Rails](https://github.com/rspec/rspec-rails) | ~8.0.0 | Test framework |
 | [FactoryBot Rails](https://github.com/thoughtbot/factory_bot_rails) | latest | Test data factories |
-| [SimpleCov](https://github.com/simplecov-ruby/simplecov) | latest | Code coverage (HTML + JSON) |
-| [simplecov_json_formatter](https://github.com/vicentllongo/simplecov-json) | latest | JSON formatter for SimpleCov |
+| [SimpleCov](https://github.com/simplecov-ruby/simplecov) | 1.3.2 | Code coverage (HTML + JSON, built-in formatters) |
 | [Faker](https://github.com/faker-ruby/faker) | latest | Fake data generation |
 | [parallel_tests](https://github.com/grosser/parallel_tests) | >=4.0 | Parallel test execution |
 
@@ -71,7 +70,7 @@ spec/
 - **Randomized order** — tests are shuffled every run to surface ordering dependencies; use `--seed N` to reproduce
 - **Profiling** — the 10 slowest examples and groups are reported at the end of each run
 - **Sock puppet validation** is globally disabled in `before(:each)` so factories can create users without triggering IP uniqueness checks
-- **SimpleCov** outputs HTML and JSON reports to `coverage/`; parallel workers merge results automatically via `TEST_ENV_NUMBER`
+- **SimpleCov** outputs HTML and JSON reports to `coverage/`; parallel workers store their results and the final worker writes the merged report
 
 ---
 

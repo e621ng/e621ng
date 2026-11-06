@@ -1,38 +1,17 @@
 # frozen_string_literal: true
 
 require "simplecov"
-require "simplecov_json_formatter"
 SimpleCov.start "rails" do
   project_name "e621ng"
 
   # Note that this is only applicable to tests running locally.
   # If any changes are made, synchronize with the SimpleCov configuration in `.github/workflows/run-checks.yml`.
   enable_coverage :branch
-  formatter SimpleCov::Formatter::MultiFormatter.new([
-    SimpleCov::Formatter::HTMLFormatter,
-    SimpleCov::Formatter::JSONFormatter,
-  ])
   command_name "RSpec-#{ENV.fetch('TEST_ENV_NUMBER', 'main')}"
 
-  add_group "Components", ["app/blueprints", "app/components"]
-  add_group "Decorators", ["app/decorators", "app/presenters", "app/inputs"]
-  add_group "Logical", ["app/concerns", "app/indexes", "app/logical"]
-
-  # Remove groups that are unused in this project
-  groups.delete("Channels")
-end
-
-# Suppress the "Coverage report generated..." console output printed by the
-# formatters in each parallel worker. Reports are still written to disk.
-if ENV.key?("TEST_ENV_NUMBER")
-  require "stringio"
-  SimpleCov.at_exit do
-    original = $stdout
-    $stdout = StringIO.new
-    SimpleCov.result.format!
-  ensure
-    $stdout = original
-  end
+  group "Components", ["app/blueprints", "app/components"]
+  group "Decorators", ["app/decorators", "app/presenters", "app/inputs"]
+  group "Logical", ["app/concerns", "app/indexes", "app/logical"]
 end
 
 require "spec_helper"
