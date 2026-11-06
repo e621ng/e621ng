@@ -380,23 +380,42 @@ RSpec.describe PostVideoConversionJob do
     end
 
     it "clamps height for a standard landscape video" do
-      # ratio = 720/720 = 1, 1280*1 = 1280, not > 1440 → "-2:720"
+      # 1280 * 720/720 = 1280, not > 1440
       expect(scale(1280, 720, 720)).to eq("-2:720")
     end
 
     it "clamps width for a very wide landscape video" do
-      # ratio = 720/720 = 1, 1500*1 = 1500 > 1440 → "1440:-2"
+      # 1500 * 720/720 = 1500 > 1440
       expect(scale(1500, 720, 720)).to eq("1440:-2")
     end
 
     it "clamps width for a standard portrait video" do
-      # ratio = 720/720 = 1, 1280*1 = 1280, not > 1440 → "720:-2"
+      # 1280 * 720/720 = 1280, not > 1440
       expect(scale(720, 1280, 720)).to eq("720:-2")
     end
 
     it "clamps height for a very tall portrait video" do
-      # ratio = 1440/720 = 2, 3000*2 = 6000 > 1440 → "-2:1440"
+      # 3000 * 720/1440 = 1500 > 1440
       expect(scale(1440, 3000, 720)).to eq("-2:1440")
+    end
+
+    # Regressions: the scale factor was short / clamp in integer maths, so these
+    # hit the long-side cap and came out larger than the sample's size.
+    it "fits a 720p video's 480p sample to 480 high" do
+      expect(scale(1280, 720, 480)).to eq("-2:480")
+    end
+
+    it "fits a 1080p video's 720p sample to 720 high" do
+      expect(scale(1920, 1080, 720)).to eq("-2:720")
+    end
+
+    it "fits a portrait 1080p video's 720p sample to 720 wide" do
+      expect(scale(1080, 1920, 720)).to eq("720:-2")
+    end
+
+    it "still caps the width of a very wide video after downscaling" do
+      # 3840 * 480/1080 = 1707 > 960
+      expect(scale(3840, 1080, 480)).to eq("960:-2")
     end
   end
 
