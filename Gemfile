@@ -57,9 +57,9 @@ gem "rqrcode", "3.2.0"
 gem "zxcvbn-ruby", "2.0.1", require: "zxcvbn"
 
 # Email
-gem "mailgun-ruby", "1.2.14"
-gem "mjml-rails", "4.16.0"
-gem "mrml", "1.8.1"
+gem "mailgun-ruby", "1.4.6"
+gem "mjml-rails", "5.0.0"
+gem "mrml", "1.10.0"
 
 # Outbound HTTP
 gem "addressable", "2.9.0"

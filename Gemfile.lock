@@ -124,7 +124,6 @@ GEM
     diff-lcs (1.6.2)
     diffy (3.4.4)
     docile (1.4.1)
-    domain_name (0.6.20240107)
     doorkeeper (5.9.9)
       railties (>= 5)
     doorkeeper-openid_connect (2.1.0)
@@ -158,6 +157,8 @@ GEM
       logger
     faraday-follow_redirects (0.3.0)
       faraday (>= 1, < 3)
+    faraday-multipart (1.2.0)
+      multipart-post (~> 2.0)
     faraday-net_http (3.1.0)
       net-http
     faraday-retry (2.2.1)
@@ -169,9 +170,6 @@ GEM
     globalid (1.4.0)
       activesupport (>= 6.1)
     hashdiff (1.2.1)
-    http-accept (1.7.0)
-    http-cookie (1.0.5)
-      domain_name (~> 0.5)
     i18n (1.15.2)
       concurrent-ruby (~> 1.0)
     io-console (0.8.2)
@@ -200,22 +198,23 @@ GEM
       net-imap
       net-pop
       net-smtp
-    mailgun-ruby (1.2.14)
-      rest-client (>= 2.0.2)
+    mailgun-ruby (1.4.6)
+      faraday (~> 2.1)
+      faraday-multipart (< 2)
+      mini_mime
+      zeitwerk
     marcel (1.2.1)
-    mime-types (3.5.2)
-      mime-types-data (~> 3.2015)
-    mime-types-data (3.2024.0305)
     mini_mime (1.1.5)
     mini_portile2 (2.8.9)
     minitest (6.0.6)
       drb (~> 2.0)
       prism (~> 1.5)
-    mjml-rails (4.16.0)
-    mrml (1.8.1)
+    mjml-rails (5.0.0)
+    mrml (1.10.0)
       rb_sys
     msgpack (1.8.3)
     multi_json (1.15.0)
+    multipart-post (2.4.1)
     mutex_m (0.3.0)
     net-http (0.4.1)
       uri
@@ -228,7 +227,6 @@ GEM
       timeout
     net-smtp (0.5.1)
       net-protocol
-    netrc (0.11.0)
     nio4r (2.7.5)
     nokogiri (1.19.5)
       mini_portile2 (~> 2.8.2)
@@ -333,11 +331,6 @@ GEM
     responders (3.2.1)
       actionpack (>= 7.0)
       railties (>= 7.0)
-    rest-client (2.1.0)
-      http-accept (>= 1.7.0, < 2.0)
-      http-cookie (>= 1.0.2, < 2.0)
-      mime-types (>= 1.16, < 4.0)
-      netrc (~> 0.8)
     rexml (3.4.4)
     rotp (6.4.0)
     rqrcode (3.2.0)
@@ -493,10 +486,10 @@ DEPENDENCIES
   faraday-follow_redirects (= 0.3.0)
   faraday-retry (= 2.2.1)
   listen (= 3.9.0)
-  mailgun-ruby (= 1.2.14)
+  mailgun-ruby (= 1.4.6)
   marcel (= 1.2.1)
-  mjml-rails (= 4.16.0)
-  mrml (= 1.8.1)
+  mjml-rails (= 5.0.0)
+  mrml (= 1.10.0)
   opensearch-ruby (= 3.4.0)
   parallel_tests (= 5.6.0)
   pg (= 1.7.0)
