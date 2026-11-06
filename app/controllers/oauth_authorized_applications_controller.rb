@@ -4,6 +4,7 @@ class OauthAuthorizedApplicationsController < Doorkeeper::AuthorizedApplications
   layout "default"
 
   skip_before_action :authenticate_resource_owner!
+  skip_before_action :validate_resource_owner # logged_in_only covers it; actions scope to CurrentUser
   before_action :logged_in_only
   before_action :reject_api_key_auth
   before_action :reject_bearer_auth
