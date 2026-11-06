@@ -4,6 +4,7 @@ module IqdbProxy
   class Error < StandardError; end
   class BusyError < Error; end
   class CircuitOpenError < Error; end
+  class TooLargeError < Error; end
 
   IQDB_NUM_PIXELS = 128
 
@@ -77,6 +78,7 @@ module IqdbProxy
   end
 
   def query_file(file, score_cutoff, v2_format: false)
+    check_dimensions!(file.path)
     check_circuit!
     with_query_semaphore do
       thumb = generate_thumbnail(file.path)
@@ -114,6 +116,20 @@ module IqdbProxy
       x["post"] = v2_format ? PostBlueprint.render_as_hash(post, view: :basic) : post
       x
     end.compact
+  end
+
+  # Rejects images over the upload limits using only the header. Formats like PNG can't
+  # shrink on load, so the thumbnail would otherwise decode every declared pixel.
+  def check_dimensions!(file_path)
+    image = Vips::Image.new_from_file(file_path)
+    width = image.width
+    height = image.height
+    return if width * height <= Danbooru.config.max_image_resolution && width <= Danbooru.config.max_image_width && height <= Danbooru.config.max_image_height
+
+    raise TooLargeError, "The image is too large to search (#{width}x#{height}; max: #{Danbooru.config.max_image_resolution / 1_000_000} megapixels, #{Danbooru.config.max_image_width}x#{Danbooru.config.max_image_height})."
+  rescue Vips::Error
+    # Unreadable files are reported by generate_thumbnail.
+    nil
   end
 
   def generate_thumbnail(file_path)
@@ -207,5 +223,5 @@ module IqdbProxy
   end
 
   private_class_method :with_query_semaphore
-  private_class_method :check_circuit!, :record_circuit_outcome, :record_circuit_failure, :open_circuit!
+  private_class_method :check_circuit!, :record_circuit_outcome, :record_circuit_failure, :open_circuit!, :check_dimensions!
 end

@@ -9,8 +9,13 @@ class FileValidator
   end
 
   def validate(max_file_sizes: Danbooru.config.max_file_sizes, max_width: Danbooru.config.max_image_width, max_height: Danbooru.config.max_image_height, min_width: Danbooru.config.min_image_width)
+    error_count = record.errors.count
     validate_file_ext(max_file_sizes)
     validate_file_size(max_file_sizes)
+    validate_resolution(max_width, max_height, min_width)
+    # The remaining checks decode the file; don't spend that on one that is already rejected.
+    return if record.errors.count > error_count
+
     validate_file_integrity
     if record.is_video?
       video = record.video(file_path)
@@ -20,7 +25,6 @@ class FileValidator
       validate_colorspace(video)
       validate_sar(video)
     end
-    validate_resolution(max_width, max_height, min_width)
   end
 
   def validate_file_integrity
@@ -50,20 +54,23 @@ class FileValidator
   end
 
   def validate_resolution(max_width, max_height, min_width)
-    resolution = record.image_width.to_i * record.image_height.to_i
+    # Unknown dimensions count as 0.
+    width = record.image_width.to_i
+    height = record.image_height.to_i
+    resolution = width * height
 
     if resolution > Danbooru.config.max_image_resolution
-      record.errors.add(:base, "image resolution is too large (resolution: #{(resolution / 1_000_000.0).round(1)} megapixels (#{record.image_width}x#{record.image_height}); max: #{Danbooru.config.max_image_resolution / 1_000_000} megapixels)")
-    elsif record.image_width > max_width
-      record.errors.add(:image_width, "is too large (width: #{record.image_width}; max width: #{max_width})")
-    elsif record.image_height > max_height
-      record.errors.add(:image_height, "is too large (height: #{record.image_height}; max height: #{max_height})")
+      record.errors.add(:base, "image resolution is too large (resolution: #{(resolution / 1_000_000.0).round(1)} megapixels (#{width}x#{height}); max: #{Danbooru.config.max_image_resolution / 1_000_000} megapixels)")
+    elsif width > max_width
+      record.errors.add(:image_width, "is too large (width: #{width}; max width: #{max_width})")
+    elsif height > max_height
+      record.errors.add(:image_height, "is too large (height: #{height}; max height: #{max_height})")
     end
 
-    if record.image_width < min_width
-      record.errors.add(:image_width, "is too small (width: #{record.image_width}; min width: #{min_width})")
-    elsif record.image_height < min_width
-      record.errors.add(:image_height, "is too small (height: #{record.image_height}; min height: #{min_width})")
+    if width < min_width
+      record.errors.add(:image_width, "is too small (width: #{width}; min width: #{min_width})")
+    elsif height < min_width
+      record.errors.add(:image_height, "is too small (height: #{height}; min height: #{min_width})")
     end
   end
 

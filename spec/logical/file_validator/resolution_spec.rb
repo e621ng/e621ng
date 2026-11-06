@@ -64,6 +64,13 @@ RSpec.describe FileValidator, type: :model do
       end
     end
 
+    context "when the dimensions are unknown" do
+      it "treats them as 0 instead of raising" do
+        v = validator_for(nil, nil)
+        expect(v.record.errors[:image_width]).to include(include("is too small (width: 0;"))
+      end
+    end
+
     context "with a valid resolution" do
       it "adds no errors" do
         v = validator_for(1920, 1080)

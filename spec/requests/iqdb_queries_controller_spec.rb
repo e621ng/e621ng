@@ -194,6 +194,14 @@ RSpec.describe IqdbQueriesController do
       expect(response.body).to include("Couldn&#39;t download the file")
     end
 
+    it "returns 422 when the image is too large to search" do
+      allow(IqdbProxy).to receive(:query_file).and_raise(IqdbProxy::TooLargeError, "The image is too large to search")
+      file = fixture_file_upload("spec/fixtures/files/sample.jpg", "image/jpeg")
+      post iqdb_queries_path, params: { file: file }
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.body).to include("The image is too large to search")
+    end
+
     it "returns 503 when the IQDB circuit is open" do
       allow(IqdbProxy).to receive(:query_hash).and_raise(IqdbProxy::CircuitOpenError, "IQDB temporarily unavailable")
       get iqdb_queries_path, params: { hash: "deadbeef" }
