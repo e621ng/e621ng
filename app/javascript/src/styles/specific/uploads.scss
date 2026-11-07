@@ -29,3 +29,35 @@ div#c-uploads {
     }
   }
 }
+
+div#c-uploads div#a-show .upload-status {
+  max-width: 40rem;
+
+  ol.steps {
+    list-style: none;
+    margin: 0.5rem 0 0;
+    padding: 0;
+
+    li {
+      padding: 0.15rem 0;
+
+      &::before {
+        display: inline-block;
+        width: 1.5em;
+      }
+
+      &.done::before { content: "\2713"; }
+      &.active::before { content: "\2026"; }
+      &.pending {
+        opacity: 0.6;
+
+        &::before { content: "\2022"; }
+      }
+    }
+  }
+
+  .connection-lost {
+    margin-top: 0.5rem;
+    font-style: italic;
+  }
+}

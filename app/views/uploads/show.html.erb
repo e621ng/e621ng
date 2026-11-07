@@ -19,27 +19,36 @@
       <% end %>
     </ul>
 
-    <% if @upload.is_completed? %>
-      <% if @upload.post_id %>
-        <p>This upload has finished processing. <%= link_to "View the post", post_path(@upload.post_id) %>.</p>
+    <%# The Vue status view replaces the children; they are the no-JS fallback. %>
+    <div id="upload-status" class="upload-status"
+         data-upload-id="<%= @upload.id %>"
+         data-file-ext="<%= @upload.file_ext %>"
+         data-retry-url="<%= upload_retry_path(@upload) %>"
+         data-initial="<%= @upload.to_json %>">
+      <% if @upload.is_completed? %>
+        <% if @upload.post_id %>
+          <p>This upload has finished processing. <%= link_to "View the post", post_path(@upload.post_id) %>.</p>
+        <% else %>
+          <p>This upload has finished processing, but the post associated with it no longer exists.</p>
+        <% end %>
+      <% elsif @upload.is_pending? || @upload.is_queued? %>
+        <p>This upload is waiting to be processed. Please wait a few seconds.</p>
+      <% elsif @upload.is_processing? %>
+        <p>This upload is being processed. Please wait a few seconds.</p>
+      <% elsif @upload.is_duplicate? %>
+        <% if @upload.duplicate_post_id %>
+          <p>This upload is a duplicate: <%= link_to "post ##{@upload.duplicate_post_id}", post_path(@upload.duplicate_post_id) %></p>
+        <% else %>
+          <p>This upload is a duplicate, but the original post no longer exists.</p>
+        <% end %>
       <% else %>
-        <p>This upload has finished processing, but the post associated with it no longer exists.</p>
+        <p>An error occurred: <%= @upload.error_message.presence || @upload.status %></p>
+        <p><%= link_to "Back to the upload form", upload_retry_path(@upload) %></p>
       <% end %>
-    <% elsif @upload.is_pending? || @upload.is_queued? %>
-      <p>This upload is waiting to be processed. Please wait a few seconds.</p>
-    <% elsif @upload.is_processing? %>
-      <p>This upload is being processed. Please wait a few seconds.</p>
-    <% elsif @upload.is_duplicate? %>
-      <% if @upload.duplicate_post_id %>
-        <p>This upload is a duplicate: <%= link_to "post ##{@upload.duplicate_post_id}", post_path(@upload.duplicate_post_id) %></p>
-      <% else %>
-        <p>This upload is a duplicate, but the original post no longer exists.</p>
-      <% end %>
-    <% else %>
-      <p>An error occurred: <%= @upload.error_message.presence || @upload.status %></p>
-      <% if CurrentUser.user.is_staff? && @upload.backtrace.present? %>
-        <%= render "static/backtrace", backtrace: @upload.backtrace.to_s.split("\n") %>
-      <% end %>
+    </div>
+
+    <% if CurrentUser.user.is_staff? && @upload.backtrace.present? %>
+      <%= render "static/backtrace", backtrace: @upload.backtrace.to_s.split("\n") %>
     <% end %>
   </div>
 </div>
