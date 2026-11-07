@@ -30,7 +30,17 @@ module VipsHelpers
   end
 
   def image_bands(path)
-    VipsCommand.header(path)["bands"].to_i
+    VipsCommand.header_field(path, "bands").to_i
+  end
+
+  # A copy of a PNG with a tEXt chunk holding +text+ inserted after IHDR.
+  def write_png_with_comment(path, source, keyword, text)
+    data = File.binread(source)
+    ihdr_end = 8 + 4 + 4 + 13 + 4
+    payload = "#{keyword}\0#{text}".b
+    chunk = [payload.bytesize].pack("N") + "tEXt".b + payload + [Zlib.crc32("tEXt".b + payload)].pack("N")
+    File.binwrite(path, data[0, ihdr_end] + chunk + data[ihdr_end..])
+    path
   end
 
   def pixel_at(path, left, top)

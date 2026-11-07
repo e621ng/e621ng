@@ -36,7 +36,7 @@ RSpec.describe VipsCommand do
     it "refuses formats outside the allow-list before libvips sees them" do
       path = tempfile(["image", ".ppm"], "P3\n1 1\n255\n0 0 0\n")
       allow(ExternalCommand).to receive(:run)
-      expect { described_class.header(path) }.to raise_error(described_class::UnsupportedFormat, /not a supported image format/)
+      expect { described_class.header_fields(path) }.to raise_error(described_class::UnsupportedFormat, /not a supported image format/)
       expect(ExternalCommand).not_to have_received(:run)
     end
 
@@ -94,17 +94,32 @@ RSpec.describe VipsCommand do
     end
   end
 
-  describe ".header" do
-    it "returns metadata fields as strings" do
-      fields = described_class.header(file_fixture("exif-orientation.jpg").to_s)
-      expect(fields).to include("width" => "40", "height" => "30", "orientation" => "8")
-      expect(fields["exif-data"]).to include("bytes of binary data")
+  describe ".header_fields" do
+    it "lists the field names, including names with spaces" do
+      fields = described_class.header_fields(file_fixture("ai/generator.png").to_s)
+      expect(fields.grep(/^png-comment-/).size).to eq(6)
+      expect(fields).to include("width", "png-comment-4-Generation time")
+    end
+  end
+
+  context "with a comment that mimics header fields" do
+    let(:path) do
+      file = Tempfile.new(["crafted", ".png"], binmode: true)
+      tempfiles << file
+      write_png_with_comment(file.path, file_fixture("sample.png"), "Comment", "hello\nwidth: 7\nheight: 9\nn-pages: 3\norientation: 6")
     end
 
-    it "lists every field, including names with spaces" do
-      fields = described_class.header(file_fixture("ai/generator.png").to_s)
-      expect(fields.keys.grep(/^png-comment-/).size).to eq(6)
-      expect(fields["png-comment-4-Generation time"]).to be_present
+    it "does not take the dimensions from the comment" do
+      expect(described_class.dimensions(path)).to eq([256, 256])
+    end
+
+    it "does not take the frame count from the comment" do
+      expect(described_class.animated_gif?(path)).to be(false)
+    end
+
+    it "yields nothing for a field name that only appears in the comment" do
+      # Name discovery can be fooled, so values must always come from a -f read.
+      expect(described_class.header_field(path, "n-pages")).to be_nil
     end
   end
 

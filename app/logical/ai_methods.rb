@@ -106,13 +106,12 @@ module AiMethods
     is_jpeg = %w[jpg jpeg].include?(file_ext)
 
     fields = begin
-      VipsCommand.header(file_path)
+      VipsCommand.header_fields(file_path)
     rescue VipsCommand::Error
-      {}
+      []
     end
-    # The listing only shows the first line of each value, so read the fields in full.
     fetch = ->(key, binary: false) do
-      return "" unless fields.key?(key)
+      return "" unless fields.include?(key)
       VipsCommand.header_field(file_path, key, binary: binary).to_s.encode("ASCII", invalid: :replace, undef: :replace).gsub("\u0000", "")
     rescue VipsCommand::Error
       ""
@@ -125,7 +124,7 @@ module AiMethods
     exif_user_comment = fetch.call("exif-ifd2-UserComment")
     xmp_data = fetch.call("xmp-data", binary: true).downcase
 
-    png_text_blob = is_png ? fields.keys.grep(/^png-comment-/).map { |k| fetch.call(k) }.join("\n") : ""
+    png_text_blob = is_png ? fields.grep(/^png-comment-/).map { |k| fetch.call(k) }.join("\n") : ""
     jpeg_comment = is_jpeg ? [fetch.call("jpeg-comment"), fetch.call("jpeg-com")].compact_blank.join("\n") : ""
 
     c2pa_text = AiMethods.raw_c2pa_blob(file_path, file_ext)

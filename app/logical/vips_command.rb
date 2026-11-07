@@ -27,7 +27,7 @@ module VipsCommand
   }.freeze
   UNTRUSTED_ENVIRONMENT = ENVIRONMENT.merge("VIPS_BLOCK_UNTRUSTED" => "1").freeze
 
-  # VIPS file format: a 64-byte header of native-endian int32s, then raw interleaved pixels.
+  # VIPS file format: a 64-byte header of int32s (little-endian when the magic matches), then raw interleaved pixels.
   V_MAGIC = 0x08f2a6b6
   V_HEADER_SIZE = 64
   V_FORMAT_UCHAR = 0
@@ -41,18 +41,12 @@ module VipsCommand
     raise Error, "#{file_path} is unreadable: #{e.message}"
   end
 
-  # All metadata fields as strings, keyed by name. Only the first line of a multi-line
-  # value is listed, and binary fields such as exif-data read "N bytes of binary data";
-  # use header_field for their contents.
-  def header(file_path)
+  # Names of the metadata fields. The listing is only used for discovery: values can span
+  # several lines, and a crafted comment could otherwise masquerade as a field.
+  def header_fields(file_path)
     check_format!(file_path)
     stdout = run(Danbooru.config.vipsheader_path, "-a", file_path, timeout: HEADER_TIMEOUT, env: UNTRUSTED_ENVIRONMENT)
-
-    # The first line summarises the image.
-    stdout.scrub.lines.drop(1).filter_map do |line|
-      name, value = line.chomp.split(": ", 2)
-      [name, value] if value
-    end.to_h
+    stdout.scrub.lines.drop(1).filter_map { |line| line[/\A([\w.-]+(?: [\w.-]+)*): /, 1] }.uniq
   end
 
   # The full value of one field, or nil when the image has no such field.
@@ -67,16 +61,21 @@ module VipsCommand
   end
 
   # Width and height as browsers display the image, with EXIF orientation applied.
-  # Only reads the header.
+  # Only reads the header. The size comes from the summary line, whose prefix is the path
+  # we passed, and each other field from its own -f read; never from the field listing.
   def dimensions(file_path)
-    fields = header(file_path)
-    width = fields["width"].to_i
-    height = fields["height"].to_i
-    fields["orientation"].to_i.between?(5, 8) ? [height, width] : [width, height]
+    check_format!(file_path)
+    summary = run(Danbooru.config.vipsheader_path, file_path, timeout: HEADER_TIMEOUT, env: UNTRUSTED_ENVIRONMENT)
+    match = summary.scrub.delete_prefix("#{file_path}: ").match(/\A(\d+)x(\d+) /)
+    raise Error, "unexpected vipsheader output: #{summary.scrub.strip}" unless match
+
+    width = match[1].to_i
+    height = match[2].to_i
+    header_field(file_path, "orientation").to_i.between?(5, 8) ? [height, width] : [width, height]
   end
 
   def animated_gif?(file_path)
-    header(file_path)["n-pages"].to_i > 1
+    header_field(file_path, "n-pages").to_i > 1
   end
 
   # Decodes the image (every frame with all_frames) and reports whether libvips hit an error.
@@ -89,6 +88,7 @@ module VipsCommand
     end
     false
   rescue Error
+    # Includes unsupported formats and decodes that hit the time limit: the upload is rejected either way.
     true
   end
 
