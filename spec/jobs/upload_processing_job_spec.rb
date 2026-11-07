@@ -42,6 +42,30 @@ RSpec.describe UploadProcessingJob do
     end
   end
 
+  describe ".live_upload_ids" do
+    def record(args, klass: described_class.name)
+      Sidekiq::JobRecord.new({ "class" => klass, "args" => args, "queue" => "uploads" })
+    end
+
+    it "collects upload ids from the queue, the scheduled set and running workers" do
+      queued = [record([1]), record([2, "post"]), record([3], klass: "OtherJob")]
+      work = Sidekiq::Work.new("pid", "tid", { "queue" => "uploads", "run_at" => Time.now.to_i, "payload" => { "class" => described_class.name, "args" => [5, "upload"] } })
+      allow(Sidekiq::Queue).to receive(:new).with("uploads").and_return(queued)
+      allow(Sidekiq::ScheduledSet).to receive(:new).and_return([record([4])])
+      allow(Sidekiq::Workers).to receive(:new).and_return([["pid", "tid", work]])
+
+      expect(described_class.live_upload_ids).to eq(Set[1, 4, 5])
+    end
+
+    # Real Redis: the schedule pushed by a timeout requeue must be visible to the sweep.
+    it "sees a job waiting in the real scheduled set" do
+      jid = Sidekiq::Testing.disable! { described_class.perform_in(1.hour, 987_654_321) }
+      expect(described_class.live_upload_ids).to include(987_654_321)
+    ensure
+      Sidekiq::ScheduledSet.new.find { |job| job.jid == jid }&.delete if jid
+    end
+  end
+
   describe "#perform in upload mode" do
     it "creates the post as the uploader and completes the upload" do
       expect { perform }.to change(Post, :count).by(1)

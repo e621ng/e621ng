@@ -3,6 +3,12 @@
 require "rails_helper"
 
 RSpec.describe UploadSweepJob do
+  let(:live_ids) { Set.new }
+
+  before do
+    allow(UploadProcessingJob).to receive(:live_upload_ids).and_return(live_ids)
+  end
+
   def perform
     described_class.new.perform
   end
@@ -28,6 +34,27 @@ RSpec.describe UploadSweepJob do
     upload.update_columns(updated_at: 45.minutes.ago)
     perform
     expect(UploadProcessingJob).to have_enqueued_sidekiq_job(upload.id)
+  end
+
+  context "when Sidekiq still has the job" do
+    let(:backlogged) { create(:upload, status: "queued") }
+    let(:running) { create(:upload, status: "processing", processing_started_at: 25.minutes.ago, requeued_at: 1.hour.ago) }
+    let(:live_ids) { Set[backlogged.id, running.id] }
+
+    it "leaves the uploads alone" do
+      backlogged.update_columns(updated_at: 45.minutes.ago)
+      running
+      perform
+      expect(backlogged.reload.status).to eq("queued")
+      expect(running.reload.status).to eq("processing")
+      expect(UploadProcessingJob).not_to have_enqueued_sidekiq_job(backlogged.id)
+    end
+  end
+
+  it "does not consult Sidekiq when nothing is stale" do
+    create(:upload, status: "queued")
+    perform
+    expect(UploadProcessingJob).not_to have_received(:live_upload_ids)
   end
 
   it "fails an upload abandoned by its request before the job took over" do

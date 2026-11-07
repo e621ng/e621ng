@@ -22,6 +22,14 @@ class UploadProcessingJob < ApplicationJob
     args
   end
 
+  # Upload ids with a job waiting on the queue, scheduled (requeue, reschedule) or running on
+  # any Sidekiq process. UploadSweepJob treats a stale upload absent from this set as lost.
+  def self.live_upload_ids
+    jobs = Sidekiq::Queue.new(get_sidekiq_options["queue"]).to_a + Sidekiq::ScheduledSet.new.to_a
+    jobs += Sidekiq::Workers.new.map { |_pid, _tid, work| work.job }
+    jobs.filter_map { |job| job.args.first if job.klass == name && job.args.second.to_s.in?(["", "upload"]) }.to_set
+  end
+
   def perform(id, mode = "upload")
     case mode
     when "upload"
