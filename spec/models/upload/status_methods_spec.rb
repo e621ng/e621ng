@@ -61,30 +61,78 @@ RSpec.describe Upload do
     end
 
     # -------------------------------------------------------------------------
-    # #is_errored?
+    # #is_queued? / #is_failed? / #is_in_flight?
     # -------------------------------------------------------------------------
-    describe "#is_errored?" do
-      it "returns true when status begins with 'error:'" do
-        expect(build(:upload, status: "error: something went wrong")).to be_is_errored
+    describe "#is_queued?" do
+      it "returns true when status is 'queued'" do
+        expect(build(:upload, status: "queued")).to be_is_queued
       end
 
       it "returns false when status is 'pending'" do
-        expect(build(:upload, status: "pending")).not_to be_is_errored
+        expect(build(:upload, status: "pending")).not_to be_is_queued
+      end
+    end
+
+    describe "#is_failed?" do
+      it "returns true when status is 'failed'" do
+        expect(build(:upload, status: "failed")).to be_is_failed
+      end
+
+      it "returns false when status is 'pending'" do
+        expect(build(:upload, status: "pending")).not_to be_is_failed
+      end
+    end
+
+    describe "#is_in_flight?" do
+      it "returns true for queued and processing" do
+        expect(build(:upload, status: "queued")).to be_is_in_flight
+        expect(build(:upload, status: "processing")).to be_is_in_flight
+      end
+
+      it "returns false for terminal statuses" do
+        expect(build(:upload, status: "completed")).not_to be_is_in_flight
+        expect(build(:upload, status: "failed")).not_to be_is_in_flight
+        expect(build(:upload, status: "pending")).not_to be_is_in_flight
       end
     end
 
     # -------------------------------------------------------------------------
-    # #sanitized_status
+    # #transition! / #mark_failed!
     # -------------------------------------------------------------------------
-    describe "#sanitized_status" do
-      it "strips the DETAIL section from error statuses" do
-        upload = build(:upload, status: "error: constraint failed\nDETAIL: Key (md5)=(abc) already exists.")
-        expect(upload.sanitized_status).to eq("error: constraint failed\n...")
+    describe "#transition!" do
+      it "writes the status and extra columns without validation" do
+        upload = create(:upload, status: "pending")
+        upload.transition!("queued", processing_step: "integrity")
+        expect(upload.reload).to have_attributes(status: "queued", processing_step: "integrity")
+      end
+    end
+
+    describe "#mark_failed!" do
+      let(:upload) { create(:upload, status: "processing", processing_step: "thumbnail") }
+
+      it "uses the record's validation messages for RecordInvalid" do
+        invalid = build(:upload, rating: "z")
+        invalid.valid?
+        upload.mark_failed!(ActiveRecord::RecordInvalid.new(invalid))
+        expect(upload.reload).to have_attributes(status: "failed", error_message: a_string_including("Rating"), processing_step: nil)
+        expect(upload.processed_at).to be_present
       end
 
-      it "returns non-error statuses unchanged" do
-        upload = build(:upload, status: "completed")
-        expect(upload.sanitized_status).to eq("completed")
+      it "uses the message as-is for corrupt files" do
+        upload.mark_failed!(UploadService::Utils::CorruptFileError.new("file is corrupt"))
+        expect(upload.reload.error_message).to eq("file is corrupt")
+      end
+
+      it "reports a timeout plainly" do
+        upload.mark_failed!(ExternalCommand::TimeoutError.new("ffmpeg timed out after 45 seconds"))
+        expect(upload.reload.error_message).to eq("processing timed out")
+      end
+
+      it "strips the DETAIL section from other errors and keeps the backtrace" do
+        error = RuntimeError.new("constraint failed\nDETAIL: Key (md5)=(abc) already exists.")
+        error.set_backtrace(%w[a.rb:1 b.rb:2])
+        upload.mark_failed!(error)
+        expect(upload.reload).to have_attributes(error_message: "RuntimeError - constraint failed\n...", backtrace: "a.rb:1\nb.rb:2")
       end
     end
 
@@ -92,9 +140,9 @@ RSpec.describe Upload do
     # #duplicate_post_id
     # -------------------------------------------------------------------------
     describe "#duplicate_post_id" do
-      it "returns the post ID string from a duplicate status" do
+      it "returns the post ID from a duplicate status" do
         upload = build(:upload, status: "duplicate: 99")
-        expect(upload.duplicate_post_id).to eq("99")
+        expect(upload.duplicate_post_id).to eq(99)
       end
 
       it "returns nil when the status is not a duplicate" do

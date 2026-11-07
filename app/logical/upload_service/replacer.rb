@@ -28,7 +28,7 @@ class UploadService
           replacement_id: replacement.id,
         )
 
-        if upload.invalid? || upload.is_errored?
+        if upload.invalid? || upload.is_failed?
           raise ProcessingError, upload.errors.full_messages.to_sentence
         end
 
@@ -40,7 +40,7 @@ class UploadService
 
           upload.save!
         rescue StandardError => e
-          upload.update(status: "error: #{e.class} - #{e.message}", backtrace: e.backtrace.join("\n"))
+          upload.mark_failed!(e)
           raise ProcessingError, "#{e.class} - #{e.message}"
         end
         md5_changed = upload.md5 != post.md5
@@ -59,10 +59,9 @@ class UploadService
         post.image_width = upload.image_width
         post.image_height = upload.image_height
         post.file_size = upload.file_size
-        animated = upload.is_animated_file?(upload.file.path)
-        post.is_animated = animated
+        post.is_animated = upload.is_animated?
         post.has_sound = upload.video_has_sound?(upload.file.path)
-        post.duration = upload.video_duration(upload.file.path, animated: animated)
+        post.duration = upload.duration
         post.source = "#{replacement.source}\n" + post.source
         # Reset ownership information on post.
         post.uploader_id = replacement.creator_id
@@ -71,6 +70,9 @@ class UploadService
         post.submitted_tag_string = upload.tag_string
         post.normalize_tags
         post.save!
+        # Otherwise the row stays in flight: counted against the approver's limits, blocking the
+        # md5 for other uploaders, and eventually failed by UploadSweepJob.
+        upload.transition!("completed", post_id: post.id, processed_at: Time.current)
 
         # rescaling notes reloads the post, be careful when accessing previous values
         rescale_notes(post)

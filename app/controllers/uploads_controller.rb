@@ -2,7 +2,7 @@
 
 class UploadsController < ApplicationController
   before_action :member_only
-  before_action :staff_only, only: [:index, :show]
+  before_action :staff_only, only: [:index]
   before_action :ensure_uploads_enabled, only: %i[new create]
   respond_to :html, :json
   content_security_policy only: [:new] do |p|
@@ -16,8 +16,11 @@ class UploadsController < ApplicationController
     respond_with(@uploads)
   end
 
+  # The uploader polls this while their upload is processed; staff can see any upload.
   def show
     @upload = Upload.find(params[:id])
+    raise User::PrivilegeError unless @upload.uploader_id == CurrentUser.id || CurrentUser.is_staff?
+
     respond_with(@upload) do |format|
       format.html do
         if @upload.is_completed? && @upload.post_id
@@ -45,21 +48,12 @@ class UploadsController < ApplicationController
       flash[:notice] = @upload.errors.full_messages.join("; ")
       return render json: {success: false, reason: 'invalid', message: @upload.errors.full_messages.join("; ")}, status: 412
     end
-    if @service.warnings.any? && !@upload.is_errored? && !@upload.is_duplicate?
-      warnings = @service.warnings.join(".\n \n")
-      if warnings.length > 1500
-        Dmail.create_automated({
-                                   to_id: CurrentUser.id,
-                                   title: "Upload notices for post ##{@service.post.id}",
-                                   body: "While uploading post ##{@service.post.id} some notices were generated. Please review them below:\n\n#{warnings}"
-                               })
-        flash[:notice] = "This upload created a LOT of notices. They have been dmailed to you. Please review them"
-      else
-        flash[:notice] = warnings
-      end
+    # Only when the post was created in this request; asynchronous uploads carry their warnings in the poll response.
+    if @upload.is_completed? && @upload.warning_messages.any?
+      flash[:notice] = @upload.warning_messages.join(".\n \n")
     end
-
-    if RequestStore[:index_update_delayed] && !@upload.is_errored? && !@upload.is_duplicate?
+    # Set by DocumentStore when the new post's OpenSearch write was deferred; only reachable inline.
+    if @upload.is_completed? && RequestStore[:index_update_delayed]
       notice = "Search indexing is temporarily delayed. The post will appear in searches shortly."
       flash[:notice] = [flash[:notice].presence, notice].compact.join("\n\n")
     end
@@ -67,9 +61,13 @@ class UploadsController < ApplicationController
     respond_to do |format|
       format.json do
         return render json: {success: false, reason: 'duplicate', location: post_path(@upload.duplicate_post_id), post_id: @upload.duplicate_post_id}, status: 412 if @upload.is_duplicate?
-        return render json: {success: false, reason: 'invalid', message: @upload.sanitized_status}, status: 412 if @upload.is_errored?
+        return render json: {success: false, reason: 'invalid', message: @upload.error_message}, status: 412 if @upload.is_failed?
 
-        render json: {success: true, location: post_path(@upload.post_id), post_id: @upload.post_id}
+        if @upload.is_completed?
+          render json: {success: true, location: post_path(@upload.post_id), post_id: @upload.post_id, upload_id: @upload.id}
+        else
+          render json: {success: true, location: upload_path(@upload.id), upload_id: @upload.id}
+        end
       end
     end
   end

@@ -5,7 +5,7 @@
 # within a single process (e.g. "at most 2 concurrent video transcodes").
 #
 # Format: semicolon-separated "<name> <concurrency> <queue>[:<weight>],..."
-#   SIDEKIQ_CAPSULES="media 2 video:1,thumb:1;iqdb 1 iqdb"
+#   SIDEKIQ_CAPSULES="media 2 video:1;iqdb 1 iqdb;uploads 1 uploads"
 module SidekiqCapsules
   def self.parse(raw)
     capsules = raw.to_s.split(";")

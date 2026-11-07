@@ -63,7 +63,8 @@ class Post < ApplicationRecord
   after_commit :delete_files, on: :destroy
   after_commit :delete_avatar_crops, on: :destroy
   after_commit :remove_iqdb_async, on: :destroy
-  after_commit :handle_thumbnails_on_create, on: :create
+  # Previews exist before the row does: UploadProcessingJob writes them, then creates the post.
+  after_commit :update_iqdb_async, on: :create
   after_commit :generate_video_samples, on: :create, if: :is_video?
   after_commit :track_upload_event, on: :create, if: -> { OpenPanelClient.enabled? }
 
@@ -306,25 +307,15 @@ class Post < ApplicationRecord
       reload
     end
 
-    def generate_image_samples(later: false)
-      if later
-        PostImageSamplerJob.perform_in(1.minute, id)
-      else
-        ImageSampler.generate_post_images(self)
-      end
+    # Always a job: the staff regenerate action and replacement approval must not decode in a
+    # web worker. Deferred to commit so Replacer#process! never regenerates against the old file.
+    def generate_image_samples
+      post_id = id
+      ActiveRecord.after_all_transactions_commit { UploadProcessingJob.perform_async(post_id, "post") }
     end
 
     def regenerate_image_samples!
-      if file_size > 10.megabytes
-        generate_image_samples(later: true)
-      else
-        generate_image_samples
-      end
-    end
-
-    def handle_thumbnails_on_create
-      ImageSampler.generate_post_images(self)
-      update_iqdb_async if has_preview?
+      generate_image_samples
     end
 
     def check_for_ai_content

@@ -142,6 +142,7 @@ class User < ApplicationRecord
   has_many :forum_topic_visits
   has_many :note_versions, foreign_key: "updater_id"
   has_many :posts, foreign_key: "uploader_id"
+  has_many :uploads, foreign_key: "uploader_id"
   has_many :post_approvals, dependent: :destroy
   has_many :post_disapprovals, dependent: :destroy
   has_many :post_replacements, foreign_key: :creator_id
@@ -768,7 +769,9 @@ class User < ApplicationRecord
       @hourly_upload_limit ||= begin
         post_count = posts.where("created_at >= ?", 1.hour.ago).count
         replacement_count = can_approve_posts? ? 0 : post_replacements.where("created_at >= ? and status != ?", 1.hour.ago, "original").count
-        Danbooru.config.hourly_upload_limit - post_count - replacement_count
+        # Uploads still being processed are posts-to-be; without this a burst could outrun the limit.
+        in_flight_count = uploads.in_flight.count
+        Danbooru.config.hourly_upload_limit - post_count - replacement_count - in_flight_count
       end
     end
 
@@ -800,13 +803,14 @@ class User < ApplicationRecord
         replaced_penalize_count = own_post_replaced_penalize_count
         unapproved_count = Post.pending_or_flagged.for_user(id).count
         unapproved_replacements_count = post_replacements.pending.count
+        in_flight_upload_count = uploads.in_flight.count
         approved_count = Post.for_user(id).where(is_flagged: false, is_deleted: false, is_pending: false).count
 
         {
           base: base_upload_limit,
           deleted: deleted_count + replaced_penalize_count + rejected_replacement_count,
           deleted_ignore: own_post_replaced_count - replaced_penalize_count,
-          pending: unapproved_count + unapproved_replacements_count,
+          pending: unapproved_count + unapproved_replacements_count + in_flight_upload_count,
           approved: approved_count,
         }
       end

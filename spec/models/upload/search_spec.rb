@@ -83,11 +83,25 @@ RSpec.describe Upload do
     # -------------------------------------------------------------------------
     describe "status parameter" do
       let!(:pending_upload)  { make_upload(status: "pending") }
-      let!(:errored_upload)  { make_upload(status: "error: bad file") }
+      let!(:failed_upload)   { make_upload(status: "failed", error_message: "bad file") }
 
       it "returns uploads whose status matches the pattern" do
-        results = Upload.search(status: "error*")
-        expect(results).to include(errored_upload)
+        results = Upload.search(status: "fail*")
+        expect(results).to include(failed_upload)
+        expect(results).not_to include(pending_upload)
+      end
+    end
+
+    # -------------------------------------------------------------------------
+    # error_message (LIKE match)
+    # -------------------------------------------------------------------------
+    describe "error_message parameter" do
+      let!(:pending_upload) { make_upload(status: "pending") }
+      let!(:failed_upload)  { make_upload(status: "failed", error_message: "file is corrupt") }
+
+      it "returns uploads whose error message matches the pattern" do
+        results = Upload.search(error_message: "*corrupt*")
+        expect(results).to include(failed_upload)
         expect(results).not_to include(pending_upload)
       end
     end

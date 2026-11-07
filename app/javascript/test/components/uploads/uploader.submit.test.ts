@@ -301,6 +301,13 @@ describe("uploads/uploader — low-tag confirmation", () => {
 });
 
 describe("uploads/uploader — submit outcomes", () => {
+  it("navigates to the status page with a processing toast when the upload was queued", async () => {
+    const { locationAssign } = await submitOutcome(jsonResponse({ location: "/uploads/5", upload_id: 5 }));
+    const Toast = (await import("@/utility/Toast")).default;
+    expect(Toast.notice).toHaveBeenCalledWith("Upload received, processing\u2026");
+    expect(locationAssign).toHaveBeenCalledWith("/uploads/5");
+  });
+
   it("navigates and toasts on success", async () => {
     const { locationAssign } = await submitOutcome(jsonResponse({ location: "/posts/999" }));
     const Toast = (await import("@/utility/Toast")).default;

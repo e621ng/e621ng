@@ -111,10 +111,36 @@ RSpec.describe UploadsController do
       expect(response).to redirect_to(new_session_path(url: upload_path(upload)))
     end
 
-    it "returns 403 for a regular member" do
+    it "returns 403 for a member who is not the uploader" do
       sign_in_as member
       get upload_path(upload)
       expect(response).to have_http_status(:forbidden)
+    end
+
+    context "for the uploader" do
+      let(:upload) { create(:upload, uploader: member, status: "processing", processing_step: "thumbnail", backtrace: "secret") }
+
+      before { sign_in_as member }
+
+      it "returns 200 with the status mount point" do
+        get upload_path(upload)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("upload-status")
+      end
+
+      it "returns the processing state as JSON without staff-only fields" do
+        get upload_path(upload, format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to include("status" => "processing", "processing_step" => "thumbnail", "duplicate_post_id" => nil)
+        expect(response.parsed_body.keys).not_to include("backtrace", "md5_confirmation", "uploader_ip_addr")
+      end
+    end
+
+    it "includes the backtrace in JSON for staff" do
+      upload.update_columns(backtrace: "secret")
+      sign_in_as janitor
+      get upload_path(upload, format: :json)
+      expect(response.parsed_body).to include("backtrace" => "secret")
     end
 
     it "returns 200 for a janitor viewing a pending upload" do
@@ -165,16 +191,19 @@ RSpec.describe UploadsController do
     let(:upload_double) do
       instance_double(
         Upload,
+        id:                123,
         invalid?:          false,
         is_duplicate?:     false,
-        is_errored?:       false,
+        is_failed?:        false,
+        is_completed?:     true,
         post_id:           post_record.id,
         errors:            ActiveModel::Errors.new(Upload.new),
-        sanitized_status:  "pending",
+        error_message:     nil,
         duplicate_post_id: nil,
+        warning_messages:  [],
       )
     end
-    let(:service_double) { instance_spy(UploadService, start!: upload_double, warnings: []) }
+    let(:service_double) { instance_spy(UploadService, start!: upload_double) }
     let(:base_params) { { upload: { source: "https://example.com/image.jpg", tag_string: "tagme", rating: "s" } } }
 
     before { allow(UploadService).to receive(:new).and_return(service_double) }
@@ -195,7 +224,20 @@ RSpec.describe UploadsController do
       sign_in_as member
       post uploads_path(format: :json), params: base_params
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body).to include("success" => true, "post_id" => post_record.id)
+      expect(response.parsed_body).to include("success" => true, "post_id" => post_record.id, "upload_id" => 123, "location" => "/posts/#{post_record.id}")
+    end
+
+    context "when the upload was queued for asynchronous processing" do
+      before { allow(upload_double).to receive_messages(is_completed?: false, post_id: nil) }
+
+      it "points the client at the upload status page" do
+        sign_in_as member
+        post uploads_path(format: :json), params: base_params
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to include("success" => true, "location" => "/uploads/123", "upload_id" => 123)
+        expect(response.parsed_body).not_to have_key("post_id")
+        expect(flash[:notice]).to be_nil
+      end
     end
 
     context "when uploads are disabled" do
@@ -233,16 +275,16 @@ RSpec.describe UploadsController do
       end
     end
 
-    context "when the upload is errored" do
+    context "when the upload failed" do
       before do
-        allow(upload_double).to receive_messages(is_errored?: true, sanitized_status: "error: Something went wrong...")
+        allow(upload_double).to receive_messages(is_failed?: true, error_message: "Something went wrong...")
       end
 
-      it "returns 412 with reason: invalid and the sanitized status for a member" do
+      it "returns 412 with reason: invalid and the error message for a member" do
         sign_in_as member
         post uploads_path(format: :json), params: base_params
         expect(response).to have_http_status(:precondition_failed)
-        expect(response.parsed_body).to include("success" => false, "reason" => "invalid", "message" => "error: Something went wrong...")
+        expect(response.parsed_body).to include("success" => false, "reason" => "invalid", "message" => "Something went wrong...")
       end
     end
 
@@ -259,8 +301,8 @@ RSpec.describe UploadsController do
       end
     end
 
-    context "when the service returns short warnings" do
-      before { allow(service_double).to receive(:warnings).and_return(["Tag does not exist"]) }
+    context "when the completed upload recorded warnings" do
+      before { allow(upload_double).to receive(:warning_messages).and_return(["Tag does not exist"]) }
 
       it "returns 200 and sets flash[:notice] to the warning text" do
         sign_in_as member
@@ -270,51 +312,24 @@ RSpec.describe UploadsController do
       end
     end
 
-    context "when indexing the new post is rejected with 429" do
+    context "when the post's search index write was deferred" do
       before do
-        post_record
-        allow(Post.document_store).to receive(:client).and_return(instance_double(OpenSearch::Client))
-        allow(Post.document_store.client).to receive(:index).and_raise(OpenSearch::Transport::Transport::Errors::TooManyRequests)
-        allow(service_double).to receive(:start!) do
-          create(:post)
-          upload_double
-        end
+        allow(RequestStore).to receive(:[]).and_call_original
+        allow(RequestStore).to receive(:[]).with(:index_update_delayed).and_return(true)
       end
 
-      it "returns 200 and tells the uploader indexing is delayed" do
+      it "tells the uploader when the post was created in the request" do
+        allow(upload_double).to receive(:warning_messages).and_return(["Tag does not exist"])
         sign_in_as member
         post uploads_path(format: :json), params: base_params
-        expect(response).to have_http_status(:ok)
-        expect(flash[:notice]).to include("indexing is temporarily delayed")
+        expect(flash[:notice]).to include("Tag does not exist").and include("Search indexing is temporarily delayed")
       end
-    end
 
-    context "when nothing was deferred" do
-      it "does not mention indexing" do
+      it "says nothing for an upload that is still queued" do
+        allow(upload_double).to receive_messages(is_completed?: false, post_id: nil)
         sign_in_as member
         post uploads_path(format: :json), params: base_params
-        expect(flash[:notice].to_s).not_to include("indexing")
-      end
-    end
-
-    context "when the service returns warnings exceeding 1500 characters" do
-      let(:long_warning) { "a" * 1501 }
-
-      before do
-        allow(service_double).to receive_messages(warnings: [long_warning], post: post_record)
-        allow(Dmail).to receive(:create_automated)
-      end
-
-      it "calls Dmail.create_automated to send the notices" do
-        sign_in_as member
-        post uploads_path(format: :json), params: base_params
-        expect(Dmail).to have_received(:create_automated)
-      end
-
-      it "sets flash[:notice] to the truncated-notice message" do
-        sign_in_as member
-        post uploads_path(format: :json), params: base_params
-        expect(flash[:notice]).to include("dmailed")
+        expect(flash[:notice]).to be_nil
       end
     end
 

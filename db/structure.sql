@@ -2886,7 +2886,20 @@ CREATE TABLE public.uploads (
     file_size integer,
     image_width integer,
     image_height integer,
-    description text DEFAULT ''::text NOT NULL
+    description text DEFAULT ''::text NOT NULL,
+    processing_step text,
+    error_message text,
+    warning_messages text,
+    is_animated boolean DEFAULT false NOT NULL,
+    duration numeric,
+    has_sound boolean DEFAULT false NOT NULL,
+    locked_tags text,
+    locked_rating boolean DEFAULT false NOT NULL,
+    as_pending boolean DEFAULT false NOT NULL,
+    submitted_tag_string text,
+    processing_started_at timestamp without time zone,
+    processed_at timestamp without time zone,
+    requeued_at timestamp without time zone
 );
 
 
@@ -6010,6 +6023,13 @@ CREATE INDEX index_upload_karma_events_on_user_id_and_id ON public.upload_karma_
 
 
 --
+-- Name: index_uploads_on_md5_in_flight; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_uploads_on_md5_in_flight ON public.uploads USING btree (md5) WHERE (status = ANY (ARRAY['queued'::text, 'processing'::text]));
+
+
+--
 -- Name: index_uploads_on_source; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6623,6 +6643,8 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107150000'),
+('20261107120000'),
 ('20261106120000'),
 ('20261103204749'),
 ('20261026161409'),

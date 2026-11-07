@@ -5,10 +5,11 @@ require "tmpdir"
 class Upload < ApplicationRecord
   class Error < Exception ; end
 
-  attr_accessor :as_pending, :replaced_post, :file, :direct_url, :original_post_id, :locked_tags, :locked_rating, :replacement_id,
-                :submitted_tag_string
+  attr_accessor :replaced_post, :file, :direct_url, :original_post_id, :replacement_id
   belongs_to :uploader, :class_name => "User"
   belongs_to :post, optional: true
+
+  serialize :warning_messages, coder: JSON, type: Array
 
   before_validation :assign_rating_from_tags
   before_validation :fixup_source, on: :create
@@ -17,7 +18,7 @@ class Upload < ApplicationRecord
   validates :rating, inclusion: { in: %w(q e s) }, allow_nil: false
   validate :md5_is_unique, on: :file
   validate on: :file do |upload|
-    FileValidator.new(upload, file.path).validate
+    FileValidator.new(upload, file.path).validate(decode: false)
   end
 
   module StatusMethods
@@ -33,24 +34,55 @@ class Upload < ApplicationRecord
       status == "completed"
     end
 
+    def is_queued?
+      status == "queued"
+    end
+
+    def is_failed?
+      status == "failed"
+    end
+
+    # Waiting for or inside the processing job.
+    def is_in_flight?
+      is_queued? || is_processing?
+    end
+
     def is_duplicate?
       status.match?(/duplicate: \d+/)
     end
 
-    def is_errored?
-      status.match?(/error:/)
-    end
-
-    def sanitized_status
-      if is_errored?
-        status.sub(/DETAIL:.+/m, "...")
-      else
-        status
-      end
-    end
-
     def duplicate_post_id
-      @duplicate_post_id ||= status[/duplicate: (\d+)/, 1]
+      status[/duplicate: (\d+)/, 1]&.to_i
+    end
+
+    # Status writes bypass validations: they happen from rescue blocks and from the job,
+    # where the record must be updatable no matter what state the file left it in.
+    def transition!(new_status, **attrs)
+      update_columns(attrs.merge(status: new_status, updated_at: Time.current))
+    end
+
+    def mark_failed!(exception)
+      transition!("failed",
+                  error_message: Upload.error_message_for(exception),
+                  backtrace: exception.backtrace&.join("\n"),
+                  processing_step: nil,
+                  processed_at: Time.current)
+    end
+  end
+
+  module StatusClassMethods
+    # User-facing text for a processing failure.
+    def error_message_for(exception)
+      case exception
+      when ActiveRecord::RecordInvalid
+        exception.record.errors.full_messages.join("; ")
+      when UploadService::Utils::CorruptFileError, UploadService::Utils::MissingFileError, Upload::Error
+        exception.message
+      when ExternalCommand::TimeoutError, VipsCommand::TimeoutError
+        "processing timed out"
+      else
+        "#{exception.class} - #{exception.message}".sub(/DETAIL:.+/m, "...")
+      end
     end
   end
 
@@ -91,6 +123,10 @@ class Upload < ApplicationRecord
   module SearchMethods
     def pending
       where(:status => "pending")
+    end
+
+    def in_flight
+      where(status: %w[queued processing])
     end
 
     def post_tags_match(query)
@@ -140,6 +176,10 @@ class Upload < ApplicationRecord
         q = q.where("uploads.backtrace LIKE ? ESCAPE E'\\\\'", params[:backtrace].to_escaped_for_sql_like)
       end
 
+      if params[:error_message].present?
+        q = q.where("uploads.error_message LIKE ? ESCAPE E'\\\\'", params[:error_message].to_escaped_for_sql_like)
+      end
+
       if params[:tag_string].present?
         q = q.where("uploads.tag_string LIKE ? ESCAPE E'\\\\'", params[:tag_string].to_escaped_for_sql_like)
       end
@@ -150,13 +190,20 @@ class Upload < ApplicationRecord
 
   module ApiMethods
     def method_attributes
-      super + [:uploader_name]
+      super + %i[uploader_name duplicate_post_id]
+    end
+
+    def hidden_attributes
+      return super if CurrentUser.is_staff?
+
+      super + %i[backtrace md5_confirmation]
     end
   end
 
   include FileMethods
   include AiMethods
   include StatusMethods
+  extend StatusClassMethods
   include UploaderMethods
   extend SearchMethods
   include ApiMethods
@@ -192,6 +239,15 @@ class Upload < ApplicationRecord
     if (destroyed_post = DestroyedPost.find_by(md5: md5))
       errors.add(:base, "That image had been deleted from our site, and cannot be re-uploaded")
       destroyed_post.notify_reupload(uploader)
+      return
+    end
+
+    # The post for an in-flight upload doesn't exist yet, so the Post lookup below would let
+    # the same file through twice and the second would only fail inside the job.
+    in_flight = Upload.in_flight.where(md5: md5)
+    in_flight = in_flight.where.not(id: id) if persisted?
+    if (other = in_flight.first)
+      errors.add(:md5, "is already being processed by upload ##{other.id}")
       return
     end
 
@@ -237,6 +293,13 @@ class Upload < ApplicationRecord
   end
 
   def upload_as_pending?
-    as_pending.to_s.truthy?
+    as_pending?
+  end
+
+  # A transient Post carrying what StorageManager#post_file_path, Post#has_preview? and
+  # ImageSampler need before the post row exists. No id: originals are stored the same way
+  # (see UploadService::Utils.distribute_files).
+  def media_stub
+    Post.new(md5: md5, file_ext: file_ext, image_width: image_width, image_height: image_height)
   end
 end

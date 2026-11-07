@@ -57,6 +57,16 @@
         <%= f.button :submit, value: "Submit" %>
       <% end %>
     </section>
+
+    <section class="settings-section">
+      <h2>Upload Processing</h2>
+      When enabled, uploads are decoded and thumbnailed by the Sidekiq <b>uploads</b> queue and the post is created once that finishes.
+      The queue must have workers before this is turned on, or uploads will sit in "queued".
+      <%= custom_form_for(:maintenance, url: maintenance_staff_security_index_path, method: :put) do |f| %>
+        <%= f.input :async_upload_processing, as: :boolean, label: "Process uploads asynchronously", input_html: { checked: Setting.async_upload_processing? ? "checked" : "" } %>
+        <%= f.button :submit, value: "Submit" %>
+      <% end %>
+    </section>
   </div>
 </div>
 
