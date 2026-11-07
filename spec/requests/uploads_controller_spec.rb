@@ -312,6 +312,27 @@ RSpec.describe UploadsController do
       end
     end
 
+    context "when the post's search index write was deferred" do
+      before do
+        allow(RequestStore).to receive(:[]).and_call_original
+        allow(RequestStore).to receive(:[]).with(:index_update_delayed).and_return(true)
+      end
+
+      it "tells the uploader when the post was created in the request" do
+        allow(upload_double).to receive(:warning_messages).and_return(["Tag does not exist"])
+        sign_in_as member
+        post uploads_path(format: :json), params: base_params
+        expect(flash[:notice]).to include("Tag does not exist").and include("Search indexing is temporarily delayed")
+      end
+
+      it "says nothing for an upload that is still queued" do
+        allow(upload_double).to receive_messages(is_completed?: false, post_id: nil)
+        sign_in_as member
+        post uploads_path(format: :json), params: base_params
+        expect(flash[:notice]).to be_nil
+      end
+    end
+
     context "when locked_tags is submitted" do
       let(:locked_params) { { upload: base_params[:upload].merge(locked_tags: "meta") } }
 

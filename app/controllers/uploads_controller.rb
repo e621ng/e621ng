@@ -52,6 +52,11 @@ class UploadsController < ApplicationController
     if @upload.is_completed? && @upload.warning_messages.any?
       flash[:notice] = @upload.warning_messages.join(".\n \n")
     end
+    # Set by DocumentStore when the new post's OpenSearch write was deferred; only reachable inline.
+    if @upload.is_completed? && RequestStore[:index_update_delayed]
+      notice = "Search indexing is temporarily delayed. The post will appear in searches shortly."
+      flash[:notice] = [flash[:notice].presence, notice].compact.join("\n\n")
+    end
 
     respond_to do |format|
       format.json do
