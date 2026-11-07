@@ -63,7 +63,7 @@ RSpec.describe ImageSampler do
   describe ".with_still_image" do
     context "with a video mistagged as ICtCp" do
       it "still generates a snapshot" do
-        width = described_class.with_still_image(file_fixture("mislabeled-ictcp.mp4").to_s, is_video: true) { |path| Vips::Image.new_from_file(path).width }
+        width = described_class.with_still_image(file_fixture("mislabeled-ictcp.mp4").to_s, is_video: true) { |path| image_dimensions(path).first }
         expect(width).to eq(64)
       end
     end

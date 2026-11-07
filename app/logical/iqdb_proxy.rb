@@ -121,35 +121,36 @@ module IqdbProxy
   # Rejects images over the upload limits using only the header. Formats like PNG can't
   # shrink on load, so the thumbnail would otherwise decode every declared pixel.
   def check_dimensions!(file_path)
-    image = Vips::Image.new_from_file(file_path)
-    width = image.width
-    height = image.height
+    width, height = VipsCommand.dimensions(file_path)
     return if width * height <= Danbooru.config.max_image_resolution && width <= Danbooru.config.max_image_width && height <= Danbooru.config.max_image_height
 
     raise TooLargeError, "The image is too large to search (#{width}x#{height}; max: #{Danbooru.config.max_image_resolution / 1_000_000} megapixels, #{Danbooru.config.max_image_width}x#{Danbooru.config.max_image_height})."
-  rescue Vips::Error
+  rescue VipsCommand::Error
     # Unreadable files are reported by generate_thumbnail.
     nil
   end
 
+  # Pixels of the image scaled to IQDB_NUM_PIXELS square (see VipsCommand.read_v), or nil.
   def generate_thumbnail(file_path)
-    Vips::Image.thumbnail(file_path, IQDB_NUM_PIXELS, height: IQDB_NUM_PIXELS, size: :force)
-  rescue Vips::Error => e
+    thumbnail = VipsCommand.thumbnail(file_path, IQDB_NUM_PIXELS, height: IQDB_NUM_PIXELS, size: :force)
+    VipsCommand.read_v(thumbnail.path)
+  rescue VipsCommand::Error => e
     Rails.logger.error "Failed to generate thumbnail for #{file_path}: #{e.message}"
     nil
+  ensure
+    thumbnail&.close!
   end
 
   def get_channels_data(thumbnail)
     r = []
     g = []
     b = []
-    is_grayscale = thumbnail.bands == 1
-    thumbnail.to_a.each do |data|
-      data.each do |rgb|
-        r << rgb[0]
-        g << (is_grayscale ? rgb[0] : rgb[1])
-        b << (is_grayscale ? rgb[0] : rgb[2])
-      end
+    bands = thumbnail[:bands]
+    is_grayscale = bands < 3
+    thumbnail[:pixels].each_byte.each_slice(bands) do |pixel|
+      r << pixel[0]
+      g << (is_grayscale ? pixel[0] : pixel[1])
+      b << (is_grayscale ? pixel[0] : pixel[2])
     end
     { channels: { r: r, g: g, b: b } }
   end

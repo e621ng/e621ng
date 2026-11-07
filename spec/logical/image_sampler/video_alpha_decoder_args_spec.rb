@@ -52,22 +52,25 @@ RSpec.describe ImageSampler do
   # -------------------------------------------------------------------------
   describe ".with_still_image" do
     shared_examples "a transparent video snapshot" do |fixture|
-      let(:image) do
-        described_class.with_still_image(file_fixture(fixture).to_s, is_video: true) { |path| Vips::Image.new_from_file(path).copy_memory }
+      # The snapshot is deleted after the block, so inspect it inside.
+      let(:snapshot) do
+        described_class.with_still_image(file_fixture(fixture).to_s, is_video: true) do |path|
+          { dimensions: image_dimensions(path), bands: image_bands(path), alpha_range: band_range(path, 3) }
+        end
       end
 
-      it "returns a Vips::Image" do
-        expect(image).to be_a(Vips::Image)
+      it "produces an image" do
+        expect(snapshot[:dimensions]).to all(be_positive)
       end
 
       it "preserves the alpha channel" do
-        expect(image.bands).to eq(4)
+        expect(snapshot[:bands]).to eq(4)
       end
 
       it "contains fully transparent pixels" do
         # All frames of the fixture are partially transparent, so the alpha
         # band must reach 0 somewhere. A value > 0 would mean alpha was dropped.
-        expect(image[3].min).to eq(0)
+        expect(snapshot[:alpha_range].first).to eq(0)
       end
     end
 

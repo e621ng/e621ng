@@ -56,7 +56,8 @@ spec/
 ├── support/
 │   ├── shared_examples/
 │   ├── current_user_contexts.rb
-│   └── tag_categories.rb
+│   ├── tag_categories.rb
+│   └── vips_helpers.rb
 └── fixtures/
 ```
 
@@ -66,6 +67,7 @@ spec/
 
 - `before(:suite)` seeds: `admin` user, system user (`Danbooru.config.system_user`), `ForumCategory` "Tag Alias and Implication Suggestions"
 - All files in `spec/support/**/*.rb` are auto-required
+- **Image fixtures** are generated and inspected through the libvips CLI via `VipsHelpers` (`write_solid_image`, `image_dimensions`, `pixel_at`, ...); nothing links libvips in-process
 - **Transactional fixtures** — each test runs in a rolled-back transaction
 - **Randomized order** — tests are shuffled every run to surface ordering dependencies; use `--seed N` to reproduce
 - **Profiling** — the 10 slowest examples and groups are reported at the end of each run

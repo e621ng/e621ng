@@ -105,28 +105,27 @@ module AiMethods
     is_png = file_ext == "png"
     is_jpeg = %w[jpg jpeg].include?(file_ext)
 
-    image = Vips::Image.new_from_file(file_path)
-    fetch = ->(key) do
-      value = image.get(key)
-      value.encode("ASCII", invalid: :replace, undef: :replace).gsub("\u0000", "")
-    rescue Vips::Error
+    fields = begin
+      VipsCommand.header(file_path)
+    rescue VipsCommand::Error
+      {}
+    end
+    # The listing only shows the first line of each value, so read the fields in full.
+    fetch = ->(key, binary: false) do
+      return "" unless fields.key?(key)
+      VipsCommand.header_field(file_path, key, binary: binary).to_s.encode("ASCII", invalid: :replace, undef: :replace).gsub("\u0000", "")
+    rescue VipsCommand::Error
       ""
     end
 
-    fields = begin
-      image.get_fields
-    rescue StandardError
-      []
-    end
-
     # === Aggregate metadata === #
-    exif_data = fetch.call("exif-data")
+    exif_data = fetch.call("exif-data", binary: true)
     exif_software = fetch.call("exif-ifd0-Software")
     exif_image_desc = fetch.call("exif-ifd0-ImageDescription")
     exif_user_comment = fetch.call("exif-ifd2-UserComment")
-    xmp_data = fetch.call("xmp-data").downcase
+    xmp_data = fetch.call("xmp-data", binary: true).downcase
 
-    png_text_blob = is_png ? fields.grep(/^png-comment-/).map { |k| fetch.call(k) }.join("\n") : ""
+    png_text_blob = is_png ? fields.keys.grep(/^png-comment-/).map { |k| fetch.call(k) }.join("\n") : ""
     jpeg_comment = is_jpeg ? [fetch.call("jpeg-comment"), fetch.call("jpeg-com")].compact_blank.join("\n") : ""
 
     c2pa_text = AiMethods.raw_c2pa_blob(file_path, file_ext)

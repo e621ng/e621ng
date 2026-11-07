@@ -116,13 +116,13 @@ RSpec.describe IqdbProxy do
   end
 
   describe ".query_file dimension check" do
-    before { allow(Vips::Image).to receive(:thumbnail).and_call_original }
+    before { allow(VipsCommand).to receive(:thumbnail).and_call_original }
 
     it "rejects an image over the resolution limit without decoding it" do
       file = instance_double(File, path: file_fixture("oversized-canvas.png").to_s)
 
       expect { described_class.query_file(file, 60) }.to raise_error(IqdbProxy::TooLargeError, /40000x40000/)
-      expect(Vips::Image).not_to have_received(:thumbnail)
+      expect(VipsCommand).not_to have_received(:thumbnail)
       expect(described_class).not_to have_received(:make_request)
       expect(Cache.redis).not_to have_received(:incr)
     end
@@ -131,7 +131,7 @@ RSpec.describe IqdbProxy do
       file = instance_double(File, path: file_fixture("sample.jpg").to_s)
 
       expect(described_class.query_file(file, 60)).to eq([])
-      expect(Vips::Image).to have_received(:thumbnail)
+      expect(VipsCommand).to have_received(:thumbnail)
       expect(described_class).to have_received(:make_request).with("/query", :post, anything)
     end
 

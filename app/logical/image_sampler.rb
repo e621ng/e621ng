@@ -2,6 +2,9 @@
 
 module ImageSampler
   SNAPSHOT_TIMEOUT = 45
+  # Options for the libvips savers (see VipsCommand.save).
+  JPEG_OPTIONS = { Q: 90, strip: true, interlace: true, optimize_coding: true, optimize_scans: true, trellis_quant: true, quant_table: 3 }.freeze
+  WEBP_OPTIONS = { Q: 90, effort: 6, alpha_q: 90, smart_subsample: true }.freeze
 
   module_function
 
@@ -41,38 +44,21 @@ module ImageSampler
     sm = Danbooru.config.storage_manager
     source_path = post.has_sample? ? sm.post_file_path(post, :sample_jpg) : post.file_path
     # Crop coordinates come from the browser, which displays the original with EXIF orientation applied.
-    image = Vips::Image.new_from_file(source_path).autorot
-
-    cropped = image.crop(pos_x, pos_y, width, width)
-    target = Danbooru.config.small_image_width
-    resized = cropped.resize(target.to_f / width)
+    image = VipsCommand.autorot(source_path)
+    cropped = Tempfile.new(["avatar", ".v"], binmode: true)
+    VipsCommand.operation("crop", image.path, cropped.path, pos_x, pos_y, width, width, timeout: VipsCommand::SAVE_TIMEOUT)
+    resized = Tempfile.new(["avatar", ".v"], binmode: true)
+    VipsCommand.operation("resize", cropped.path, resized.path, Danbooru.config.small_image_width.to_f / width, timeout: VipsCommand::SAVE_TIMEOUT)
 
     jpg = Tempfile.new(["avatar", ".jpg"], binmode: true)
     webp = Tempfile.new(["avatar", ".webp"], binmode: true)
-
-    resized.jpegsave(
-      jpg.path,
-      Q: 90,
-      strip: true,
-      interlace: true,
-      optimize_coding: true,
-      optimize_scans: true,
-      trellis_quant: true,
-      quant_table: 3,
-    )
-    resized.webpsave(
-      webp.path,
-      Q: 90,
-      effort: 6,
-      alpha_q: 90,
-      smart_subsample: true,
-    )
+    VipsCommand.save("jpegsave", resized.path, jpg.path, **JPEG_OPTIONS)
+    VipsCommand.save("webpsave", resized.path, webp.path, **WEBP_OPTIONS)
 
     sm.store_avatar(jpg, user_id, "jpg")
     sm.store_avatar(webp, user_id, "webp")
   ensure
-    jpg&.close!
-    webp&.close!
+    [image, cropped, resized, jpg, webp].each { |file| file&.close! }
   end
 
   def generate_replacement_images(replacement)
@@ -102,9 +88,7 @@ module ImageSampler
   # Width and height as browsers display the image, with EXIF orientation applied.
   # Only reads the header.
   def oriented_dimensions(file_path)
-    image = Vips::Image.new_from_file(file_path)
-    orientation = image.get_typeof("orientation") == 0 ? 1 : image.get("orientation")
-    orientation.between?(5, 8) ? [image.height, image.width] : [image.width, image.height]
+    VipsCommand.dimensions(file_path)
   end
 
   # Generates a pair of thumbnails from the image file.
@@ -297,45 +281,23 @@ module ImageSampler
     # thumbnail shrinks while loading where the format allows it, and applies the EXIF
     # orientation after shrinking, so the full-size image is never held in memory.
     # When cropping it scales to cover the box, then crops the least interesting edges.
-    result = Vips::Image.thumbnail(file_path, width, height: height, crop: crop_area ? :entropy : :none)
+    # Embedded colour profiles are converted to sRGB for compatibility.
+    result = VipsCommand.thumbnail(file_path, width, height: height, crop: crop_area ? :entropy : :none)
 
-    # Convert embedded colour spaces to sRGB for compatibility.
-    if result.get_typeof("icc-profile-data") != 0
-      begin
-        result = result.icc_transform("srgb", intent: :perceptual)
-      rescue Vips::Error => e
-        Rails.logger.warn("[ImageSampler] icc_transform failed, stripping profile: #{e.message}")
-      end
-    end
-
-    # save
-    # The source is read sequentially, so keep the small result in memory for the two saves.
-    result = result.copy_memory
     jpg_image = Tempfile.new(["image-thumb", ".jpg"], binmode: true)
     webp_image = Tempfile.new(["image-thumb", ".webp"], binmode: true)
-
-    result.jpegsave(
-      jpg_image.path,
-      Q: 90,
-      background: calc_background_color(background),
-      strip: true,
-      interlace: true,
-      optimize_coding: true,
-      optimize_scans: true,
-      trellis_quant: true,
-      quant_table: 3,
-    )
-    result.webpsave(
-      webp_image.path,
-      Q: 90,
-      effort: 6,
-      alpha_q: 90,
-      smart_subsample: true,
-    )
+    VipsCommand.save("jpegsave", result.path, jpg_image.path, background: calc_background_color(background), **JPEG_OPTIONS)
+    VipsCommand.save("webpsave", result.path, webp_image.path, **WEBP_OPTIONS)
 
     {
       jpg: jpg_image,
       webp: webp_image,
     }
+  rescue StandardError
+    jpg_image&.close!
+    webp_image&.close!
+    raise
+  ensure
+    result&.close!
   end
 end

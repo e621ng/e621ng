@@ -25,15 +25,15 @@ module ExternalCommand
   module_function
 
   # Same return value as Open3.capture3: [stdout, stderr, Process::Status].
-  # The command gets only the variables in ENVIRONMENT, not the Rails process's environment.
+  # The command gets only the variables in ENVIRONMENT plus +env+, not the Rails process's environment.
   # The CPU limit is enforced by the kernel, so it still applies if this process dies
   # and the command is orphaned.
-  def run(*argv, timeout:, memory: MEMORY_LIMIT, cpu: timeout * CPU_PER_SECOND)
+  def run(*argv, timeout:, memory: MEMORY_LIMIT, cpu: timeout * CPU_PER_SECOND, env: {})
     program = File.basename(argv.first.to_s)
     cpu = cpu.ceil
 
     # Core dumps are disabled so a command that crashes at the memory limit can't fill the disk.
-    Open3.popen3(ENV.slice(*ENVIRONMENT), *argv, unsetenv_others: true, rlimit_as: memory.to_i, rlimit_cpu: [cpu, cpu + CPU_KILL_GRACE], rlimit_core: 0, pgroup: true) do |stdin, stdout, stderr, wait_thr|
+    Open3.popen3(ENV.slice(*ENVIRONMENT).merge(env), *argv, unsetenv_others: true, rlimit_as: memory.to_i, rlimit_cpu: [cpu, cpu + CPU_KILL_GRACE], rlimit_core: 0, pgroup: true) do |stdin, stdout, stderr, wait_thr|
       stdin.close
       out_reader = Thread.new { read_tail(stdout) }
       err_reader = Thread.new { read_tail(stderr) }
