@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-# Cases adapted from Danbooru's ExternalCommand tests (danbooru/danbooru@1e2e0b72, @1c2545c3).
+# Cases adapted from Danbooru's ExternalCommand tests (danbooru/danbooru@1e2e0b72, @1c2545c3, @fb5fb418).
 RSpec.describe ExternalCommand do
   def seconds_taken
     started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -97,6 +97,12 @@ RSpec.describe ExternalCommand do
         .to eq(ENV.slice(*described_class::ENVIRONMENT).keys.sort)
     ensure
       ENV.delete("E621_EXTERNAL_COMMAND_TEST_SECRET")
+    end
+
+    it "does not let commands read the environment of the Rails process" do
+      _stdout, stderr, status = described_class.run("cat", "/proc/#{Process.pid}/environ", timeout: 5)
+      expect(status).not_to be_success
+      expect(stderr).to include("Permission denied")
     end
 
     it "does not let commands use more memory than the limit" do
