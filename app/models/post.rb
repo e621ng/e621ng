@@ -63,9 +63,7 @@ class Post < ApplicationRecord
   after_commit :delete_files, on: :destroy
   after_commit :delete_avatar_crops, on: :destroy
   after_commit :remove_iqdb_async, on: :destroy
-  # after_commit :update_iqdb_async, :on => :create
   after_commit :handle_thumbnails_on_create, on: :create
-  after_commit :generate_image_samples, on: :create
   after_commit :generate_video_samples, on: :create, if: :is_video?
   after_commit :track_upload_event, on: :create, if: -> { OpenPanelClient.enabled? }
 
