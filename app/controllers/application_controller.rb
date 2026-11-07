@@ -3,6 +3,11 @@
 class ApplicationController < ActionController::Base
   class APIThrottled < StandardError; end
   class FeatureUnavailable < StandardError; end
+  class ParamTooLongError < StandardError; end
+
+  # Max byte length of a GET/HEAD parameter value. GET params are normally bounded by the URL-length
+  # cap, but POST + `X-HTTP-Method-Override: GET` can smuggle an oversized value in via the body. See E6SEC-101.
+  MAX_GET_PARAMETER_LENGTH = 16.kilobytes
 
   # CSRF is skipped only for API-authenticated requests (clients that don't support CSRF tokens).
   #
@@ -31,6 +36,7 @@ class ApplicationController < ActionController::Base
   before_action :sanitize_cookies
   before_action :set_current_user
   around_action :set_time_zone
+  before_action :check_oversized_get_params
   before_action :validate_pagination_param_types
   before_action :normalize_search
   before_action :api_check
@@ -150,7 +156,7 @@ class ApplicationController < ActionController::Base
       render_unsupported_format
     when Danbooru::Paginator::PaginationError
       render_expected_error(410, exception.message)
-    when TagQuery::CountExceededError, TagQuery::DepthExceededError, TagQuery::InvalidTagError, ParseValue::InvalidDateError, PostSet::PostLimitError
+    when ParamTooLongError, TagQuery::CountExceededError, TagQuery::DepthExceededError, TagQuery::InvalidTagError, ParseValue::InvalidDateError, PostSet::PostLimitError
       render_expected_error(422, exception.message)
     when Regexp::TimeoutError
       # See TagQuery.group_depth_exceeded?
@@ -319,6 +325,27 @@ class ApplicationController < ActionController::Base
   def reject_bearer_auth
     if CurrentUser.oauth_token.present?
       render_expected_error(:forbidden, "This action requires browser authentication")
+    end
+  end
+
+  # Reject GET/HEAD requests whose parameter values exceed MAX_GET_PARAMETER_LENGTH, recursing into
+  # arrays and nested params. Guards against oversized values smuggled in via `X-HTTP-Method-Override: GET`.
+  def check_oversized_get_params
+    return unless request.get? || request.head?
+
+    params.except(:controller, :action, :format).each do |name, value|
+      check_param_length!(name.to_s, value)
+    end
+  end
+
+  def check_param_length!(name, value)
+    case value
+    when String
+      raise ParamTooLongError, "#{name} parameter is too long (max: #{MAX_GET_PARAMETER_LENGTH} bytes)" if value.bytesize > MAX_GET_PARAMETER_LENGTH
+    when ActionController::Parameters
+      value.each_value { |item| check_param_length!(name, item) }
+    when Array
+      value.each { |item| check_param_length!(name, item) }
     end
   end
 
