@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-# Cases adapted from Danbooru's ExternalCommand tests (danbooru/danbooru@1e2e0b72).
+# Cases adapted from Danbooru's ExternalCommand tests (danbooru/danbooru@1e2e0b72, @1c2545c3).
 RSpec.describe ExternalCommand do
   def seconds_taken
     started_at = Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -88,6 +88,15 @@ RSpec.describe ExternalCommand do
     it "does not let commands write core dumps" do
       stdout, _stderr, _status = described_class.run("sh", "-c", "ulimit -c", timeout: 5)
       expect(stdout).to eq("0\n")
+    end
+
+    it "does not pass the environment to commands" do
+      ENV["E621_EXTERNAL_COMMAND_TEST_SECRET"] = "secret"
+      stdout, _stderr, _status = described_class.run("env", timeout: 5)
+      expect(stdout.lines.map { |line| line.split("=").first }.sort)
+        .to eq(ENV.slice(*described_class::ENVIRONMENT).keys.sort)
+    ensure
+      ENV.delete("E621_EXTERNAL_COMMAND_TEST_SECRET")
     end
 
     it "does not let commands use more memory than the limit" do
