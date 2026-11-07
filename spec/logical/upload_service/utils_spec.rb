@@ -44,6 +44,12 @@ RSpec.describe UploadService::Utils do
       it "does not raise when upload_id does not exist in the database" do
         expect { described_class.delete_file(md5, file_ext, 0) }.not_to raise_error
       end
+
+      it "leaves a failed upload failed" do
+        upload = create(:upload, status: "failed", error_message: "file is corrupt")
+        described_class.delete_file(md5, file_ext, upload.id)
+        expect(upload.reload.status).to eq("failed")
+      end
     end
 
     context "when no Post with that md5 exists" do
@@ -142,6 +148,24 @@ RSpec.describe UploadService::Utils do
         expect(upload.image_height).to be > 0
       end
 
+      it "persists the submitted tags before automatic tags are merged" do
+        upload.tag_string = "tagme foo"
+        described_class.process_file(upload, file)
+        expect(upload.submitted_tag_string).to eq("tagme foo")
+      end
+
+      it "records a still image as not animated with no duration" do
+        described_class.process_file(upload, file)
+        expect(upload.is_animated).to be false
+        expect(upload.duration).to be_nil
+      end
+
+      it "does not decode the image in the request" do
+        allow(upload).to receive(:is_corrupt?)
+        described_class.process_file(upload, file)
+        expect(upload).not_to have_received(:is_corrupt?)
+      end
+
       it "calls store_file on the storage manager" do
         described_class.process_file(upload, file)
         expect(storage).to have_received(:store_file)
@@ -161,6 +185,13 @@ RSpec.describe UploadService::Utils do
           f.write(File.binread(file_fixture("#{name}.#{ext}").to_s))
           f.rewind
         end
+      end
+
+      it "records animation and duration for animated.gif" do
+        file = fixture_tempfile("animated", "gif")
+        described_class.process_file(upload, file)
+        expect(upload.is_animated).to be true
+        expect(upload.duration).to be > 0
       end
 
       it "adds animated_gif and animated tags for animated.gif" do

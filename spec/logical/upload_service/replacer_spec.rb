@@ -38,8 +38,8 @@ RSpec.describe UploadService::Replacer do
                    tag_string:   post.tag_string)
     file_stub = instance_double(File, path: "/tmp/replacer_spec_no_such_file")
     allow(upload).to receive_messages(
-      invalid?: false, is_errored?: false, save!: true, update: true,
-      file: file_stub, is_animated_file?: false, video_duration: nil, video_has_sound?: has_sound
+      invalid?: false, is_failed?: false, save!: true, update: true,
+      file: file_stub, video_has_sound?: has_sound
     )
     allow(upload).to receive(:file=)
     allow(Upload).to receive(:create) do |**attrs|

@@ -47,6 +47,7 @@ RSpec.describe Setting do
     # -------------------------------------------------------------------------
     describe "maintenance" do
       it { expect(Setting.disable_exception_prune).to be(true) }
+      it { expect(Setting.async_upload_processing).to be(false) }
     end
 
     # -------------------------------------------------------------------------

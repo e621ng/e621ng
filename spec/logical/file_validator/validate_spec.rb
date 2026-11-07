@@ -31,6 +31,17 @@ RSpec.describe FileValidator, type: :model do
       end
     end
 
+    context "with decode: false" do
+      it "skips the integrity decode" do
+        path   = file_fixture("file_validator/corrupt.jpg").to_s
+        upload = build(:upload, file_ext: "jpg", file_size: File.size(path), image_width: 500, image_height: 500)
+        allow(upload).to receive(:is_corrupt?)
+        FileValidator.new(upload, path).validate(decode: false)
+        expect(upload.errors).to be_empty
+        expect(upload).not_to have_received(:is_corrupt?)
+      end
+    end
+
     context "with an image over the resolution limit" do
       it "rejects it without decoding the file" do
         path   = file_fixture("sample.jpg").to_s

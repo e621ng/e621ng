@@ -603,7 +603,9 @@
 
     if (outcome.kind === 'success') {
       allowNavigate = true;
-      ToastManager.notice('Post uploaded successfully.');
+      // With asynchronous processing the server sends us to the upload's status page instead of the post.
+      const queued = String(outcome.body.location).startsWith('/uploads/');
+      ToastManager.notice(queued ? 'Upload received, processing…' : 'Post uploaded successfully.');
       location.assign(outcome.body.location);
       return;
     }

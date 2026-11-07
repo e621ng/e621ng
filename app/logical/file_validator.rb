@@ -8,7 +8,9 @@ class FileValidator
     @file_path = file_path
   end
 
-  def validate(max_file_sizes: Danbooru.config.max_file_sizes, max_width: Danbooru.config.max_image_width, max_height: Danbooru.config.max_image_height, min_width: Danbooru.config.min_image_width)
+  # decode: false skips the full-decode integrity check, which the upload job runs on its own
+  # so the web request only reads headers. Replacements keep the default.
+  def validate(decode: true, max_file_sizes: Danbooru.config.max_file_sizes, max_width: Danbooru.config.max_image_width, max_height: Danbooru.config.max_image_height, min_width: Danbooru.config.min_image_width)
     error_count = record.errors.count
     validate_file_ext(max_file_sizes)
     validate_file_size(max_file_sizes)
@@ -16,7 +18,7 @@ class FileValidator
     # The remaining checks decode the file; don't spend that on one that is already rejected.
     return if record.errors.count > error_count
 
-    validate_file_integrity
+    validate_file_integrity if decode
     if record.is_video?
       video = record.video(file_path)
       validate_container_format(video)

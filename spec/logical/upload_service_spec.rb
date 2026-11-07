@@ -19,6 +19,7 @@ RSpec.describe UploadService do
     # post_file_path must return a string so File.exist? in post callbacks doesn't raise.
     # A non-existent path causes generate_post_images to return early.
     allow(storage).to receive(:post_file_path).and_return("/tmp/upload_service_spec_no_such_file")
+    allow(ImageSampler).to receive(:generate_post_images)
   end
 
   # ---------------------------------------------------------------------------
@@ -96,6 +97,53 @@ RSpec.describe UploadService do
         expect(service.post).to be_persisted
         expect(service.post.tag_count_general).to be < 10
         expect(service.warnings).to include(a_string_including("at least 10 general tags"))
+      end
+
+      it "generates the previews before the post exists" do
+        allow(ImageSampler).to receive(:generate_post_images) do |stub|
+          expect(stub).not_to be_persisted
+          expect(Post.where(md5: stub.md5)).not_to exist
+        end
+        service.start!
+        expect(ImageSampler).to have_received(:generate_post_images).with(an_instance_of(Post))
+      end
+
+      it "persists the metadata the post is built from" do
+        upload = service.start!
+        expect(upload).to have_attributes(is_animated: false, has_sound: false, duration: nil, submitted_tag_string: "tagme")
+        expect(upload.processed_at).to be_present
+      end
+
+      context "when async processing is enabled" do
+        before { allow(Setting).to receive(:async_upload_processing?).and_return(true) }
+
+        it "stores the original, queues the upload and enqueues the job without creating a post" do
+          upload = nil
+          expect { upload = service.start! }.not_to change(Post, :count)
+          expect(UploadProcessingJob).to have_enqueued_sidekiq_job(upload.id)
+          expect(upload.status).to eq("queued")
+          expect(upload).to have_attributes(md5: a_string_matching(/\A[0-9a-f]{32}\z/), file_ext: "jpg", image_width: 256, submitted_tag_string: "tagme")
+          expect(storage).to have_received(:store_file)
+          expect(service.post).to be_nil
+        end
+
+        it "still processes inline for promoted replacements" do
+          params[:replacement_id] = 1
+          upload = service.start!
+          expect(upload.status).to eq("completed")
+          expect(service.post).to be_persisted
+        end
+      end
+
+      context "when the md5 belongs to an existing post" do
+        let!(:existing) { create(:post, md5: Digest::MD5.file(file_fixture("sample.jpg").to_s).hexdigest) }
+
+        it "reports the duplicate" do
+          upload = service.start!
+          expect(upload.status).to eq("duplicate: #{existing.id}")
+          expect(upload.duplicate_post_id).to eq(existing.id)
+          expect(upload.error_message).to include("duplicate")
+        end
       end
     end
 
@@ -223,8 +271,10 @@ RSpec.describe UploadService do
         expect { service.start! }.not_to raise_error
       end
 
-      it "sets upload status to an error string" do
-        expect(service.start!.status).to match(/\Aerror: RuntimeError - bad file/)
+      it "marks the upload failed with the error" do
+        upload = service.start!
+        expect(upload.status).to eq("failed")
+        expect(upload.error_message).to eq("RuntimeError - bad file")
       end
 
       it "populates upload backtrace" do
@@ -240,8 +290,10 @@ RSpec.describe UploadService do
       let(:params)  { { uploader: uploader, uploader_ip_addr: "127.0.0.1", rating: "s" } }
       let(:service) { described_class.new(params) }
 
-      it "returns upload with an error status" do
-        expect(service.start!.status).to match(/\Aerror:/)
+      it "marks the upload failed" do
+        upload = service.start!
+        expect(upload.status).to eq("failed")
+        expect(upload.error_message).to include("No file or source URL provided")
       end
     end
   end
@@ -253,11 +305,11 @@ RSpec.describe UploadService do
       expect(described_class.new({}).warnings).to eq([])
     end
 
-    it "returns an Array after a post is assigned" do
-      post = create(:post)
+    it "returns the upload's recorded warnings" do
+      upload = create(:upload, warning_messages: ["Tag does not exist"])
       service = described_class.new({})
-      service.instance_variable_set(:@post, post)
-      expect(service.warnings).to be_an(Array)
+      service.instance_variable_set(:@upload, upload)
+      expect(service.warnings).to eq(["Tag does not exist"])
     end
   end
 
@@ -496,6 +548,13 @@ RSpec.describe UploadService do
       it "does not mark post as pending when uploader can approve but is below the karma threshold" do
         allow(upload.uploader).to receive_messages(upload_free?: false, can_approve_posts?: true)
         expect(service.convert_to_post(upload).is_pending).to be false
+      end
+    end
+
+    context "persisted media metadata" do
+      it "maps is_animated, duration and has_sound from the upload columns" do
+        upload.assign_attributes(is_animated: true, duration: 3.5, has_sound: true)
+        expect(service.convert_to_post(upload)).to have_attributes(is_animated: true, duration: 3.5, has_sound: true)
       end
     end
 

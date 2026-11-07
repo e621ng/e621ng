@@ -61,10 +61,10 @@ RSpec.describe VipsCommand do
       expect(variables.keys - ExternalCommand::ENVIRONMENT - described_class::UNTRUSTED_ENVIRONMENT.keys).to be_empty
     end
 
-    it "reports a timeout as an Error" do
+    it "reports a timeout as a TimeoutError" do
       allow(ExternalCommand).to receive(:run).and_raise(ExternalCommand::TimeoutError, "vips timed out after 60 seconds")
       expect { described_class.corrupt?(file_fixture("sample.jpg").to_s) }.not_to raise_error
-      expect { described_class.thumbnail(file_fixture("sample.jpg").to_s, 10, height: 10) }.to raise_error(described_class::Error, /timed out/)
+      expect { described_class.thumbnail(file_fixture("sample.jpg").to_s, 10, height: 10) }.to raise_error(described_class::TimeoutError, /timed out/)
     end
   end
 
