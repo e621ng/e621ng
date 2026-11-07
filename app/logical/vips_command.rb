@@ -7,6 +7,7 @@
 module VipsCommand
   class Error < StandardError; end
   class UnsupportedFormat < Error; end
+  class TimeoutError < Error; end
 
   HEADER_TIMEOUT = 10
   DECODE_TIMEOUT = 60
@@ -57,7 +58,7 @@ module VipsCommand
 
     binary ? Base64.decode64(stdout) : stdout.chomp
   rescue ExternalCommand::TimeoutError => e
-    raise Error, e.message
+    raise TimeoutError, e.message
   end
 
   # Width and height as browsers display the image, with EXIF orientation applied.
@@ -165,7 +166,7 @@ module VipsCommand
     raise Error, message
   rescue ExternalCommand::TimeoutError => e
     Rails.logger.warn("[VipsCommand] #{e.message}")
-    raise Error, e.message
+    raise TimeoutError, e.message
   end
 
   # Yields a .v Tempfile for an operation to write to and returns it, or closes it on failure.

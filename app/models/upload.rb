@@ -9,7 +9,7 @@ class Upload < ApplicationRecord
   belongs_to :uploader, :class_name => "User"
   belongs_to :post, optional: true
 
-  serialize :warnings, coder: JSON, type: Array
+  serialize :warning_messages, coder: JSON, type: Array
 
   before_validation :assign_rating_from_tags
   before_validation :fixup_source, on: :create
@@ -18,7 +18,7 @@ class Upload < ApplicationRecord
   validates :rating, inclusion: { in: %w(q e s) }, allow_nil: false
   validate :md5_is_unique, on: :file
   validate on: :file do |upload|
-    FileValidator.new(upload, file.path).validate
+    FileValidator.new(upload, file.path).validate(decode: false)
   end
 
   module StatusMethods
@@ -78,7 +78,7 @@ class Upload < ApplicationRecord
         exception.record.errors.full_messages.join("; ")
       when UploadService::Utils::CorruptFileError, UploadService::Utils::MissingFileError, Upload::Error
         exception.message
-      when ExternalCommand::TimeoutError
+      when ExternalCommand::TimeoutError, VipsCommand::TimeoutError
         "processing timed out"
       else
         "#{exception.class} - #{exception.message}".sub(/DETAIL:.+/m, "...")

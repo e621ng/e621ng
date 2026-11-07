@@ -47,6 +47,9 @@ class UploadService
       upload.validate!(:file)
 
       upload.submitted_tag_string = upload.tag_string
+      # Header-level probes only; has_sound needs an audio decode and is left to the job.
+      upload.is_animated = upload.is_animated_file?(file.path)
+      upload.duration = upload.video_duration(file.path, animated: upload.is_animated)
 
       # Combine existing tags with automatic tags and deduplicate
       # Mostly needed for promoted replacements, which copy tags from the original post

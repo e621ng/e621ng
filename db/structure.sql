@@ -2889,7 +2889,7 @@ CREATE TABLE public.uploads (
     description text DEFAULT ''::text NOT NULL,
     processing_step text,
     error_message text,
-    warnings text,
+    warning_messages text,
     is_animated boolean DEFAULT false NOT NULL,
     duration numeric,
     has_sound boolean DEFAULT false NOT NULL,

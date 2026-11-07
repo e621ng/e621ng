@@ -267,18 +267,39 @@ RSpec.describe Post do
     end
 
     describe "#regenerate_image_samples!" do
-      it "calls generate_image_samples with later: true when file_size exceeds 10MB" do
+      it "enqueues UploadProcessingJob in post mode regardless of file size" do
         post = create(:post, file_size: 11.megabytes)
-        allow(post).to receive(:generate_image_samples)
-        post.regenerate_image_samples!
-        expect(post).to have_received(:generate_image_samples).with(later: true)
+        expect { post.regenerate_image_samples! }.to enqueue_sidekiq_job(UploadProcessingJob).with(post.id, "post")
+      end
+    end
+
+    describe "#generate_image_samples" do
+      it "enqueues UploadProcessingJob in post mode" do
+        post = create(:post)
+        expect { post.generate_image_samples }.to enqueue_sidekiq_job(UploadProcessingJob).with(post.id, "post")
       end
 
-      it "calls generate_image_samples immediately when file_size is 10MB or less" do
-        post = create(:post, file_size: 10.megabytes)
-        allow(post).to receive(:generate_image_samples)
-        post.regenerate_image_samples!
-        expect(post).to have_received(:generate_image_samples).with(no_args)
+      it "waits for the surrounding transaction to commit" do
+        post = create(:post)
+        Post.transaction do
+          post.generate_image_samples
+          expect(UploadProcessingJob).not_to have_enqueued_sidekiq_job(post.id, "post")
+        end
+        expect(UploadProcessingJob).to have_enqueued_sidekiq_job(post.id, "post")
+      end
+    end
+
+    describe "creation" do
+      it "does not generate previews from a callback" do
+        allow(ImageSampler).to receive(:generate_post_images)
+        create(:post)
+        expect(ImageSampler).not_to have_received(:generate_post_images)
+      end
+
+      it "queues the IQDB update when the post has a preview" do
+        allow(IqdbProxy).to receive(:enabled?).and_return(true)
+        post = create(:post)
+        expect(IqdbUpdateJob).to have_enqueued_sidekiq_job(post.id)
       end
     end
   end
