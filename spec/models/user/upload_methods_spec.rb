@@ -43,6 +43,25 @@ RSpec.describe User do
       user.reload
       expect(user.upload_slots).to eq(0)
     end
+
+    it "counts uploads that are still being processed as pending" do
+      create(:upload, uploader: user, status: "queued")
+      create(:upload, uploader: user, status: "processing")
+      create(:upload, uploader: user, status: "failed")
+      # Validating the uploads memoized the limits on `user`; read them on a fresh instance.
+      expect(User.find(user.id).upload_slots).to eq(8)
+    end
+  end
+
+  describe "#hourly_upload_limit" do
+    before { allow(Danbooru.config.custom_configuration).to receive(:hourly_upload_limit).and_return(5) }
+
+    it "counts in-flight uploads alongside recent posts" do
+      create(:post, uploader: user)
+      create(:upload, uploader: user, status: "queued")
+      create(:upload, uploader: user, status: "completed")
+      expect(User.find(user.id).hourly_upload_limit).to eq(3)
+    end
   end
 
   describe "#can_upload_with_reason" do

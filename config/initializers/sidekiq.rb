@@ -64,6 +64,12 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
       "class" => "SearchTrendAggregateJob",
       "description" => "Aggregate unprocessed hourly search trends into daily totals",
     },
+    "UploadSweepJob" => {
+      "cron" => "*/5 * * * *",
+      "class" => "UploadSweepJob",
+      "queue" => "low_prio",
+      "description" => "Re-enqueue uploads whose processing job was lost; fail them on the second loss",
+    },
     "SearchTrendCacheWarmJob" => {
       "cron" => "*/15 * * * *",
       "class" => "SearchTrendCacheWarmJob",

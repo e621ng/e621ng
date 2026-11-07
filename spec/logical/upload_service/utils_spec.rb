@@ -44,6 +44,12 @@ RSpec.describe UploadService::Utils do
       it "does not raise when upload_id does not exist in the database" do
         expect { described_class.delete_file(md5, file_ext, 0) }.not_to raise_error
       end
+
+      it "leaves a failed upload failed" do
+        upload = create(:upload, status: "failed", error_message: "file is corrupt")
+        described_class.delete_file(md5, file_ext, upload.id)
+        expect(upload.reload.status).to eq("failed")
+      end
     end
 
     context "when no Post with that md5 exists" do

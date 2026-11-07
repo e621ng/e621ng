@@ -11,11 +11,9 @@ class UploadService
 
     def delete_file(md5, file_ext, upload_id = nil)
       if Post.where(md5: md5).exists?
-        if upload_id.present? && Upload.where(id: upload_id).exists?
-          CurrentUser.as_system do
-            Upload.find(upload_id).update(status: "completed")
-          end
-        end
+        upload = Upload.find_by(id: upload_id) if upload_id.present?
+        # A failed or duplicate upload stays that way even though its file turned into a post.
+        upload.transition!("completed") if upload && (upload.is_pending? || upload.is_in_flight?)
 
         return
       end

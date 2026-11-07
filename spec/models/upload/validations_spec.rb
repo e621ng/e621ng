@@ -61,6 +61,40 @@ RSpec.describe Upload do
     end
 
     # -------------------------------------------------------------------------
+    # md5_is_unique (on: :file)
+    # -------------------------------------------------------------------------
+    describe "md5_is_unique" do
+      include_context "as member"
+
+      let(:md5) { SecureRandom.hex(16) }
+
+      def md5_errors(upload)
+        upload.send(:md5_is_unique)
+        upload.errors[:md5]
+      end
+
+      it "rejects an md5 held by an upload that is still being processed" do
+        other = create(:upload, md5: md5, status: "queued")
+        expect(md5_errors(build(:upload, md5: md5))).to include("is already being processed by upload ##{other.id}")
+      end
+
+      it "ignores finished uploads with the same md5" do
+        create(:upload, md5: md5, status: "failed")
+        expect(md5_errors(build(:upload, md5: md5))).to be_empty
+      end
+
+      it "does not count the upload against itself" do
+        upload = create(:upload, md5: md5, status: "processing")
+        expect(md5_errors(upload)).to be_empty
+      end
+
+      it "reports an existing post" do
+        post = create(:post, md5: md5)
+        expect(md5_errors(build(:upload, md5: md5))).to include("duplicate: #{post.id}")
+      end
+    end
+
+    # -------------------------------------------------------------------------
     # direct_url_is_whitelisted (on: :create)
     # -------------------------------------------------------------------------
     describe "direct_url_is_whitelisted" do

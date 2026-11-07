@@ -242,6 +242,15 @@ class Upload < ApplicationRecord
       return
     end
 
+    # The post for an in-flight upload doesn't exist yet, so the Post lookup below would let
+    # the same file through twice and the second would only fail inside the job.
+    in_flight = Upload.in_flight.where(md5: md5)
+    in_flight = in_flight.where.not(id: id) if persisted?
+    if (other = in_flight.first)
+      errors.add(:md5, "is already being processed by upload ##{other.id}")
+      return
+    end
+
     replacements = PostReplacement.pending.where(md5: md5)
     replacements = replacements.where.not(id: replacement_id) if replacement_id
 
