@@ -1,0 +1,16 @@
+<%# locals: (votes:, forum_post:, votable: true) -%>
+<% votes_map = votes.group_by(&:score).transform_values(&:size) %>
+
+<div class="forum-post-votes-overview" id="forum-post-vote-overview-for-<%= forum_post.id %>">
+  <% iconable_scores = [1, 0, -1] %>
+
+  <% iconable_scores.each do |score| %>
+    <% count = votes_map[score] || 0 %>
+    <% icon_type = ForumPostVote.score_to_icon(score) %>
+    <% score_name = ForumPostVote.score_to_str(score) %>
+    <%= content_tag(:div, data: { vote_score: score_name, vote_count: count }, class: "forum-post-vote-counter") do %>
+      <%= count %>
+      <%= svg_icon(icon_type, width: 16, height: 16, class: "vote-score-#{score_name}") %>
+    <% end %>
+  <% end %>
+</div>

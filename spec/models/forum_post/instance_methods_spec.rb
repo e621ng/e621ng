@@ -396,4 +396,99 @@ RSpec.describe ForumPost do
       expect { post.destroy! }.to change { topic.reload.response_count }.by(-1)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # #vote_score_calculation
+  # -------------------------------------------------------------------------
+  describe "#vote_score_calculation" do
+    let(:post) { make_post }
+
+    context "when the post has a positive score (3 up, 1 down)" do
+      before do
+        # Setup votes: 3 Upvotes, 1 Downvote. Total = 4. Score = (3 - 1) / 4 = 0.5
+        # We need to manually create votes from different users
+        create(:forum_post_vote, forum_post: post, score: 1, creator: janitor)
+        create(:forum_post_vote, forum_post: post, score: 1, creator: moderator)
+        create(:forum_post_vote, forum_post: post, score: 1, creator: other)
+        create(:forum_post_vote, forum_post: post, score: -1, creator: member)
+        allow(post).to receive(:votable?).and_return(true)
+      end
+
+      it "calculates the correct positive ratio" do
+        expect(post.votable?).to be true
+        expect(post.votes.count).to eq(4)
+        expect(post.vote_score_calculation).to eq(0.5)
+      end
+    end
+
+    context "when the post has a negative score (1 up, 3 down)" do
+      before do
+        # Setup votes: 1 Upvote, 3 Downvotes. Total = 4. Score = (1 - 3) / 4 = -0.5
+        # We need to manually create votes from different users
+        create(:forum_post_vote, forum_post: post, score: -1, creator: janitor)
+        create(:forum_post_vote, forum_post: post, score: -1, creator: moderator)
+        create(:forum_post_vote, forum_post: post, score: -1, creator: other)
+        create(:forum_post_vote, forum_post: post, score: 1, creator: member)
+        allow(post).to receive(:votable?).and_return(true)
+      end
+
+      it "calculates the correct negative ratio" do
+        expect(post.votable?).to be true
+        expect(post.votes.count).to eq(4)
+        expect(post.vote_score_calculation).to eq(-0.5)
+      end
+    end
+
+    context "when the post has no votes (Total = 0)" do
+      it "returns 0.0 if there are no votes" do
+        expect(post.vote_score_calculation).to eq(0.0)
+      end
+    end
+
+    context "when the post is not votable" do
+      before do
+        allow(post).to receive(:votable?).and_return(false) # Simulate the check that prevents voting logic from running
+      end
+
+      it "returns 0.0 if votable? returns false" do
+        expect(post.vote_score_calculation).to eq(0.0)
+      end
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #update_vote_score
+  # -------------------------------------------------------------------------
+  describe "#update_vote_score" do
+    # We need a post instance to test the method on
+    let(:post) { make_post }
+
+    context "when vote_score_calculation returns a value" do
+      let(:expected_score) { rand(-5..6) }
+
+      before do
+        # The calculated vote score is some number, which can be random
+        allow(post).to receive(:vote_score_calculation).and_return(expected_score)
+      end
+
+      it "updates the database column with the calculated score" do
+        post.update!(vote_score: 0) # Set a known starting point
+        expect(ForumPost.find(post.id).vote_score).to eq(0)
+
+        post.update_vote_score
+
+        updated_post = ForumPost.find(post.id)
+        expect(updated_post.vote_score).to eq(expected_score)
+      end
+
+      it "updates the column even if the score hasn't changed" do
+        post.update!(vote_score: expected_score)
+
+        post.update_vote_score
+
+        updated_post = ForumPost.find(post.id)
+        expect(updated_post.vote_score).to eq(expected_score)
+      end
+    end
+  end
 end

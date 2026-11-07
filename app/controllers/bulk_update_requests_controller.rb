@@ -8,7 +8,7 @@ class BulkUpdateRequestsController < ApplicationController
   before_action :ensure_lockdown_disabled, except: %i[index show]
 
   def index
-    @bulk_update_requests = BulkUpdateRequest.search(search_params).includes(:forum_post, :user, :approver).paginate(params[:page], limit: params[:limit])
+    @bulk_update_requests = BulkUpdateRequest.search(search_params).includes(:forum_post, :user, :approver, forum_post: :votes).paginate(params[:page], limit: params[:limit])
     respond_with(@bulk_update_requests)
   end
 
