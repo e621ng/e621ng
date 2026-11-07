@@ -339,6 +339,25 @@ RSpec.describe Staff::SecurityController do
         end.not_to change(Setting, :disable_exception_prune)
         expect(Setting.disable_exception_prune).to eq(original)
       end
+
+      it "enables async_upload_processing when param is '1'" do
+        put maintenance_staff_security_index_path,
+            params: { maintenance: { async_upload_processing: "1" } }
+        expect(Setting.async_upload_processing).to be true
+      end
+
+      it "disables async_upload_processing when param is '0'" do
+        Setting.async_upload_processing = true
+        put maintenance_staff_security_index_path,
+            params: { maintenance: { async_upload_processing: "0" } }
+        expect(Setting.async_upload_processing).to be false
+      end
+
+      it "does not change async_upload_processing when param is absent" do
+        expect do
+          put maintenance_staff_security_index_path
+        end.not_to change(Setting, :async_upload_processing)
+      end
     end
   end
 end

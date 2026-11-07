@@ -2,17 +2,15 @@
 
 module UploadsHelper
   def render_status(upload)
+    search_params = params.fetch(:search, {}).permit!
     case upload.status
     when /duplicate: (\d+)/
-      dup_post_id = $1
-      link_to(upload.status.gsub("error: RuntimeError - ", ""), post_path(dup_post_id))
+      link_to(upload.status, post_path($1))
 
-    when /\Aerror: /
-      search_params = params[:search].permit!
-      link_to(upload.sanitized_status, uploads_path(search: search_params.merge({ status: upload.sanitized_status })))
+    when "failed"
+      link_to("failed: #{upload.error_message.to_s.truncate(120)}", uploads_path(search: search_params.merge({ status: "failed" })))
 
     else
-      search_params = params[:search].permit!
       link_to(upload.status, uploads_path(search: search_params.merge({ status: upload.status })))
     end
   end

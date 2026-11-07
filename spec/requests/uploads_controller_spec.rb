@@ -167,10 +167,10 @@ RSpec.describe UploadsController do
         Upload,
         invalid?:          false,
         is_duplicate?:     false,
-        is_errored?:       false,
+        is_failed?:        false,
         post_id:           post_record.id,
         errors:            ActiveModel::Errors.new(Upload.new),
-        sanitized_status:  "pending",
+        error_message:     nil,
         duplicate_post_id: nil,
       )
     end
@@ -233,16 +233,16 @@ RSpec.describe UploadsController do
       end
     end
 
-    context "when the upload is errored" do
+    context "when the upload failed" do
       before do
-        allow(upload_double).to receive_messages(is_errored?: true, sanitized_status: "error: Something went wrong...")
+        allow(upload_double).to receive_messages(is_failed?: true, error_message: "Something went wrong...")
       end
 
-      it "returns 412 with reason: invalid and the sanitized status for a member" do
+      it "returns 412 with reason: invalid and the error message for a member" do
         sign_in_as member
         post uploads_path(format: :json), params: base_params
         expect(response).to have_http_status(:precondition_failed)
-        expect(response.parsed_body).to include("success" => false, "reason" => "invalid", "message" => "error: Something went wrong...")
+        expect(response.parsed_body).to include("success" => false, "reason" => "invalid", "message" => "Something went wrong...")
       end
     end
 

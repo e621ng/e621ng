@@ -25,7 +25,7 @@
       <% else %>
         <p>This upload has finished processing, but the post associated with it no longer exists.</p>
       <% end %>
-    <% elsif @upload.is_pending? %>
+    <% elsif @upload.is_pending? || @upload.is_queued? %>
       <p>This upload is waiting to be processed. Please wait a few seconds.</p>
     <% elsif @upload.is_processing? %>
       <p>This upload is being processed. Please wait a few seconds.</p>
@@ -36,8 +36,8 @@
         <p>This upload is a duplicate, but the original post no longer exists.</p>
       <% end %>
     <% else %>
-      <p>An error occurred: <%= render_status(@upload) %></p>
-      <% if CurrentUser.user.is_staff? %>
+      <p>An error occurred: <%= @upload.error_message.presence || @upload.status %></p>
+      <% if CurrentUser.user.is_staff? && @upload.backtrace.present? %>
         <%= render "static/backtrace", backtrace: @upload.backtrace.to_s.split("\n") %>
       <% end %>
     <% end %>

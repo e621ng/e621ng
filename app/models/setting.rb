@@ -28,6 +28,8 @@ class Setting < RailsSettings::Base
 
   scope :maintenance do
     field :disable_exception_prune, type: :boolean, default: true
+    # Decode uploads in the Sidekiq "uploads" queue instead of the web worker (UploadProcessingJob).
+    field :async_upload_processing, type: :boolean, default: false
   end
 
   scope :trends do

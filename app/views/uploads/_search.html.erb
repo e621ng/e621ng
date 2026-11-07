@@ -2,5 +2,6 @@
   <%= f.user :uploader %>
   <%= f.input :post_tags_match, label: "Post Tags" %>
   <%= f.input :source_matches, label: "Source" %>
-  <%= f.input :status, collection: [%w[Completed completed], %w[Processing processing], %w[Pending pending], %w[Duplicate *duplicate*], %w[Error error*]], include_blank: "Any" %>
+  <%= f.input :status, collection: [%w[Completed completed], %w[Queued queued], %w[Processing processing], %w[Pending pending], %w[Duplicate duplicate*], %w[Failed failed]], include_blank: "Any" %>
+  <%= f.input :error_message, label: "Error" %>
 <% end %>

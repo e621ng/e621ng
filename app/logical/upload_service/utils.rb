@@ -5,6 +5,7 @@ class UploadService
     module_function
 
     class CorruptFileError < RuntimeError; end
+    class MissingFileError < RuntimeError; end
 
     IMAGE_TYPES = %i[original large preview crop].freeze
 

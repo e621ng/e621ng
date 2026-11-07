@@ -28,7 +28,7 @@ class UploadService
           replacement_id: replacement.id,
         )
 
-        if upload.invalid? || upload.is_errored?
+        if upload.invalid? || upload.is_failed?
           raise ProcessingError, upload.errors.full_messages.to_sentence
         end
 

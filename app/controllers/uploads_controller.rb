@@ -45,7 +45,7 @@ class UploadsController < ApplicationController
       flash[:notice] = @upload.errors.full_messages.join("; ")
       return render json: {success: false, reason: 'invalid', message: @upload.errors.full_messages.join("; ")}, status: 412
     end
-    if @service.warnings.any? && !@upload.is_errored? && !@upload.is_duplicate?
+    if @service.warnings.any? && !@upload.is_failed? && !@upload.is_duplicate?
       warnings = @service.warnings.join(".\n \n")
       if warnings.length > 1500
         Dmail.create_automated({
@@ -59,7 +59,7 @@ class UploadsController < ApplicationController
       end
     end
 
-    if RequestStore[:index_update_delayed] && !@upload.is_errored? && !@upload.is_duplicate?
+    if RequestStore[:index_update_delayed] && !@upload.is_failed? && !@upload.is_duplicate?
       notice = "Search indexing is temporarily delayed. The post will appear in searches shortly."
       flash[:notice] = [flash[:notice].presence, notice].compact.join("\n\n")
     end
@@ -67,7 +67,7 @@ class UploadsController < ApplicationController
     respond_to do |format|
       format.json do
         return render json: {success: false, reason: 'duplicate', location: post_path(@upload.duplicate_post_id), post_id: @upload.duplicate_post_id}, status: 412 if @upload.is_duplicate?
-        return render json: {success: false, reason: 'invalid', message: @upload.sanitized_status}, status: 412 if @upload.is_errored?
+        return render json: {success: false, reason: 'invalid', message: @upload.error_message}, status: 412 if @upload.is_failed?
 
         render json: {success: true, location: post_path(@upload.post_id), post_id: @upload.post_id}
       end

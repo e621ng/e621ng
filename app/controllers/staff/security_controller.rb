@@ -76,6 +76,10 @@ module Staff
         Setting.disable_exception_prune = params[:disable_exception_prune] == "1"
       end
 
+      if params[:async_upload_processing].present?
+        Setting.async_upload_processing = params[:async_upload_processing] == "1"
+      end
+
       redirect_to staff_security_index_path
     end
 
@@ -85,7 +89,7 @@ module Staff
     end
 
     def maintenance_params
-      permitted_params = %i[disable_exception_prune]
+      permitted_params = %i[disable_exception_prune async_upload_processing]
       params.fetch(:maintenance, {}).permit(permitted_params)
     end
   end
