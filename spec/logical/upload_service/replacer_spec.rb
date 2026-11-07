@@ -38,7 +38,7 @@ RSpec.describe UploadService::Replacer do
                    tag_string:   post.tag_string)
     file_stub = instance_double(File, path: "/tmp/replacer_spec_no_such_file")
     allow(upload).to receive_messages(
-      invalid?: false, is_failed?: false, save!: true, update: true,
+      invalid?: false, is_failed?: false, save!: true, update: true, transition!: true,
       file: file_stub, video_has_sound?: has_sound
     )
     allow(upload).to receive(:file=)
@@ -50,6 +50,7 @@ RSpec.describe UploadService::Replacer do
     allow(post).to receive(:update_iqdb_async)
 
     described_class.new(post: post, replacement: replacement).process!(penalize_current_uploader: penalize)
+    upload
   end
 
   context "replacing another user's live post" do
@@ -97,6 +98,11 @@ RSpec.describe UploadService::Replacer do
         delta: -UserStatus::KARMA_REPLACEMENT_PENALTY,
         extra_data: { "replacement_id" => replacement.id },
       )
+    end
+
+    it "completes its upload row so it stops counting as in flight" do
+      upload = process!(replacement, penalize: false)
+      expect(upload).to have_received(:transition!).with("completed", hash_including(post_id: post.id))
     end
 
     it "strips tags that should be removed after acceptance" do

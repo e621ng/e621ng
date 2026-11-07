@@ -70,6 +70,9 @@ class UploadService
         post.submitted_tag_string = upload.tag_string
         post.normalize_tags
         post.save!
+        # Otherwise the row stays in flight: counted against the approver's limits, blocking the
+        # md5 for other uploaders, and eventually failed by UploadSweepJob.
+        upload.transition!("completed", post_id: post.id, processed_at: Time.current)
 
         # rescaling notes reloads the post, be careful when accessing previous values
         rescale_notes(post)
