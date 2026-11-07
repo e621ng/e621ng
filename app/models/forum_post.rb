@@ -210,7 +210,7 @@ class ForumPost < ApplicationRecord
   end
 
   def vote_score_calculation
-    return 0.0 unless votable? && votes.count > 0
+    return 0.0 unless votable? && votes.exists?
     ((votes.up.count - votes.down.count) / votes.count.to_d).to_d
   end
 
