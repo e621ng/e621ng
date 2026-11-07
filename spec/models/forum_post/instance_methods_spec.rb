@@ -464,10 +464,9 @@ RSpec.describe ForumPost do
     let(:post) { make_post }
 
     context "when vote_score_calculation returns a value" do
-      let(:expected_score) { rand(-5..6) }
+      let(:expected_score) { 0.5.to_d }
 
       before do
-        # The calculated vote score is some number, which can be random
         allow(post).to receive(:vote_score_calculation).and_return(expected_score)
       end
 

@@ -210,8 +210,8 @@ class ForumPost < ApplicationRecord
   end
 
   def vote_score_calculation
-    return 0.0 unless votable? && votes.exists?
-    ((votes.up.count - votes.down.count) / votes.count.to_d).to_d
+    return 0.to_d unless votable? && votes.exists?
+    (votes.up.count - votes.down.count) / votes.count.to_d
   end
 
   def update_topic_updated_at_on_create

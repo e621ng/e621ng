@@ -24,7 +24,7 @@ RSpec.describe ForumPostVote do
       expect(forum_post).to have_received(:update_vote_score)
     end
 
-    it "calls forum_post.update_vote_score after being destoryed" do
+    it "calls forum_post.update_vote_score after being destroyed" do
       allow(forum_post).to receive(:update_vote_score)
       vote.destroy!
       expect(forum_post).to have_received(:update_vote_score)

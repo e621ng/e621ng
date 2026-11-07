@@ -1,4 +1,4 @@
-<%# locals: (votes:, forum_post:, votable: true) -%>
+<%# locals: (votes:, forum_post:) -%>
 <% votes_map = votes.group_by(&:score).transform_values(&:size) %>
 
 <div class="forum-post-votes-overview" id="forum-post-vote-overview-for-<%= forum_post.id %>">
