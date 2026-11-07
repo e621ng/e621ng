@@ -113,6 +113,15 @@ module Danbooru
       "/usr/bin/ffprobe"
     end
 
+    # libvips command-line tools (vips-tools package); see VipsCommand.
+    def vips_path
+      "/usr/bin/vips"
+    end
+
+    def vipsheader_path
+      "/usr/bin/vipsheader"
+    end
+
     # Peak level (dBFS) a video's audio must exceed to count as having sound.
     # Digital silence measures -91 dB; dithered or near-silent tracks sit below -60.
     def sound_detection_threshold_db

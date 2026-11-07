@@ -20,7 +20,7 @@ RSpec.describe ImageSampler do
         snapshot_path = nil
         described_class.with_still_image(file_fixture("animated.mp4").to_s, is_video: true) do |path|
           snapshot_path = path
-          expect(Vips::Image.new_from_file(path).width).to eq(256)
+          expect(image_dimensions(path).first).to eq(256)
         end
         expect(File.exist?(snapshot_path)).to be(false)
       end

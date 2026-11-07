@@ -18,13 +18,11 @@ RSpec.describe ImageSampler do
   def image_file(width, height)
     file = Tempfile.new(["image-sampler", ".png"])
     tempfiles << file
-    (Vips::Image.black(width, height, bands: 3) + 128).cast(:uchar).pngsave(file.path)
-    file.path
+    write_solid_image(file.path, width, height)
   end
 
   def dimensions_of(result)
-    image = Vips::Image.new_from_file(result[:jpg].path)
-    [image.width, image.height]
+    image_dimensions(result[:jpg].path)
   end
 
   # -------------------------------------------------------------------------
@@ -85,14 +83,12 @@ RSpec.describe ImageSampler do
       let(:file_path) do
         file = Tempfile.new(["image-sampler", ".jpg"])
         tempfiles << file
-        red = (Vips::Image.black(300, 300, bands: 3) + [255, 0, 0]).cast(:uchar).copy(interpretation: :srgb)
-        red.icc_transform("p3", input_profile: "srgb").jpegsave(file.path)
-        file.path
+        write_p3_image(file.path, 300, 300, color: [255, 0, 0])
       end
 
       it "converts the result to sRGB" do
-        expect(Vips::Image.new_from_file(file_path).getpoint(150, 150).first).to be < 245
-        red, green, = Vips::Image.new_from_file(result[:jpg].path).getpoint(128, 128)
+        expect(pixel_at(file_path, 150, 150).first).to be < 245
+        red, green, = pixel_at(result[:jpg].path, 128, 128)
         expect(red).to be > 245
         expect(green).to be < 15
       end

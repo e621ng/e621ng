@@ -11,7 +11,7 @@ require "rails_helper"
 #   - is_corrupt?(file_path)
 #
 # Real fixture files are used where available.
-# Vips::Error is simulated via allow().to receive() for the GIF corruption path
+# A libvips failure is simulated via allow().to receive() for the GIF corruption path
 # that has no corresponding fixture.
 
 RSpec.describe FileMethods, type: :model do
@@ -33,10 +33,11 @@ RSpec.describe FileMethods, type: :model do
       end
     end
 
-    context "when Vips raises an error" do
+    context "when libvips fails to decode a frame" do
       it "returns true" do
         upload = build(:upload, file_ext: "gif")
-        allow(Vips::Image).to receive(:gifload).and_raise(Vips::Error)
+        allow(VipsCommand).to receive(:check_format!)
+        allow(VipsCommand).to receive(:operation).and_raise(VipsCommand::Error, "gifload: bad frame")
         expect(upload.is_corrupt_gif?("/fake/path.gif")).to be true
       end
     end

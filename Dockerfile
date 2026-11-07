@@ -32,7 +32,7 @@ RUN npm ci
 
 FROM ruby:3.3.1-alpine3.20 AS development
 
-RUN apk --no-cache add vips \
+RUN apk --no-cache add vips vips-tools \
   postgresql15-client \
   git jemalloc tzdata \
   sudo gcompat ragel build-base \
@@ -113,7 +113,7 @@ FROM ruby:3.3.1-alpine3.20 AS production
 
 # Runtime dependencies only: no node, no build toolchain, no sudo, no git
 # (all gems come from rubygems; GitHelper reads DANBOORU_IMAGE_TAG instead).
-RUN apk --no-cache add vips \
+RUN apk --no-cache add vips vips-tools \
   postgresql15-client \
   jemalloc tzdata gcompat
 

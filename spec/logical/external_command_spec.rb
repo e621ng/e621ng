@@ -99,6 +99,13 @@ RSpec.describe ExternalCommand do
       ENV.delete("E621_EXTERNAL_COMMAND_TEST_SECRET")
     end
 
+    it "passes extra variables given with env" do
+      stdout, _stderr, _status = described_class.run("env", env: { "E621_EXTERNAL_COMMAND_EXTRA" => "1" }, timeout: 5)
+      expect(stdout.lines).to include("E621_EXTERNAL_COMMAND_EXTRA=1\n")
+      expect(stdout.lines.map { |line| line.split("=").first }.sort)
+        .to eq((ENV.slice(*described_class::ENVIRONMENT).keys + ["E621_EXTERNAL_COMMAND_EXTRA"]).sort)
+    end
+
     it "does not let commands read the environment of the Rails process" do
       _stdout, stderr, status = described_class.run("cat", "/proc/#{Process.pid}/environ", timeout: 5)
       expect(status).not_to be_success

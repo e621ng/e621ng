@@ -77,15 +77,7 @@ module FileMethods
   def is_animated_gif?(file_path)
     return false unless is_gif?
 
-    # Check whether the gif has multiple frames by trying to load the second frame.
-    result = Vips::Image.gifload(file_path, page: 1) rescue $ERROR_INFO
-    if result.is_a?(Vips::Image)
-      true
-    elsif result.is_a?(Vips::Error) && result.message =~ /bad page number/
-      false
-    else
-      raise result
-    end
+    VipsCommand.animated_gif?(file_path)
   end
 
   # Returns true if the WebP file is animated, false otherwise.
@@ -149,10 +141,7 @@ module FileMethods
       end
       stdout.chomp.split("x").map(&:to_i)
     elsif is_image?
-      # autorot swaps width/height for EXIF-rotated images, matching how browsers display them.
-      image = Vips::Image.new_from_file(file_path).autorot
-      [image.width, image.height]
-
+      VipsCommand.dimensions(file_path)
     else
       [0, 0]
     end
@@ -171,10 +160,7 @@ module FileMethods
   end
 
   def is_corrupt_gif?(file_path)
-    Vips::Image.gifload(file_path, n: -1, fail: true).stats
-    false
-  rescue Vips::Error
-    true
+    VipsCommand.corrupt?(file_path, all_frames: true)
   end
 
   # A declared audio stream is not enough: many encoders mux a fully silent
@@ -206,19 +192,14 @@ module FileMethods
   end
 
   # Verify whether the file at the provided path is corrupt.
-  # * Regular images: attempt to load the image with libvips.
-  # * GIFs: attempt to load each frame with libvips.
+  # * Regular images: attempt to decode the image with libvips.
+  # * GIFs: attempt to decode each frame with libvips.
   # * APNG: not implemented, could defer to ffmpeg if needed.
   # * Other file types: assumed to be non-corrupt.
   def is_corrupt?(file_path)
     return false unless is_image?
     return is_corrupt_gif?(file_path) if is_gif?
 
-    begin
-      Vips::Image.new_from_file(file_path, fail: true).stats
-      false
-    rescue Vips::Error
-      true
-    end
+    VipsCommand.corrupt?(file_path)
   end
 end
