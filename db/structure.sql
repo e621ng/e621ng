@@ -6023,6 +6023,13 @@ CREATE INDEX index_upload_karma_events_on_user_id_and_id ON public.upload_karma_
 
 
 --
+-- Name: index_uploads_on_md5_in_flight; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_uploads_on_md5_in_flight ON public.uploads USING btree (md5) WHERE (status = ANY (ARRAY['queued'::text, 'processing'::text]));
+
+
+--
 -- Name: index_uploads_on_source; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6636,6 +6643,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261107150000'),
 ('20261107120000'),
 ('20261106120000'),
 ('20261103204749'),
