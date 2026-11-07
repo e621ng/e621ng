@@ -51,6 +51,17 @@ RSpec.describe UploadSweepJob do
     end
   end
 
+  it "leaves an upload alone that finished while Sidekiq was being scanned" do
+    upload = create(:upload, status: "processing", processing_started_at: 25.minutes.ago)
+    allow(UploadProcessingJob).to receive(:live_upload_ids) do
+      upload.transition!("completed", post_id: 1)
+      Set.new
+    end
+    perform
+    expect(upload.reload).to have_attributes(status: "completed", requeued_at: nil)
+    expect(UploadProcessingJob).not_to have_enqueued_sidekiq_job(upload.id)
+  end
+
   it "does not consult Sidekiq when nothing is stale" do
     create(:upload, status: "queued")
     perform

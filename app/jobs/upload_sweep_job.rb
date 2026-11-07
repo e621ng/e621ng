@@ -30,21 +30,24 @@ class UploadSweepJob < ApplicationJob
       next if live.include?(upload.id)
 
       if upload.requeued_at.nil?
-        upload.transition!("queued", requeued_at: Time.current, processing_step: nil)
-        UploadProcessingJob.perform_async(upload.id)
+        UploadProcessingJob.perform_async(upload.id) if claim?(upload, "queued", requeued_at: Time.current)
       else
-        fail_upload(upload)
+        claim?(upload, "failed", error_message: "processing timed out", processed_at: Time.current)
       end
     end
 
     Upload.where(status: "processing", processing_started_at: nil).where(updated_at: ...REQUEST_TIMEOUT.ago).find_each do |upload|
-      fail_upload(upload)
+      claim?(upload, "failed", error_message: "processing timed out", processed_at: Time.current)
     end
   end
 
   private
 
-  def fail_upload(upload)
-    upload.transition!("failed", error_message: "processing timed out", processing_step: nil, processed_at: Time.current)
+  # The job may finish between the row read and the Sidekiq scan; only move the row if it
+  # is still in the state the sweep judged.
+  def claim?(upload, new_status, **attrs)
+    changed = Upload.where(id: upload.id, status: upload.status)
+                    .update_all(attrs.merge(status: new_status, processing_step: nil, updated_at: Time.current))
+    changed == 1
   end
 end
