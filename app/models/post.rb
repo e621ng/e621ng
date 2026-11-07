@@ -357,6 +357,8 @@ class Post < ApplicationRecord
 
     ### Preview ###
     def has_preview?
+      # Flash previews cannot be generated, and are supplied externally instead.
+      return has_flash_preview? if is_flash?
       return false unless is_image? || is_video?
 
       # Some legacy files are corrupt and cannot be processed.
@@ -2305,6 +2307,7 @@ class Post < ApplicationRecord
     hide_favorites_list
     is_animated
     has_sound
+    has_flash_preview
   ].freeze
   has_bit_flags BOOLEAN_ATTRIBUTES
 
