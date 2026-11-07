@@ -2,15 +2,15 @@
 
 class AdminDashboard
   def tag_aliases
-    TagAlias.where(status: "pending").order("id desc").limit(100)
+    TagAlias.where(status: "pending").includes(forum_post: :votes).order("id desc").limit(100)
   end
 
   def tag_implications
-    TagImplication.where(status: "pending").order("id desc").limit(100)
+    TagImplication.where(status: "pending").includes(forum_post: :votes).order("id desc").limit(100)
   end
 
   def update_requests
-    BulkUpdateRequest.where(status: "pending").order("id desc")
+    BulkUpdateRequest.where(status: "pending").includes(forum_post: :votes).order("id desc")
   end
 
   def forum_topics

@@ -21,10 +21,10 @@ class MetaSearches::Tag
   end
 
   def load_tag_aliases
-    @tag_aliases = TagAlias.name_matches(search).limit(MAX_RESULTS)
+    @tag_aliases = TagAlias.name_matches(search).includes(forum_post: :votes).limit(MAX_RESULTS)
   end
 
   def load_tag_implications
-    @tag_implications = TagImplication.name_matches(search).limit(MAX_RESULTS)
+    @tag_implications = TagImplication.name_matches(search).includes(forum_post: :votes).limit(MAX_RESULTS)
   end
 end
