@@ -41,19 +41,19 @@ RSpec.describe ArtistUrl do
   end
 
   # -------------------------------------------------------------------------
-  # url — length (1..4096)
+  # url — length (1..512)
   # -------------------------------------------------------------------------
   describe "url length" do
-    it "is invalid when url exceeds 4096 characters" do
-      long_url = "http://example.com/#{'a' * (4097 - 'http://example.com/'.length)}"
+    it "is invalid when url exceeds 512 characters" do
+      long_url = "http://example.com/#{'a' * (513 - 'http://example.com/'.length)}"
       record = build(:artist_url, url: long_url)
       expect(record).not_to be_valid
       expect(record.errors[:url]).to be_present
     end
 
-    it "is valid at exactly 4096 characters" do
-      url4096 = "http://example.com/#{'a' * (4096 - 'http://example.com/'.length)}"
-      expect(build(:artist_url, url: url4096)).to be_valid
+    it "is valid at exactly 512 characters" do
+      url512 = "http://example.com/#{'a' * (512 - 'http://example.com/'.length)}"
+      expect(build(:artist_url, url: url512)).to be_valid
     end
   end
 
