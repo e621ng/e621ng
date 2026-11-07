@@ -139,5 +139,10 @@ ul.forum-post-vote-list {
       width: 1rem;
       margin: 0;
     }
+
+    .vote-score-up { color: palette.color("text-green"); }
+    .vote-score-meh { color: palette.color("text-grey"); }
+    .vote-score-down { color: palette.color("text-red"); }
+    .vote-score-flip { color: palette.color("text-yellow"); }
   }
 }

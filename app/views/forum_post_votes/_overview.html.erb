@@ -2,7 +2,7 @@
 <% votes_map = votes.group_by(&:score).transform_values(&:size) %>
 
 <div class="forum-post-votes-overview" id="forum-post-vote-overview-for-<%= forum_post.id %>">
-  <% iconable_scores = [1, 0, -1] %>
+  <% iconable_scores = [1, 0, -1, 2] %>
 
   <% iconable_scores.each do |score| %>
     <% count = votes_map[score] || 0 %>
