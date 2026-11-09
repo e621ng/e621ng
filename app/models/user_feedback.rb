@@ -81,12 +81,20 @@ class UserFeedback < ApplicationRecord
       q = q.attribute_matches(:body, params[:body_matches])
       q = q.where_user(:user_id, :user, params)
       q = q.where_user(:creator_id, :creator, params)
+      q = q.where(category: params[:category]) if params[:category].present?
 
-      if params[:category].present?
-        q = q.where("category = ?", params[:category])
+      case params[:order]
+      when "created_at", "created_at_desc"
+        q.order(created_at: :desc)
+      when "created_at_asc"
+        q.order(created_at: :asc)
+      when "updated_at", "updated_at_desc"
+        q.order(updated_at: :desc)
+      when "updated_at_asc"
+        q.order(updated_at: :asc)
+      else
+        q.apply_basic_order(params)
       end
-
-      q.apply_basic_order(params)
     end
   end
 

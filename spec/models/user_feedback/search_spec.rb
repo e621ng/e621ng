@@ -146,9 +146,44 @@ RSpec.describe UserFeedback do
         expect(ids.index(second.id)).to be < ids.index(first.id)
       end
 
-      it "returns records oldest-first when order: 'id_asc'" do
+      it "returns records oldest-first when order is 'id_asc'" do
         ids = UserFeedback.search(order: "id_asc").ids
         expect(ids.index(first.id)).to be < ids.index(second.id)
+      end
+
+      context "with created_at and updated_at orders" do
+        before do
+          first.update_columns(created_at: 1.day.ago, updated_at: 3.days.ago)
+          second.update_columns(created_at: 2.days.ago, updated_at: 1.hour.ago)
+        end
+
+        it "orders by created_at descending when order is 'created_at'" do
+          expect(UserFeedback.search(order: "created_at").ids).to eq([first.id, second.id])
+        end
+
+        it "orders by created_at descending when order is 'created_at_desc'" do
+          expect(UserFeedback.search(order: "created_at_desc").ids).to eq([first.id, second.id])
+        end
+
+        it "orders by created_at ascending when order is 'created_at_asc'" do
+          expect(UserFeedback.search(order: "created_at_asc").ids).to eq([second.id, first.id])
+        end
+
+        it "orders by updated_at descending when order is 'updated_at'" do
+          expect(UserFeedback.search(order: "updated_at").ids).to eq([second.id, first.id])
+        end
+
+        it "orders by updated_at descending when order is 'updated_at_desc'" do
+          expect(UserFeedback.search(order: "updated_at_desc").ids).to eq([second.id, first.id])
+        end
+
+        it "orders by updated_at ascending when order is 'updated_at_asc'" do
+          expect(UserFeedback.search(order: "updated_at_asc").ids).to eq([first.id, second.id])
+        end
+
+        it "falls back to the default order for an unknown order'" do
+          expect(UserFeedback.search(order: "bogus").ids).to eq([first.id, second.id])
+        end
       end
     end
   end

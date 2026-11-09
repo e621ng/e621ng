@@ -96,7 +96,7 @@ class UserFeedbacksController < ApplicationController
   end
 
   def search_params
-    permitted_params = %i[body_matches user_id user_name creator_id creator_name category]
+    permitted_params = %i[body_matches user_id user_name creator_id creator_name category order]
     permitted_params += %i[deleted] if CurrentUser.is_staff?
     permit_search_params(permitted_params)
   end
