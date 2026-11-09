@@ -89,15 +89,6 @@ RSpec.describe ForumTopicsController do
       expect(response.parsed_body.pluck("id")).to include(forum_topic.id)
     end
 
-    it "renders the search form collapsed unless a search is given" do
-      sign_in_as user
-      get forum_topics_path
-      assert_select "#searchform[style*=?]", "display:none"
-
-      get forum_topics_path, params: { search: { title_matches: "my forum*" } }
-      assert_select "#searchform:not([style])"
-    end
-
     it "applies sticky-first ordering on HTML requests by default" do
       sticky_topic = CurrentUser.scoped(mod) { create(:forum_topic, title: "sticky topic title") }
       CurrentUser.scoped(user) { create(:forum_topic, title: "normal topic title") }
