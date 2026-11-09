@@ -5077,6 +5077,13 @@ CREATE UNIQUE INDEX index_forum_post_votes_on_forum_post_id_and_creator_id ON pu
 
 
 --
+-- Name: index_forum_posts_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_posts_on_created_at ON public.forum_posts USING btree (created_at);
+
+
+--
 -- Name: index_forum_posts_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -5102,6 +5109,13 @@ CREATE INDEX index_forum_posts_on_to_tsvector_english_body ON public.forum_posts
 --
 
 CREATE INDEX index_forum_posts_on_topic_id ON public.forum_posts USING btree (topic_id);
+
+
+--
+-- Name: index_forum_posts_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_posts_on_updated_at ON public.forum_posts USING btree (updated_at);
 
 
 --
@@ -6643,6 +6657,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261109000052'),
 ('20261107150000'),
 ('20261107120000'),
 ('20261106120000'),

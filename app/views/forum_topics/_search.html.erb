@@ -1,0 +1,9 @@
+<%= form_search(path: forum_topics_path) do |f| %>
+  <%= f.input(:title_matches, label: "Title") %>
+  <%= f.user(:creator) %>
+  <%= f.input(:is_sticky, label: "Sticky?", collection: [%w[Yes true], %w[No false]], include_blank: true) %>
+  <%= f.input(:is_locked, label: "Locked?", collection: [%w[Yes true], %w[No false]], include_blank: true) %>
+  <%= f.input(:is_hidden, label: "Hidden?", collection: [%w[Yes true], %w[No false]], include_blank: true) %>
+  <%= f.input(:category_id, label: "Category", collection: ForumCategory.visible.reverse_mapping, include_blank: "Any") %>
+  <%= f.input(:order, collection: [%w[Sticky sticky], %w[Created created_at], %w[Activity bumped]]) %>
+<% end %>

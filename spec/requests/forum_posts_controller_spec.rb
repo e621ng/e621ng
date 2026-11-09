@@ -180,6 +180,30 @@ RSpec.describe ForumPostsController do
       it "list by creator id" do # rubocop:disable RSpec/NoExpectationExample
         render_given_posts(forum_post, params: { search: { creator_id: user.id } })
       end
+
+      it "orders by the given order" do
+        reply = CurrentUser.scoped(user) { create(:forum_post, topic_id: forum_topic.id) }
+        forum_post.touch
+
+        get forum_posts_path(format: :json), params: { search: { order: "created_at_asc" } }
+        expect(response.parsed_body.pluck("id")).to eq([forum_post.id, reply.id])
+
+        get forum_posts_path(format: :json), params: { search: { order: "updated_at" } }
+        expect(response.parsed_body.pluck("id")).to eq([forum_post.id, reply.id])
+
+        get forum_posts_path(format: :json), params: { search: { order: "id_desc" } }
+        expect(response.parsed_body.pluck("id")).to eq([reply.id, forum_post.id])
+      end
+    end
+  end
+
+  # search_forum_posts GET    /forum_posts/search(.:format)      forum_posts#search
+  describe "search action" do
+    it "renders both the topic and post search forms" do
+      get search_forum_posts_path
+      expect(response).to have_http_status(:success)
+      assert_select "form[action=?]", forum_topics_path
+      assert_select "form[action=?]", forum_posts_path
     end
   end
 

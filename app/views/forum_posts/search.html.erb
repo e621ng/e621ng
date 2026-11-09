@@ -2,6 +2,10 @@
   <div id="a-search">
     <h1>Search Forum</h1>
 
+    <h3>Search Topics</h3>
+    <%= render "forum_topics/search" %>
+
+    <h3>Search Posts</h3>
     <%= render "search" %>
   </div>
 </div>
@@ -9,5 +13,5 @@
 <%= render "forum_topics/secondary_links" %>
 
 <% content_for(:page_title) do %>
-  Search Forum Posts
+  Search Forum
 <% end %>
