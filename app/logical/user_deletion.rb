@@ -33,6 +33,7 @@ class UserDeletion
       clear_bit_prefs
       create_mod_action
     end
+    user.reload # bit_prefs was written around the in-memory copy
 
     # Enqueued after commit so workers never see the pre-deletion state.
     AvatarCleanupJob.perform_async(user.id, true)

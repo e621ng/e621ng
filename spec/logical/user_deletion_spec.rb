@@ -86,7 +86,7 @@ RSpec.describe UserDeletion do
 
       it "clears privilege and preference flags but keeps restrictions" do
         user.update!(can_approve_posts: true, oauth_applications_beta: true, is_bd_staff: true,
-                     enable_safe_mode: true, no_uploading: true, no_flagging: true)
+                     enable_safe_mode: true, no_uploading: true, no_flagging: true, no_karma_free: true)
         deletion.delete!
         user.reload
         expect(user.can_approve_posts?).to be false
@@ -95,6 +95,13 @@ RSpec.describe UserDeletion do
         expect(user.enable_safe_mode?).to be false
         expect(user.no_uploading?).to be true
         expect(user.no_flagging?).to be true
+        expect(user.no_karma_free?).to be true
+      end
+
+      it "leaves the passed-in user object current" do
+        user.update!(can_approve_posts: true)
+        deletion.delete!
+        expect(user.can_approve_posts?).to be false
       end
 
       context "when a step fails partway through" do
@@ -200,6 +207,18 @@ RSpec.describe UserDeletion do
         create(:api_key, user: user)
         deletion.delete!
         expect(user.api_keys.count).to eq(0)
+      end
+
+      it "revokes OAuth tokens and clears grant flags" do
+        user.update!(oauth_applications_beta: true)
+        app = Doorkeeper::Application.create!(
+          name: "admin-deleted-app", redirect_uri: "http://localhost/cb",
+          scopes: "openid full", owner: create(:user)
+        )
+        token = Doorkeeper::AccessToken.create!(application: app, resource_owner_id: user.id, scopes: "openid full")
+        deletion.delete!
+        expect(token.reload.revoked?).to be true
+        expect(user.reload.oauth_applications_beta?).to be false
       end
     end
 
