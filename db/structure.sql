@@ -6086,6 +6086,13 @@ CREATE INDEX index_user_feedback_on_to_tsvector_english_body ON public.user_feed
 
 
 --
+-- Name: index_user_feedback_on_updated_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_user_feedback_on_updated_at ON public.user_feedback USING btree (updated_at);
+
+
+--
 -- Name: index_user_feedback_on_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6643,6 +6650,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261109174906'),
 ('20261107150000'),
 ('20261107120000'),
 ('20261106120000'),

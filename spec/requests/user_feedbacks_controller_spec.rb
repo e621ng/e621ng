@@ -74,6 +74,14 @@ RSpec.describe UserFeedbacksController do
       expect(ids).to include(feedback_for_subject.id)
       expect(ids).not_to include(feedback_for_other_user.id)
     end
+
+    it "orders results by the order param" do
+      older_update = create(:user_feedback, user: subject_user, creator: moderator)
+      newer_update = create(:user_feedback, user: subject_user, creator: moderator)
+      older_update.update_columns(updated_at: 1.hour.from_now)
+      get user_feedbacks_path(format: :json, search: { order: "updated_at" })
+      expect(response.parsed_body.pluck("id")).to eq([older_update.id, newer_update.id])
+    end
   end
 
   # ---------------------------------------------------------------------------
