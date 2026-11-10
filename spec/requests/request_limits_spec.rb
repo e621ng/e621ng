@@ -25,13 +25,14 @@ RSpec.describe "Request parameter limits" do
       expect(response).to have_http_status(:bad_request)
     end
 
-    it "accepts shallowly nested parameters" do
-      get "#{path}?#{nested_query(5)}"
+    # The base key counts as one level, so `a` plus DEPTH_LIMIT - 1 brackets is the deepest allowed.
+    it "accepts parameters nested up to the limit" do
+      get "#{path}?#{nested_query(RequestLimits::DEPTH_LIMIT - 1)}"
       expect(response).to have_http_status(:ok)
     end
 
     it "rejects parameters nested deeper than the limit" do
-      get "#{path}?#{nested_query(RequestLimits::DEPTH_LIMIT + 8)}"
+      get "#{path}?#{nested_query(RequestLimits::DEPTH_LIMIT)}"
       expect(response).to have_http_status(:bad_request)
     end
   end
