@@ -58,6 +58,14 @@ RSpec.describe OauthApplicationsController do
         expect(response.body).not_to include("OtherBetaApp")
       end
 
+      it "points the form's Cancel button at their own applications" do
+        get "/applications/new"
+        expect(response).to have_http_status(:ok)
+        cancel = response.parsed_body.at_css("form .actions a")
+        expect(cancel.text).to eq("Cancel")
+        expect(cancel["href"]).to eq(mine_oauth_applications_path)
+      end
+
       it "redirects from show to edit for own application" do
         own = Doorkeeper::Application.create!(name: "OwnBetaApp", redirect_uri: "http://localhost/cb", scopes: "openid full", owner: beta_member)
         get "/applications/#{own.id}"
