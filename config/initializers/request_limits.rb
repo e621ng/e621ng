@@ -59,6 +59,7 @@ ActionDispatch::QueryParser.singleton_class.prepend(Module.new do
 end)
 
 # JSON bodies. The body size is already capped by Middleware::ParameterSanitizer.
+# Mirrors Rails 8.1's ActionDispatch::Http::Parameters::DEFAULT_PARSERS[:json] plus the limits; recheck on upgrade.
 ActionDispatch::Request.parameter_parsers = ActionDispatch::Request.parameter_parsers.merge(
   json: ->(raw_post) do
     data = ActiveSupport::JSON.decode(raw_post, max_nesting: RequestLimits::DEPTH_LIMIT)
