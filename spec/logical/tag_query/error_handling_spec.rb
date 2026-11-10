@@ -169,9 +169,11 @@ RSpec.describe TagQuery, type: :model do
         expect(TagQuery.has_groups?(query)).to be(false)
       end
 
-      it "does not blow up the regex on the full TagQuery.new parse path" do
+      it "parses unclosed openers as a single tag on the full TagQuery.new parse path" do
         with_strict_regexp_timeout do
-          expect { TagQuery.new("( " * 8000, resolve_aliases: false) }.not_to raise_error
+          query = TagQuery.new("( " * 8000, resolve_aliases: false)
+          expect(query[:tags]).to eq(must: ["("], must_not: [], should: [])
+          expect(query.is_grouped_search?).to be(false)
         end
       end
     end
