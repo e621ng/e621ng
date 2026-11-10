@@ -50,6 +50,19 @@ RSpec.describe OauthApplicationsController do
         get "/applications"
         expect(response).to have_http_status(:forbidden)
       end
+
+      it "cannot view another user's application" do
+        other_app = Doorkeeper::Application.create!(name: "OtherBetaApp", redirect_uri: "http://localhost/cb", scopes: "openid full", owner: create(:user))
+        get "/applications/#{other_app.id}"
+        expect(response).to have_http_status(:not_found)
+        expect(response.body).not_to include("OtherBetaApp")
+      end
+
+      it "redirects from show to edit for own application" do
+        own = Doorkeeper::Application.create!(name: "OwnBetaApp", redirect_uri: "http://localhost/cb", scopes: "openid full", owner: beta_member)
+        get "/applications/#{own.id}"
+        expect(response).to redirect_to(edit_oauth_application_url(own))
+      end
     end
 
     it "rejects api_key auth (browser-only)" do

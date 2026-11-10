@@ -70,7 +70,8 @@ class OauthApplicationsController < Doorkeeper::ApplicationsController
   end
 
   def set_visible_application
-    @application = application_model.find(params[:id])
+    scope = CurrentUser.user.is_staff? ? application_model : owned_applications
+    @application = scope.find(params[:id])
   end
 
   def set_owned_application
