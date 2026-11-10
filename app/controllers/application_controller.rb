@@ -176,6 +176,12 @@ class ApplicationController < ActionController::Base
       else
         render_error_page(500, exception)
       end
+    when OpenSearch::Transport::Transport::Errors::BadRequest
+      if exception.message.include?("maxClauseCount")
+        render_expected_error(422, "Your query was too complex to process. Try simplifying it.")
+      else
+        render_error_page(500, exception)
+      end
     else
       render_error_page(500, exception)
     end

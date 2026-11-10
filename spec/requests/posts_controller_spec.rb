@@ -107,6 +107,35 @@ RSpec.describe PostsController do
         expect(response).to have_http_status(:unprocessable_content)
       end
     end
+
+    context "when the search exceeds the OpenSearch clause limit" do
+      let(:error) { OpenSearch::Transport::Transport::Errors::BadRequest.new('[400] {"error":{"type":"query_shard_exception","reason":"failed to create query: maxClauseCount is set to 1024"}}') }
+
+      before { allow(Post).to receive(:tag_match).and_raise(error) }
+
+      it "returns 422 for HTML" do
+        get posts_path
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "returns 422 for JSON" do
+        get posts_path(format: :json)
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "does not write an exception log" do
+        expect { get posts_path }.not_to change(ExceptionLog, :count)
+      end
+    end
+
+    context "when OpenSearch rejects the search for another reason" do
+      before { allow(Post).to receive(:tag_match).and_raise(OpenSearch::Transport::Transport::Errors::BadRequest.new("[400] parsing_exception")) }
+
+      it "returns 500" do
+        get posts_path(format: :json)
+        expect(response).to have_http_status(:internal_server_error)
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------

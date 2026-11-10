@@ -1708,7 +1708,8 @@ class TagQuery
             return
           end
     q[key] ||= []
-    q[key] << value
+    # Repeated terms are redundant clauses (and `rating:s*` tokens are free)
+    q[key] << value unless q[key].include?(value)
   end
 
   def add_any_none_to_query(type, value, key)
