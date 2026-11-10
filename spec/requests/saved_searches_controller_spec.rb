@@ -76,7 +76,7 @@ RSpec.describe SavedSearchesController do
     it "reports a set the user can't view as a validation error" do
       post_set = create(:post_set)
       post saved_searches_path(format: :json), params: { saved_search: { query: "set:#{post_set.shortname}" } }
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(owner.saved_searches.count).to eq(0)
     end
 
@@ -90,7 +90,7 @@ RSpec.describe SavedSearchesController do
 
     it "rejects wildcard queries with a clean error over JSON" do
       post saved_searches_path(format: :json), params: { saved_search: { query: "fox_*" } }
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body["message"]).to match(/wildcard/)
     end
   end
