@@ -47,7 +47,7 @@ module Maintenance
         return nil if sanitized_uid < 1
 
         if params[:uid].to_s != sanitized_uid.to_s
-          Rails.logger.warn("Password reset UID sanitized: original='#{params[:uid]}', sanitized='#{sanitized_uid}', key='#{params[:key]}', user_agent='#{request.user_agent}'")
+          Rails.logger.warn("Password reset UID sanitized: original='#{params[:uid]}', sanitized='#{sanitized_uid}', key_present=#{params[:key].present?}, user_agent='#{request.user_agent}'")
         end
 
         UserPasswordResetNonce.where("user_id = ? AND key = ?", sanitized_uid, params[:key]).first

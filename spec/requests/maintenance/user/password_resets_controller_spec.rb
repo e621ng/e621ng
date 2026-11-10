@@ -63,6 +63,13 @@ RSpec.describe Maintenance::User::PasswordResetsController do
         get edit_maintenance_user_password_reset_path, params: { uid: nonce.user_id, key: nonce.key }
         expect(response).to have_http_status(:ok)
       end
+
+      it "does not carry the reset key into the sign-in link" do
+        get edit_maintenance_user_password_reset_path, params: { uid: nonce.user_id, key: nonce.key }
+        sign_in_href = response.parsed_body.at_css("a.auth-login-link")["href"]
+        expect(sign_in_href).to include("url=")
+        expect(sign_in_href).not_to include(nonce.key)
+      end
     end
 
     context "with an invalid nonce" do
@@ -79,6 +86,14 @@ RSpec.describe Maintenance::User::PasswordResetsController do
         get edit_maintenance_user_password_reset_path,
             params: { uid: "#{nonce.user_id}关闭网页", key: nonce.key }
         expect(response).to have_http_status(:ok)
+      end
+
+      it "does not log the reset key" do
+        allow(Rails.logger).to receive(:warn).and_call_original
+        get edit_maintenance_user_password_reset_path,
+            params: { uid: "#{nonce.user_id}关闭网页", key: nonce.key }
+
+        expect(Rails.logger).to have_received(:warn).with(satisfy { |msg| msg.include?("key_present=true") && msg.exclude?(nonce.key) })
       end
     end
 
