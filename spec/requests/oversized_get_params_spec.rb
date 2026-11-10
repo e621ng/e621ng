@@ -39,4 +39,14 @@ RSpec.describe "Oversized GET parameter rejection" do
     expect(response).to have_http_status(:unprocessable_content)
     expect(response.body).to include("too long")
   end
+
+  # Regression test for E6SEC-003: >1024 distinct free `rating:` tokens fit under the cap and used
+  # to exceed OpenSearch's clause limit. Hits the real index (no `Post.tag_match` stub).
+  it "accepts a search with more free rating tokens than the OpenSearch clause limit" do
+    tags = Array.new(1100) { |i| "rating:s#{i}" }.join(" ")
+    expect(tags.bytesize).to be < ApplicationController::MAX_GET_PARAMETER_LENGTH
+
+    post posts_path(format: :json), params: { _method: "GET", tags: tags }, headers: { "X-HTTP-Method-Override" => "GET" }
+    expect(response).to have_http_status(:ok)
+  end
 end

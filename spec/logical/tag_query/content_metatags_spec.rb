@@ -37,6 +37,24 @@ RSpec.describe TagQuery do
       tq = TagQuery.new("rating:x")
       expect(tq[:rating]).to be_nil
     end
+
+    # E6SEC-003: distinct `rating:s*` tokens are free and all normalise to "s"; each must not
+    # become its own OpenSearch clause.
+    it "collapses distinct tokens with the same rating into one value" do
+      expect(TagQuery.new(Array.new(50) { |i| "rating:s#{i}" }.join(" "))[:rating]).to eq(["s"])
+    end
+
+    it "collapses repeated negated ratings" do
+      expect(TagQuery.new(Array.new(10) { |i| "-rating:e#{i}" }.join(" "))[:rating_must_not]).to eq(["e"])
+    end
+
+    it "collapses repeated should ratings" do
+      expect(TagQuery.new(Array.new(10) { |i| "~rating:q#{i}" }.join(" "))[:rating_should]).to eq(["q"])
+    end
+
+    it "keeps distinct ratings in order" do
+      expect(TagQuery.new("rating:s rating:e rating:safe")[:rating]).to eq(%w[s e])
+    end
   end
 
   describe "filetype: metatag and type: alias" do
