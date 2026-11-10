@@ -98,6 +98,14 @@ RSpec.describe UserDeletion do
         expect(user.no_karma_free?).to be true
       end
 
+      it "enables privacy mode so favorites stay hidden while they are flushed" do
+        deletion.delete!
+        user.reload
+        expect(user.enable_privacy_mode?).to be true
+        CurrentUser.user = create(:user)
+        expect(user.hide_favorites?).to be true
+      end
+
       it "leaves the passed-in user object current" do
         user.update!(can_approve_posts: true)
         deletion.delete!

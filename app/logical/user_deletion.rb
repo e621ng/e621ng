@@ -5,6 +5,8 @@ class UserDeletion
   end
 
   DELETION_RETAINED_FLAGS = %w[no_flagging no_uploading no_karma_free].freeze
+  # Hides favorites while FlushFavoritesJob works through them.
+  DELETION_FORCED_FLAGS = %w[enable_privacy_mode].freeze
 
   attr_reader :user, :password, :admin_deletion
 
@@ -98,8 +100,9 @@ class UserDeletion
 
   # Restrictions survive, like the level cap keeping banned users banned.
   def clear_bit_prefs
-    mask = DELETION_RETAINED_FLAGS.sum { |flag| User.flag_value_for(flag) }
-    User.where(id: user.id).update_all(["bit_prefs = bit_prefs & ?", mask])
+    retained = DELETION_RETAINED_FLAGS.sum { |flag| User.flag_value_for(flag) }
+    forced = DELETION_FORCED_FLAGS.sum { |flag| User.flag_value_for(flag) }
+    User.where(id: user.id).update_all(["bit_prefs = (bit_prefs & ?) | ?", retained, forced])
   end
 
   def calculate_final_name
