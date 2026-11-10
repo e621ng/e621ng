@@ -99,6 +99,7 @@ export default class AddToPoolDialog {
       const body = new URLSearchParams({ pool_name: name, post_id: String(CurrentPost.id) });
       const response = await HTTP.post("/pool_element.json", body);
       if (response.ok) {
+        ToastManager.defer(AddToPoolDialog.successMessage(await response.json().catch(() => null)));
         AddToPoolDialog.reloadPage();
         return;
       }
@@ -125,6 +126,12 @@ export default class AddToPoolDialog {
     for (const pool of pools)
       this.recentList.append($("<li>").attr({ "role": "button", "data-value": pool.name }).text(pool.name));
     this.recentBlock.prop("hidden", false);
+  }
+
+  private static successMessage (pool: { id?: unknown } | null): string {
+    const id = pool?.id;
+    if (typeof id !== "number") return "Post added to pool";
+    return `Post added to <a href="/pools/${id}">pool #${id}</a>`;
   }
 
   private static reloadPage (): void {

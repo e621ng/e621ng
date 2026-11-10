@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { htmlResponse, jsonResponse, setMeta, setSiteData } from "../../../helpers";
 
-const { alertSpy, dialogs } = vi.hoisted(() => ({
+const { alertSpy, deferSpy, dialogs } = vi.hoisted(() => ({
   alertSpy: vi.fn(),
+  deferSpy: vi.fn(),
   dialogs: [] as FakeDialog[],
 }));
 
@@ -15,7 +16,7 @@ class FakeDialog {
 }
 
 vi.mock("@/components/dialog", () => ({ default: FakeDialog }));
-vi.mock("@/utility/Toast", () => ({ default: { alert: (msg: string) => alertSpy(msg), create: vi.fn(), notice: vi.fn() } }));
+vi.mock("@/utility/Toast", () => ({ default: { alert: (msg: string) => alertSpy(msg), create: vi.fn(), notice: vi.fn(), defer: (msg: string) => deferSpy(msg) } }));
 
 const POST_ID = 42;
 
@@ -61,6 +62,7 @@ async function submit (name: string): Promise<void> {
 describe("AddToPoolDialog", () => {
   beforeEach(() => {
     alertSpy.mockReset();
+    deferSpy.mockReset();
     dialogs.length = 0;
     render();
   });
@@ -141,12 +143,31 @@ describe("AddToPoolDialog", () => {
     expect(alertSpy).not.toHaveBeenCalled();
   });
 
+  it("queues a confirmation toast linking the pool for after the reload", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ id: 12 }));
+    const { reload } = await load();
+    await submit("cool_pool");
+
+    expect(deferSpy).toHaveBeenCalledWith("Post added to <a href=\"/pools/12\">pool #12</a>");
+    expect(deferSpy.mock.invocationCallOrder[0]).toBeLessThan(reload.mock.invocationCallOrder[0]);
+  });
+
+  it("falls back to a plain confirmation when the response has no pool id", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(htmlResponse(200));
+    const { reload } = await load();
+    await submit("cool_pool");
+
+    expect(deferSpy).toHaveBeenCalledWith("Post added to pool");
+    expect(reload).toHaveBeenCalledTimes(1);
+  });
+
   it("shows Not Found for an unknown pool and does not reload", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(htmlResponse(404));
     const { reload } = await load();
     await submit("nope");
     expect(alertSpy).toHaveBeenCalledWith("Error: Not Found");
     expect(reload).not.toHaveBeenCalled();
+    expect(deferSpy).not.toHaveBeenCalled();
   });
 
   it("joins validation errors from a responders error hash", async () => {

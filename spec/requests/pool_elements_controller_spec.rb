@@ -44,9 +44,10 @@ RSpec.describe PoolElementsController do
           expect(response).to have_http_status(:created)
         end
 
-        it "sets the success flash notice" do
-          post pool_element_path, params: params
-          expect(flash[:notice]).to eq("Post added to pool ##{pool.id}")
+        # The dialog shows its own toast; a flash would resurface on the next page load
+        it "does not set a flash notice" do
+          post pool_element_path(format: :json), params: params
+          expect(flash[:notice]).to be_nil
         end
 
         it "stores the pool id in the session recent list" do
@@ -64,9 +65,10 @@ RSpec.describe PoolElementsController do
           expect(pool.reload.post_ids).to include(post_record.id)
         end
 
-        it "sets the success flash notice" do
-          post pool_element_path, params: params
-          expect(flash[:notice]).to eq("Post added to pool ##{pool.id}")
+        # The dialog shows its own toast; a flash would resurface on the next page load
+        it "does not set a flash notice" do
+          post pool_element_path(format: :json), params: params
+          expect(flash[:notice]).to be_nil
         end
 
         it "stores the pool id in the session recent list" do
@@ -114,9 +116,9 @@ RSpec.describe PoolElementsController do
           expect(response).to have_http_status(:unprocessable_content)
         end
 
-        it "sets an error flash containing the validation message" do
-          post pool_element_path, params: { pool_name: pool.name, post_id: post_record.id }
-          expect(flash[:notice]).to include("Simulated save failure")
+        it "does not set a flash notice" do
+          post pool_element_path(format: :json), params: { pool_name: pool.name, post_id: post_record.id }
+          expect(flash[:notice]).to be_nil
         end
 
         it "does not add the pool to the session recent list" do
