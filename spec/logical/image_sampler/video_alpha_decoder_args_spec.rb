@@ -13,21 +13,21 @@ RSpec.describe ImageSampler do
   describe ".video_alpha_decoder_args" do
     context "with a VP8 WebM that has alpha" do
       it "selects the libvpx decoder" do
-        args = described_class.video_alpha_decoder_args(file_fixture("animated-transparent-vp8.webm").to_s)
+        args = described_class.video_alpha_decoder_args(file_fixture("animated-transparent-vp8.webm").to_s, "webm")
         expect(args).to eq(["-vcodec", "libvpx"])
       end
     end
 
     context "with a VP9 WebM that has alpha" do
       it "selects the libvpx-vp9 decoder" do
-        args = described_class.video_alpha_decoder_args(file_fixture("animated-transparent-vp9.webm").to_s)
+        args = described_class.video_alpha_decoder_args(file_fixture("animated-transparent-vp9.webm").to_s, "webm")
         expect(args).to eq(["-vcodec", "libvpx-vp9"])
       end
     end
 
     context "with a video that has no alpha channel" do
       it "returns no extra decoder args" do
-        args = described_class.video_alpha_decoder_args(file_fixture("animated.mp4").to_s)
+        args = described_class.video_alpha_decoder_args(file_fixture("animated.mp4").to_s, "mp4")
         expect(args).to eq([])
       end
     end
@@ -38,7 +38,7 @@ RSpec.describe ImageSampler do
         allow(fake_status).to receive(:==).with(0).and_return(false)
         allow(ExternalCommand).to receive(:run).and_return([+"", +"boom", fake_status])
 
-        args = described_class.video_alpha_decoder_args(file_fixture("animated-transparent-vp9.webm").to_s)
+        args = described_class.video_alpha_decoder_args(file_fixture("animated-transparent-vp9.webm").to_s, "webm")
         expect(args).to eq([])
       end
     end
@@ -54,7 +54,7 @@ RSpec.describe ImageSampler do
     shared_examples "a transparent video snapshot" do |fixture|
       # The snapshot is deleted after the block, so inspect it inside.
       let(:snapshot) do
-        described_class.with_still_image(file_fixture(fixture).to_s, is_video: true) do |path|
+        described_class.with_still_image(file_fixture(fixture).to_s, file_ext: "webm") do |path|
           { dimensions: image_dimensions(path), bands: image_bands(path), alpha_range: band_range(path, 3) }
         end
       end

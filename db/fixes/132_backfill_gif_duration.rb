@@ -44,7 +44,7 @@ module Fixes
     end
 
     def self.calculate_gif_duration(file_path)
-      video = VideoProbe.new(file_path)
+      video = VideoProbe.new(file_path, "gif")
       duration = video.duration
       return nil unless duration && duration > 0
       duration

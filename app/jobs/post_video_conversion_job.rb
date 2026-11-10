@@ -43,7 +43,7 @@ class PostVideoConversionJob < ApplicationJob
 
     # Begin the video conversion process
     Post.transaction do
-      original = VideoProbe.new(post.file_path)
+      original = VideoProbe.new(post.file_path, post.file_ext)
       raise "Invalid video file: #{post.file_path}" unless original.valid?
 
       video_samples = generate_samples(post, original)
@@ -160,7 +160,7 @@ class PostVideoConversionJob < ApplicationJob
   def generate_video(post, format_args: [], fps_limited: false, clamp: 1080)
     vf_params = []
     # The scale filter fails on mistagged colour spaces; relabel them first.
-    vf_params << ImageSampler.colorspace_relabel_filter(post.file_path)
+    vf_params << ImageSampler.colorspace_relabel_filter(post.file_path, post.file_ext)
     vf_params << (fps_limited ? "fps='if(gt(source_fps,30),source_fps/2,source_fps)'" : "fps=source_fps")
     vf_params << "scale=#{calculate_scale(post, clamp)}"
 
@@ -169,8 +169,7 @@ class PostVideoConversionJob < ApplicationJob
       "-y",
       "-threads", DECODE_THREADS.to_s,
       "-filter_threads", FILTER_THREADS.to_s,
-      "-i",
-      post.file_path,
+      *FileMethods.ffmpeg_input(post.file_path, post.file_ext),
 
       "-fps_mode", "cfr", # Deal with some uploads having a variable frame rate
       *format_args,
@@ -232,7 +231,7 @@ class PostVideoConversionJob < ApplicationJob
   # Generates the metadata block to store in the database
   def generate_metadata(samples)
     samples.transform_values do |file|
-      video = VideoProbe.new(file.path)
+      video = VideoProbe.new(file.path, "mp4")
       raise "Invalid video file: #{file.path}" unless video.valid?
       {
         width: video.width,

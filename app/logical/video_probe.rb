@@ -6,12 +6,12 @@ class VideoProbe
 
   attr_reader :path, :container, :duration, :video_codec, :colorspace, :width, :height, :sar, :frame_rate, :audio_codec
 
-  def initialize(path)
+  def initialize(path, file_ext)
     raise Errno::ENOENT, "the file '#{path}' does not exist" unless File.exist?(path)
 
     @path = path
     # No -v error: validity depends on ffprobe's default-level stderr messages.
-    stdout, stderr, _status = ExternalCommand.run(Danbooru.config.ffprobe_path, "-i", path, "-print_format", "json", "-show_format", "-show_streams", "-show_error", timeout: FileMethods::FFPROBE_TIMEOUT)
+    stdout, stderr, _status = ExternalCommand.run(Danbooru.config.ffprobe_path, *FileMethods.ffmpeg_input(path, file_ext), "-print_format", "json", "-show_format", "-show_streams", "-show_error", timeout: FileMethods::FFPROBE_TIMEOUT)
     # ffprobe echoes container metadata, which is not always valid UTF-8.
     stdout = stdout.scrub
     stderr = stderr.scrub

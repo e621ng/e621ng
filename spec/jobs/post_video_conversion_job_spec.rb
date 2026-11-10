@@ -55,7 +55,7 @@ RSpec.describe PostVideoConversionJob do
     allow(Danbooru.config.custom_configuration).to receive(:storage_manager).and_return(storage)
     allow(Post).to receive(:find).with(post.id).and_return(post)
     allow(VideoProbe).to receive(:new).and_return(sample_movie)
-    allow(VideoProbe).to receive(:new).with(post.file_path).and_return(original_movie)
+    allow(VideoProbe).to receive(:new).with(post.file_path, post.file_ext).and_return(original_movie)
     allow(ExternalCommand).to receive(:run).and_return(["", "", ok_status])
   end
 
@@ -139,7 +139,7 @@ RSpec.describe PostVideoConversionJob do
         allow(Danbooru.config.custom_configuration).to receive(:storage_manager).and_return(storage)
         allow(Post).to receive(:find).with(post.id).and_return(post)
         allow(VideoProbe).to receive(:new).and_return(sample_movie)
-        allow(VideoProbe).to receive(:new).with(post.file_path).and_return(original_movie)
+        allow(VideoProbe).to receive(:new).with(post.file_path, post.file_ext).and_return(original_movie)
         allow(ExternalCommand).to receive(:run).and_return(["", "", ok_status])
       end
 
@@ -270,7 +270,7 @@ RSpec.describe PostVideoConversionJob do
     end
 
     context "when the source has a colour space swscale can't convert from" do
-      before { allow(ImageSampler).to receive(:colorspace_relabel_filter).with(post.file_path).and_return("setparams=colorspace=bt709") }
+      before { allow(ImageSampler).to receive(:colorspace_relabel_filter).with(post.file_path, post.file_ext).and_return("setparams=colorspace=bt709") }
 
       it "prepends the relabel filter to the -vf chain" do
         file = job.generate_mp4_video(post)
@@ -280,7 +280,7 @@ RSpec.describe PostVideoConversionJob do
     end
 
     context "when the source colour space is supported" do
-      before { allow(ImageSampler).to receive(:colorspace_relabel_filter).with(post.file_path).and_return(nil) }
+      before { allow(ImageSampler).to receive(:colorspace_relabel_filter).with(post.file_path, post.file_ext).and_return(nil) }
 
       it "does not include a setparams filter" do
         file = job.generate_mp4_video(post)
@@ -297,7 +297,7 @@ RSpec.describe PostVideoConversionJob do
       before { allow(ExternalCommand).to receive(:run).and_call_original }
 
       it "still transcodes successfully" do
-        allow(post).to receive(:file_path).and_return(file_fixture("mislabeled-ictcp.mp4").to_s)
+        allow(post).to receive_messages(file_path: file_fixture("mislabeled-ictcp.mp4").to_s, file_ext: "mp4")
         file = job.generate_mp4_video(post, clamp: 240)
         expect(File.size(file.path)).to be > 0
         file.close!
@@ -479,7 +479,7 @@ RSpec.describe PostVideoConversionJob do
                       size: 5_000)
     end
 
-    before { allow(VideoProbe).to receive(:new).with(fake_file.path).and_return(movie) }
+    before { allow(VideoProbe).to receive(:new).with(fake_file.path, "mp4").and_return(movie) }
 
     it "returns a metadata hash for a valid video" do
       result = job.generate_metadata({ sample: fake_file })

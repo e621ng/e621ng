@@ -20,6 +20,19 @@ module FileMethods
   FFPROBE_TIMEOUT = 10
   VOLUMEDETECT_TIMEOUT = 45
 
+  # Demuxer forced for each type ffmpeg reads, so it can't pick a different one than was validated.
+  FFMPEG_DEMUXERS = {
+    "webm" => "matroska",
+    "mp4" => "mov",
+    "gif" => "gif",
+  }.freeze
+
+  # Input arguments for ffmpeg and ffprobe: the forced demuxer, and local files only.
+  def self.ffmpeg_input(file_path, file_ext)
+    demuxer = FFMPEG_DEMUXERS.fetch(file_ext) { raise ArgumentError, "ffmpeg can't read #{file_ext.inspect} files" }
+    ["-protocol_whitelist", "file", "-f", demuxer, "-i", file_path]
+  end
+
   def is_of_type?(type)
     file_ext == FileMethods::FILE_TYPE[type]
   end
@@ -134,7 +147,7 @@ module FileMethods
 
   def calculate_dimensions(file_path)
     if is_video?
-      stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffprobe_path, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", file_path, timeout: FFPROBE_TIMEOUT)
+      stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffprobe_path, "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", *FileMethods.ffmpeg_input(file_path, file_ext), timeout: FFPROBE_TIMEOUT)
       unless status.success?
         Rails.logger.warn("[FFPROBE STDERR] #{stderr.chomp}")
         raise Upload::Error, "Could not retrieve video dimensions"
@@ -148,7 +161,7 @@ module FileMethods
   end
 
   def video(file_path)
-    @video ||= VideoProbe.new(file_path)
+    @video ||= VideoProbe.new(file_path, file_ext)
   end
 
   # Pass a precomputed +animated+ (e.g. from #is_animated_file?) to avoid a
@@ -178,7 +191,7 @@ module FileMethods
   # Peak level in dBFS across every audio stream, or nil when no samples were decoded.
   # Without -map ffmpeg only measures the default stream, which could be a silent one.
   def video_max_volume_db(file_path)
-    stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffmpeg_path, "-nostats", "-hide_banner", "-vn", "-threads", "1", "-filter_threads", "1", "-i", file_path, "-map", "0:a", "-af", "volumedetect", "-f", "null", "-", timeout: VOLUMEDETECT_TIMEOUT)
+    stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffmpeg_path, "-nostats", "-hide_banner", "-vn", "-threads", "1", "-filter_threads", "1", *FileMethods.ffmpeg_input(file_path, file_ext), "-map", "0:a", "-af", "volumedetect", "-f", "null", "-", timeout: VOLUMEDETECT_TIMEOUT)
     # ffmpeg echoes container metadata, which is not always valid UTF-8.
     stdout = stdout.scrub
     stderr = stderr.scrub

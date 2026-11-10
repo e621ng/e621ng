@@ -24,6 +24,7 @@ RSpec.describe ImageSampler do
       instance_double(
         Post,
         file_path:         file_path,
+        file_ext:          "jpg",
         is_flash?:         false,
         is_video?:         false,
         is_gif?:           false,
@@ -139,6 +140,7 @@ RSpec.describe ImageSampler do
         instance_double(
           Post,
           file_path:         video_path,
+          file_ext:          "mp4",
           is_flash?:         false,
           is_video?:         true,
           is_gif?:           false,
