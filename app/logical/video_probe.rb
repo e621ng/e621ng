@@ -32,7 +32,7 @@ class VideoProbe
     else
       format = metadata["format"].to_h
       @container = format["format_name"]
-      @duration = format["duration"].to_f
+      @duration = [format["duration"].to_f, packet_duration(file_ext, format["start_time"].to_f)].max
 
       if video_stream
         @video_codec = video_stream["codec_name"]
@@ -62,5 +62,21 @@ class VideoProbe
 
   def size
     File.size(path)
+  end
+
+  private
+
+  # The container's duration is a header field the uploader can set to anything, so read
+  # where the packets of every stream actually end. This only demuxes; nothing is decoded.
+  def packet_duration(file_ext, start_time)
+    stdout, _stderr, _status = ExternalCommand.run(Danbooru.config.ffprobe_path, "-v", "error", *FileMethods.ffmpeg_input(path, file_ext), "-show_entries", "packet=pts_time,duration_time", "-of", "csv=p=0", timeout: FileMethods::FFPROBE_TIMEOUT)
+    # Only the end of the output is kept, which is the part needed. Packets aren't in pts
+    # order (B-frames, interleaved streams), so take the latest end rather than the last line.
+    ends = stdout.scrub.each_line.filter_map do |line|
+      pts, duration = line.split(",")
+      pts = Float(pts, exception: false)
+      pts + (Float(duration.to_s, exception: false) || 0) if pts
+    end
+    ends.empty? ? 0 : ends.max - start_time
   end
 end
