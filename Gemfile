@@ -34,7 +34,7 @@ gem "blueprinter", "1.3.0"
 gem "draper", "4.0.6"
 gem "simple_form", "5.4.1"
 gem "sitemap_generator", "7.1.1"
-gem "view_component", "4.21.0"
+gem "view_component", "4.23.0"
 gem "vite_rails", "3.11.1"
 
 ### Text processing and versioning
@@ -84,7 +84,7 @@ group :development, :test do
   ### Testing
   gem "factory_bot_rails", "6.5.1", require: false
   gem "parallel_tests", "5.9.0"
-  gem "rspec-rails", "8.0.4", require: false
+  gem "rspec-rails", "8.1.0", require: false
   gem "rspec-sidekiq", "5.3.0", require: false
   gem "simplecov", "1.3.2", require: false
   gem "webmock", "3.34.0", require: false
