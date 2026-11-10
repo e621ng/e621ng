@@ -95,6 +95,7 @@ end
 
 group :development do
   gem "debug", "1.11.1", require: false
+  gem "bundler-audit", "0.9.3", require: false
 
   ### Linting
   gem "rubocop", "1.92.2", require: false
