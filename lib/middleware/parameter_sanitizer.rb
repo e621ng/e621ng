@@ -15,7 +15,8 @@ module Middleware
       env["REQUEST_PATH"] = sanitize_string(env["REQUEST_PATH"]) if env["REQUEST_PATH"].present?
       env["HTTP_COOKIE"] = sanitize_string(env["HTTP_COOKIE"]) if env["HTTP_COOKIE"].present?
 
-      content_type = env["CONTENT_TYPE"].to_s
+      # Media types are case-insensitive, as in Rack.
+      content_type = env["CONTENT_TYPE"].to_s.downcase
 
       # Uploads are multipart, so they keep the full nginx body limit.
       if content_type.exclude?("multipart/form-data") && env["CONTENT_LENGTH"].to_i > RequestLimits::BYTESIZE_LIMIT

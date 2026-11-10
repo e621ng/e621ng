@@ -92,6 +92,12 @@ RSpec.describe Middleware::ParameterSanitizer do
       expect(received_env["CONTENT_LENGTH"].to_i).to eq(sanitized.bytesize)
     end
 
+    it "sanitizes the body when the content type is mixed-case" do
+      env = form_env("name=fo\u0000o", content_type: "Application/X-WWW-Form-Urlencoded")
+      _status, _headers, _body, received_env = call(env)
+      expect(received_env["rack.input"].read).to eq("name=foo")
+    end
+
     it "leaves a clean body unchanged" do
       env = form_env("name=alice&age=30")
       _status, _headers, _body, received_env = call(env)
@@ -140,6 +146,13 @@ RSpec.describe Middleware::ParameterSanitizer do
     context "with invalid JSON" do
       it "returns HTTP 400" do
         env = json_env("not json{{{")
+        status, _headers, _body, _env = call(env)
+        expect(status).to eq(400)
+      end
+
+      it "returns HTTP 400 when the content type is mixed-case" do
+        env = json_env("bad json")
+        env["CONTENT_TYPE"] = "Application/JSON"
         status, _headers, _body, _env = call(env)
         expect(status).to eq(400)
       end
@@ -221,6 +234,16 @@ RSpec.describe Middleware::ParameterSanitizer do
       status, _headers, _body, received_env = call(body_env("a" * 100, "multipart/form-data; boundary=----boundary"))
       expect(status).to eq(200)
       expect(received_env["rack.input"].read).to eq("a" * 100)
+    end
+
+    it "does not limit multipart bodies with a mixed-case content type" do
+      status, _headers, _body, _env = call(body_env("a" * 100, "Multipart/Form-Data; boundary=----boundary"))
+      expect(status).to eq(200)
+    end
+
+    it "returns a JSON error body for a mixed-case JSON content type" do
+      _status, headers, _body, _env = call(body_env(%({"a":"#{'b' * 20}"}), "Application/JSON"))
+      expect(headers["Content-Type"]).to eq("application/json")
     end
 
     it "returns 413 for an oversized body without a Content-Length" do
