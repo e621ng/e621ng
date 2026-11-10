@@ -4,7 +4,8 @@ class OauthApplicationsController < Doorkeeper::ApplicationsController
   layout "default"
 
   skip_before_action :authenticate_admin!
-  before_action :staff_only
+  before_action :can_manage_oauth_applications_only
+  before_action :staff_only, only: %i[index]
   before_action :reject_api_key_auth
   before_action :reject_bearer_auth
   before_action :requires_reauthentication
@@ -69,7 +70,8 @@ class OauthApplicationsController < Doorkeeper::ApplicationsController
   end
 
   def set_visible_application
-    @application = application_model.find(params[:id])
+    scope = CurrentUser.user.is_staff? ? application_model : owned_applications
+    @application = scope.find(params[:id])
   end
 
   def set_owned_application

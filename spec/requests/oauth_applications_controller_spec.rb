@@ -23,10 +23,54 @@ RSpec.describe OauthApplicationsController do
       expect(response).to redirect_to(/session/)
     end
 
-    it "denies below-staff members with 403" do
+    it "denies unflagged members with 403" do
       sign_in_as(member)
-      get "/applications"
+      get "/applications/mine"
       expect(response).to have_http_status(:forbidden)
+    end
+
+    context "with the oauth_applications_beta flag" do
+      let(:beta_member) { create(:user, oauth_applications_beta: true) }
+
+      before { sign_in_as(beta_member, reauthenticated: true) }
+
+      it "allows managing own applications" do
+        get "/applications/mine"
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "allows creating applications" do
+        expect do
+          post "/applications", params: valid_params
+        end.to change(Doorkeeper::Application, :count).by(1)
+        expect(Doorkeeper::Application.last.owner).to eq(beta_member)
+      end
+
+      it "still denies the global application list" do
+        get "/applications"
+        expect(response).to have_http_status(:forbidden)
+      end
+
+      it "cannot view another user's application" do
+        other_app = Doorkeeper::Application.create!(name: "OtherBetaApp", redirect_uri: "http://localhost/cb", scopes: "openid full", owner: create(:user))
+        get "/applications/#{other_app.id}"
+        expect(response).to have_http_status(:not_found)
+        expect(response.body).not_to include("OtherBetaApp")
+      end
+
+      it "points the form's Cancel button at their own applications" do
+        get "/applications/new"
+        expect(response).to have_http_status(:ok)
+        cancel = response.parsed_body.at_css("form .actions a")
+        expect(cancel.text).to eq("Cancel")
+        expect(cancel["href"]).to eq(mine_oauth_applications_path)
+      end
+
+      it "redirects from show to edit for own application" do
+        own = Doorkeeper::Application.create!(name: "OwnBetaApp", redirect_uri: "http://localhost/cb", scopes: "openid full", owner: beta_member)
+        get "/applications/#{own.id}"
+        expect(response).to redirect_to(edit_oauth_application_url(own))
+      end
     end
 
     it "rejects api_key auth (browser-only)" do

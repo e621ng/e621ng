@@ -189,6 +189,21 @@ RSpec.describe Staff::UsersController do
         expect(mod[:values]).to include("user_id" => target.id, "added" => [], "removed" => ["unlimited uploads"])
       end
 
+      it "grants oauth_applications_beta and logs a user_flags_change ModAction" do
+        patch staff_user_path(user), params: { user: { level: user.level, oauth_applications_beta: "true" } }
+        expect(user.reload.oauth_applications_beta?).to be true
+        mod = ModAction.where(action: "user_flags_change").last
+        expect(mod[:values]).to include("user_id" => user.id, "added" => ["oauth applications beta"], "removed" => [])
+      end
+
+      it "revokes oauth_applications_beta and logs a user_flags_change ModAction" do
+        target = create(:user, oauth_applications_beta: true)
+        patch staff_user_path(target), params: { user: { level: target.level, oauth_applications_beta: "false" } }
+        expect(target.reload.oauth_applications_beta?).to be false
+        mod = ModAction.where(action: "user_flags_change").last
+        expect(mod[:values]).to include("user_id" => target.id, "added" => [], "removed" => ["oauth applications beta"])
+      end
+
       it "does not log user_flags_change when can_upload_free is unchanged" do
         expect do
           patch staff_user_path(user), params: { user: { level: user.level, can_upload_free: "false" } }
