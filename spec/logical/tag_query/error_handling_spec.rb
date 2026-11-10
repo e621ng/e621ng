@@ -95,6 +95,14 @@ RSpec.describe TagQuery, type: :model do
     # The reported abusive query: many unbalanced opening parens.
     let(:redos_query) { "#{'( ' * 28}a ) )" }
 
+    def with_strict_regexp_timeout
+      previous = Regexp.timeout
+      Regexp.timeout = 0.5
+      yield
+    ensure
+      Regexp.timeout = previous
+    end
+
     describe ".group_depth_exceeded?" do
       it "flags unbalanced deeply-nested parentheses" do
         expect(TagQuery.group_depth_exceeded?(redos_query)).to be(true)
@@ -137,14 +145,6 @@ RSpec.describe TagQuery, type: :model do
     # E6SEC-201: `has_groups?` runs first in `parse_query`, and its long-query regex is quadratic
     # on runs of group openers.
     describe ".has_groups?" do
-      def with_strict_regexp_timeout
-        previous = Regexp.timeout
-        Regexp.timeout = 0.5
-        yield
-      ensure
-        Regexp.timeout = previous
-      end
-
       it "returns quickly on a long run of group openers" do
         with_strict_regexp_timeout do
           expect(TagQuery.has_groups?("( " * 8000)).to be(true)
@@ -193,14 +193,10 @@ RSpec.describe TagQuery, type: :model do
     it "returns quickly rather than backtracking, even under a strict Regexp timeout" do
       # Without the pre-check this backtracks for ~1s and raises Regexp::TimeoutError;
       # with it, the query is rejected up front and no timeout is hit.
-      previous = Regexp.timeout
-      Regexp.timeout = 0.5
-      begin
+      with_strict_regexp_timeout do
         expect do
           TagQuery.scan_search(redos_query, error_on_depth_exceeded: true)
         end.to raise_error(TagQuery::DepthExceededError)
-      ensure
-        Regexp.timeout = previous
       end
     end
 
@@ -208,14 +204,10 @@ RSpec.describe TagQuery, type: :model do
       # TagQuery.new's default path degrades gracefully (error_on_depth_exceeded: false),
       # so it must not raise Regexp::TimeoutError under a strict timeout — the abusive query
       # is dropped up front rather than driving the tokenizer into catastrophic backtracking.
-      previous = Regexp.timeout
-      Regexp.timeout = 0.5
-      begin
+      with_strict_regexp_timeout do
         expect do
           TagQuery.new(redos_query, resolve_aliases: false)
         end.not_to raise_error
-      ensure
-        Regexp.timeout = previous
       end
     end
   end
