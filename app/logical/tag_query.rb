@@ -601,7 +601,10 @@ class TagQuery
     return tag_str.is_grouped_search? if tag_str.is_a?(TagQuery)
     return false if tag_str.blank?
     if tag_str.length > TagQuery::LONG_QUERY_LENGTH
-      tag_str.gsub(TagQuery::REGEX_ANY_QUOTED_METATAG, "") if tag_str.include?(':"')
+      # `REGEX_SIMPLE_GROUP_CHECK` is quadratic on long runs of openers. Over-deep queries count
+      # as grouped so `scan_search` rejects them.
+      return true if TagQuery.group_depth_exceeded?(tag_str)
+      tag_str = tag_str.gsub(TagQuery::REGEX_ANY_QUOTED_METATAG, "") if tag_str.include?(':"')
       tag_str.match?(TagQuery::REGEX_SIMPLE_GROUP_CHECK)
     else
       tag_str.match?(TagQuery::REGEX_HAS_GROUP)
@@ -611,7 +614,7 @@ class TagQuery
   # Cheap, linear guard against catastrophic backtracking in `REGEX_TOKENIZE`, whose recursive
   # group subpattern blows up on deeply-nested group parentheses (especially unbalanced ones like
   # `( ( ( ( a ) )`) before `Regexp.timeout` aborts the match. The `DEPTH_LIMIT` recursion guards
-  # run too late — the blowup is inside a single regex match.
+  # run too late — the blowup is inside a single regex match. Also guards `has_groups?`.
   #
   # Walks the string once, tracking net group nesting depth, and returns `true` once it passes
   # `DEPTH_LIMIT` so callers can reject the query before running the regex. Only genuine group

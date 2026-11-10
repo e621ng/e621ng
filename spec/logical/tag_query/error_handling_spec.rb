@@ -134,6 +134,48 @@ RSpec.describe TagQuery, type: :model do
       end
     end
 
+    # E6SEC-201: `has_groups?` runs first in `parse_query`, and its long-query regex is quadratic
+    # on runs of group openers.
+    describe ".has_groups?" do
+      def with_strict_regexp_timeout
+        previous = Regexp.timeout
+        Regexp.timeout = 0.5
+        yield
+      ensure
+        Regexp.timeout = previous
+      end
+
+      it "returns quickly on a long run of group openers" do
+        with_strict_regexp_timeout do
+          expect(TagQuery.has_groups?("( " * 8000)).to be(true)
+        end
+      end
+
+      it "returns quickly on group openers inside a long quoted metatag" do
+        with_strict_regexp_timeout do
+          expect(TagQuery.has_groups?(%(a:"#{'( ' * 7000}"))).to be(false)
+        end
+      end
+
+      it "detects groups in a long query" do
+        query = Array.new(30) { |i| "( t#{i} ~u#{i} )" }.join(" ")
+        expect(query.length).to be > TagQuery::LONG_QUERY_LENGTH
+        expect(TagQuery.has_groups?(query)).to be(true)
+      end
+
+      it "ignores parentheses inside quoted metatags in a long query" do
+        query = %(source:"x ( a ) y" #{Array.new(40) { |i| "tag#{i}" }.join(' ')})
+        expect(query.length).to be > TagQuery::LONG_QUERY_LENGTH
+        expect(TagQuery.has_groups?(query)).to be(false)
+      end
+
+      it "does not blow up the regex on the full TagQuery.new parse path" do
+        with_strict_regexp_timeout do
+          expect { TagQuery.new("( " * 8000, resolve_aliases: false) }.not_to raise_error
+        end
+      end
+    end
+
     it "processes the emoticon query without error (not a false positive)" do
       # ":( :( ... a )" is not deeply-nested groups; it must scan normally, not raise.
       expect do
