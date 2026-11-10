@@ -546,6 +546,16 @@ RSpec.describe ModActionDecorator do
         desc = decorate(:forum_topic_unlock, { "forum_topic_id" => 2, "forum_topic_title" => "Cool Thread", "user_id" => target_user.id }).format_description
         expect(desc).to include("topic #2", "Cool Thread")
       end
+
+      it "forum_poll_close includes topic id" do
+        desc = decorate(:forum_poll_close, { "forum_topic_id" => 2, "user_id" => target_user.id }).format_description
+        expect(desc).to include("Closed poll", "topic #2")
+      end
+
+      it "forum_poll_delete includes topic id" do
+        desc = decorate(:forum_poll_delete, { "forum_topic_id" => 2, "user_id" => target_user.id }).format_description
+        expect(desc).to include("Deleted poll", "topic #2")
+      end
     end
 
     context "with forum_category actions" do

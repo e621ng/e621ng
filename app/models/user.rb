@@ -723,6 +723,15 @@ class User < ApplicationRecord
                          :is_staff?, 7.days)
     create_user_throttle(:forum_vote, -> { Danbooru.config.forum_vote_limit - ForumPostVote.by(id).where("created_at > ?", 1.hour.ago).count },
                          :is_staff?, 3.days)
+    create_user_throttle(:forum_poll, -> { Danbooru.config.forum_poll_limit - ForumPoll.where(creator_id: id).where("created_at > ?", 1.day.ago).count },
+                         :is_staff?, nil)
+    # One ballot = one shared created_at across its rows, so this counts standing ballots, not option rows.
+    create_user_throttle(:forum_poll_vote, -> { Danbooru.config.forum_poll_vote_limit - ForumPollVote.where(user_id: id).where("created_at > ?", 1.hour.ago).distinct.count(:created_at) },
+                         :is_staff?, 7.days)
+
+    def can_create_forum_poll?
+      is_member? && level >= Danbooru.config.forum_poll_min_level
+    end
 
     def can_remove_from_pools?
       is_member? && older_than(7.days)

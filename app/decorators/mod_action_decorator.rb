@@ -290,6 +290,10 @@ class ModActionDecorator < ApplicationDecorator
       "Locked topic ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
     when "forum_topic_unlock"
       "Unlocked topic ##{vals['forum_topic_id']} (with title #{vals['forum_topic_title']}) by #{user}"
+    when "forum_poll_close"
+      "Closed poll in topic ##{vals['forum_topic_id']} by #{user}"
+    when "forum_poll_delete"
+      "Deleted poll in topic ##{vals['forum_topic_id']} by #{user}"
 
       ### Forum Category ###
 

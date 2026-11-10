@@ -1,0 +1,105 @@
+<%# locals: (poll:, topic:) -%>
+<% user = CurrentUser.user %>
+<% can_vote = topic.can_access?(user) && poll.can_vote?(user) %>
+<% selected = poll.selected_option_ids(user) %>
+<% show_voters = user.is_moderator? %>
+<% voters_by_option = show_voters ? poll.votes.includes(:user).group_by(&:forum_poll_option_id) : {} %>
+<% vote_path = forum_topic_poll_vote_path(topic) %>
+
+<section
+  class="forum-poll <%= "forum-poll-grid" if poll.has_embeds? %>"
+  id="forum-poll"
+  data-topic-id="<%= topic.id %>"
+  data-max-choices="<%= poll.max_choices %>"
+  data-open="<%= poll.open? %>"
+  data-state="ready"
+>
+  <%= form_with url: vote_path, method: :put, class: "forum-poll-ballot" do %>
+    <ol class="forum-poll-options">
+      <% poll.options.each do |option| %>
+        <% pct = option.percentage(poll.voter_count) %>
+        <li class="forum-poll-option" data-option-id="<%= option.id %>" data-selected="<%= selected.include?(option.id) %>">
+          <div class="forum-poll-option-main">
+            <% if can_vote %>
+              <% if poll.multiple? %>
+                <%= check_box_tag "option_ids[]", option.id, selected.include?(option.id), id: "forum_poll_option_#{option.id}" %>
+              <% else %>
+                <%= radio_button_tag "option_ids[]", option.id, selected.include?(option.id), id: "forum_poll_option_#{option.id}" %>
+              <% end %>
+            <% end %>
+            <label class="forum-poll-option-body" for="forum_poll_option_<%= option.id %>">
+              <%= format_text(option.body, allow_color: poll.creator.is_privileged?) %>
+            </label>
+            <span class="forum-poll-option-count" title="<%= pluralize(option.vote_count, "vote") %>"><%= option.vote_count %> &middot; <%= pct %>%</span>
+          </div>
+          <div class="forum-poll-bar"><div class="forum-poll-bar-fill" style="width: <%= pct %>%"></div></div>
+          <% if show_voters %>
+            <% voters = voters_by_option.fetch(option.id, []) %>
+            <details class="forum-poll-voters">
+              <summary>Voters (<%= voters.size %>)</summary>
+              <ul>
+                <% voters.each do |vote| %>
+                  <li>
+                    <%= link_to_user vote.user %>
+                    <% if user.is_admin? %><span class="forum-poll-voter-ip"><%= link_to_ip vote.user_ip_addr %></span><% end %>
+                  </li>
+                <% end %>
+              </ul>
+            </details>
+          <% end %>
+        </li>
+      <% end %>
+    </ol>
+
+    <% if can_vote %>
+      <div class="forum-poll-actions">
+        <%= submit_tag(selected.any? ? "Update vote" : "Vote", class: "button btn-success forum-poll-submit", data: { disable_with: false }) %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% if can_vote && selected.any? %>
+    <%= button_to "Clear vote", vote_path, method: :delete, class: "button btn-neutral forum-poll-clear", form_class: "forum-poll-clear-form" %>
+  <% end %>
+
+  <% unless can_vote %>
+    <% reason = topic.can_access?(user) ? poll.vote_denial_reason(user) : nil %>
+    <p class="forum-poll-reason"><%= reason %></p>
+  <% end %>
+
+  <footer class="forum-poll-footer">
+    <span class="forum-poll-voter-count"><%= pluralize(poll.voter_count, "voter") %></span>
+    <span class="forum-poll-status">
+      <% if poll.open? %>
+        Closes <%= time_ago_in_words_tagged(poll.expires_at) %>
+      <% else %>
+        Closed <%= time_ago_in_words_tagged(poll.expires_at) %><% if poll.closed_early? %> (early, by <%= link_to_user poll.closed_early_by %>)<% end %>
+      <% end %>
+    </span>
+    <% if poll.multiple? %><span class="forum-poll-multiple-note">Pick up to <%= poll.max_choices %></span><% end %>
+    <span class="forum-poll-notice">Your vote is not shown to other users. Site staff can see it.</span>
+
+    <% if poll.can_edit?(user) || poll.can_close?(user) || poll.can_destroy?(user) %>
+      <menu class="forum-poll-menu">
+        <% if poll.can_edit?(user) %>
+          <li><%= link_to "Edit poll", "#forum-poll-edit", class: "forum-poll-edit-link" %></li>
+        <% end %>
+        <% if poll.can_close?(user) %>
+          <li><%= button_to "Close poll", close_forum_topic_poll_path(topic), method: :post, class: "forum-poll-close", form: { data: { confirm: "Close this poll now? This cannot be undone." } } %></li>
+        <% end %>
+        <% if poll.can_destroy?(user) %>
+          <li><%= button_to "Delete poll", forum_topic_poll_path(topic), method: :delete, class: "forum-poll-delete", form: { data: { confirm: "Delete this poll and all of its votes?" } } %></li>
+        <% end %>
+      </menu>
+    <% end %>
+  </footer>
+
+  <% if poll.can_edit?(user) %>
+    <div class="forum-poll-edit" id="forum-poll-edit" hidden>
+      <%= custom_form_for(poll, url: forum_topic_poll_path(topic), method: :put, html: { class: "forum-poll-edit-form" }) do |f| %>
+        <%= render "forum_polls/fields", f: f, poll: poll %>
+        <%= f.button :submit, "Save poll" %>
+      <% end %>
+    </div>
+  <% end %>
+</section>

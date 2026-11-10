@@ -5,6 +5,10 @@ en:
   hello: "Hello world"
   activerecord:
     attributes:
+      forum_topic/poll/options:
+        body: "Poll option"
+      forum_poll/options:
+        body: "Option"
       artist_url:
         url: ""
       forum_post_vote:

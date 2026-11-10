@@ -33,6 +33,8 @@ class ModAction < ApplicationRecord
     forum_category_create: { forum_category_id: :integer },
     forum_category_delete: { forum_category_id: :integer },
     forum_category_update: { forum_category_id: :integer },
+    forum_poll_close: { forum_topic_id: :integer, user_id: :integer },
+    forum_poll_delete: { forum_topic_id: :integer, user_id: :integer },
     forum_post_delete: { forum_post_id: :integer, forum_topic_id: :integer, user_id: :integer },
     forum_post_hide: { forum_post_id: :integer, forum_topic_id: :integer, user_id: :integer },
     forum_post_unhide: { forum_post_id: :integer, forum_topic_id: :integer, user_id: :integer },

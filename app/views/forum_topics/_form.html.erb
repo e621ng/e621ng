@@ -13,6 +13,10 @@
       <%= pf.input :body, as: :dtext, limit: Danbooru.config.forum_post_max_size %>
     <% end %>
 
+    <% if forum_topic.new_record? && CurrentUser.user.can_create_forum_poll? %>
+      <%= render "forum_polls/new_section", f: f, forum_topic: forum_topic %>
+    <% end %>
+
     <% if CurrentUser.is_moderator? %>
       <%= f.input :is_sticky, :label => "Sticky" %>
       <%= f.input :is_locked, :label => "Locked" %>
