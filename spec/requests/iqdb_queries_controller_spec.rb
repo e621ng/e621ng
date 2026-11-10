@@ -190,7 +190,7 @@ RSpec.describe IqdbQueriesController do
       allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, "ok"])
       allow(IqdbProxy).to receive(:query_url).and_raise(Downloads::File::Error, "Couldn't download the file")
       get iqdb_queries_path, params: { url: "https://example.com/image.jpg" }
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include("Couldn&#39;t download the file")
     end
 
@@ -198,7 +198,7 @@ RSpec.describe IqdbQueriesController do
       allow(IqdbProxy).to receive(:query_file).and_raise(IqdbProxy::TooLargeError, "The image is too large to search")
       file = fixture_file_upload("spec/fixtures/files/sample.jpg", "image/jpeg")
       post iqdb_queries_path, params: { file: file }
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
       expect(response.body).to include("The image is too large to search")
     end
 
