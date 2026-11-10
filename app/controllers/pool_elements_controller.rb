@@ -15,12 +15,7 @@ class PoolElementsController < ApplicationController
       @pool.save
     end
 
-    if @pool.errors.any?
-      flash[:notice] = @pool.errors.full_messages.join("; ")
-    else
-      append_pool_to_session(@pool)
-      flash[:notice] = "Post added to pool ##{@pool.id}"
-    end
+    append_pool_to_session(@pool) if @pool.errors.none?
 
     respond_with(@pool, location: post_path(@post))
   end

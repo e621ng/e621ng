@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { jsonResponse, setMeta, setSiteData } from "../../../helpers";
 
-const { alertSpy, dialogs } = vi.hoisted(() => ({
+const { alertSpy, deferSpy, dialogs } = vi.hoisted(() => ({
   alertSpy: vi.fn(),
+  deferSpy: vi.fn(),
   dialogs: [] as FakeDialog[],
 }));
 
@@ -14,7 +15,7 @@ class FakeDialog {
 }
 
 vi.mock("@/components/dialog", () => ({ default: FakeDialog }));
-vi.mock("@/utility/Toast", () => ({ default: { alert: (msg: string) => alertSpy(msg), create: vi.fn(), notice: vi.fn() } }));
+vi.mock("@/utility/Toast", () => ({ default: { alert: (msg: string) => alertSpy(msg), create: vi.fn(), notice: vi.fn(), defer: (msg: string) => deferSpy(msg) } }));
 
 const POST_ID = 42;
 const OWNERS = [{ id: 5, name: "alice" }, { id: 6, name: "bob" }];
@@ -76,6 +77,7 @@ const select = () => document.querySelector<HTMLSelectElement>("#reowner-dialog-
 describe("ReownerDialog", () => {
   beforeEach(() => {
     alertSpy.mockReset();
+    deferSpy.mockReset();
     dialogs.length = 0;
   });
 
@@ -157,6 +159,8 @@ describe("ReownerDialog", () => {
     expect(String(init?.body)).toBe("reowner%5Bnew_owner%5D=%215");
     expect((init?.headers as Record<string, string>)["X-CSRF-Token"]).toBe("tok");
     expect(reload).toHaveBeenCalledTimes(1);
+    expect(deferSpy).toHaveBeenCalledWith("Post owner reassigned");
+    expect(deferSpy.mock.invocationCallOrder[0]).toBeLessThan(reload.mock.invocationCallOrder[0]);
   });
 
   it("sends the option checkboxes for BD staff", async () => {
@@ -185,6 +189,7 @@ describe("ReownerDialog", () => {
 
     expect(alertSpy).toHaveBeenCalledWith("Error: New owner could not be found.");
     expect(reload).not.toHaveBeenCalled();
+    expect(deferSpy).not.toHaveBeenCalled();
     expect(ok().disabled).toBe(false);
   });
 
