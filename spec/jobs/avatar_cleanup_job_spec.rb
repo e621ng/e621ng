@@ -60,5 +60,25 @@ RSpec.describe AvatarCleanupJob do
         expect(storage).to have_received(:delete_avatar).with(user.id, "webp")
       end
     end
+
+    context "when forced" do
+      let(:cropped) { User.flag_value_for("has_cropped_avatar") }
+      let(:other) { User.flag_value_for("can_approve_posts") }
+
+      before { user.update_columns(avatar_id: 1, bit_prefs: cropped | other) }
+
+      it "clears the cropped avatar flag" do
+        described_class.new.perform(user.id, true)
+        expect(user.reload.has_cropped_avatar?).to be false
+      end
+
+      it "does not restore flags changed while the job ran" do
+        allow(storage).to receive(:delete_avatar) do
+          User.where(id: user.id).update_all(["bit_prefs = bit_prefs & ~?", other])
+        end
+        described_class.new.perform(user.id, true)
+        expect(user.reload.can_approve_posts?).to be false
+      end
+    end
   end
 end
