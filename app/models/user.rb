@@ -339,6 +339,17 @@ class User < ApplicationRecord
         BCrypt::Password.create(pass)
       end
     end
+
+    # Covers tokens the user holds and tokens issued by apps they own; app rows are kept.
+    def revoke_oauth_credentials!
+      Doorkeeper::AccessToken.where(resource_owner_id: id, revoked_at: nil).find_each(&:revoke)
+      Doorkeeper::AccessGrant.where(resource_owner_id: id, revoked_at: nil).find_each(&:revoke)
+
+      owned_app_ids = Doorkeeper::Application.where(owner: self).pluck(:id)
+      return if owned_app_ids.empty?
+      Doorkeeper::AccessToken.where(application_id: owned_app_ids, revoked_at: nil).find_each(&:revoke)
+      Doorkeeper::AccessGrant.where(application_id: owned_app_ids, revoked_at: nil).find_each(&:revoke)
+    end
   end
 
   module LevelMethods

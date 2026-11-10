@@ -4,6 +4,8 @@ class UserDeletion
   class ValidationError < StandardError
   end
 
+  DELETION_RETAINED_FLAGS = %w[no_flagging no_uploading no_karma_free].freeze
+
   attr_reader :user, :password, :admin_deletion
 
   def initialize(user, password, admin_deletion: false)
@@ -25,6 +27,8 @@ class UserDeletion
 
     clear_user_settings
     reset_password
+    revoke_credentials
+    clear_bit_prefs
     create_mod_action
     FlushFavoritesJob.perform_async(user.id)
   end
@@ -65,6 +69,19 @@ class UserDeletion
 
   def reset_password
     user.update_columns(password_hash: "", bcrypt_password_hash: "*LK*")
+  end
+
+  # The password reset only ends web sessions; these authenticate independently of it.
+  def revoke_credentials
+    user.api_keys.delete_all
+    user.totp&.destroy!
+    user.revoke_oauth_credentials!
+  end
+
+  # Restrictions survive, like the level cap keeping banned users banned.
+  def clear_bit_prefs
+    mask = DELETION_RETAINED_FLAGS.sum { |flag| User.flag_value_for(flag) }
+    User.where(id: user.id).update_all(["bit_prefs = bit_prefs & ?", mask])
   end
 
   def calculate_final_name
