@@ -51,6 +51,26 @@ RSpec.describe VideoProbe do
     expect(probe("animated.gif").duration).to be_within(0.01).of(1.98)
   end
 
+  describe "a container that understates its duration" do
+    include_context "with forged video durations"
+
+    it "reads a WebM's duration from its packets" do
+      path = forge_webm_duration("file_validator/animated-vp9.webm", 0.5)
+      expect(described_class.new(path, "webm").duration).to be_within(0.01).of(2.0)
+    end
+
+    it "reads an MP4's duration from its packets" do
+      path = forge_mp4_duration("file_validator/animated-h264-aac.mp4")
+      expect(described_class.new(path, "mp4").duration).to be_within(0.01).of(2.04)
+    end
+
+    it "scans the packets as the validated type" do
+      allow(ExternalCommand).to receive(:run).and_call_original
+      probe("file_validator/animated-vp9.webm")
+      expect(ExternalCommand).to have_received(:run).with(Danbooru.config.ffprobe_path, "-v", "error", "-protocol_whitelist", "file", "-f", "matroska", "-i", file_fixture("file_validator/animated-vp9.webm").to_s, "-show_entries", "packet=pts_time,duration_time", "-of", "csv=p=0", timeout: anything)
+    end
+  end
+
   it "marks a non-media file as invalid" do
     video = probe("staff_file.txt", "webm")
     expect(video).not_to be_valid
