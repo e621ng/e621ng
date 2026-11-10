@@ -602,7 +602,7 @@ class TagQuery
     return false if tag_str.blank?
     if tag_str.length > TagQuery::LONG_QUERY_LENGTH
       # `REGEX_SIMPLE_GROUP_CHECK` is quadratic on long runs of openers. Over-deep queries count
-      # as grouped so `scan_search` rejects them.
+      # as grouped so they take `scan_search`, which applies its own depth guard.
       return true if TagQuery.group_depth_exceeded?(tag_str)
       tag_str = tag_str.gsub(TagQuery::REGEX_ANY_QUOTED_METATAG, "") if tag_str.include?(':"')
       tag_str.match?(TagQuery::REGEX_SIMPLE_GROUP_CHECK)
