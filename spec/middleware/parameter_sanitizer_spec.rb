@@ -175,6 +175,85 @@ RSpec.describe Middleware::ParameterSanitizer do
   end
 
   # ---------------------------------------------------------------------------
+  # Request body size limit
+  # ---------------------------------------------------------------------------
+  describe "request body size limit" do
+    before { stub_const("RequestLimits::BYTESIZE_LIMIT", 16) }
+
+    def body_env(body, content_type)
+      env = Rack::MockRequest.env_for("/", method: "POST", input: body)
+      env["CONTENT_TYPE"] = content_type if content_type
+      env
+    end
+
+    ["application/x-www-form-urlencoded", "application/json", "text/plain", nil].each do |content_type|
+      it "returns 413 without calling the app for an oversized #{content_type || 'untyped'} body" do
+        inner_app = instance_spy(Proc)
+        status, _headers, _body = described_class.new(inner_app).call(body_env("a" * 17, content_type))
+        expect(status).to eq(413)
+        expect(inner_app).not_to have_received(:call)
+      end
+    end
+
+    it "returns a JSON error body for an oversized JSON request" do
+      status, headers, body, _env = call(body_env(%({"a":"#{'b' * 20}"}), "application/json"))
+      expect(status).to eq(413)
+      expect(headers["Content-Type"]).to eq("application/json")
+      expect(JSON.parse(body.join)).to eq("success" => false, "message" => "Request body too large", "code" => nil)
+    end
+
+    it "returns a plain-text error body for other oversized requests" do
+      status, headers, body, _env = call(body_env("a=#{'b' * 20}", "application/x-www-form-urlencoded"))
+      expect(status).to eq(413)
+      expect(headers["Content-Type"]).to eq("text/plain")
+      expect(body).to eq(["Request Entity Too Large"])
+    end
+
+    it "accepts a body exactly at the limit" do
+      payload = %({"a":"#{'b' * 8}"})
+      expect(payload.bytesize).to eq(16)
+      status, _headers, _body, received_env = call(body_env(payload, "application/json"))
+      expect(status).to eq(200)
+      expect(received_env["rack.input"].read).to eq(payload)
+    end
+
+    it "does not limit multipart bodies" do
+      status, _headers, _body, received_env = call(body_env("a" * 100, "multipart/form-data; boundary=----boundary"))
+      expect(status).to eq(200)
+      expect(received_env["rack.input"].read).to eq("a" * 100)
+    end
+
+    it "returns 413 for an oversized body without a Content-Length" do
+      env = body_env(%({"a":"#{'b' * 20}"}), "application/json")
+      env.delete("CONTENT_LENGTH")
+      status, _headers, _body, _env = call(env)
+      expect(status).to eq(413)
+    end
+  end
+
+  describe "JSON nesting limit" do
+    # The JSON gem doesn't count an empty innermost array, so nest a value.
+    def nested_json(depth)
+      "#{'[' * depth}1#{']' * depth}"
+    end
+
+    def json_env(body)
+      Rack::MockRequest.env_for("/", method: "POST", "CONTENT_TYPE" => "application/json", input: body)
+    end
+
+    it "accepts JSON nested up to the limit" do
+      status, _headers, _body, _env = call(json_env(nested_json(RequestLimits::DEPTH_LIMIT)))
+      expect(status).to eq(200)
+    end
+
+    it "returns 400 for JSON nested deeper than the limit" do
+      status, _headers, body, _env = call(json_env(nested_json(RequestLimits::DEPTH_LIMIT + 1)))
+      expect(status).to eq(400)
+      expect(JSON.parse(body.join)["message"]).to eq("Invalid JSON body")
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Other content types
   # ---------------------------------------------------------------------------
   describe "other content types" do
