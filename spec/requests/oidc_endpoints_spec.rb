@@ -44,7 +44,7 @@ RSpec.describe "OIDC endpoints" do
   describe "Authorization Code + PKCE flow" do
     let(:password) { "hexerade" }
     let(:user)     { create(:user) }
-    let(:owner)    { create(:user) }
+    let(:owner)    { create(:user, oauth_applications_beta: true) }
     let(:redirect) { "http://localhost/cb" }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
@@ -233,7 +233,7 @@ RSpec.describe "OIDC endpoints" do
   describe "consent page CSP form-action" do
     let(:password) { "hexerade" }
     let(:user)     { create(:user) }
-    let(:owner)    { create(:user) }
+    let(:owner)    { create(:user, oauth_applications_beta: true) }
     let(:redirect) { "https://client.example/callback" }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
@@ -277,7 +277,7 @@ RSpec.describe "OIDC endpoints" do
   describe "/oauth/authorize when the application's owner is banned" do
     let(:password) { "hexerade" }
     let(:user)     { create(:user) }
-    let(:owner)    { create(:user) }
+    let(:owner)    { create(:user, oauth_applications_beta: true) }
     let(:redirect) { "http://localhost/cb" }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
@@ -318,7 +318,7 @@ RSpec.describe "OIDC endpoints" do
 
   describe "minimum_user_level gate" do
     let(:password) { "hexerade" }
-    let(:owner)    { create(:user) }
+    let(:owner)    { create(:user, oauth_applications_beta: true) }
     let(:redirect) { "http://localhost/cb" }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
@@ -388,7 +388,7 @@ RSpec.describe "OIDC endpoints" do
     let(:oauth_app) do
       Doorkeeper::Application.create!(
         name: "x", redirect_uri: redirect, scopes: "openid full",
-        confidential: true, owner: create(:user)
+        confidential: true, owner: create(:user, oauth_applications_beta: true)
       )
     end
     let(:verifier)  { SecureRandom.urlsafe_base64(64).delete("=")[0, 64] }
@@ -416,7 +416,7 @@ RSpec.describe "OIDC endpoints" do
   describe "revoke then re-authorize" do
     let(:password) { "hexerade" }
     let(:user)     { create(:user) }
-    let(:owner)    { create(:user) }
+    let(:owner)    { create(:user, oauth_applications_beta: true) }
     let(:redirect) { "http://localhost/cb" }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
@@ -464,7 +464,7 @@ RSpec.describe "OIDC endpoints" do
   end
 
   describe "e621_permissions claim" do
-    let(:owner) { create(:user) }
+    let(:owner) { create(:user, oauth_applications_beta: true) }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
         name: "perm-claim", redirect_uri: "http://localhost/cb",
@@ -501,7 +501,7 @@ RSpec.describe "OIDC endpoints" do
   end
 
   describe "picture claim in safe mode" do
-    let(:owner) { create(:user) }
+    let(:owner) { create(:user, oauth_applications_beta: true) }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
         name: "pic-claim", redirect_uri: "http://localhost/cb",
@@ -544,7 +544,7 @@ RSpec.describe "OIDC endpoints" do
   end
 
   describe "email_verified claim" do
-    let(:owner) { create(:user) }
+    let(:owner) { create(:user, oauth_applications_beta: true) }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
         name: "claims-test", redirect_uri: "http://localhost/cb",
@@ -580,7 +580,7 @@ RSpec.describe "OIDC endpoints" do
   end
 
   describe "userinfo email claim scope gating" do
-    let(:owner) { create(:user) }
+    let(:owner) { create(:user, oauth_applications_beta: true) }
     let(:user) do
       create(:user, email: "scoped@example.com").tap do |u|
         u.update_columns(email_verification_key: nil)
@@ -617,7 +617,7 @@ RSpec.describe "OIDC endpoints" do
   describe "PKCE enforcement for public clients" do
     let(:password) { "hexerade" }
     let(:user)     { create(:user) }
-    let(:owner)    { create(:user) }
+    let(:owner)    { create(:user, oauth_applications_beta: true) }
     let(:redirect) { "http://localhost/cb" }
     let(:public_app) do
       Doorkeeper::Application.create!(
@@ -664,7 +664,7 @@ RSpec.describe "OIDC endpoints" do
 
   describe "GET /oauth/userinfo with a revoked token" do
     let(:user) { create(:user) }
-    let(:owner) { create(:user) }
+    let(:owner) { create(:user, oauth_applications_beta: true) }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
         name: "rev-client", redirect_uri: "http://localhost/cb",
@@ -682,7 +682,7 @@ RSpec.describe "OIDC endpoints" do
 
   describe "refresh token idle expiry" do
     let(:user) { create(:user) }
-    let(:owner) { create(:user) }
+    let(:owner) { create(:user, oauth_applications_beta: true) }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
         name: "refresh-client", redirect_uri: "http://localhost/cb",
@@ -721,7 +721,7 @@ RSpec.describe "OIDC endpoints" do
   end
 
   describe "minimum_user_level gate on refresh" do
-    let(:owner) { create(:user) }
+    let(:owner) { create(:user, oauth_applications_beta: true) }
     let(:user)  { create(:privileged_user) }
     let(:oauth_app) do
       Doorkeeper::Application.create!(
@@ -764,6 +764,84 @@ RSpec.describe "OIDC endpoints" do
       refresh
       expect(response).to have_http_status(:bad_request)
       expect(response.parsed_body["error"]).to eq("invalid_grant")
+    end
+  end
+
+  describe "when the application's owner can no longer manage OAuth applications" do
+    let(:password) { "hexerade" }
+    let(:owner)    { create(:user, oauth_applications_beta: true) }
+    let(:user)     { create(:user) }
+    let(:redirect) { "http://localhost/cb" }
+    let(:oauth_app) do
+      Doorkeeper::Application.create!(
+        name: "owned-by-soon-unflagged", redirect_uri: redirect,
+        scopes: "openid full", confidential: true, owner: owner
+      )
+    end
+    let(:token) do
+      Doorkeeper::AccessToken.create!(
+        application: oauth_app, resource_owner_id: user.id,
+        scopes: "openid full", use_refresh_token: true
+      )
+    end
+    let(:verifier)  { SecureRandom.urlsafe_base64(64).delete("=")[0, 64] }
+    let(:challenge) { Base64.urlsafe_encode64(Digest::SHA256.digest(verifier), padding: false) }
+    let(:authorize_url) do
+      "/oauth/authorize?" + {
+        response_type: "code", client_id: oauth_app.uid, redirect_uri: redirect,
+        scope: "openid full", state: "unflag", code_challenge: challenge, code_challenge_method: "S256",
+      }.to_query
+    end
+
+    def refresh(refresh_token = token.refresh_token)
+      post "/oauth/token", params: {
+        grant_type: "refresh_token",
+        refresh_token: refresh_token,
+        client_id: oauth_app.uid,
+        client_secret: oauth_app.plaintext_secret,
+      }
+    end
+
+    def remove_flag
+      owner.update!(oauth_applications_beta: false)
+    end
+
+    it "renders an error page on authorize after the beta flag is removed" do
+      remove_flag
+      make_session(user, password)
+      get authorize_url
+      expect(response).to have_http_status(:forbidden)
+      expect(response.body).to include("no longer available")
+    end
+
+    it "rejects the refresh after the beta flag is removed" do
+      token
+      remove_flag
+      refresh
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["error"]).to eq("invalid_grant")
+    end
+
+    it "accepts the refresh again once the beta flag is restored" do
+      token
+      remove_flag
+      refresh
+      owner.update!(oauth_applications_beta: true)
+      refresh
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body["access_token"]).to be_present
+    end
+
+    context "with a staff owner" do
+      let(:owner) { create(:staff_user) }
+
+      it "rejects the refresh after the owner is demoted" do
+        token
+        owner.update_column(:level, UserLevel::MEMBER)
+        refresh
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body["error"]).to eq("invalid_grant")
+      end
     end
   end
 end
