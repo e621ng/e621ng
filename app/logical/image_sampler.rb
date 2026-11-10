@@ -12,7 +12,7 @@ module ImageSampler
     return unless File.exist?(post.file_path)
     return if post.is_flash? # Cannot generate any kind of thumbnail
 
-    with_still_image(post.file_path, is_video: post.is_video?) do |source_path|
+    with_still_image(post.file_path, file_ext: post.file_ext) do |source_path|
       # Read from the file – stored post dimensions may predate EXIF autorotation and be swapped.
       dimensions = oriented_dimensions(source_path)
 
@@ -65,7 +65,7 @@ module ImageSampler
     return unless File.exist?(replacement.replacement_file_path)
     return if replacement.file_ext == "swf" # Cannot generate any kind of thumbnail
 
-    with_still_image(replacement.replacement_file_path, is_video: replacement.is_video?) do |source_path|
+    with_still_image(replacement.replacement_file_path, file_ext: replacement.file_ext) do |source_path|
       # Generate thumbnails
       thumb, webp = thumbnail(source_path, oriented_dimensions(source_path)).values_at(:jpg, :webp)
       webp&.close!
@@ -76,10 +76,10 @@ module ImageSampler
 
   # Yields the path of a still image of the file: the file itself, or for a video,
   # a snapshot generated with ffmpeg that is deleted afterwards.
-  def with_still_image(file_path, is_video: false)
-    return yield(file_path) unless is_video
+  def with_still_image(file_path, file_ext: nil)
+    return yield(file_path) unless FileMethods::VIDEO_FILE_TYPES.include?(file_ext)
 
-    snapshot = gen_video_snapshot(file_path)
+    snapshot = gen_video_snapshot(file_path, file_ext)
     yield snapshot.path
   ensure
     snapshot&.close!
@@ -118,11 +118,12 @@ module ImageSampler
   # Generates a snapshot of the first frame of a video file using ffmpeg.
   # Parameters:
   #   - file_path: the path to the video file
+  #   - file_ext: the video's validated type
   # Returns the path to the generated snapshot file.
-  def gen_video_snapshot(file_path)
+  def gen_video_snapshot(file_path, file_ext)
     output_file = Tempfile.new(["video-preview", ".png"], binmode: true)
-    decoder_args = video_alpha_decoder_args(file_path)
-    stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffmpeg_path, "-y", *decoder_args, "-threads", "2", "-filter_threads", "1", "-i", file_path, "-vf", video_snapshot_filter(file_path), "-frames:v", "1", output_file.path, timeout: SNAPSHOT_TIMEOUT)
+    decoder_args = video_alpha_decoder_args(file_path, file_ext)
+    stdout, stderr, status = ExternalCommand.run(Danbooru.config.ffmpeg_path, "-y", *decoder_args, "-threads", "2", "-filter_threads", "1", *FileMethods.ffmpeg_input(file_path, file_ext), "-vf", video_snapshot_filter(file_path, file_ext), "-frames:v", "1", output_file.path, timeout: SNAPSHOT_TIMEOUT)
 
     unless status == 0
       Rails.logger.warn("[FFMPEG PREVIEW STDOUT] #{stdout.chomp!}")
@@ -138,13 +139,13 @@ module ImageSampler
   # WebM files. Both codecs store alpha as a secondary bitstream tagged with
   # alpha_mode=1; the native FFmpeg decoders ignore it, only the libvpx variants
   # decode it correctly.
-  def video_alpha_decoder_args(file_path)
+  def video_alpha_decoder_args(file_path, file_ext)
     stdout, _stderr, status = ExternalCommand.run(
       Danbooru.config.ffprobe_path, "-v", "error",
       "-select_streams", "v:0",
       "-show_entries", "stream=codec_name:stream_tags=alpha_mode",
       "-of", "default=noprint_wrappers=1",
-      file_path,
+      *FileMethods.ffmpeg_input(file_path, file_ext),
       timeout: FileMethods::FFPROBE_TIMEOUT
     )
     return [] unless status == 0
@@ -171,8 +172,8 @@ module ImageSampler
   # to convert between the formats supported by the filter". Relabelling the matrix — without
   # touching the pixel data — lets the filter graph be built.
   # The colours may be slightly off, but this is preferable to no snapshot at all.
-  def colorspace_relabel_filter(file_path)
-    colorspace = video_colorspace(file_path)
+  def colorspace_relabel_filter(file_path, file_ext)
+    colorspace = video_colorspace(file_path, file_ext)
     return nil if colorspace.blank? || SWSCALE_SUPPORTED_MATRICES.include?(colorspace)
 
     Rails.logger.warn("[ImageSampler] unsupported colour space #{colorspace.inspect} in #{file_path}, relabelling to bt709")
@@ -182,21 +183,21 @@ module ImageSampler
   # Returns the `-vf` filter chain for the snapshot.
   # `thumbnail` holds 100 frames to pick from, so frames are first shrunk to the largest
   # size a sample can use (twice large_image_width on the long side). Never upscales.
-  def video_snapshot_filter(file_path)
+  def video_snapshot_filter(file_path, file_ext)
     box = Danbooru.config.large_image_width * 2
     scale = "scale='min(iw,#{box})':'min(ih,#{box})':force_original_aspect_ratio=decrease:flags=lanczos"
-    [colorspace_relabel_filter(file_path), scale, "thumbnail"].compact.join(",")
+    [colorspace_relabel_filter(file_path, file_ext), scale, "thumbnail"].compact.join(",")
   end
 
   # Returns the video stream's tagged YCbCr matrix (e.g. "bt709", "ictcp"),
   # or an empty string if it can't be determined.
-  def video_colorspace(file_path)
+  def video_colorspace(file_path, file_ext)
     stdout, _stderr, status = ExternalCommand.run(
       Danbooru.config.ffprobe_path, "-v", "error",
       "-select_streams", "v:0",
       "-show_entries", "stream=color_space",
       "-of", "default=noprint_wrappers=1:nokey=1",
-      file_path,
+      *FileMethods.ffmpeg_input(file_path, file_ext),
       timeout: FileMethods::FFPROBE_TIMEOUT
     )
     return "" unless status == 0

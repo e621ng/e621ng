@@ -15,10 +15,10 @@ RSpec.describe ImageSampler do
       expect(described_class.with_still_image(file_fixture("sample.jpg").to_s) { :done }).to eq(:done)
     end
 
-    context "with is_video: true" do
+    context "with a video" do
       it "yields a snapshot image and deletes it afterwards" do
         snapshot_path = nil
-        described_class.with_still_image(file_fixture("animated.mp4").to_s, is_video: true) do |path|
+        described_class.with_still_image(file_fixture("animated.mp4").to_s, file_ext: "mp4") do |path|
           snapshot_path = path
           expect(image_dimensions(path).first).to eq(256)
         end
@@ -31,7 +31,7 @@ RSpec.describe ImageSampler do
         allow(ExternalCommand).to receive(:run).and_return([+"stdout output", +"stderr output", fake_status])
 
         expect do
-          described_class.with_still_image(file_fixture("animated.mp4").to_s, is_video: true) { nil }
+          described_class.with_still_image(file_fixture("animated.mp4").to_s, file_ext: "mp4") { nil }
         end.to raise_error(RuntimeError, "Could not generate video snapshot")
       end
     end
