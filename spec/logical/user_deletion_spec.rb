@@ -118,6 +118,13 @@ RSpec.describe UserDeletion do
           expect(UserNameChangeRequest.where(user_id: user.id)).not_to exist
         end
 
+        it "expires the name cache entries written by the rolled-back rename" do
+          allow(Cache).to receive(:delete).and_call_original
+          expect { deletion.delete! }.to raise_error(ActiveRecord::StatementInvalid)
+          expect(Cache).to have_received(:delete).with("uin:#{user.id}")
+          expect(Cache).to have_received(:delete).with("uni:user_#{user.id}")
+        end
+
         it "does not enqueue cleanup jobs" do
           expect { deletion.delete! }.to raise_error(ActiveRecord::StatementInvalid)
           expect(AvatarCleanupJob.jobs).to be_empty

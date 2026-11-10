@@ -17,21 +17,27 @@ class UserDeletion
   def delete!
     validate
 
+    original_name = user.name
+    final_name = calculate_final_name
+
     # A partial run would leave the account renamed and locked, so neither path could retry.
-    User.transaction do
-      original_name = user.name
-      final_name = calculate_final_name
+    begin
+      User.transaction do
+        # Create name change history if the name will actually change
+        if final_name != original_name
+          create_name_history(original_name, final_name)
+        end
 
-      # Create name change history if the name will actually change
-      if final_name != original_name
-        create_name_history(original_name, final_name)
+        clear_user_settings
+        reset_password
+        revoke_credentials
+        clear_bit_prefs
+        create_mod_action
       end
-
-      clear_user_settings
-      reset_password
-      revoke_credentials
-      clear_bit_prefs
-      create_mod_action
+    rescue StandardError
+      # The rename's after_save cache write isn't rolled back with the transaction.
+      expire_name_cache(final_name) if final_name != original_name
+      raise
     end
     user.reload # bit_prefs was written around the in-memory copy
 
@@ -51,6 +57,12 @@ class UserDeletion
       skip_limited_validation: true,
       skip_user_name_validation: true,
     )
+  end
+
+  # Keys written by User#update_cache; they refill from the database on next read.
+  def expire_name_cache(final_name)
+    Cache.delete("uin:#{user.id}")
+    Cache.delete("uni:#{User.normalize_name(final_name)}")
   end
 
   def create_mod_action
