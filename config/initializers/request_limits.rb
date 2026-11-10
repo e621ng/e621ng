@@ -7,6 +7,26 @@ module RequestLimits
   BYTESIZE_LIMIT = 4.megabytes
   PARAMS_LIMIT = 4096
   DEPTH_LIMIT = 32
+
+  # Counts every hash entry and array element at any depth, like Rack counts every form pair
+  # (`a[b]=1`, `ids[]=1`). Stops as soon as the limit is passed.
+  def self.params_limit_exceeded?(data)
+    count = 0
+    stack = [data]
+    until stack.empty?
+      node = stack.pop
+      children = case node
+                 when Hash then node.values
+                 when Array then node
+                 else next
+                 end
+      count += children.size
+      return true if count > PARAMS_LIMIT
+
+      stack.concat(children)
+    end
+    false
+  end
 end
 
 # Set explicitly rather than through RACK_* env vars, which Rack only reads when it is first loaded.
@@ -43,8 +63,8 @@ ActionDispatch::Request.parameter_parsers = ActionDispatch::Request.parameter_pa
   json: ->(raw_post) do
     data = ActiveSupport::JSON.decode(raw_post, max_nesting: RequestLimits::DEPTH_LIMIT)
 
-    if data.is_a?(Hash) && data.size > RequestLimits::PARAMS_LIMIT
-      raise Rack::QueryParser::QueryLimitError, "total number of parameters (#{data.size}) exceeds limit (#{RequestLimits::PARAMS_LIMIT})"
+    if RequestLimits.params_limit_exceeded?(data)
+      raise Rack::QueryParser::QueryLimitError, "total number of parameters exceeds limit (#{RequestLimits::PARAMS_LIMIT})"
     end
 
     data.is_a?(Hash) ? data : { _json: data }

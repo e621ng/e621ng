@@ -46,7 +46,7 @@ RSpec.describe "Request parameter limits" do
       (1..count).to_h { |i| ["a#{i}", 1] }.to_json
     end
 
-    it "accepts the maximum number of top-level parameters" do
+    it "accepts the maximum number of parameters" do
       post_json(json_object(RequestLimits::PARAMS_LIMIT))
       expect(response).to have_http_status(:forbidden)
     end
@@ -56,9 +56,19 @@ RSpec.describe "Request parameter limits" do
       expect(response).to have_http_status(:bad_request)
     end
 
-    it "counts a top-level array as a single parameter" do
+    it "counts nested parameters" do
+      post_json({ a: JSON.parse(json_object(RequestLimits::PARAMS_LIMIT)) }.to_json)
+      expect(response).to have_http_status(:bad_request)
+    end
+
+    it "counts array elements" do
+      post_json({ ids: Array.new(RequestLimits::PARAMS_LIMIT, 1) }.to_json)
+      expect(response).to have_http_status(:bad_request)
+    end
+
+    it "counts the elements of a top-level array" do
       post_json(Array.new(RequestLimits::PARAMS_LIMIT + 1, 1).to_json)
-      expect(response).to have_http_status(:forbidden)
+      expect(response).to have_http_status(:bad_request)
     end
 
     it "rejects JSON nested deeper than the limit" do
