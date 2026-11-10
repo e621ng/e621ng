@@ -17,19 +17,25 @@ class UserDeletion
   def delete!
     validate
 
-    original_name = user.name
-    final_name = calculate_final_name
+    # A partial run would leave the account renamed and locked, so neither path could retry.
+    User.transaction do
+      original_name = user.name
+      final_name = calculate_final_name
 
-    # Create name change history if the name will actually change
-    if final_name != original_name
-      create_name_history(original_name, final_name)
+      # Create name change history if the name will actually change
+      if final_name != original_name
+        create_name_history(original_name, final_name)
+      end
+
+      clear_user_settings
+      reset_password
+      revoke_credentials
+      clear_bit_prefs
+      create_mod_action
     end
 
-    clear_user_settings
-    reset_password
-    revoke_credentials
-    clear_bit_prefs
-    create_mod_action
+    # Enqueued after commit so workers never see the pre-deletion state.
+    AvatarCleanupJob.perform_async(user.id, true)
     FlushFavoritesJob.perform_async(user.id)
   end
 
@@ -64,7 +70,6 @@ class UserDeletion
       custom_style: "",
       level: [user.level, UserLevel::MEMBER].min, # Keep banned users banned
     )
-    AvatarCleanupJob.perform_async(user.id, true)
   end
 
   def reset_password

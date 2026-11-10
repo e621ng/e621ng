@@ -97,6 +97,27 @@ RSpec.describe UserDeletion do
         expect(user.no_flagging?).to be true
       end
 
+      context "when a step fails partway through" do
+        before { allow(user).to receive(:revoke_oauth_credentials!).and_raise(ActiveRecord::StatementInvalid) }
+
+        it "rolls back so the deletion can be retried" do
+          original_name = user.name
+          key = create(:api_key, user: user)
+          expect { deletion.delete! }.to raise_error(ActiveRecord::StatementInvalid)
+          user.reload
+          expect(user.name).to eq(original_name)
+          expect(user.bcrypt_password_hash).not_to eq("*LK*")
+          expect(ApiKey.exists?(key.id)).to be true
+          expect(UserNameChangeRequest.where(user_id: user.id)).not_to exist
+        end
+
+        it "does not enqueue cleanup jobs" do
+          expect { deletion.delete! }.to raise_error(ActiveRecord::StatementInvalid)
+          expect(AvatarCleanupJob.jobs).to be_empty
+          expect(FlushFavoritesJob.jobs).to be_empty
+        end
+      end
+
       describe "OAuth credentials" do
         let(:other_user) { create(:user) }
         let(:other_app) do
