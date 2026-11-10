@@ -80,6 +80,14 @@ RSpec.describe Maintenance::User::PasswordResetsController do
             params: { uid: "#{nonce.user_id}关闭网页", key: nonce.key }
         expect(response).to have_http_status(:ok)
       end
+
+      it "does not log the reset key" do
+        allow(Rails.logger).to receive(:warn).and_call_original
+        get edit_maintenance_user_password_reset_path,
+            params: { uid: "#{nonce.user_id}关闭网页", key: nonce.key }
+
+        expect(Rails.logger).to have_received(:warn).with(satisfy { |msg| msg.include?("key_present=true") && msg.exclude?(nonce.key) })
+      end
     end
 
     context "with an excessively large UID" do
