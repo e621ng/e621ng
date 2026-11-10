@@ -15,4 +15,12 @@ module SensitiveParams
     # (?<![^&]) anchors to the start of the query or a preceding "&" without consuming it
     Regexp.new("(?<![^&])(?:#{exact})=[^&]*|(?:#{PARAMS.join('|')})[^&]*=[^&]*")
   end
+
+  # Drops exact-match params from a path's query string, e.g. before nesting it in a return URL
+  def self.strip_from_path(path)
+    base, query = path.split("?", 2)
+    return path if query.nil?
+    kept = query.split("&").reject { |pair| EXACT_PARAMS.include?(pair.split("=", 2).first) }
+    kept.empty? ? base : "#{base}?#{kept.join('&')}"
+  end
 end

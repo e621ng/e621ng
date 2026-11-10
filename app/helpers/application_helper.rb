@@ -185,7 +185,7 @@ module ApplicationHelper
 
   def safe_new_session_path
     return new_session_path if request.path == new_session_path
-    url = request.fullpath[0, 2000]
+    url = SensitiveParams.strip_from_path(request.fullpath)[0, 2000]
     path = new_session_path(url: url)
     max = 2000 + new_session_path(url: "").length
     return path if path.length <= max

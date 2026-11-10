@@ -17,6 +17,19 @@ RSpec.describe SensitiveParams do
     end
   end
 
+  describe ".strip_from_path" do
+    it "removes exact-match params wherever they appear" do
+      expect(described_class.strip_from_path("/a?key=x&uid=3")).to eq("/a?uid=3")
+      expect(described_class.strip_from_path("/a?uid=3&key=x")).to eq("/a?uid=3")
+      expect(described_class.strip_from_path("/a?key=x")).to eq("/a")
+    end
+
+    it "leaves other paths untouched" do
+      expect(described_class.strip_from_path("/posts?tags=monkey&keyword=1")).to eq("/posts?tags=monkey&keyword=1")
+      expect(described_class.strip_from_path("/posts")).to eq("/posts")
+    end
+  end
+
   describe ".to_datadog_regex" do
     def obfuscate(url)
       Datadog::Tracing::Contrib::Utils::Quantization::HTTP.url(url, query: { obfuscate: { regex: described_class.to_datadog_regex } })
