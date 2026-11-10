@@ -23,10 +23,33 @@ RSpec.describe OauthApplicationsController do
       expect(response).to redirect_to(/session/)
     end
 
-    it "denies below-staff members with 403" do
+    it "denies unflagged members with 403" do
       sign_in_as(member)
-      get "/applications"
+      get "/applications/mine"
       expect(response).to have_http_status(:forbidden)
+    end
+
+    context "with the oauth_applications_beta flag" do
+      let(:beta_member) { create(:user, oauth_applications_beta: true) }
+
+      before { sign_in_as(beta_member, reauthenticated: true) }
+
+      it "allows managing own applications" do
+        get "/applications/mine"
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "allows creating applications" do
+        expect do
+          post "/applications", params: valid_params
+        end.to change(Doorkeeper::Application, :count).by(1)
+        expect(Doorkeeper::Application.last.owner).to eq(beta_member)
+      end
+
+      it "still denies the global application list" do
+        get "/applications"
+        expect(response).to have_http_status(:forbidden)
+      end
     end
 
     it "rejects api_key auth (browser-only)" do

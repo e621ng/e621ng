@@ -69,6 +69,7 @@ class User < ApplicationRecord
     is_bd_staff
     is_bd_auditor
     has_cropped_avatar
+    oauth_applications_beta
   ].freeze
 
   include Danbooru::HasBitFlags
@@ -725,6 +726,10 @@ class User < ApplicationRecord
       is_staff? || replacements_beta?
     end
 
+    def can_manage_oauth_applications?
+      is_staff? || oauth_applications_beta?
+    end
+
     def can_view_staff_notes?
       is_staff?
     end
@@ -965,6 +970,7 @@ class User < ApplicationRecord
           enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
           enable_compact_uploader replacements_beta forum_notification_dot
+          oauth_applications_beta
         ]
         list += boolean_attributes + %i[
           updated_at email last_logged_in_at last_forum_read_at

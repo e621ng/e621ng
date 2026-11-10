@@ -51,7 +51,7 @@
 <% end %>
 
 
-<% if Danbooru.config.enable_oauth_provider? && CurrentUser.user.is_staff? %>
+<% if Danbooru.config.enable_oauth_provider? && CurrentUser.user.can_manage_oauth_applications? %>
 <!-- Developer -->
 <tab-group name="developer">Developer</tab-group>
 

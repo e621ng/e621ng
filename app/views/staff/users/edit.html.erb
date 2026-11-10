@@ -67,6 +67,11 @@
       </div>
 
       <div class="input">
+        <label for="user_oauth_applications_beta" class="optional">OAuth Applications Beta</label>
+        <%= select(:user, :oauth_applications_beta, [["Yes", true], ["No", false]]) %>
+      </div>
+
+      <div class="input">
         <label for="user_raised_favorite_limit" class="optional">Raised Favorite Limit</label>
         <%= select(:user, :raised_favorite_limit, [["Yes", true], ["No", false]]) %>
       </div>

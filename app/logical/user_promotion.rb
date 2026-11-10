@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class UserPromotion
-  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_replacements_beta, :old_tag_warden, :old_raised_favorite_limit
+  attr_reader :user, :promoter, :new_level, :options, :old_can_approve_posts, :old_can_upload_free, :old_no_flagging, :old_replacements_beta, :old_oauth_applications_beta, :old_tag_warden, :old_raised_favorite_limit
 
   def initialize(user, promoter, new_level, options = {})
     @user = user
@@ -17,6 +17,7 @@ class UserPromotion
     @old_can_upload_free = user.can_upload_free?
     @old_no_flagging = user.no_flagging?
     @old_replacements_beta = user.replacements_beta?
+    @old_oauth_applications_beta = user.oauth_applications_beta?
     @old_tag_warden = user.tag_warden?
     @old_raised_favorite_limit = user.raised_favorite_limit?
 
@@ -40,6 +41,10 @@ class UserPromotion
 
     if options.key?(:replacements_beta)
       user.replacements_beta = options[:replacements_beta]
+    end
+
+    if options.key?(:oauth_applications_beta)
+      user.oauth_applications_beta = options[:oauth_applications_beta]
     end
 
     if options.key?(:raised_favorite_limit)
@@ -72,6 +77,7 @@ class UserPromotion
     flag_check(added, removed, "can_upload_free", "unlimited uploads")
     flag_check(added, removed, "no_flagging", "flag ban")
     flag_check(added, removed, "replacements_beta", "replacements beta")
+    flag_check(added, removed, "oauth_applications_beta", "oauth applications beta")
     flag_check(added, removed, "tag_warden", "tag warden")
     flag_check(added, removed, "raised_favorite_limit", "raised favorite limit")
 
