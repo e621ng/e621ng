@@ -7,13 +7,11 @@
 # Compiles the gem bundle (native extensions need build-base and the -dev libs).
 FROM ruby:3.3.1-alpine3.20 AS ruby-builder
 
-RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat ragel rustup clang-libclang
-RUN rustup-init -y --profile minimal --default-toolchain 1.99.1
-ENV PATH="/root/.cargo/bin:${PATH}"
-ENV RUSTFLAGS="-C target-feature=-crt-static"
+RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat ragel
 
 COPY Gemfile Gemfile.lock ./
 
+RUN bundle lock --add-platform aarch64-linux-musl aarch64-linux
 RUN BUNDLE_IGNORE_CONFIG=true BUNDLE_FROZEN=true bundle install -j$(nproc) \
  && rm -rf /usr/local/bundle/cache/*.gem \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
