@@ -23,6 +23,14 @@ export default class MascotManager {
   }
 
   /**
+   * Gets the total number of available mascots.
+   * @returns {number} The number of available mascots.
+   */
+  public get mascotCount (): number {
+    return this.availableIDs.length;
+  }
+
+  /**
    * Loads mascot data from the DOM, decodes it, and parses it into the mascots property.
    * @returns {boolean} True if the data was successfully loaded and parsed, false otherwise.
    */
@@ -145,10 +153,16 @@ interface MascotData {
 }
 
 State.onReady(() => {
-  let instance: MascotManager = null;
-  document.getElementById("mascot-swap")?.addEventListener("click", function (event) {
-    if (!instance) instance = new MascotManager();
-    if (!instance.isAvailable) return;
+  const mascotSwapButton = document.getElementById("mascot-swap");
+  if (!mascotSwapButton) return;
+
+  const instance = new MascotManager();
+  if (!instance.isAvailable) return;
+
+  if (instance.mascotCount > 1)
+    mascotSwapButton.style.visibility = "visible";
+
+  mascotSwapButton.addEventListener("click", function (event) {
     instance.handleChangeMascot(event);
   });
 });
