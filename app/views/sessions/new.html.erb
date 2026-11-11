@@ -1,5 +1,5 @@
 <div id="c-sessions"><div id="a-new">
-  <%= render partial: "auths/login" %>
+  <%= render partial: "auths/login", locals: { captcha: params[:captcha].present? } %>
 </div></div>
 
 <% content_for(:page_title) do %>

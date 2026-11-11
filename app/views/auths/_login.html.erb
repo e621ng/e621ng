@@ -25,6 +25,7 @@
       <%= form.label :remember, "!", class: "st-toggle", role: "switch" %>
     </div>
 
+    <%= render "application/turnstile" if local_assigns[:captcha] %>
     <%= form.submit("Sign in", class: "st-button submit") %>
 
     <div class="auth-spacer" id="auth-error"></div>

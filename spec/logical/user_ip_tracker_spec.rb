@@ -67,4 +67,19 @@ RSpec.describe UserIpTracker do
       expect(DanbooruLogger).to have_received(:log)
     end
   end
+
+  describe ".normalize" do
+    it "collapses IPv4-mapped IPv6 to the plain v4 address" do
+      expect(described_class.normalize("::ffff:203.0.113.7").to_s).to eq("203.0.113.7")
+    end
+
+    it "keeps a plain IPv6 address" do
+      expect(described_class.normalize("2001:db8::1").to_s).to eq("2001:db8::1")
+    end
+
+    it "returns nil for unparseable input" do
+      expect(described_class.normalize("garbage")).to be_nil
+      expect(described_class.normalize(nil)).to be_nil
+    end
+  end
 end

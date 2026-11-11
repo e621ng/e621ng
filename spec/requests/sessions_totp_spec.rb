@@ -10,7 +10,7 @@ RSpec.describe "TOTP login challenge" do
   let!(:user_totp) { create(:user_totp, user: user, secret: secret) }
 
   before do
-    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
+    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1, reset!: nil))
   end
 
   # Step-aligned instant so code validity doesn't depend on where inside the
