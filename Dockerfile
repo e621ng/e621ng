@@ -11,7 +11,7 @@ RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat ra
 
 COPY Gemfile Gemfile.lock ./
 
-RUN bundle lock --add-platform aarch64-linux-musl aarch64-linux
+RUN BUNDLE_IGNORE_CONFIG=true BUNDLE_FROZEN=true bundle lock --add-platform aarch64-linux-musl aarch64-linux
 RUN BUNDLE_IGNORE_CONFIG=true BUNDLE_FROZEN=true bundle install -j$(nproc) \
  && rm -rf /usr/local/bundle/cache/*.gem \
  && find /usr/local/bundle/gems/ -name "*.c" -delete \
