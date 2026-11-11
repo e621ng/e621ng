@@ -8,7 +8,7 @@ RSpec.describe TotpsController do
   let(:user) { create(:user) }
 
   before do
-    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
+    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1, reset!: nil))
   end
 
   around { |example| travel_to(Time.zone.at(1_775_000_010), &example) }

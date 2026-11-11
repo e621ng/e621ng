@@ -49,7 +49,7 @@ RSpec.describe Maintenance::User::EmailChangesController do
     context "as a member" do
       before do
         sign_in_as user
-        allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
+        allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1, reset!: nil))
       end
 
       context "with a correct password and valid email" do

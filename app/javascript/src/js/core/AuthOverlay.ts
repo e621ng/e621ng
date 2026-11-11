@@ -233,6 +233,12 @@ export default class AuthOverlay {
             return;
           }
 
+          // The account is throttled and needs a captcha, which only the full page can render.
+          if (xhr.responseJSON?.code === "captcha_required") {
+            window.location.href = xhr.responseJSON?.url ?? "/session/new";
+            return;
+          }
+
           const message = xhr.responseJSON?.error ?? "Login failed. Please try again.";
           this.showError(message);
         },

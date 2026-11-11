@@ -11,13 +11,9 @@ module UserIpTracker
     return unless Danbooru.config.enable_user_ip_tracking?
     return if user.nil? || user.is_anonymous?
 
-    # Normalize IPv4-mapped IPv6 (::ffff:a.b.c.d -> a.b.c.d): the mapped form
-    # has family() = 6, so its /64 would be ::/64 (one bucket for every mapped
-    # address) and as an exact inet it does not equal its plain v4 form,
-    # splitting one client into two identities. Skip non-public addresses
-    # entirely, matching AsnRange.lookup.
-    ip = IPAddr.new(ip_addr.to_s).native
-    return if ip.private? || ip.loopback? || ip.link_local?
+    # Skip non-public addresses entirely, matching AsnRange.lookup.
+    ip = normalize(ip_addr)
+    return if ip.nil? || ip.private? || ip.loopback? || ip.link_local?
 
     ip_string = ip.to_s
     cache_key = "user_ip:#{user.id}:#{ip_string}"
@@ -35,6 +31,16 @@ module UserIpTracker
     )
   rescue StandardError => e
     DanbooruLogger.log(e)
+    nil
+  end
+
+  # Normalize IPv4-mapped IPv6 (::ffff:a.b.c.d -> a.b.c.d): the mapped form
+  # has family() = 6, so its /64 would be ::/64 (one bucket for every mapped
+  # address) and as an exact inet it does not equal its plain v4 form,
+  # splitting one client into two identities. Nil for unparseable input.
+  def self.normalize(ip_addr)
+    IPAddr.new(ip_addr.to_s).native
+  rescue IPAddr::Error
     nil
   end
 end
