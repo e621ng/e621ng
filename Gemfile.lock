@@ -103,6 +103,7 @@ GEM
     cronex (0.15.0)
       tzinfo
       unicode (>= 0.4.4.5)
+    csv (3.3.7)
     dalli (3.2.15)
       logger
     datadog (2.48.0)
@@ -487,6 +488,7 @@ DEPENDENCIES
   blueprinter (= 1.3.0)
   bootsnap (= 1.26.1)
   bundler-audit (= 0.9.3)
+  csv (= 3.3.7)
   dalli (= 3.2.15)
   datadog (= 2.48.0)
   debug (= 1.11.1)
@@ -575,6 +577,7 @@ CHECKSUMS
   crack (1.0.1) sha256=ff4a10390cd31d66440b7524eb1841874db86201d5b70032028553130b6d4c7e
   crass (1.0.8) sha256=7a0145c7a2c59f8e7923b3a69ce819c444823a00a5127d805298fea13be24efe
   cronex (0.15.0) sha256=21c794e085fad2951c4f2e279f440340a35ba2297e0b738f22f263f69fbe2186
+  csv (3.3.7) sha256=15a3f16f6628da8664d455eb634e7f22031bcf53044923caf56975109e71b9f8
   dalli (3.2.15) sha256=68f94d5e68e17f7371a43a298fb3a6d5315ed6ba42d188903aee053508479541
   datadog (2.48.0) sha256=0bf955f306ce997ba825d14bbf176872d605a3d810fa5d284f0adc9bb4d804c3
   datadog-ruby_core_source (3.5.6) sha256=07d8909b9314af709da80966cf7e160da19ca1c396a8f45d175615f675a89569

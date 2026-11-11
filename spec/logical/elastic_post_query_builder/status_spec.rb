@@ -5,8 +5,8 @@ require "rails_helper"
 RSpec.describe ElasticPostQueryBuilder do
   include_context "as member"
 
-  def build_query(query_string, **opts)
-    ElasticPostQueryBuilder.new(query_string, resolve_aliases: false, enable_safe_mode: false, **opts)
+  def build_query(query_string, **)
+    ElasticPostQueryBuilder.new(query_string, resolve_aliases: false, enable_safe_mode: false, **)
   end
 
   describe "status metatag" do

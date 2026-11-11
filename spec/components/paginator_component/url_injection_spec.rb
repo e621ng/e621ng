@@ -19,8 +19,8 @@ RSpec.describe PaginatorComponent, type: :component do
     )
   end
 
-  def rendered_hrefs(**opts)
-    doc = render_inline(described_class.new(records: make_records(**opts)))
+  def rendered_hrefs(**)
+    doc = render_inline(described_class.new(records: make_records(**)))
     doc.css("a").pluck("href")
   end
 

@@ -17,6 +17,8 @@ gem "responders", "3.2.1"
 # Nothing depends on these since rdoc 8; unpinned, Ruby's older bundled psych/stringio would load instead
 gem "psych", "5.5.0"
 gem "stringio", "3.2.0"
+# Bundled (not default) gem since Ruby 3.4, so it must be declared; used by script/audit_*.rb
+gem "csv", "3.3.7"
 
 ### Data stores
 gem "dalli", "3.2.15" # Held on 3.2.x: 5.x needs memcached 1.6+ and 4.x+ crashes Ruby < 3.3.8 (bug #21195)
