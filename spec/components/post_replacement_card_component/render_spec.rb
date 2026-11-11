@@ -8,9 +8,9 @@ RSpec.describe PostReplacementCardComponent, type: :component do
   let(:post_record) { create(:post) }
   let(:replacement) { create(:post_replacement, post: post_record) }
 
-  def render_card(record, **opts)
+  def render_card(record, **)
     with_request_url "/post_replacements" do
-      render_inline(described_class.new(post_replacement: record, **opts))
+      render_inline(described_class.new(post_replacement: record, **))
     end
   end
 

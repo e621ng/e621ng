@@ -70,9 +70,9 @@ RSpec.describe FormSearchHelper do
   describe "#form_search" do
     include_context "as member"
 
-    def render_form(**opts, &block)
+    def render_form(**, &block)
       block ||= proc {}
-      Nokogiri::HTML.fragment(helper.form_search(path: "/posts", **opts, &block))
+      Nokogiri::HTML.fragment(helper.form_search(path: "/posts", **, &block))
     end
 
     context "when hideable (default for a non-search path)" do
