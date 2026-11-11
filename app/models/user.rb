@@ -122,6 +122,8 @@ class User < ApplicationRecord
   # after_create :notify_sock_puppets
   after_create :create_user_status
   before_update :encrypt_password_on_update
+  after_update :invalidate_password_reset_nonces,
+               if: -> { saved_change_to_bcrypt_password_hash? || saved_change_to_email? }
   after_save :update_cache
   after_save :clear_cropped_avatar_on_avatar_change
 
@@ -287,6 +289,10 @@ class User < ApplicationRecord
 
     def upgrade_password(pass)
       update_columns(password_hash: "", bcrypt_password_hash: User.bcrypt(pass))
+    end
+
+    def invalidate_password_reset_nonces
+      UserPasswordResetNonce.where(user_id: id).delete_all
     end
 
     def password_is_secure

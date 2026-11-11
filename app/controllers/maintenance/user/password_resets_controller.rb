@@ -3,6 +3,8 @@
 module Maintenance
   module User
     class PasswordResetsController < ApplicationController
+      include RecoveryRequestGuard
+
       def new
         @nonce = UserPasswordResetNonce.new
       end
@@ -12,28 +14,32 @@ module Maintenance
       end
 
       def create
-        ::User.with_email(params[:email]).each do |user|
-          next if user.is_moderator?
-          UserPasswordResetNonce.create(user_id: user.id)
+        case throttle_recovery_request(params[:email], new_maintenance_user_password_reset_path, "user.password_reset")
+        when :rejected then return
+        when :allowed
+          sent = false
+          ::User.with_email(params[:email]).each do |user|
+            next if user.is_moderator?
+            UserPasswordResetNonce.create(user_id: user.id)
+            sent = true
+          end
+          DanbooruLogger.add_attributes("user.password_reset" => sent ? "sent" : "no_match")
         end
-        redirect_to new_maintenance_user_password_reset_path, notice: "If your email was on file, an email has been sent your way. It should arrive within the next few minutes. Make sure to check your spam folder."
+        redirect_to new_maintenance_user_password_reset_path, notice: RecoveryRequestGuard::GENERIC_NOTICE
       end
 
       def update
         @nonce = find_nonce_from_params
+        return redirect_to new_maintenance_user_password_reset_path, notice: "Invalid reset token" if @nonce.nil?
+        return redirect_to new_maintenance_user_password_reset_path, notice: "Reset expired" if @nonce.expired?
 
-        if @nonce
-          if @nonce.expired?
-            return redirect_to new_maintenance_user_password_reset_path, notice: "Reset expired"
-          end
-          if @nonce.reset_user!(params[:password], params[:password_confirm])
-            @nonce.destroy
-            redirect_to new_maintenance_user_password_reset_path, notice: "Password reset"
-          else
-            redirect_to new_maintenance_user_password_reset_path, notice: "Passwords do not match"
-          end
+        if @nonce.reset_user!(params[:password], params[:password_confirm])
+          DanbooruLogger.add_attributes("user.password_reset" => "completed")
+          redirect_to new_maintenance_user_password_reset_path, notice: "Password reset"
         else
-          redirect_to new_maintenance_user_password_reset_path, notice: "Invalid reset token"
+          DanbooruLogger.add_attributes("user.password_reset" => "invalid_password")
+          # Re-render so the user can retry with the same token; uid/key come from the PATCH params.
+          render :edit, status: 422
         end
       end
 
