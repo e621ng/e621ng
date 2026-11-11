@@ -1,10 +1,10 @@
 {
   "name": "e621ng",
   "private": true,
-  "packageManager": "npm@11.21.2",
+  "packageManager": "npm@11.20.0",
   "engines": {
     "node": ">=26.0.0",
-    "npm": ">=11.21.2"
+    "npm": ">=11.20.0"
   },
   "version": "0.1.0",
   "dependencies": {
