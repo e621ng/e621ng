@@ -3,8 +3,9 @@
 module UserAvatarUrlCache
   CACHE_TTL = 15.minutes
 
-  def self.key(user_id)
-    "user_avatar_url:#{user_id}"
+  # Per site: the URL contains the site's storage host (doc 38)
+  def self.key(user_id, site = CurrentSite.cache_key)
+    ["user_avatar_url:#{user_id}", site].compact.join(":")
   end
 
   # Returns the JPEG URL for the navbar avatar, or nil if unavailable.
@@ -30,6 +31,6 @@ module UserAvatarUrlCache
   end
 
   def self.invalidate(user_id)
-    Cache.delete(key(user_id))
+    CurrentSite.cache_keys.each { |site| Cache.delete(key(user_id, site)) }
   end
 end

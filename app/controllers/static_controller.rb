@@ -53,7 +53,8 @@ class StaticController < ApplicationController
     data = SitemapGeneratorJob.read("sitemap.xml.gz")
     if data.nil?
       # Not generated since the key was lost (or first deploy); the job's lock dedupes repeat hits
-      SitemapGeneratorJob.perform_async
+      # No argument on the primary site, matching the cron run's lock
+      SitemapGeneratorJob.perform_async(*[CurrentSite.cache_key].compact)
       return head(404)
     end
 

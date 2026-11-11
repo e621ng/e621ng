@@ -59,6 +59,12 @@ RSpec.configure do |config|
     Setting.clear_cache
   end
 
+  # The resolved site (doc 38) lives in RequestStore; only requests clear it.
+  config.after do
+    RequestStore.delete(:current_site)
+    RequestStore.delete(:site_safe_mode)
+  end
+
   config.include ActiveSupport::Testing::TimeHelpers
 
   config.before(:suite) do
