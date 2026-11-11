@@ -5,9 +5,9 @@
 # gem/npm layers.
 
 # Compiles the gem bundle (native extensions need build-base and the -dev libs).
-FROM ruby:3.3.1-alpine3.20 AS ruby-builder
+FROM ruby:3.3.13-alpine3.23 AS ruby-builder
 
-RUN apk --no-cache add build-base cmake git glib-dev postgresql15-dev gcompat ragel
+RUN apk --no-cache add build-base cmake git glib-dev postgresql16-dev gcompat ragel yaml-dev zlib-dev libffi-dev
 
 COPY Gemfile Gemfile.lock ./
 
@@ -18,7 +18,7 @@ RUN BUNDLE_IGNORE_CONFIG=true BUNDLE_FROZEN=true bundle install -j$(nproc) \
 
 # Installs node_modules, and doubles as the donor for the node runtime itself
 # (the development stage copies node/npm binaries out of /usr/local).
-FROM node:20-alpine3.20 AS node-builder
+FROM node:20-alpine3.23 AS node-builder
 RUN apk --no-cache add git
 WORKDIR /app
 COPY package.json package-lock.json ./
@@ -30,10 +30,12 @@ RUN npm ci
 # compose bind-mounts the working tree over /app, so this image only provides
 # the runtime (ruby, node, gems, node_modules) plus dev conveniences.
 
-FROM ruby:3.3.1-alpine3.20 AS development
+FROM ruby:3.3.13-alpine3.23 AS development
 
+# Prod runs PostgreSQL 15, which Alpine 3.23 no longer packages. Stay on 16:
+# pg_dump 17+ writes `SET transaction_timeout` into structure.sql, which 15 rejects.
 RUN apk --no-cache add vips vips-tools \
-  postgresql15-client \
+  postgresql16-client \
   git jemalloc tzdata \
   sudo gcompat ragel build-base \
   tmux
@@ -109,21 +111,13 @@ RUN RAILS_ENV=production \
 # The shipped image. Starts from a fresh base rather than development so none
 # of the build toolchain carries over; pulls gems from ruby-builder and the
 # compiled app from asset-builder.
-FROM ruby:3.3.1-alpine3.20 AS production
+FROM ruby:3.3.13-alpine3.23 AS production
 
 # Runtime dependencies only: no node, no build toolchain, no sudo, no git
 # (all gems come from rubygems; GitHelper reads DANBOORU_IMAGE_TAG instead).
 RUN apk --no-cache add vips vips-tools \
-  postgresql15-client \
+  postgresql16-client \
   jemalloc tzdata gcompat
-
-# Distrust the roots behind the compromised eMudhra intermediates
-# (we-have-a-problem.com, 2026-10-20). Alpine 3.20 is EOL and won't get the
-# fixed ca-certificates; drop this once the base moves to a patched Alpine.
-RUN sed -i -e 's|^mozilla/emSign_ECC_Root_CA_-_G3.crt|!&|' \
-  -e 's|^mozilla/Comodo_AAA_Services_root.crt|!&|' \
-  /etc/ca-certificates.conf \
-  && update-ca-certificates
 
 COPY --from=mwader/static-ffmpeg:8.1.2 /ffmpeg /ffprobe /usr/bin/
 
