@@ -20,7 +20,7 @@ class TermsOfUsesController < ApplicationController
   end
 
   def clear_cache
-    Cache.delete("tos_content")
+    ApplicationHelper.clear_tos_cache
     flash[:notice] = "Terms of use cache cleared"
     redirect_to terms_of_use_path
   end
@@ -28,7 +28,7 @@ class TermsOfUsesController < ApplicationController
   def bump_version
     new_version = Setting.tos_version.to_i + 1
     Setting.tos_version = new_version
-    Cache.delete("tos_content")
+    ApplicationHelper.clear_tos_cache
     flash[:notice] = "Terms of use version bumped to #{new_version}"
     redirect_to terms_of_use_path
   end

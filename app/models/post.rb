@@ -2300,7 +2300,7 @@ class Post < ApplicationRecord
   has_bit_flags BOOLEAN_ATTRIBUTES
 
   def safeblocked?
-    return true if Danbooru.config.safe_mode? && rating != "s"
+    return true if CurrentSite.safe_mode? && rating != "s"
     CurrentUser.safe_mode? && (rating != "s" || has_tag?(*Danbooru.config.safeblocked_tags))
   end
 

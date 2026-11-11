@@ -20,32 +20,56 @@ class SitemapGeneratorJob < ApplicationJob
   # Stores sitemaps in Redis instead of public/: the image's public/ is read-only,
   # and Redis is shared by every app host. Served by StaticController#sitemap.
   class RedisAdapter
+    def initialize(hostname)
+      @hostname = hostname
+    end
+
     def write(location, raw_data)
       filename = location.filename.to_s
       data = filename.end_with?(".gz") ? ActiveSupport::Gzip.compress(raw_data) : raw_data
-      Cache.redis.set(SitemapGeneratorJob.redis_key(filename), data)
+      Cache.redis.set(SitemapGeneratorJob.redis_key(filename, @hostname), data)
     end
   end
   private_constant :RedisAdapter
 
-  def self.redis_key(filename)
-    "sitemap:#{Danbooru.config.hostname}:#{filename}"
+  # Keyed by hostname, so each site (doc 38) gets its own sitemap
+  def self.redis_key(filename, hostname = Danbooru.config.hostname)
+    "sitemap:#{hostname}:#{filename}"
   end
 
   def self.read(filename)
     Cache.redis.get(redis_key(filename))
   end
 
-  def perform
+  # nil generates the primary site's sitemap, then queues one job per other site.
+  def perform(site_id = nil)
+    unless site_id.nil? || CurrentSite.find(site_id)
+      Rails.logger.warn("SitemapGeneratorJob: unknown site #{site_id}, skipped")
+      return
+    end
+
+    # Queued first, so a failure here doesn't cost the other sites their sitemap
+    CurrentSite.profiles.each { |profile| self.class.perform_async(profile.id) } if site_id.nil?
+
+    CurrentSite.with(site_id) { generate }
+  end
+
+  private
+
+  def generate
     SitemapGenerator::Interpreter.include SitemapMethods unless SitemapGenerator::Interpreter.include?(SitemapMethods)
 
-    SitemapGenerator::Sitemap.default_host = "https://#{Danbooru.config.hostname}"
-    SitemapGenerator::Sitemap.adapter = RedisAdapter.new
-    # Verbose output stats the (nonexistent) files on disk
-    SitemapGenerator::Sitemap.verbose = false
+    hostname = Danbooru.config.hostname
+    # A LinkSet per run, not the global Sitemap: per-site jobs may run concurrently
+    link_set = SitemapGenerator::LinkSet.new(
+      default_host: "https://#{hostname}",
+      adapter: RedisAdapter.new(hostname),
+      # Verbose output stats the (nonexistent) files on disk
+      verbose: false,
+    )
 
     Post.without_timeout do # rubocop:disable Metrics/BlockLength
-      SitemapGenerator::Sitemap.create do # rubocop:disable Metrics/BlockLength
+      link_set.create do # rubocop:disable Metrics/BlockLength
         # Static Pages
         add "/static/site_map"
         include_static_page("/static/code_of_conduct", "#{Danbooru.config.app_name}:rules")
