@@ -18,10 +18,10 @@ RUN BUNDLE_IGNORE_CONFIG=true BUNDLE_FROZEN=true bundle install -j$(nproc) \
 
 # Installs node_modules, and doubles as the donor for the node runtime itself
 # (the development stage copies node/npm binaries out of /usr/local).
-FROM node:20-alpine3.23 AS node-builder
+FROM node:26-alpine3.23 AS node-builder
 RUN apk --no-cache add git
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci
 
 
