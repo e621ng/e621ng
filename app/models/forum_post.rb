@@ -148,7 +148,18 @@ class ForumPost < ApplicationRecord
 
       q = q.attribute_matches(:is_hidden, params[:is_hidden])
 
-      q.apply_basic_order(params)
+      case params[:order]
+      when "created_at", "created_at_desc"
+        q.order(created_at: :desc)
+      when "created_at_asc"
+        q.order(created_at: :asc)
+      when "updated_at", "updated_at_desc"
+        q.order(updated_at: :desc)
+      when "updated_at_asc"
+        q.order(updated_at: :asc)
+      else
+        q.apply_basic_order(params)
+      end
     end
   end
 

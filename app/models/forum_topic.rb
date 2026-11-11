@@ -138,6 +138,7 @@ class ForumTopic < ApplicationRecord
     def search(params)
       q = super
       q = q.visible(CurrentUser.user)
+      q = q.where_user(:creator_id, :creator, params)
 
       q = q.attribute_matches(:title, params[:title_matches])
 

@@ -72,6 +72,16 @@ RSpec.describe ForumTopicsController do
       expect(ids).not_to include(other_topic.id)
     end
 
+    it "filters by creator name" do
+      other_topic = CurrentUser.scoped(mod) { create(:forum_topic, title: "other topic") }
+
+      sign_in_as user
+      get forum_topics_path(format: :json), params: { search: { creator_name: user.name } }
+      ids = response.parsed_body.pluck("id")
+      expect(ids).to include(forum_topic.id)
+      expect(ids).not_to include(other_topic.id)
+    end
+
     it "promotes top-level title_matches param into search[title_matches]" do
       sign_in_as user
       get forum_topics_path(format: :json), params: { title_matches: "my forum*" }
