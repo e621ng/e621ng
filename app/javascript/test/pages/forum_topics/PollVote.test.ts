@@ -13,7 +13,7 @@ vi.mock("@/core/DeferredPostLoader", () => ({
   default: { loadPostData: (...args: unknown[]) => loadPostData(...args), renderDTextThumbnails: () => renderDTextThumbnails() },
 }));
 
-function pollHTML (opts: { selected?: number[]; maxChoices?: number; multiple?: boolean; withClear?: boolean } = {}): string {
+function pollHTML (opts: { selected?: number[]; maxChoices?: number; multiple?: boolean; withClear?: boolean; ballotsOpen?: boolean } = {}): string {
   const selected = opts.selected ?? [];
   const type = opts.multiple ? "checkbox" : "radio";
   let clear = "";
@@ -33,6 +33,7 @@ function pollHTML (opts: { selected?: number[]; maxChoices?: number; multiple?: 
         <input type="submit" value="Vote">
       </form>
       ${clear}
+      <details class="forum-poll-ballots" ${opts.ballotsOpen ? "open" : ""}><summary>Ballots (0)</summary></details>
     </section>`;
 }
 
@@ -109,6 +110,26 @@ describe("PollVote", () => {
     expect((fetchSpy.mock.calls[1][1] as RequestInit).method).toBe("DELETE");
     expect(document.querySelector("form.forum-poll-clear-form")).toBeNull();
     expect(noticeSpy).toHaveBeenLastCalledWith("Vote cleared");
+  });
+
+  it("keeps the staff ballot table open across the swap", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ option_ids: [1], html: pollHTML({ selected: [1] }), posts: {} }));
+    render({ ballotsOpen: true });
+    await load();
+    (document.querySelector("input[value='1']") as HTMLInputElement).checked = true;
+    submit("form.forum-poll-ballot");
+    await settle();
+    expect((document.querySelector("details.forum-poll-ballots") as HTMLDetailsElement).open).toBe(true);
+  });
+
+  it("leaves the staff ballot table closed when it was closed", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ option_ids: [1], html: pollHTML({ selected: [1] }), posts: {} }));
+    render();
+    await load();
+    (document.querySelector("input[value='1']") as HTMLInputElement).checked = true;
+    submit("form.forum-poll-ballot");
+    await settle();
+    expect((document.querySelector("details.forum-poll-ballots") as HTMLDetailsElement).open).toBe(false);
   });
 
   it("refuses an empty ballot without a request", async () => {

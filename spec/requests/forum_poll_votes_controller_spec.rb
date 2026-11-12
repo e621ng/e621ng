@@ -51,7 +51,26 @@ RSpec.describe ForumPollVotesController do
       body = response.parsed_body
       expect(body["option_ids"]).to eq([a.id])
       expect(body["html"]).to include('id="forum-poll"', "Update vote", 'data-selected="true"')
+      expect(body["html"]).not_to include("forum-poll-ballots")
       expect(body["posts"]).to eq({})
+    end
+
+    it "includes the collapsed ballot table for moderators, with IPs for admins" do
+      poll.cast_ballot!(voter, [a.id, b.id], ip_addr: "10.1.2.3")
+      moderator = create(:moderator_user)
+      sign_in_as moderator
+      put forum_topic_poll_vote_path(topic, format: :json), params: { option_ids: [c.id] }
+      html = Nokogiri::HTML.fragment(response.parsed_body["html"])
+      details = html.at_css("details.forum-poll-ballots")
+      expect(details).to be_present
+      expect(details["open"]).to be_nil
+      expect(details.css("tr.forum-poll-ballot-row").size).to eq(2)
+      expect(details.text).to include(voter.pretty_name, moderator.pretty_name, "#1 Option 1, #2 Option 2")
+      expect(details.text).not_to include("10.1.2.3")
+
+      sign_in_as create(:admin_user)
+      put forum_topic_poll_vote_path(topic, format: :json), params: { option_ids: [a.id] }
+      expect(response.parsed_body["html"]).to include("10.1.2.3", "staff/ip_addrs")
     end
 
     it "includes deferred posts when an option embeds one" do

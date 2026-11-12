@@ -70,12 +70,6 @@ section.forum-poll {
       background: palette.color("background-green-d5");
     }
 
-    details.forum-poll-voters {
-      font-size: 0.85rem;
-      summary { cursor: pointer; }
-      ul { margin: 0.25rem 0 0 1rem; }
-      .forum-poll-voter-ip { margin-left: 0.5rem; color: palette.color("text-grey"); }
-    }
   }
 
   // Options that embed thumbnails: cards in a grid instead of a long column.
@@ -148,6 +142,19 @@ section.forum-poll {
         &:hover { color: theme.color("link-hover"); }
       }
     }
+  }
+
+  details.forum-poll-ballots {
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
+
+    summary { cursor: pointer; }
+    .forum-poll-ballots-note, .forum-poll-ballots-empty {
+      margin: 0.25rem 0 0.5rem;
+      color: palette.color("text-grey");
+    }
+    table { margin-top: 0.25rem; }
+    td, th { padding: 0.15rem 0.5rem; }
   }
 
   .forum-poll-edit {

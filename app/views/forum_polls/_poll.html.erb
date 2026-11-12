@@ -3,7 +3,7 @@
 <% can_vote = topic.can_access?(user) && poll.can_vote?(user) %>
 <% selected = poll.selected_option_ids(user) %>
 <% show_voters = user.is_moderator? %>
-<% voters_by_option = show_voters ? poll.votes.includes(:user).group_by(&:forum_poll_option_id) : {} %>
+<% ballots = show_voters ? poll.votes.includes(:user).group_by(&:user_id) : {} %>
 <% vote_path = forum_topic_poll_vote_path(topic) %>
 
 <section
@@ -17,8 +17,7 @@
   <%= form_with url: vote_path, method: :put, class: "forum-poll-ballot" do %>
     <ol class="forum-poll-options">
       <% poll.options.each do |option| %>
-        <%= render "forum_polls/option", option: option, poll: poll, can_vote: can_vote, selected: selected,
-                   voters: (voters_by_option.fetch(option.id, []) if show_voters), show_ips: user.is_admin? %>
+        <%= render "forum_polls/option", option: option, poll: poll, can_vote: can_vote, selected: selected %>
       <% end %>
     </ol>
 
@@ -64,6 +63,10 @@
       </menu>
     <% end %>
   </footer>
+
+  <% if show_voters %>
+    <%= render "forum_polls/ballots", poll: poll, ballots: ballots, show_ips: user.is_admin? %>
+  <% end %>
 
   <% if poll.can_edit?(user) %>
     <div class="forum-poll-edit" id="forum-poll-edit" hidden>

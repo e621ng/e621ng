@@ -114,7 +114,13 @@ export default class PollVote {
   private render (data: BallotResponse): void {
     const section = this.section;
     if (!section) return;
+    // The staff ballot table ships collapsed; keep it open if the moderator had it open
+    const ballotsOpen = section.querySelector<HTMLDetailsElement>("details.forum-poll-ballots")?.open ?? false;
     section.outerHTML = data.html;
+    if (ballotsOpen) {
+      const ballots = this.section?.querySelector<HTMLDetailsElement>("details.forum-poll-ballots");
+      if (ballots) ballots.open = true;
+    }
     DeferredPostLoader.loadPostData(data.posts ?? {});
     DeferredPostLoader.renderDTextThumbnails();
     this.enforceMaxChoices(this.section?.querySelector<HTMLFormElement>("form.forum-poll-ballot") ?? null);

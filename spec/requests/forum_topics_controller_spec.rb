@@ -526,9 +526,22 @@ RSpec.describe ForumTopicsController do
       get forum_topic_path(topic)
       assert_select "section#forum-poll"
       assert_select "section#forum-poll input[name='option_ids[]']", 2
+      assert_select "details.forum-poll-ballots", 0
 
       get forum_topics_path
       assert_select "tr.forum-topic-row span.poll-topic", 1
+    end
+
+    it "shows moderators a collapsed ballot table with one row per voter" do
+      topic = CurrentUser.scoped(privileged) { create(:forum_topic, poll_attributes: poll_attributes.merge(max_choices: 2)) }
+      voter = create(:user, created_at: 2.weeks.ago)
+      topic.poll.cast_ballot!(voter, topic.poll.options.map(&:id))
+      sign_in_as create(:moderator_user)
+      get forum_topic_path(topic)
+      assert_select "details.forum-poll-ballots:not([open])", 1
+      assert_select "details.forum-poll-ballots tr.forum-poll-ballot-row", 1
+      assert_select "details.forum-poll-ballots td", text: "#1 Yes, #2 No"
+      assert_select "details.forum-poll-ballots th", text: "IP", count: 0
     end
 
     it "exposes poll_id in JSON" do

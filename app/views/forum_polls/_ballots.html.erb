@@ -1,0 +1,36 @@
+<%# locals: (poll:, ballots:, show_ips:) -%>
+<%# Individual ballots, one row per voter. Rendered for moderators only; collapsed by default. %>
+<% options_by_id = poll.options.index_by(&:id) %>
+<% rows = ballots.values.sort_by { |votes| -votes.map(&:created_at).max.to_i } %>
+
+<details class="forum-poll-ballots" id="forum-poll-ballots">
+  <summary>Ballots (<%= rows.size %>)</summary>
+  <p class="forum-poll-ballots-note">Visible to moderators only.</p>
+  <% if rows.empty? %>
+    <p class="forum-poll-ballots-empty">No votes yet.</p>
+  <% else %>
+    <table class="striped forum-poll-ballots-table">
+      <thead>
+        <tr>
+          <th>Voter</th>
+          <th>Choice</th>
+          <th>When</th>
+          <% if show_ips %><th>IP</th><% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% rows.each do |votes| %>
+          <tr class="forum-poll-ballot-row" data-user-id="<%= votes.first.user_id %>">
+            <td><%= link_to_user votes.first.user %></td>
+            <td>
+              <% choices = votes.map { |vote| options_by_id[vote.forum_poll_option_id] }.compact.sort_by(&:position) %>
+              <%= choices.map { |option| "##{option.position + 1} #{format_plaintext(option.body).truncate(40)}" }.join(", ") %>
+            </td>
+            <td><%= time_ago_in_words_tagged(votes.map(&:created_at).max, compact: true) %></td>
+            <% if show_ips %><td><%= link_to_ip votes.first.user_ip_addr %></td><% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% end %>
+</details>
