@@ -54,6 +54,15 @@ RSpec.describe UserDeletion do
         expect(user.bcrypt_password_hash).to eq("*LK*")
       end
 
+      it "deletes outstanding password reset nonces so a pre-requested link cannot revive the account" do
+        nonce = create(:user_password_reset_nonce, user: user)
+        other = create(:user_password_reset_nonce)
+        deletion.delete!
+        expect(UserPasswordResetNonce.where(id: nonce.id)).not_to exist
+        expect(UserPasswordResetNonce.where(id: other.id)).to exist
+        expect(user.reload.bcrypt_password_hash).to eq("*LK*")
+      end
+
       it "logs a :user_delete ModAction" do
         deletion.delete!
         expect(ModAction.last.action).to eq("user_delete")

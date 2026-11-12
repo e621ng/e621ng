@@ -39,28 +39,60 @@ RSpec.describe UserPasswordResetNonce do
   # #reset_user!
   # -------------------------------------------------------------------------
   describe "#reset_user!" do
-    it "returns false when the passwords do not match" do
+    it "returns false with an error when the passwords do not match" do
       nonce = make_nonce
-      expect(nonce.reset_user!("password123", "different456")).to be false
+      expect(nonce.reset_user!("hexerade1234", "different456")).to be false
+      expect(nonce.errors[:base].join).to include("doesn't match")
+      expect(nonce.user.reload.bcrypt_password).to eq("hexerade")
     end
 
-    it "returns true when the passwords match" do
+    it "returns false when both passwords are blank" do
       nonce = make_nonce
-      expect(nonce.reset_user!("password123", "password123")).to be true
+      expect(nonce.reset_user!("", "")).to be false
+      expect(nonce.errors[:base].join).to include("can't be blank")
+      expect(nonce.user.reload.bcrypt_password).to eq("hexerade")
     end
 
-    it "calls upgrade_password on the user when passwords match" do
+    it "returns false when the passwords are nil" do
       nonce = make_nonce
-      allow(nonce.user).to receive(:upgrade_password)
-      nonce.reset_user!("newpassword", "newpassword")
-      expect(nonce.user).to have_received(:upgrade_password).with("newpassword")
+      expect(nonce.reset_user!(nil, nil)).to be false
+      expect(nonce.user.reload.bcrypt_password).to eq("hexerade")
     end
 
-    it "does not call upgrade_password when passwords do not match" do
+    it "returns false when the password is too short" do
       nonce = make_nonce
-      allow(nonce.user).to receive(:upgrade_password)
-      nonce.reset_user!("password123", "different456")
-      expect(nonce.user).not_to have_received(:upgrade_password)
+      expect(nonce.reset_user!("short", "short")).to be false
+      expect(nonce.errors[:base].join).to include("too short")
+    end
+
+    it "returns false when the password is insecure" do
+      nonce = make_nonce
+      expect(nonce.reset_user!("password", "password")).to be false
+      expect(nonce.errors[:base].join).to include("insecure")
+    end
+
+    it "changes the password when the passwords match and are valid" do
+      nonce = make_nonce
+      expect(nonce.reset_user!("hexerade1234", "hexerade1234")).to be true
+      user = nonce.user.reload
+      expect(user.bcrypt_password).to eq("hexerade1234")
+      expect(user.password_hash).to eq("")
+    end
+
+    it "deletes every nonce for the user but not other users' nonces" do
+      nonce = make_nonce
+      sibling = make_nonce(user: nonce.user)
+      other = make_nonce
+      nonce.reset_user!("hexerade1234", "hexerade1234")
+      expect(UserPasswordResetNonce.where(id: [nonce.id, sibling.id])).not_to exist
+      expect(UserPasswordResetNonce.where(id: other.id)).to exist
+    end
+
+    it "succeeds when the user fails an unrelated validation" do
+      nonce = make_nonce
+      nonce.user.update_columns(custom_title: "x" * 101)
+      expect(nonce.reset_user!("hexerade1234", "hexerade1234")).to be true
+      expect(nonce.user.reload.bcrypt_password).to eq("hexerade1234")
     end
   end
 

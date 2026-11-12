@@ -468,6 +468,21 @@ RSpec.describe Staff::UsersController do
         expect(user.reload.bcrypt_password_hash).to eq("*AC*")
       end
 
+      it "replaces the user's existing nonces" do
+        old_nonce = create(:user_password_reset_nonce, user: user)
+        post password_reset_staff_user_path(user)
+        expect(UserPasswordResetNonce.where(id: old_nonce.id)).not_to exist
+        expect(UserPasswordResetNonce.where(user_id: user.id).count).to eq(1)
+      end
+
+      it "replaces the user's existing nonces when invalidating the old password" do
+        old_nonce = create(:user_password_reset_nonce, user: user)
+        post password_reset_staff_user_path(user), params: { admin: { invalidate_old_password: "1" } }
+        expect(UserPasswordResetNonce.where(id: old_nonce.id)).not_to exist
+        expect(UserPasswordResetNonce.where(user_id: user.id).count).to eq(1)
+        expect(user.reload.bcrypt_password_hash).to eq("*AC*")
+      end
+
       it "preserves the old password hash when invalidate_old_password is not set" do
         original_hash = user.bcrypt_password_hash
         post password_reset_staff_user_path(user)
