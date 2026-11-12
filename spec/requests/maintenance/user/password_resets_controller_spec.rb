@@ -44,8 +44,9 @@ RSpec.describe Maintenance::User::PasswordResetsController do
         expect(RateLimiter).to have_received(:throttle!).with("account_recovery:email:#{user.email.downcase}", limit: 3, period: 1.hour)
       end
 
-      it "normalizes the email before keying the limiter" do
-        post maintenance_user_password_reset_path, params: { email: "  #{user.email.upcase} " }
+      it "normalizes the email before keying the limiter and still matches the user" do
+        expect { post maintenance_user_password_reset_path, params: { email: "  #{user.email.upcase} " } }
+          .to change(UserPasswordResetNonce, :count).by(1)
         expect(RateLimiter).to have_received(:throttle!).with("account_recovery:email:#{user.email.downcase}", limit: 3, period: 1.hour)
       end
     end

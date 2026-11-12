@@ -89,6 +89,8 @@ class UserDeletion
 
   def reset_password
     user.update_columns(password_hash: "", bcrypt_password_hash: "*LK*")
+    # update_columns skips the after_update hook; a pre-requested link must not revive the account.
+    user.invalidate_password_reset_nonces
   end
 
   # The password reset only ends web sessions; these authenticate independently of it.

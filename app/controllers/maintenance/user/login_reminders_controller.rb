@@ -9,7 +9,7 @@ module Maintenance
       end
 
       def create
-        email = params.dig(:user, :email)
+        email = params.dig(:user, :email).to_s.strip
         case throttle_recovery_request(email, new_maintenance_user_login_reminder_path, "user.login_reminder")
         when :rejected then return
         when :allowed

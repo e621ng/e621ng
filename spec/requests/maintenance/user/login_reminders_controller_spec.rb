@@ -33,8 +33,9 @@ RSpec.describe Maintenance::User::LoginRemindersController do
         expect(flash[:notice]).to include("If your email was on file")
       end
 
-      it "counts the request against the IP and email limiters" do
-        post maintenance_user_login_reminder_path, params: { user: { email: " #{user.email.upcase}" } }
+      it "counts the request against the IP and email limiters and still matches the user" do
+        expect { post maintenance_user_login_reminder_path, params: { user: { email: " #{user.email.upcase}" } } }
+          .to change { ActionMailer::Base.deliveries.count }.by(1)
         expect(RateLimiter).to have_received(:throttle!).with("account_recovery:127.0.0.1", limit: 5, period: 1.hour)
         expect(RateLimiter).to have_received(:throttle!).with("account_recovery:email:#{user.email.downcase}", limit: 3, period: 1.hour)
       end

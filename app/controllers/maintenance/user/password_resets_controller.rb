@@ -14,11 +14,12 @@ module Maintenance
       end
 
       def create
-        case throttle_recovery_request(params[:email], new_maintenance_user_password_reset_path, "user.password_reset")
+        email = params[:email].to_s.strip
+        case throttle_recovery_request(email, new_maintenance_user_password_reset_path, "user.password_reset")
         when :rejected then return
         when :allowed
           sent = false
-          ::User.with_email(params[:email]).each do |user|
+          ::User.with_email(email).each do |user|
             next if user.is_moderator?
             UserPasswordResetNonce.create(user_id: user.id)
             sent = true
