@@ -4,10 +4,15 @@ class SavedSearchBadgeJob < ApplicationJob
   # No retries: the next page load with a cold cache enqueues a fresh run anyway
   sidekiq_options queue: "low_prio", retry: false, lock: :until_executing, lock_ttl: 15.minutes.to_i
 
-  # safe_mode comes from the enqueuing request; there is no ambient value here.
-  def perform(user_id, safe_mode = false) # rubocop:disable Style/OptionalBooleanParameter
+  # safe_mode and the site come from the enqueuing request; there is no ambient value here.
+  # The site is a trailing argument so pre-profile payloads (user_id, safe_mode) still run.
+  def perform(user_id, safe_mode = false, site_id = nil) # rubocop:disable Style/OptionalBooleanParameter
+    unless site_id.nil? || CurrentSite.find(site_id)
+      Rails.logger.warn("SavedSearchBadgeJob: unknown site #{site_id}, skipped")
+      return
+    end
     user = User.find_by(id: user_id)
     return unless user&.has_tracked_saved_searches
-    SavedSearch.refresh_badge_counts!(user, safe_mode: safe_mode)
+    CurrentSite.with(site_id) { SavedSearch.refresh_badge_counts!(user, safe_mode: safe_mode) }
   end
 end

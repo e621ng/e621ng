@@ -257,6 +257,65 @@ RSpec.describe SavedSearchesController do
     end
   end
 
+  context "on e926" do
+    include_context "with e926 site profile"
+
+    let(:e926) { { "X-E6-Site" => "e926" } }
+    let(:e926_key) { "ssb:#{owner.id}:e926:s" }
+
+    it "advances only the e926 watermark on visit and lands on its only-new view" do
+      create(:post)
+      ss = create(:saved_search, user: owner, name: "foxes", query: "fox", is_tracked: true)
+      primary = ss.last_seen_post_id
+      seen_on_e926 = create(:post)
+      ss.update_column(:site_watermarks, { "e926" => seen_on_e926.id })
+      newest = create(:post)
+      SavedSearch.write_badge_entry(e926_key, { ss.id => 1 })
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(owner.id, false), { ss.id => 3 })
+      get visit_saved_search_path(ss), headers: e926
+      expect(response).to redirect_to(posts_path(tags: "search:foxes id:>#{seen_on_e926.id}"))
+      expect(ss.reload).to have_attributes(last_seen_post_id: primary, site_watermarks: { "e926" => newest.id })
+      expect(SavedSearch.read_badge_entry(e926_key)[:counts]).to eq({ ss.id => 0 })
+      expect(SavedSearch.badge_counts(owner, safe_mode: false)).to eq({ ss.id => 3 })
+    end
+
+    it "records the e926 watermark on mark_all_seen without touching the primary's" do
+      ss = create(:saved_search, user: owner, is_tracked: true)
+      primary = ss.last_seen_post_id
+      newer = create(:post)
+      post mark_all_seen_saved_searches_path, headers: e926
+      expect(ss.reload).to have_attributes(last_seen_post_id: primary, site_watermarks: { "e926" => newer.id })
+    end
+
+    it "reads the e926 entry for badge.json" do
+      ss = create(:saved_search, user: owner, is_tracked: true)
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(owner.id, true), { ss.id => 4 })
+      get badge_saved_searches_path(format: :json), headers: e926
+      expect(response.parsed_body).to eq({ "count" => nil, "fresh" => false })
+      SavedSearch.write_badge_entry(e926_key, { ss.id => 2 })
+      get badge_saved_searches_path(format: :json), headers: e926
+      expect(response.parsed_body).to eq({ "count" => 2, "fresh" => true })
+    end
+
+    it "reports the e926 watermark as last_seen_post_id in JSON" do
+      create(:post)
+      ss = create(:saved_search, user: owner, is_tracked: true)
+      ss.update_column(:site_watermarks, { "e926" => ss.last_seen_post_id + 10 })
+      get saved_search_path(ss, format: :json), headers: e926
+      expect(response.parsed_body["last_seen_post_id"]).to eq(ss.last_seen_post_id + 10)
+      get saved_search_path(ss, format: :json)
+      expect(response.parsed_body["last_seen_post_id"]).to eq(ss.last_seen_post_id)
+    end
+
+    it "enqueues the badge refresh with the site" do
+      create(:saved_search, user: owner, is_tracked: true)
+      owner.reload
+      expect do
+        get posts_path, headers: e926
+      end.to enqueue_sidekiq_job(SavedSearchBadgeJob).with(owner.id, true, "e926")
+    end
+  end
+
   describe "subscription anchor" do
     let(:anchor) { SavedSearch.subscription_for!(owner) }
 

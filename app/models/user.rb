@@ -565,7 +565,8 @@ class User < ApplicationRecord
     def saved_search_badge
       return nil unless is_logged_in? && has_tracked_saved_searches
       summary = SavedSearch.badge_summary(self)
-      SavedSearchBadgeJob.perform_async(id, CurrentUser.safe_mode? || false) unless summary[:fresh]
+      # No site argument on the primary site, so its payload (and unique-lock digest) is unchanged
+      SavedSearchBadgeJob.perform_async(id, CurrentUser.safe_mode? || false, *[CurrentSite.cache_key].compact) unless summary[:fresh]
       summary
     end
   end

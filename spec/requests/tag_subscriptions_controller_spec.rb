@@ -115,6 +115,24 @@ RSpec.describe TagSubscriptionsController do
       expect(ss.reload.last_seen_post_id).to eq(Post.maximum(:id))
     end
 
+    context "on e926" do
+      include_context "with e926 site profile"
+
+      it "lands on the only-new view from the e926 watermark" do
+        create(:post)
+        create(:tag_subscription, user: owner, tag: fox)
+        ss = anchor
+        primary = ss.last_seen_post_id
+        seen_on_e926 = create(:post)
+        ss.update_column(:site_watermarks, { "e926" => seen_on_e926.id })
+        newest = create(:post)
+        allow(SavedSearch).to receive(:new_post_count).with(ss).and_return(1)
+        get visit_tag_subscriptions_path, headers: { "X-E6-Site" => "e926" }
+        expect(response).to redirect_to(posts_path(tags: "search:subscriptions id:>#{seen_on_e926.id}"))
+        expect(ss.reload).to have_attributes(last_seen_post_id: primary, site_watermarks: { "e926" => newest.id })
+      end
+    end
+
     it "lands on the full listing when the live count is zero, still advancing the watermark" do
       create(:post)
       create(:tag_subscription, user: owner, tag: fox)

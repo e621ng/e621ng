@@ -7,8 +7,8 @@ RSpec.describe SavedSearchBadgeJob do
 
   let(:user) { CurrentUser.user }
 
-  def run_job(safe_mode: false)
-    described_class.new.perform(user.id, safe_mode)
+  def run_job(safe_mode: false, site: nil)
+    described_class.new.perform(user.id, safe_mode, *[site].compact)
   end
 
   it "does nothing for users without the tracked-searches flag" do
@@ -175,6 +175,60 @@ RSpec.describe SavedSearchBadgeJob do
         expect(user.saved_search_badge).to be_nil
       end.not_to enqueue_sidekiq_job(described_class)
       expect(Cache).not_to have_received(:fetch)
+    end
+  end
+
+  context "with an e926 profile" do
+    include_context "with e926 site profile"
+
+    let(:e926_key) { "ssb:#{user.id}:e926:s" }
+    let!(:saved_search) do
+      create(:post, tag_string: "badge_target", rating: "s")
+      create(:saved_search, user: user, query: "badge_target", is_tracked: true)
+    end
+
+    before do
+      create(:post, tag_string: "badge_target", rating: "s")
+      create(:post, tag_string: "badge_target", rating: "e")
+    end
+
+    it "refreshes the e926 entry as e926" do
+      run_job(safe_mode: true, site: "e926")
+      expect(SavedSearch.read_badge_entry(e926_key)[:counts]).to eq({ saved_search.id => 1 })
+      expect(CurrentSite.id).to eq("e621")
+    end
+
+    it "counts from the e926 watermark" do
+      saved_search.update_column(:site_watermarks, { "e926" => Post.maximum(:id) })
+      run_job(safe_mode: true, site: "e926")
+      run_job
+      expect(SavedSearch.read_badge_entry(e926_key)[:counts]).to eq({ saved_search.id => 0 })
+      expect(SavedSearch.badge_counts(user, safe_mode: false)).to eq({ saved_search.id => 2 })
+    end
+
+    it "leaves the primary entries alone" do
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id, false), { saved_search.id => 9 })
+      run_job(safe_mode: true, site: "e926")
+      expect(SavedSearch.badge_counts(user, safe_mode: false)).to eq({ saved_search.id => 9 })
+      expect(SavedSearch.badge_counts(user, safe_mode: true)).to be_nil
+    end
+
+    it "skips an unknown site" do
+      allow(SavedSearch).to receive(:refresh_badge_counts!)
+      run_job(site: "bogus")
+      expect(SavedSearch).not_to have_received(:refresh_badge_counts!)
+    end
+
+    it "enqueues with the site and reads the e926 entry on e926" do
+      SavedSearch.write_badge_entry(SavedSearch.badge_cache_key(user.id, true), { saved_search.id => 4 })
+      user.reload
+      CurrentSite.with("e926") do
+        expect do
+          expect(user.saved_search_badge).to eq({ count: nil, fresh: false })
+        end.to enqueue_sidekiq_job(described_class).with(user.id, true, "e926")
+        SavedSearch.write_badge_entry(e926_key, { saved_search.id => 1 })
+        expect(user.saved_search_badge).to eq({ count: 1, fresh: true })
+      end
     end
   end
 end
