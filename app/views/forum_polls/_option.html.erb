@@ -1,0 +1,31 @@
+<%# locals: (option:, poll:, can_vote:, selected:, voters: nil, show_ips: false) -%>
+<% pct = option.percentage(poll.voter_count) %>
+<li class="forum-poll-option" data-option-id="<%= option.id %>" data-selected="<%= selected.include?(option.id) %>">
+  <div class="forum-poll-option-main">
+    <% if can_vote %>
+      <% if poll.multiple? %>
+        <%= check_box_tag "option_ids[]", option.id, selected.include?(option.id), id: "forum_poll_option_#{option.id}" %>
+      <% else %>
+        <%= radio_button_tag "option_ids[]", option.id, selected.include?(option.id), id: "forum_poll_option_#{option.id}" %>
+      <% end %>
+    <% end %>
+    <label class="forum-poll-option-body" for="forum_poll_option_<%= option.id %>">
+      <%= format_text(option.body, allow_color: poll.creator.is_privileged?) %>
+    </label>
+    <span class="forum-poll-option-count" title="<%= pluralize(option.vote_count, "vote") %>"><%= option.vote_count %> &middot; <%= pct %>%</span>
+  </div>
+  <div class="forum-poll-bar"><div class="forum-poll-bar-fill" style="width: <%= pct %>%"></div></div>
+  <% unless voters.nil? %>
+    <details class="forum-poll-voters">
+      <summary>Voters (<%= voters.size %>)</summary>
+      <ul>
+        <% voters.each do |vote| %>
+          <li>
+            <%= link_to_user vote.user %>
+            <% if show_ips %><span class="forum-poll-voter-ip"><%= link_to_ip vote.user_ip_addr %></span><% end %>
+          </li>
+        <% end %>
+      </ul>
+    </details>
+  <% end %>
+</li>
