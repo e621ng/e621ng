@@ -68,6 +68,7 @@ Rails.application.configure do
   config.action_mailer.mailgun_settings = {
     api_key: Danbooru.config.mailgun_api_key,
     domain: Danbooru.config.mailgun_domain,
+    api_host: Danbooru.config.mailgun_api_host.presence,
   }
   config.action_mailer.default_url_options = { host: Danbooru.config.hostname, protocol: "https" }
   config.action_mailer.asset_host = "https://#{Danbooru.config.hostname}"
