@@ -47,7 +47,6 @@
       <% end %>
     </span>
     <% if poll.multiple? %><span class="forum-poll-multiple-note">Pick up to <%= poll.max_choices %></span><% end %>
-    <span class="forum-poll-notice">Your vote is not shown to other users. Site staff can see it.</span>
 
     <% if poll.can_edit?(user) || poll.can_close?(user) || poll.can_destroy?(user) %>
       <menu class="forum-poll-menu">

@@ -59,7 +59,7 @@ section.forum-poll {
 
     .forum-poll-bar {
       height: 0.4rem;
-      background: theme.color("section-lighten-5");
+      background: theme.color("section-darken-5");
       border-radius: 0.2rem;
       overflow: hidden;
 
@@ -90,11 +90,16 @@ section.forum-poll {
       border-radius: 0.25rem;
 
       .forum-poll-option-main {
+        height: 100%;
         flex-flow: column;
-        align-items: stretch;
+        align-items: baseline;
       }
 
       .forum-poll-option-body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
         article.thumbnail { margin: 0 auto; }
       }
     }
@@ -124,10 +129,6 @@ section.forum-poll {
     padding-top: 0.5rem;
     border-top: 1px solid theme.color("section-lighten-5");
     font-size: 0.85rem;
-
-    .forum-poll-notice {
-      color: palette.color("text-grey");
-    }
 
     menu.forum-poll-menu {
       display: flex;
