@@ -74,14 +74,22 @@ class SavedSearch < ApplicationRecord
 
   concerning :BadgeMethods do
     class_methods do
-      # Safe mode depends on the site and request as well as the user, so each variant gets its
-      # own entry. The defaults suit the request path; off-request callers must pass it.
-      def badge_cache_key(user_id, safe_mode = CurrentUser.safe_mode?)
-        safe_mode ? "ssb:#{user_id}:s" : "ssb:#{user_id}"
+      # Counts depend on the site's filter and on safe mode, which the user can also turn on
+      # (preference, ?safe_mode=1), so the key carries both. nil site = primary, keeping the
+      # existing e621 keys. The defaults suit the request path; off-request callers must pass both.
+      def badge_cache_key(user_id, safe_mode = CurrentUser.safe_mode?, site = CurrentSite.cache_key)
+        ["ssb:#{user_id}", site, ("s" if safe_mode)].compact.join(":")
       end
 
-      def badge_cache_keys(user_id)
-        [false, true].map { |safe_mode| badge_cache_key(user_id, safe_mode) }
+      # Both safe-mode variants for the given CurrentSite.cache_key values; every site by default.
+      def badge_cache_keys(user_id, sites = CurrentSite.cache_keys)
+        sites.product([false, true]).map { |site, safe_mode| badge_cache_key(user_id, safe_mode, site) }
+      end
+
+      # The entries a mark-seen on the current site settles. The primary site shows everything a
+      # profile shows, so it settles every site; a profile settles only itself.
+      def seen_cache_keys(user_id)
+        badge_cache_keys(user_id, CurrentSite.primary? ? CurrentSite.cache_keys : [CurrentSite.cache_key])
       end
 
       # Posts newer than the watermark that currently match the stored query. Never round-trips
@@ -91,7 +99,7 @@ class SavedSearch < ApplicationRecord
       def new_post_count(saved_search, safe_mode: CurrentUser.safe_mode?)
         return subscription_post_count(saved_search, safe_mode: safe_mode) if saved_search.is_subscription?
         ElasticPostQueryBuilder.new(
-          "#{saved_search.query} id:>#{saved_search.last_seen_post_id.to_i}",
+          "#{saved_search.query} id:>#{saved_search.watermark.to_i}",
           enable_safe_mode: safe_mode,
           # The reserved slot is consumed by the appended id:> term
           free_tags_count: 0,
@@ -111,7 +119,7 @@ class SavedSearch < ApplicationRecord
       def subscription_post_count(saved_search, safe_mode:)
         names = TagSubscription.tag_names_for(saved_search.user)
         return 0 if names.empty?
-        query = TagQuery.new("id:>#{saved_search.last_seen_post_id.to_i}", allow_saved_search_metatag: false)
+        query = TagQuery.new("id:>#{saved_search.watermark.to_i}", allow_saved_search_metatag: false)
         query.add_tag_set(:must, names)
         ElasticPostQueryBuilder.new(query, enable_safe_mode: safe_mode).search.count_only(max_count: BADGE_COUNT_CAP)
       rescue OpenSearch::Transport::Transport::Error => e
@@ -167,15 +175,33 @@ class SavedSearch < ApplicationRecord
 
       def mark_all_seen!(user)
         watermark = Post.maximum(:id)
-        tracked_ids = user.saved_searches.tracked.pluck(:id)
-        user.saved_searches.tracked.update_all(last_seen_post_id: watermark)
-        # Watermarks are shared across safe-mode variants
-        badge_cache_keys(user.id).each { |key| write_badge_entry(key, tracked_ids.index_with { 0 }) }
+        tracked = user.saved_searches.tracked
+        tracked_ids = tracked.pluck(:id)
+        if CurrentSite.primary?
+          tracked.update_all(last_seen_post_id: watermark, site_watermarks: {})
+        else
+          tracked.update_all(site_watermark_assignment(watermark))
+        end
+        seen_cache_keys(user.id).each { |key| write_badge_entry(key, tracked_ids.index_with { 0 }) }
+      end
+
+      # SET clause recording a profile visit. Merged server-side so concurrent visits on
+      # different profiles can't clobber each other's key.
+      def site_watermark_assignment(watermark)
+        sanitize_sql_for_assignment(["site_watermarks = site_watermarks || jsonb_build_object(?::text, ?::bigint)", CurrentSite.id, watermark])
       end
     end
 
+    # The watermark in force on the current site. A profile's own entry can only be newer than
+    # the primary's: a primary visit resets every profile's, since it showed everything they show.
+    def watermark
+      return last_seen_post_id if CurrentSite.primary?
+      [last_seen_post_id, site_watermarks[CurrentSite.id]].compact.max
+    end
+
     # The search string a visit lands on: only-new when there was something new, otherwise the
-    # full listing (the watermark is site-wide, so an id:> filter alone would often be empty).
+    # full listing (the watermark is per user, not per query, so an id:> filter alone would often
+    # be empty).
     def visit_tags(new_count: cached_new_count)
       old_watermark = mark_seen!(new_count: new_count)
       tags = "search:#{name || id}"
@@ -187,9 +213,18 @@ class SavedSearch < ApplicationRecord
     # Returns the old watermark when new_count says there is something to show, else nil.
     def mark_seen!(new_count: cached_new_count)
       return nil unless is_tracked?
-      old_watermark = last_seen_post_id
-      update_column(:last_seen_post_id, Post.maximum(:id))
-      self.class.badge_cache_keys(user_id).each do |key|
+      old_watermark = watermark
+      new_watermark = Post.maximum(:id)
+      if CurrentSite.primary?
+        # One statement: the profiles' watermarks go with it
+        update_columns(last_seen_post_id: new_watermark, site_watermarks: {})
+      else
+        self.class.where(id: id).update_all(self.class.site_watermark_assignment(new_watermark))
+        # Keeps the instance in step with the row without a reload
+        site_watermarks[CurrentSite.id] = new_watermark
+        clear_attribute_changes([:site_watermarks])
+      end
+      self.class.seen_cache_keys(user_id).each do |key|
         entry = self.class.read_badge_entry(key)
         next unless entry
         # Leaves an unevaluable (nil) entry alone
@@ -200,7 +235,7 @@ class SavedSearch < ApplicationRecord
       old_watermark if new_count.to_i > 0
     end
 
-    # Last cached count for the current safe-mode variant; nil when absent or unevaluable.
+    # Last cached count for the current site and safe-mode variant; nil when absent or unevaluable.
     def cached_new_count
       self.class.badge_counts(user)&.dig(id)
     end
@@ -254,6 +289,7 @@ class SavedSearch < ApplicationRecord
 
   def reset_watermark
     self.last_seen_post_id = is_tracked? ? Post.maximum(:id) : nil
+    self.site_watermarks = {}
   end
 
   # Atomic bit flip (cf. UserTotp.set_user_flag) so concurrent writes to other
