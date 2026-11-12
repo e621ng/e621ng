@@ -64,10 +64,6 @@
     <% end %>
   </footer>
 
-  <% if show_voters %>
-    <%= render "forum_polls/ballots", poll: poll, ballots: ballots, show_ips: user.is_admin? %>
-  <% end %>
-
   <% if poll.can_edit?(user) %>
     <div class="forum-poll-edit" id="forum-poll-edit" hidden>
       <%= custom_form_for(poll, url: forum_topic_poll_path(topic), method: :put, html: { class: "forum-poll-edit-form" }) do |f| %>
@@ -77,3 +73,7 @@
     </div>
   <% end %>
 </section>
+
+<% if show_voters %>
+  <%= render "forum_polls/ballots", poll: poll, ballots: ballots, show_ips: user.is_admin? %>
+<% end %>

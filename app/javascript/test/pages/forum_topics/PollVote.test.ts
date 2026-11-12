@@ -33,8 +33,8 @@ function pollHTML (opts: { selected?: number[]; maxChoices?: number; multiple?: 
         <input type="submit" value="Vote">
       </form>
       ${clear}
-      <details class="forum-poll-ballots" ${opts.ballotsOpen ? "open" : ""}><summary>Ballots (0)</summary></details>
-    </section>`;
+    </section>
+    <details class="forum-poll-ballots" ${opts.ballotsOpen ? "open" : ""}><summary>Ballots (0)</summary></details>`;
 }
 
 function render (opts: Parameters<typeof pollHTML>[0] = {}): void {
@@ -120,6 +120,17 @@ describe("PollVote", () => {
     submit("form.forum-poll-ballot");
     await settle();
     expect((document.querySelector("details.forum-poll-ballots") as HTMLDetailsElement).open).toBe(true);
+  });
+
+  it("replaces the ballot table instead of appending a second one", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ option_ids: [1], html: pollHTML({ selected: [1] }), posts: {} }));
+    render();
+    await load();
+    (document.querySelector("input[value='1']") as HTMLInputElement).checked = true;
+    submit("form.forum-poll-ballot");
+    await settle();
+    expect(document.querySelectorAll("details.forum-poll-ballots")).toHaveLength(1);
+    expect(document.querySelectorAll("#forum-poll")).toHaveLength(1);
   });
 
   it("leaves the staff ballot table closed when it was closed", async () => {

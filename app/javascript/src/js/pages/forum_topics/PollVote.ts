@@ -112,13 +112,14 @@ export default class PollVote {
   }
 
   private render (data: BallotResponse): void {
-    const section = this.section;
-    if (!section) return;
+    const container = this.container;
+    if (!container) return;
     // The staff ballot table ships collapsed; keep it open if the moderator had it open
-    const ballotsOpen = section.querySelector<HTMLDetailsElement>("details.forum-poll-ballots")?.open ?? false;
-    section.outerHTML = data.html;
+    const ballotsOpen = container.querySelector<HTMLDetailsElement>("details.forum-poll-ballots")?.open ?? false;
+    // The partial renders the poll section plus siblings (the ballot table), so swap everything in the container
+    container.innerHTML = data.html;
     if (ballotsOpen) {
-      const ballots = this.section?.querySelector<HTMLDetailsElement>("details.forum-poll-ballots");
+      const ballots = container.querySelector<HTMLDetailsElement>("details.forum-poll-ballots");
       if (ballots) ballots.open = true;
     }
     DeferredPostLoader.loadPostData(data.posts ?? {});

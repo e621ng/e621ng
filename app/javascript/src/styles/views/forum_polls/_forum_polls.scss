@@ -2,9 +2,13 @@
 @use "colors/theme";
 
 section.forum-poll {
-  margin: 1em 0;
+  margin: 1rem 0;
   padding: 0.75rem 1rem;
-  background: theme.color("section-darken-5");
+
+  box-sizing: border-box;
+  max-width: 50rem;
+  background: theme.color("section");
+  box-shadow: 0 0 0.5rem -0.25rem black;
   border-radius: 0.25rem;
 
   ol.forum-poll-options {
@@ -144,19 +148,6 @@ section.forum-poll {
     }
   }
 
-  details.forum-poll-ballots {
-    margin-top: 0.75rem;
-    font-size: 0.85rem;
-
-    summary { cursor: pointer; }
-    .forum-poll-ballots-note, .forum-poll-ballots-empty {
-      margin: 0.25rem 0 0.5rem;
-      color: palette.color("text-grey");
-    }
-    table { margin-top: 0.25rem; }
-    td, th { padding: 0.15rem 0.5rem; }
-  }
-
   .forum-poll-edit {
     margin-top: 0.75rem;
   }
@@ -225,4 +216,26 @@ div#c-forum-topics span.poll-topic {
     vertical-align: -0.1em;
     margin-right: 0.15em;
   }
+}
+
+details.forum-poll-ballots {
+  margin: 1rem 0;
+  font-size: 0.85rem;
+
+  box-sizing: border-box;
+  max-width: 50rem;
+  background: theme.color("section");
+  box-shadow: 0 0 0.5rem -0.25rem black;
+  border-radius: 0.25rem;
+
+  summary {
+    cursor: pointer;
+    padding: 0.75rem 1rem;
+  }
+  .forum-poll-ballots-note, .forum-poll-ballots-empty {
+    margin: 0 0.5rem 0.25rem;
+    color: palette.color("text-grey");
+  }
+  table { margin: 0.25rem 0; }
+  td, th { padding: 0.15rem 0.5rem; }
 }
