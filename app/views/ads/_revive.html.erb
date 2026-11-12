@@ -1,10 +1,22 @@
 <% if Danbooru.config.ads_enabled? %>
   <%= javascript_tag nonce: true do -%>
     (function() {
-      var s = document.createElement('script');
-      s.async = true;
-      s.src = "//<%= Danbooru.config.ads_config[:revive][:domain] %>/www/delivery/asyncjs.php";
-      document.body.appendChild(s);
+      // A script added before the window load event holds that event (and the
+      // tab spinner) until the ad server answers, even with async set. Inject
+      // only once the page itself has finished loading so a slow or dead ad
+      // server leaves the slots empty instead of stalling the page.
+      function inject() {
+        var s = document.createElement('script');
+        s.async = true;
+        s.src = "//<%= Danbooru.config.ads_config[:revive][:domain] %>/www/delivery/asyncjs.php";
+        document.body.appendChild(s);
+      }
+      if (document.readyState === "complete") {
+        inject();
+      } else {
+        // Next tick: let the load event finish dispatching first
+        window.addEventListener("load", function() { setTimeout(inject, 0); }, { once: true });
+      }
     })();
   <% end -%>
 <% end %>
