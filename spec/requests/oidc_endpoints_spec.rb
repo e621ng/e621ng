@@ -72,9 +72,7 @@ RSpec.describe "OIDC endpoints" do
       }.to_query
     end
 
-    # Doorkeeper's resource_owner_authenticator reads session[:user_id] directly,
-    # which sign_in_as does not populate. Use a real login POST to establish the
-    # cookie-backed session.
+    # Use a real login POST so the cookie-backed session goes through SessionLoader.
     before { make_session(user, password) }
 
     it "anonymous user gets redirected to login with a return url" do
@@ -413,6 +411,51 @@ RSpec.describe "OIDC endpoints" do
     end
   end
 
+  describe "/oauth/authorize resource owner validation" do
+    let(:password) { "hexerade" }
+    let(:user)     { create(:user) }
+    let(:redirect) { "http://localhost/cb" }
+    let(:oauth_app) do
+      Doorkeeper::Application.create!(
+        name: "owner-check", redirect_uri: redirect, scopes: "openid full",
+        confidential: true, owner: create(:user, oauth_applications_beta: true)
+      )
+    end
+    let(:verifier)  { SecureRandom.urlsafe_base64(64).delete("=")[0, 64] }
+    let(:challenge) { Base64.urlsafe_encode64(Digest::SHA256.digest(verifier), padding: false) }
+    let(:url) do
+      "/oauth/authorize?" + {
+        response_type: "code", client_id: oauth_app.uid, redirect_uri: redirect,
+        scope: "openid full", state: "s", code_challenge: challenge, code_challenge_method: "S256",
+      }.to_query
+    end
+
+    before do
+      # Prior grant, so skip_authorization would issue a code without a consent screen
+      Doorkeeper::AccessToken.create!(application: oauth_app, resource_owner_id: user.id, scopes: "openid full")
+      make_session(user, password)
+    end
+
+    it "sends a session invalidated by a password change to the login page" do
+      user.update_columns(bcrypt_password_hash: User.bcrypt("a-different-password"))
+      get url
+      expect(response).to redirect_to(new_session_path(url: url))
+    end
+
+    it "sends a session invalidated by enabling 2FA to the login page" do
+      create(:user_totp, user: user)
+      get url
+      expect(response).to redirect_to(new_session_path(url: url))
+    end
+
+    it "rejects a user whose ban still allows login" do
+      CurrentUser.scoped(create(:moderator_user)) { create(:ban, user: user) }
+      get url
+      expect(response).to have_http_status(:forbidden)
+      expect(response.body).to include("Your account is restricted")
+    end
+  end
+
   describe "revoke then re-authorize" do
     let(:password) { "hexerade" }
     let(:user)     { create(:user) }
@@ -710,6 +753,13 @@ RSpec.describe "OIDC endpoints" do
       refresh
       expect(response).to have_http_status(:ok)
       expect(response.parsed_body["refresh_token"]).to be_present
+    end
+
+    it "rejects the refresh after the user becomes restricted" do
+      user.update_column(:level, UserLevel::BLOCKED)
+      refresh
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body["error"]).to eq("invalid_grant")
     end
 
     it "rejects a refresh token idle past the window" do
