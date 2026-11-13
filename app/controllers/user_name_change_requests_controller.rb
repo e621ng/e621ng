@@ -3,6 +3,7 @@
 class UserNameChangeRequestsController < ApplicationController
   before_action :member_only, only: %i[new create show]
   before_action :moderator_only, only: %i[index destroy]
+  before_action :requires_reauthentication, only: %i[new create]
   respond_to :html, :json
 
   def index
