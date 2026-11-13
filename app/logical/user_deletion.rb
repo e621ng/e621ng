@@ -95,9 +95,8 @@ class UserDeletion
 
   # The password reset only ends web sessions; these authenticate independently of it.
   def revoke_credentials
-    user.api_keys.delete_all
+    user.revoke_api_credentials!
     user.totp&.destroy!
-    user.revoke_oauth_credentials!
   end
 
   # Restrictions survive, like the level cap keeping banned users banned.

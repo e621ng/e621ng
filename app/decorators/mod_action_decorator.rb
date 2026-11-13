@@ -185,7 +185,9 @@ class ModActionDecorator < ApplicationDecorator
     when "totp_reset"
       "Removed two-factor authentication from #{user}"
     when "password_reset"
-      if vals["invalidated"]
+      if vals["credentials_revoked"]
+        "Reset password for #{user}, invalidated their old password, and revoked their API keys and app access"
+      elsif vals["invalidated"]
         "Reset password for #{user} and invalidated their old password"
       else
         "Reset password for #{user}"
