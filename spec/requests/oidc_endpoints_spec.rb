@@ -270,6 +270,39 @@ RSpec.describe "OIDC endpoints" do
       expect(response.headers["Content-Security-Policy"]).to include("form-action 'self'")
       expect(response.headers["Content-Security-Policy"]).not_to include("evil.example")
     end
+
+    context "with response_mode=form_post" do
+      subject(:page) { response.parsed_body }
+
+      before do
+        post "/oauth/authorize", params: {
+          response_type: "code", response_mode: "form_post", client_id: oauth_app.uid,
+          redirect_uri: redirect, scope: "openid full", state: "csp",
+          code_challenge: challenge, code_challenge_method: "S256",
+        }
+      end
+
+      let(:csp) { response.headers["Content-Security-Policy"] }
+
+      it "renders the auto-submit form targeting the redirect_uri" do
+        expect(response).to have_http_status(:ok)
+        expect(page.at_css("form[name=redirect_form]")["action"]).to eq(redirect)
+        expect(csp).to include("form-action 'self' https://client.example")
+      end
+
+      it "nonces the auto-submit script with the header nonce" do
+        header_nonce = csp[/'nonce-([^']+)'/, 1]
+        expect(header_nonce).to be_present
+        script = page.css("script").find { |s| s.text.include?("redirect_form") }
+        expect(script["nonce"]).to eq(header_nonce)
+      end
+
+      it "has a visible submit button that posts no extra param" do
+        form = page.at_css("form[name=redirect_form]")
+        expect(form.at_css("input[type=submit]")).to be_present
+        expect(form.css("[name=commit]")).to be_empty
+      end
+    end
   end
 
   describe "/oauth/authorize when the application's owner is banned" do

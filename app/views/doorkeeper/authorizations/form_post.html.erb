@@ -6,10 +6,12 @@
   <% auth.body.compact.each do |key, value| %>
     <%= hidden_field_tag key, value %>
   <% end %>
+  <%# Visible fallback in case the auto-submit doesn't run; unnamed so no commit param reaches the client. %>
+  <%= submit_tag t(".submit"), name: nil %>
 <% end %>
 
-<script>
+<%= javascript_tag nonce: true do -%>
   window.onload = function () {
     document.forms['redirect_form'].submit();
   };
-</script>
+<% end -%>
