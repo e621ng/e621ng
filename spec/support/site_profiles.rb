@@ -24,6 +24,7 @@ RSpec.shared_context "with e926 site profile" do
         description: "e926",
         storage_base_url: "https://static1.e926.net/",
         ads_config: e926_ads_config,
+        analytics_client_id: "e926-client",
       },
     }
   end

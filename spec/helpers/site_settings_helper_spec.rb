@@ -29,6 +29,16 @@ RSpec.describe SiteSettingsHelper do
       it "enables analytics and exposes the client id and api url" do
         expect(settings["Analytics"]).to include("enabled" => true, "client_id" => "G-ABC123", "api_url" => "https://op.dragonfru.it/api")
       end
+
+      context "on a site profile with its own client id" do
+        include_context "with e926 site profile"
+
+        it "exposes the profile's client id" do
+          CurrentSite.with("e926") do
+            expect(settings["Analytics"]).to include("enabled" => true, "client_id" => "e926-client")
+          end
+        end
+      end
     end
 
     context "when visitor metrics are disabled" do
