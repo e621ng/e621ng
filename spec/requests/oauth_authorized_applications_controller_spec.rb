@@ -14,7 +14,7 @@ RSpec.describe OauthAuthorizedApplicationsController do
     it "rejects api_key auth (browser-only)" do
       api_user = create(:user)
       api_key = create(:api_key, user: api_user)
-      get "/applications/authorized", params: { login: api_user.name, api_key: api_key.key }
+      get "/applications/authorized", params: { login: api_user.name, api_key: api_key.key }, headers: { "Accept" => "application/json" }
       expect(response).to have_http_status(:forbidden)
     end
 

@@ -7,7 +7,8 @@ RSpec.describe SessionLoader do
   # SessionLoader can read/write session[:user_id] without DisabledSessionError.
   subject(:loader) { described_class.new(request) }
 
-  let(:env)     { Rack::MockRequest.env_for("/").merge("rack.session" => ActionController::TestSession.new) }
+  # API credentials are only accepted on API formats (E6SEC-519); session/bearer paths ignore this.
+  let(:env)     { Rack::MockRequest.env_for("/", "HTTP_ACCEPT" => "application/json").merge("rack.session" => ActionController::TestSession.new) }
   let(:request) { ActionDispatch::TestRequest.create(env) }
 
   around do |example|
@@ -587,6 +588,116 @@ RSpec.describe SessionLoader do
   end
 
   # ---------------------------------------------------------------------------
+  # #load — browser-planted API credentials (E6SEC-519)
+  # ---------------------------------------------------------------------------
+  describe "#load API credentials from a browser" do
+    let(:user)    { create(:user) }
+    let(:api_key) { create(:api_key, user: user) }
+
+    before { env["QUERY_STRING"] = Rack::Utils.build_query(login: user.name, api_key: api_key.key) }
+
+    it "rejects param auth on an HTML request" do
+      env["HTTP_ACCEPT"] = "text/html"
+      expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure, /only accepted/)
+    end
+
+    it "rejects Basic auth on an HTML request" do
+      env["QUERY_STRING"] = ""
+      env["HTTP_ACCEPT"] = "text/html"
+      env["HTTP_AUTHORIZATION"] = "Basic #{Base64.strict_encode64("#{user.name}:#{api_key.key}")}"
+      expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure, /only accepted/)
+    end
+
+    it "rejects a top-level navigation to a JSON URL" do
+      env["HTTP_SEC_FETCH_MODE"] = "navigate"
+      env["HTTP_SEC_FETCH_DEST"] = "document"
+      expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+    end
+
+    it "rejects a subresource load such as <img>" do
+      env["HTTP_SEC_FETCH_MODE"] = "no-cors"
+      env["HTTP_SEC_FETCH_DEST"] = "image"
+      expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+    end
+
+    it "does not record the IP of a rejected request" do
+      env["HTTP_ACCEPT"] = "text/html"
+      allow(UserIpTracker).to receive(:track!)
+      expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      expect(UserIpTracker).not_to have_received(:track!)
+    end
+
+    it "accepts fetch() from the same origin" do
+      env["HTTP_SEC_FETCH_MODE"] = "cors"
+      env["HTTP_SEC_FETCH_DEST"] = "empty"
+      env["HTTP_SEC_FETCH_SITE"] = "same-origin"
+      loader.load
+      expect(CurrentUser.user).to eq(user)
+    end
+
+    it "accepts the .json path format" do
+      env["HTTP_ACCEPT"] = "text/html"
+      env["action_dispatch.request.path_parameters"] = { format: "json" }
+      loader.load
+      expect(CurrentUser.user).to eq(user)
+    end
+
+    it "still accepts a bearer token on an HTML request" do
+      env["QUERY_STRING"] = ""
+      env["HTTP_ACCEPT"] = "text/html"
+      app = Doorkeeper::Application.create!(name: "test-app", redirect_uri: "http://localhost/cb", scopes: "full", confidential: true, owner: user)
+      token = Doorkeeper::AccessToken.create!(application: app, resource_owner_id: user.id, scopes: "full")
+      env["HTTP_AUTHORIZATION"] = "Bearer #{token.token}"
+      loader.load
+      expect(CurrentUser.user).to eq(user)
+    end
+
+    describe "IP attribution" do
+      before do
+        Cache.redis.del("user_login_tracking:api_key:#{api_key.id}")
+        user.update_columns(last_ip_addr: "10.0.0.1")
+        allow(UserIpTracker).to receive(:track!)
+        env["HTTP_SEC_FETCH_MODE"] = "cors"
+        env["HTTP_SEC_FETCH_DEST"] = "empty"
+      end
+
+      after { Cache.redis.del("user_login_tracking:api_key:#{api_key.id}") }
+
+      %w[cross-site same-site].each do |site|
+        it "skips IP tracking for a #{site} request" do
+          env["HTTP_SEC_FETCH_SITE"] = site
+          loader.load
+          expect(UserIpTracker).not_to have_received(:track!)
+          expect(user.reload.last_ip_addr.to_s).to eq("10.0.0.1")
+          expect(api_key.reload.last_used_at).to be_present
+        end
+      end
+
+      it "tracks the IP for a same-origin request" do
+        env["HTTP_SEC_FETCH_SITE"] = "same-origin"
+        loader.load
+        expect(UserIpTracker).to have_received(:track!).with(user, request.remote_ip)
+        expect(user.reload.last_ip_addr.to_s).to eq(request.remote_ip)
+      end
+
+      it "tracks the IP for a non-browser client" do
+        %w[HTTP_SEC_FETCH_MODE HTTP_SEC_FETCH_DEST].each { |k| env.delete(k) }
+        loader.load
+        expect(UserIpTracker).to have_received(:track!).with(user, request.remote_ip)
+      end
+
+      it "tracks a cross-site request authenticated by the session cookie" do
+        env["QUERY_STRING"] = ""
+        env["HTTP_SEC_FETCH_SITE"] = "cross-site"
+        request.session[:user_id] = user.id
+        request.session[:ph] = user.password_token
+        loader.load
+        expect(UserIpTracker).to have_received(:track!).with(user, request.remote_ip)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # #load — ban enforcement
   # ---------------------------------------------------------------------------
   describe "#load ban enforcement" do
@@ -722,6 +833,7 @@ RSpec.describe SessionLoader do
       # The outer before block (session setup) still runs but API auth takes priority.
       let(:env) do
         { "rack.session" => ActionController::TestSession.new,
+          "HTTP_ACCEPT" => "application/json",
           "QUERY_STRING" => Rack::Utils.build_query(login: user.name, api_key: api_key.key), }
       end
 
