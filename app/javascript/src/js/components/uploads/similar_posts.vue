@@ -178,7 +178,7 @@ async function fireQuery () {
       body.append("search[file]", blob, "query.jpg");
     }
 
-    const response = await HTTP.post("/iqdb_queries.json?v2=true", body);
+    const response = await HTTP.post("/iqdb_queries.json", body);
     if (id !== requestId) return;
     if (response.ok) {
       const json = await response.json();

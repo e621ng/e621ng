@@ -81,7 +81,7 @@ describe("uploads/similar_posts — gating", () => {
     await flushPromises();
 
     expect(fetchSpy).toHaveBeenCalledTimes(1);
-    expect(fetchSpy.mock.calls[0][0]).toBe("/iqdb_queries.json?v2=true");
+    expect(fetchSpy.mock.calls[0][0]).toBe("/iqdb_queries.json");
     expect(requestBody(fetchSpy).get("search[url]")).toBe("https://example.com/art.png");
   });
 

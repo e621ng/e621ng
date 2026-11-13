@@ -21,18 +21,24 @@ RSpec.describe PostEventsController do
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns a JSON body with a post_events key" do
+    it "returns a JSON array" do
       create(:post_event, post_id: post_record.id)
       get post_events_path(format: :json)
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body).to have_key("post_events")
+      expect(response.parsed_body).to be_an(Array)
+    end
+
+    it "returns a JSON body with a post_events key when v1 is requested" do
+      create(:post_event, post_id: post_record.id)
+      get post_events_path(format: :json), params: { v1: "true" }
+      expect(response).to have_http_status(:ok)
       expect(response.parsed_body["post_events"]).to be_an(Array)
     end
 
     it "serializes expected fields" do
       event = create(:post_event, post_id: post_record.id, action: :deleted)
       get post_events_path(format: :json)
-      entry = response.parsed_body["post_events"].find { |e| e["id"] == event.id }
+      entry = response.parsed_body.find { |e| e["id"] == event.id }
       expect(entry).to include("id", "post_id", "action", "created_at", "creator_id")
     end
 
@@ -40,7 +46,7 @@ RSpec.describe PostEventsController do
       it "hides creator_id from anonymous users" do
         event = create(:post_event, post_id: post_record.id, action: :flag_created)
         get post_events_path(format: :json)
-        entry = response.parsed_body["post_events"].find { |e| e["id"] == event.id }
+        entry = response.parsed_body.find { |e| e["id"] == event.id }
         expect(entry["creator_id"]).to be_nil
       end
 
@@ -48,7 +54,7 @@ RSpec.describe PostEventsController do
         sign_in_as moderator
         event = create(:post_event, post_id: post_record.id, action: :flag_created)
         get post_events_path(format: :json)
-        entry = response.parsed_body["post_events"].find { |e| e["id"] == event.id }
+        entry = response.parsed_body.find { |e| e["id"] == event.id }
         expect(entry["creator_id"]).to eq(event.creator_id)
       end
     end
@@ -60,21 +66,21 @@ RSpec.describe PostEventsController do
 
       it "filters by post_id" do
         get post_events_path(format: :json, params: { search: { post_id: post_record.id } })
-        ids = response.parsed_body["post_events"].pluck("id")
+        ids = response.parsed_body.pluck("id")
         expect(ids).to include(event_a.id)
         expect(ids).not_to include(event_b.id)
       end
 
       it "filters by action" do
         get post_events_path(format: :json, params: { search: { action: "deleted" } })
-        ids = response.parsed_body["post_events"].pluck("id")
+        ids = response.parsed_body.pluck("id")
         expect(ids).to include(event_a.id)
         expect(ids).not_to include(event_b.id)
       end
 
       it "filters by creator_id" do
         get post_events_path(format: :json, params: { search: { creator_id: event_a.creator_id } })
-        ids = response.parsed_body["post_events"].pluck("id")
+        ids = response.parsed_body.pluck("id")
         expect(ids).to include(event_a.id)
         expect(ids).not_to include(event_b.id)
       end
@@ -98,7 +104,7 @@ RSpec.describe PostEventsController do
         sign_in_as moderator
         get post_events_path(format: :json, params: { search: { action: "comment_locked" } })
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["post_events"].pluck("id")).to include(event.id)
+        expect(response.parsed_body.pluck("id")).to include(event.id)
       end
     end
   end

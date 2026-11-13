@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class IqdbQueriesController < ApplicationController
+  include JsonResponseHelper
+
   respond_to :html, :json
   # CSRF is skipped only for read-only image similarity queries that don't modify data.
   # This enables API access for external tools while the queries themselves are harmless.
@@ -12,7 +14,8 @@ class IqdbQueriesController < ApplicationController
     search_params = params[:search].presence || params
     throttle(search_params)
 
-    v2_format = params[:v2] == "true" && request.format.json?
+    # HTML matches need Post models, so only JSON gets the new format
+    v2_format = request.format.json? && !legacy_api_format?
 
     @matches = []
     if search_params[:file].present?

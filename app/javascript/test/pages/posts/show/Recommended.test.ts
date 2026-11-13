@@ -188,7 +188,7 @@ describe("Recommended", () => {
     await settle();
 
     expect(fetchSpy).toHaveBeenCalledTimes(2);
-    expect(fetchSpy.mock.calls[1][0]).toBe("/posts.json?v2=true&mode=thumbnail&tags=id%3A7%2C8");
+    expect(fetchSpy.mock.calls[1][0]).toBe("/posts.json?mode=thumbnail&tags=id%3A7%2C8");
     expect(renderedIds()).toEqual([7, 8]);
   });
 
