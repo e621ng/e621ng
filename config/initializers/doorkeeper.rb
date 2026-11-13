@@ -3,9 +3,10 @@
 Doorkeeper.configure do
   orm :active_record
 
+  # SessionLoader has already run (base_controller below) and applied the session[:ph] check.
   resource_owner_authenticator do
-    if session[:user_id]
-      User.find_by(id: session[:user_id])
+    if CurrentUser.user.is_logged_in?
+      CurrentUser.user
     else
       redirect_to(new_session_path(url: request.fullpath))
       nil

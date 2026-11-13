@@ -23,6 +23,8 @@ module DoorkeeperApplicationDecorator
         "This application's owner is no longer in good standing."
       elsif owner.is_a?(User) && !owner.can_manage_oauth_applications?
         "This application is no longer available."
+      elsif resource_owner&.is_restricted?
+        "Your account is restricted."
       elsif minimum_user_level.to_i > 0 && resource_owner&.level.to_i < minimum_user_level.to_i
         "You do not have access to this application."
       end
