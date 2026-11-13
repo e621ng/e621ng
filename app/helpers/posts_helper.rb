@@ -127,7 +127,7 @@ module PostsHelper
   private
 
   def nav_params_for(page)
-    query_params = params.except(:controller, :action, :id).merge(page: page).permit!
+    query_params = params.except(:controller, :action, :id, :login, :api_key).merge(page: page).permit!
     {params: query_params}
   end
 

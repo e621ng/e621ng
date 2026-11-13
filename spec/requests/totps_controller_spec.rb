@@ -34,7 +34,7 @@ RSpec.describe TotpsController do
 
     it "rejects api key authentication" do
       api_key = create(:api_key, user: user)
-      get new_totp_path, params: { login: user.name, api_key: api_key.key }
+      get new_totp_path, params: { login: user.name, api_key: api_key.key }, headers: { "Accept" => "application/json" }
       expect(response).to have_http_status(:forbidden)
     end
 

@@ -433,7 +433,7 @@ RSpec.describe "OIDC endpoints" do
 
     it "rejects api_key params" do
       key = create(:api_key, user: user)
-      get url, params: { login: user.name, api_key: key.key }
+      get url, params: { login: user.name, api_key: key.key }, headers: { "Accept" => "application/json" }
       expect(response).to have_http_status(:forbidden)
     end
 

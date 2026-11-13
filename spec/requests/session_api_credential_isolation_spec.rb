@@ -3,6 +3,7 @@
 require "rails_helper"
 
 # E6SEC-506: API credentials on a browser request must never change the cookie login.
+# E6SEC-519: and must not be honoured on browser page loads at all.
 RSpec.describe "API credentials vs. cookie login" do
   include_context "as member"
 
@@ -25,21 +26,21 @@ RSpec.describe "API credentials vs. cookie login" do
 
   it "keeps the victim logged in when bogus login/api_key params fail" do
     before_state = login_state
-    get posts_path, params: { login: "x", api_key: "y" }
+    get posts_path(format: :json), params: { login: "x", api_key: "y" }
     expect(response).to have_http_status(:unauthorized)
     expect(login_state).to eq(before_state)
   end
 
   it "keeps the victim logged in when a bogus Basic header fails" do
     before_state = login_state
-    get posts_path, headers: { "Authorization" => "Basic #{Base64.strict_encode64('x:y')}" }
+    get posts_path(format: :json), headers: { "Authorization" => "Basic #{Base64.strict_encode64('x:y')}" }
     expect(response).to have_http_status(:unauthorized)
     expect(login_state).to eq(before_state)
   end
 
   it "does not hand the remember cookie to valid attacker credentials" do
     before_state = login_state
-    get posts_path, params: { login: attacker.name, api_key: attacker_key.key }
+    get posts_path(format: :json), params: { login: attacker.name, api_key: attacker_key.key }
     expect(response).to have_http_status(:ok)
     expect(login_state).to eq(before_state)
 
@@ -49,10 +50,34 @@ RSpec.describe "API credentials vs. cookie login" do
     expect(session[:user_id]).to eq(victim.id)
   end
 
+  # E6SEC-519: a link carrying the attacker's key must not run as the attacker.
+  it "rejects attacker credentials on an HTML page" do
+    before_state = login_state
+    get posts_path, params: { login: attacker.name, api_key: attacker_key.key }
+    expect(response).to have_http_status(:unauthorized)
+    expect(login_state).to eq(before_state)
+  end
+
+  it "rejects attacker credentials on a navigation to a JSON URL" do
+    get posts_path(format: :json), params: { login: attacker.name, api_key: attacker_key.key },
+                                   headers: { "Sec-Fetch-Mode" => "navigate", "Sec-Fetch-Dest" => "document", "Sec-Fetch-Site" => "same-origin" }
+    expect(response).to have_http_status(:unauthorized)
+    expect(attacker_key.reload.last_ip_address).to be_nil
+  end
+
+  it "does not add the victim's IP to the attacker's history on a cross-site fetch" do
+    get posts_path(format: :json), params: { login: attacker.name, api_key: attacker_key.key },
+                                   headers: { "Sec-Fetch-Mode" => "no-cors", "Sec-Fetch-Dest" => "empty", "Sec-Fetch-Site" => "cross-site",
+                                              "REMOTE_ADDR" => "203.0.113.7", }
+    expect(response).to have_http_status(:ok)
+    expect(UserIpAddress.where(user_id: attacker.id)).to be_empty
+    expect(attacker.reload.last_ip_addr.to_s).not_to eq("203.0.113.7")
+  end
+
   it "keeps the victim logged in when a banned account's key is used" do
     banned_key = create(:api_key, user: create(:banned_user))
     before_state = login_state
-    get posts_path, params: { login: banned_key.user.name, api_key: banned_key.key }
+    get posts_path(format: :json), params: { login: banned_key.user.name, api_key: banned_key.key }
     expect(response).to have_http_status(:unauthorized)
     expect(login_state).to eq(before_state)
   end

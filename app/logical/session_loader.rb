@@ -39,7 +39,7 @@ class SessionLoader
     end
 
     # Record the IP for everyone, including attempted logins from banned users.
-    UserIpTracker.track!(CurrentUser.user, CurrentUser.ip_addr)
+    UserIpTracker.track!(CurrentUser.user, CurrentUser.ip_addr) if attributable_ip?
 
     CurrentUser.user.unban! if CurrentUser.user.ban_expired?
     if CurrentUser.user.is_restricted?
@@ -118,6 +118,24 @@ class SessionLoader
     request.authorization.to_s.start_with?("Basic ")
   end
 
+  # Navigations and subresource loads; fetch()/XHR send Sec-Fetch-Dest: empty.
+  def browser_load?
+    dest = request.headers["Sec-Fetch-Dest"]
+    request.headers["Sec-Fetch-Mode"] == "navigate" || (dest.present? && dest != "empty")
+  end
+
+  def api_format?
+    format = request.format
+    format.present? && (format.json? || format.xml? || format.atom?)
+  end
+
+  # CORS allows any origin, so a cross-site page can send credentials from a visitor's
+  # browser. That IP is the visitor's, not the credential owner's (E6SEC-519).
+  def attributable_ip?
+    return true unless @auth_source.in?(%i[api bearer])
+    !request.headers["Sec-Fetch-Site"].in?(%w[cross-site same-site])
+  end
+
   def load_session_for_bearer
     token = Doorkeeper::AccessToken.by_token(bearer_token)
     raise AuthenticationFailure unless token&.accessible?
@@ -170,7 +188,12 @@ class SessionLoader
     end
   end
 
+  # Key/Basic credentials can be planted in a victim's browser through a link or embed (E6SEC-519).
   def load_session_for_api
+    if browser_load? || !api_format?
+      raise AuthenticationFailure, "API credentials are only accepted on .json, .xml or .atom requests from API clients or fetch()"
+    end
+
     if request.authorization
       authenticate_basic_auth
     elsif params[:login].present? && params[:api_key].present?
@@ -252,7 +275,7 @@ class SessionLoader
       CurrentUser.user.update_attribute(:last_logged_in_at, Time.now)
     end
 
-    if CurrentUser.user.last_ip_addr != @request.remote_ip
+    if attributable_ip? && CurrentUser.user.last_ip_addr != @request.remote_ip
       CurrentUser.user.update_attribute(:last_ip_addr, @request.remote_ip)
     end
 

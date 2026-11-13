@@ -274,7 +274,8 @@ class ApplicationController < ActionController::Base
 
   def requires_reauthentication
     return redirect_to(new_session_path(url: request.fullpath)) if CurrentUser.user.is_logged_out?
-    last_authenticated_at = session[:last_authenticated_at]
+    # The timestamp belongs to the cookie login, not to API credentials on this request.
+    last_authenticated_at = session[:last_authenticated_at] if session[:user_id] == CurrentUser.id
     if last_authenticated_at.blank? || Time.zone.parse(last_authenticated_at) < 1.hour.ago
       if request.get?
         return_to = request.fullpath
