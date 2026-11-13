@@ -102,7 +102,7 @@ class ModAction < ApplicationRecord
     user_level_change: { user_id: :integer, level: :string, level_was: :string },
     user_name_change: { user_id: :integer },
     totp_reset: { user_id: :integer },
-    password_reset: { user_id: :integer, invalidated: :boolean },
+    password_reset: { user_id: :integer, invalidated: :boolean, credentials_revoked: :boolean },
     user_delete: { user_id: :integer },
     user_ban: { user_id: :integer, duration: :integer, reason: :string },
     user_ban_update: { user_id: :integer, ban_id: :integer, expires_at: :datetime, expires_at_was: :datetime, reason: :string, reason_was: :string },

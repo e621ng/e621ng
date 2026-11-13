@@ -346,6 +346,12 @@ class User < ApplicationRecord
       end
     end
 
+    # Credentials that authenticate without the password; changing the hash doesn't end them.
+    def revoke_api_credentials!
+      api_keys.delete_all
+      revoke_oauth_credentials!
+    end
+
     # Covers tokens the user holds and tokens issued by apps they own; app rows are kept.
     def revoke_oauth_credentials!
       Doorkeeper::AccessToken.where(resource_owner_id: id, revoked_at: nil).find_each(&:revoke)

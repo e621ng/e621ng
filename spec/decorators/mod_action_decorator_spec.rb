@@ -228,6 +228,17 @@ RSpec.describe ModActionDecorator do
         expect(desc).to include(target_user.name)
       end
 
+      it "password_reset with credentials_revoked mentions the revocation" do
+        desc = decorate(:password_reset, { "user_id" => target_user.id, "invalidated" => true, "credentials_revoked" => true }).format_description
+        expect(desc).to include("revoked their API keys and app access")
+      end
+
+      it "password_reset from before credentials_revoked keeps the old text" do
+        desc = decorate(:password_reset, { "user_id" => target_user.id, "invalidated" => true }).format_description
+        expect(desc).to include("invalidated their old password")
+        expect(desc).not_to include("revoked")
+      end
+
       it "user_ban with negative duration describes a permanent ban" do
         desc = decorate(:user_ban, { "user_id" => target_user.id, "duration" => -1, "reason" => "spam" }).format_description
         expect(desc).to include("permanently")
