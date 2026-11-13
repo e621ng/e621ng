@@ -212,6 +212,22 @@ RSpec.describe PostsController do
       end
     end
 
+    context "with a legacy flash post" do
+      let(:post) { create(:post, file_ext: "swf") }
+      let(:object) { Nokogiri::HTML(response.body).at_css("object#flash-content") }
+
+      before { get post_path(post) }
+
+      it "embeds the file with script access and networking disabled" do
+        expect(object.at_css(%(param[name="movie"]))["value"]).to eq(post.file_url)
+        expect(object.at_css(%(param[name="allowScriptAccess"]))["value"]).to eq("never")
+        expect(object.at_css(%(param[name="allowNetworking"]))["value"]).to eq("internal")
+        embed = object.at_css("embed")
+        expect(embed["allowscriptaccess"]).to eq("never")
+        expect(embed["allownetworking"]).to eq("internal")
+      end
+    end
+
     it "doesn't crash when pool_id is an array" do
       get post_path(post), params: { pool_id: ["49413"] }
       assert_response :success

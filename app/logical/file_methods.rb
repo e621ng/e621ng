@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module FileMethods
+  # Types that exist on posts, including legacy swf. Accepted upload types are Danbooru.config.max_file_sizes.
   FILE_TYPE = {
     png: "png",
     jpg: "jpg",

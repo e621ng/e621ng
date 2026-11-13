@@ -31,6 +31,13 @@ RSpec.describe FileMethods, type: :model do
         expect(upload.file_header_to_file_ext(path)).to eq(expected_ext)
       end
     end
+
+    # Uploads can't produce a "swf" ext, so FileValidator rejects flash as an unknown type.
+    it "returns the raw MIME type for a SWF file, never 'swf'" do
+      upload = build(:upload)
+      path = file_fixture("flash.swf").to_s
+      expect(upload.file_header_to_file_ext(path)).to eq("application/vnd.adobe.flash.movie")
+    end
   end
 
   # ----------------------------------------------------------------------- #
