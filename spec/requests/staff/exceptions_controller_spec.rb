@@ -119,4 +119,40 @@ RSpec.describe Staff::ExceptionsController do
       expect(response).to have_http_status(:not_found)
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # JSON scrubbing (E6SEC-515)
+  # ---------------------------------------------------------------------------
+
+  describe "JSON scrubbing" do
+    let(:staff) { create(:staff_user) }
+    let(:raw_message) { "Error from 1.2.3.4 and admin@example.com" }
+    let!(:exception_log) do
+      create(:exception_log, message: raw_message, extra_params: { "referrer" => "http://1.2.3.4/?e=a@b.com" })
+    end
+
+    it "scrubs the show response for staff below admin" do
+      sign_in_as staff
+      get staff_exception_path(exception_log, format: :json)
+      expect(response).to have_http_status(:ok)
+      body = response.parsed_body
+      expect(body["message"]).to eq("Error from [IP PROTECTED] and [EMAIL PROTECTED]")
+      expect(body["extra_params"]["referrer"]).not_to include("1.2.3.4", "a@b.com")
+      expect(body).not_to have_key("ip_addr")
+    end
+
+    it "scrubs the index response for staff below admin" do
+      sign_in_as staff
+      get staff_exceptions_path(format: :json)
+      expect(response).to have_http_status(:ok)
+      row = response.parsed_body.find { |log| log["code"] == exception_log.code }
+      expect(row["message"]).to eq("Error from [IP PROTECTED] and [EMAIL PROTECTED]")
+    end
+
+    it "returns the raw message for admins" do
+      sign_in_as admin
+      get staff_exception_path(exception_log, format: :json)
+      expect(response.parsed_body["message"]).to eq(raw_message)
+    end
+  end
 end

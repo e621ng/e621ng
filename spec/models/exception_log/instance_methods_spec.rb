@@ -92,4 +92,37 @@ RSpec.describe ExceptionLog do
       end
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # #as_json
+  # ---------------------------------------------------------------------------
+
+  describe "#as_json" do
+    let(:raw_message) { "Error from 1.2.3.4 and admin@example.com" }
+    let(:raw_extra) { { "nested" => { "inner" => "admin@example.com 4.3.2.1" } } }
+
+    it "returns the raw message and extra params for admins" do
+      json = make_log(message: raw_message, extra_params: raw_extra).as_json
+      expect(json["message"]).to eq(raw_message)
+      expect(json["extra_params"]).to eq(raw_extra)
+      expect(json).not_to have_key("ip_addr")
+    end
+
+    it "handles a nil extra_params" do
+      log = make_log
+      log.update_column(:extra_params, nil)
+      expect(log.reload.as_json["extra_params"]).to be_nil
+    end
+
+    context "when not admin" do
+      include_context "as member"
+
+      it "scrubs IPs and emails from the message and extra params" do
+        json = make_log(message: raw_message, extra_params: raw_extra).as_json
+        expect(json["message"]).to eq("Error from [IP PROTECTED] and [EMAIL PROTECTED]")
+        expect(json["extra_params"]["nested"]["inner"]).to eq("[EMAIL PROTECTED] [IP PROTECTED]")
+        expect(json).not_to have_key("ip_addr")
+      end
+    end
+  end
 end

@@ -109,6 +109,14 @@ class ExceptionLog < ApplicationRecord
     total
   end
 
+  # The JSON API must apply the same scrubbing as the HTML views
+  def as_json(options = {})
+    super.tap do |hash|
+      hash["message"] = viewable_message if hash.key?("message")
+      hash["extra_params"] = viewable_extra_params if hash.key?("extra_params") && !extra_params.nil?
+    end
+  end
+
   def viewable_message
     if CurrentUser.is_admin?
       message
