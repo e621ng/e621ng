@@ -21,7 +21,7 @@ class SessionsController < ApplicationController
     end
 
     session_creator = SessionCreator.new(request, session, cookies, sparams[:name], sparams[:password], sparams[:remember].to_s.truthy?)
-    url = url_from(sparams[:url])
+    url = local_redirect_path(sparams[:url])
 
     case session_creator.authenticate(url: url)
     when :succeeded
@@ -160,7 +160,7 @@ class SessionsController < ApplicationController
 
       DanbooruLogger.add_attributes("user.login" => "captcha_required")
       message = "Too many failed login attempts for this account. Please complete the captcha and try again."
-      captcha_url = new_session_path({ url: url_from(url), captcha: 1 }.compact)
+      captcha_url = new_session_path({ url: local_redirect_path(url), captcha: 1 }.compact)
       respond_to do |fmt|
         fmt.html { redirect_to(captcha_url, notice: message) }
         fmt.json { render(json: { error: message, code: "captcha_required", url: captcha_url }, status: 429) }
@@ -178,5 +178,11 @@ class SessionsController < ApplicationController
 
   def session_creator
     SessionCreator.new(request, session, cookies, nil, nil)
+  end
+
+  # url_from checks only the host, so it lets `javascript://<host>/...` through.
+  def local_redirect_path(url)
+    url = url_from(url)
+    url if url.is_a?(String) && url.match?(%r{\A/(?![/\\])})
   end
 end

@@ -82,6 +82,12 @@ RSpec.describe "TOTP login challenge" do
       expect(response.cookies["remember"]).to be_present
     end
 
+    it "does not stash a non-local url" do
+      login!(url: "javascript://www.example.com/%0Aalert(1)")
+      post verify_totp_session_path, params: { totp: { code: current_code } }
+      expect(response).to redirect_to(posts_path)
+    end
+
     it "rejects a wrong code and keeps the challenge alive" do
       login!
       post verify_totp_session_path, params: { totp: { code: "000000" } }

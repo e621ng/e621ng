@@ -103,6 +103,11 @@ RSpec.describe SessionsController do
           expect(session[:user_id]).to be_nil
         end
 
+        it "drops a non-local url param from the captcha redirect" do
+          post session_path, params: { "session": { name: member.name, password: "hexerade", url: "javascript://www.example.com/%0Aalert(1)" }, "cf-turnstile-response": "turnstile-token" }
+          expect(response).to redirect_to(new_session_path(captcha: 1))
+        end
+
         it "returns 429 with captcha_required and the full-page url (JSON)" do
           post session_path(format: :json), params: { session: { name: member.name, password: "hexerade" } }
           expect(response).to have_http_status(:too_many_requests)
@@ -186,6 +191,26 @@ RSpec.describe SessionsController do
 
       it "ignores a url param that does not start with /" do
         post session_path, params: { session: { name: member.name, password: "hexerade", url: "https://evil.example.com" } }
+        expect(response).to redirect_to(posts_path)
+      end
+
+      it "ignores a same-host javascript: url param" do
+        post session_path, params: { session: { name: member.name, password: "hexerade", url: "javascript://www.example.com/%0Aalert(1)" } }
+        expect(response).to redirect_to(posts_path)
+      end
+
+      it "ignores a same-host javascript: url param (JSON)" do
+        post session_path(format: :json), params: { session: { name: member.name, password: "hexerade", url: "javascript://www.example.com/%0Aalert(1)" } }
+        expect(response.parsed_body["url"]).to eq(posts_path)
+      end
+
+      it "ignores a same-host absolute url param" do
+        post session_path, params: { session: { name: member.name, password: "hexerade", url: "http://www.example.com/artists" } }
+        expect(response).to redirect_to(posts_path)
+      end
+
+      it "ignores a url param starting with /\\" do
+        post session_path, params: { session: { name: member.name, password: "hexerade", url: "/\\evil.example.com" } }
         expect(response).to redirect_to(posts_path)
       end
 
