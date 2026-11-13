@@ -15,7 +15,7 @@ class PostsController < ApplicationController
       respond_with(@post) do |format|
         format.html { redirect_to post_path(@post) }
         format.json do
-          pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
+          pick_json_format(@post, mode: params[:mode], collection: false)
         end
       end
     else
@@ -54,7 +54,7 @@ class PostsController < ApplicationController
 
       respond_with(@posts) do |format|
         format.json do
-          pick_json_format(@post_set.api_posts, legacy: params[:v2] != "true", mode: params[:mode])
+          pick_json_format(@post_set.api_posts, mode: params[:mode])
         end
         format.atom
       end
@@ -98,7 +98,7 @@ class PostsController < ApplicationController
 
     respond_with(@post) do |format|
       format.json do
-        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
+        pick_json_format(@post, mode: params[:mode], collection: false)
       end
     end
   end
@@ -128,7 +128,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { render "posts/show" }
       format.json do
-        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
+        pick_json_format(@post, mode: params[:mode], collection: false)
       end
     end
   end
@@ -175,7 +175,7 @@ class PostsController < ApplicationController
     respond_with(@post) do |format|
       format.html { redirect_to post_path(@post, q: params[:tags]) }
       format.json do
-        pick_json_format(@post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
+        pick_json_format(@post, mode: params[:mode], collection: false)
       end
     end
   end
@@ -239,7 +239,7 @@ class PostsController < ApplicationController
       end
 
       format.json do
-        pick_json_format(post, legacy: params[:v2] != "true", mode: params[:mode], collection: false)
+        pick_json_format(post, mode: params[:mode], collection: false)
       end
     end
   end

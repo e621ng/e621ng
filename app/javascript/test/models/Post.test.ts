@@ -21,7 +21,7 @@ describe("Post", () => {
       await expect(Post.update(42, { rating: "q" })).resolves.toEqual(THUMB);
 
       const { url, init } = lastFetch(fetchSpy);
-      expect(url).toBe("/posts/42.json?v2=true&mode=thumbnails");
+      expect(url).toBe("/posts/42.json?mode=thumbnails");
       expect(init.method).toBe("PUT");
       expect(init.body).toBe(JSON.stringify({ post: { rating: "q" } }));
       expect(queue.mock.calls[0][1]).toEqual({ name: "Post.update" });

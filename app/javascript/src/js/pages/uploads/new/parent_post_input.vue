@@ -14,7 +14,7 @@
     <div v-if="postData && !error" class="upload-parent-preview">
       <a :href="`/posts/${postData.id}`" target="_blank">
         <img 
-          :src="postData.preview.url" 
+          :src="postData.preview_url" 
           :alt="`Post #${postData.id}`"
         />
       </a>
@@ -28,7 +28,7 @@ import HTTP from "@/utility/HTTP";
 
 interface ParentPost {
   id: number;
-  preview: { url: string };
+  preview_url: string | null;
 }
 
 defineProps<{ modelValue?: string | number }>();
@@ -68,7 +68,7 @@ async function fetchPostData(postId: number) {
   error.value = "";
 
   try {
-    const response = await HTTP.get(`/posts/${postId}.json`);
+    const response = await HTTP.get(`/posts/${postId}.json?mode=thumbnails`);
 
     if (!response.ok) {
       if (response.status === 404) {
@@ -81,18 +81,18 @@ async function fetchPostData(postId: number) {
 
     const data = await response.json();
 
-    if (!data || !data.post || !data.post.id) {
+    if (!data || !data.id) {
       error.value = `Post #${postId} not found or invalid response.`;
       return;
     }
 
     // Preview URL may be null if post is deleted or hidden
-    if (!data.post.preview || !data.post.preview.url) {
+    if (!data.preview_url) {
       error.value = `Post #${postId} is unavailable (may be deleted or hidden in safe mode).`;
       return;
     }
 
-    postData.value = data.post;
+    postData.value = data;
 
   } catch (e) {
     console.error("Error fetching post data:", e);

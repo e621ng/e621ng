@@ -108,6 +108,21 @@ RSpec.describe IqdbQueriesController do
       get iqdb_queries_path, params: { hash: "deadbeef" }
       expect(IqdbProxy).to have_received(:query_hash)
     end
+
+    it "requests the new post format for JSON by default" do
+      get iqdb_queries_path(format: :json), params: { hash: "deadbeef" }
+      expect(IqdbProxy).to have_received(:query_hash).with("deadbeef", anything, v2_format: true)
+    end
+
+    it "requests the legacy post format for JSON when v1 is requested" do
+      get iqdb_queries_path(format: :json), params: { hash: "deadbeef", v1: "true" }
+      expect(IqdbProxy).to have_received(:query_hash).with("deadbeef", anything, v2_format: false)
+    end
+
+    it "requests the legacy post format for HTML" do
+      get iqdb_queries_path, params: { hash: "deadbeef" }
+      expect(IqdbProxy).to have_received(:query_hash).with("deadbeef", anything, v2_format: false)
+    end
   end
 
   # ---------------------------------------------------------------------------

@@ -19,10 +19,10 @@ RSpec.describe PostsController do
       expect(response).to have_http_status(:ok)
     end
 
-    it "returns a posts collection in the legacy format" do
+    it "returns a posts collection in the legacy format when v1 is requested" do
       create(:post)
 
-      get posts_path(format: :json)
+      get posts_path(format: :json), params: { v1: "true" }
       expect(response).to have_http_status(:ok)
 
       body = response.parsed_body
@@ -30,10 +30,10 @@ RSpec.describe PostsController do
       expect(body["posts"].first).to include("id", "file", "score", "tags")
     end
 
-    it "returns a post collection in the default v2 format" do
+    it "returns a post collection in the new format by default" do
       create(:post)
 
-      get posts_path(format: :json), params: { v2: "true" }
+      get posts_path(format: :json)
       expect(response).to have_http_status(:ok)
 
       body = response.parsed_body
@@ -42,10 +42,10 @@ RSpec.describe PostsController do
       expect(body.first["tags"]).to be_an(Array)
     end
 
-    it "returns a post collection in the extended v2 format when requested" do
+    it "returns a post collection in the extended format when requested" do
       create(:post)
 
-      get posts_path(format: :json), params: { v2: "true", mode: "extended" }
+      get posts_path(format: :json), params: { mode: "extended" }
       expect(response).to have_http_status(:ok)
 
       body = response.parsed_body
@@ -56,15 +56,22 @@ RSpec.describe PostsController do
       expect(body.first["tags"]["general"]).to be_an(Array)
     end
 
-    it "returns a post collection in the thumbnail v2 format when requested" do
+    it "returns a post collection in the thumbnail format when requested" do
       create(:post)
 
-      get posts_path(format: :json), params: { v2: "true", mode: "thumbnail" }
+      get posts_path(format: :json), params: { mode: "thumbnail" }
       expect(response).to have_http_status(:ok)
 
       body = response.parsed_body
       expect(body).to be_an(Array)
       expect(body.first).to include("id", "tags", "rating", "file_ext", "uploader_id")
+    end
+
+    it "ignores the retired v2 param" do
+      create(:post)
+
+      get posts_path(format: :json), params: { v2: "true" }
+      expect(response.parsed_body).to be_an(Array)
     end
 
     context "with a md5 param matching a post" do
@@ -75,8 +82,14 @@ RSpec.describe PostsController do
         expect(response).to redirect_to(post_path(post))
       end
 
-      it "returns the wrapped post as JSON" do
+      it "returns the post as JSON" do
         get posts_path(md5: post.md5, format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to include("id" => post.id, "files" => be_a(Hash))
+      end
+
+      it "returns the wrapped post as JSON when v1 is requested" do
+        get posts_path(md5: post.md5, format: :json), params: { v1: "true" }
         expect(response).to have_http_status(:ok)
         expect(response.parsed_body).to include("post" => hash_including("id" => post.id))
       end
@@ -189,7 +202,7 @@ RSpec.describe PostsController do
     it "returns a JSON body containing the post id" do
       get post_path(post, format: :json)
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body).to include("post" => hash_including("id" => post.id))
+      expect(response.parsed_body).to include("id" => post.id)
     end
 
     it "returns 404 for a non-existent post" do
@@ -310,7 +323,7 @@ RSpec.describe PostsController do
     it "returns a JSON body containing the post id" do
       get show_seq_post_path(post, format: :json)
       expect(response).to have_http_status(:ok)
-      expect(response.parsed_body).to include("post" => hash_including("id" => post.id))
+      expect(response.parsed_body).to include("id" => post.id)
     end
 
     context "when the post is not visible due to lockdown" do
@@ -348,10 +361,10 @@ RSpec.describe PostsController do
         expect(response.location).to match(%r{/posts/\d+})
       end
 
-      it "returns a wrapped post as JSON" do
+      it "returns a post as JSON" do
         get random_posts_path(format: :json)
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body).to include("post" => hash_including("id"))
+        expect(response.parsed_body).to include("id")
       end
     end
 
@@ -396,7 +409,7 @@ RSpec.describe PostsController do
       it "returns the updated post as JSON" do
         put post_path(post, format: :json), params: valid_params
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body).to include("post" => hash_including("id" => post.id))
+        expect(response.parsed_body).to include("id" => post.id)
       end
 
       context "when the post edit throttle is exceeded" do

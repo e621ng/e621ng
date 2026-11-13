@@ -12,10 +12,15 @@ RSpec.describe PopularController do
         expect(response).to have_http_status(:ok)
       end
 
-      it "returns 200 and a posts key in JSON" do
+      it "returns 200 and a posts array in JSON" do
         get popular_index_path(format: :json)
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body).to have_key("posts")
+        expect(response.parsed_body).to be_an(Array)
+      end
+
+      it "returns 200 and a posts key in JSON when v1 is requested" do
+        get popular_index_path(format: :json), params: { v1: "true" }
+        expect(response).to have_http_status(:ok)
         expect(response.parsed_body["posts"]).to be_an(Array)
       end
 
@@ -23,7 +28,7 @@ RSpec.describe PopularController do
         travel_to(Time.zone.parse("2024-06-15 12:00:00")) do
           post = create(:post)
           get popular_index_path(format: :json)
-          ids = response.parsed_body["posts"].pluck("id")
+          ids = response.parsed_body.pluck("id")
           expect(ids).to include(post.id)
         end
       end
@@ -40,7 +45,7 @@ RSpec.describe PopularController do
           post = create(:post)
           post.update_columns(created_at: Time.zone.parse("2024-06-10 12:00:00")) # Monday same week
           get popular_index_path(format: :json, scale: "week", date: "2024-06-15")
-          ids = response.parsed_body["posts"].pluck("id")
+          ids = response.parsed_body.pluck("id")
           expect(ids).to include(post.id)
         end
       end
@@ -50,7 +55,7 @@ RSpec.describe PopularController do
           post = create(:post)
           post.update_columns(created_at: Time.zone.parse("2024-06-01 12:00:00")) # prior week
           get popular_index_path(format: :json, scale: "week", date: "2024-06-15")
-          ids = response.parsed_body["posts"].pluck("id")
+          ids = response.parsed_body.pluck("id")
           expect(ids).not_to include(post.id)
         end
       end
@@ -67,7 +72,7 @@ RSpec.describe PopularController do
           post = create(:post)
           post.update_columns(created_at: Time.zone.parse("2024-06-01 12:00:00"))
           get popular_index_path(format: :json, scale: "month", date: "2024-06-15")
-          ids = response.parsed_body["posts"].pluck("id")
+          ids = response.parsed_body.pluck("id")
           expect(ids).to include(post.id)
         end
       end
@@ -77,7 +82,7 @@ RSpec.describe PopularController do
           post = create(:post)
           post.update_columns(created_at: Time.zone.parse("2024-05-31 12:00:00"))
           get popular_index_path(format: :json, scale: "month", date: "2024-06-15")
-          ids = response.parsed_body["posts"].pluck("id")
+          ids = response.parsed_body.pluck("id")
           expect(ids).not_to include(post.id)
         end
       end
