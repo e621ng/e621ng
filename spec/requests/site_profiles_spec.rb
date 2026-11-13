@@ -21,7 +21,7 @@ RSpec.describe "Site profiles" do
 
     def file_url_for(post, headers = {})
       get posts_path(format: :json), headers: headers
-      response.parsed_body["posts"].find { |p| p["id"] == post.id }.dig("file", "url")
+      response.parsed_body.find { |p| p["id"] == post.id }.dig("files", "original", "url")
     end
 
     it "searches in safe mode on e926" do
