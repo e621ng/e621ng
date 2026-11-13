@@ -158,6 +158,16 @@ RSpec.describe PostReplacement do
       record.valid?
       expect(FileValidator).not_to have_received(:new)
     end
+
+    it "rejects a SWF replacement as an invalid type" do
+      record = build(:post_replacement, is_backup: false)
+      %i[set_file_name fetch_source_file write_storage_file].each do |m|
+        allow(record).to receive(m)
+      end
+      record.replacement_file = File.open(file_fixture("flash.swf"))
+      expect(record).not_to be_valid
+      expect(record.errors[:file_ext]).to include(include("is invalid"))
+    end
   end
 
   # --------------------------------------------------------------------------
