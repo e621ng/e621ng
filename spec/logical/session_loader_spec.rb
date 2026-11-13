@@ -195,8 +195,8 @@ RSpec.describe SessionLoader do
     context "when session[:user_id] refers to a non-existent user" do
       before { request.session[:user_id] = 999_999 }
 
-      it "raises AuthenticationFailure" do
-        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      it "raises SessionInvalid" do
+        expect { loader.load }.to raise_error(SessionLoader::SessionInvalid)
       end
     end
   end
@@ -227,6 +227,31 @@ RSpec.describe SessionLoader do
 
       it "raises AuthenticationFailure" do
         expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      end
+
+      it "does not raise SessionInvalid" do
+        expect { loader.load }.to(raise_error { |e| expect(e).not_to be_a(SessionLoader::SessionInvalid) })
+      end
+    end
+
+    context "with valid params alongside a remember cookie" do
+      let(:cookie_jar) do
+        instance_spy(ActionDispatch::Cookies::CookieJar).tap do |jar|
+          allow(jar).to receive_messages(encrypted: encrypted_jar, "[]": nil)
+        end
+      end
+      let(:encrypted_jar) { { remember: "victim_token" } }
+
+      before do
+        # Must precede the stub below, which builds the request.
+        env["QUERY_STRING"] = Rack::Utils.build_query(login: user.name, api_key: api_key.key)
+        allow(request).to receive(:cookie_jar).and_return(cookie_jar)
+      end
+
+      it "does not rewrite the remember cookie" do
+        loader.load
+        expect(CurrentUser.user).to eq(user)
+        expect(encrypted_jar[:remember]).to eq("victim_token")
       end
     end
 
@@ -308,6 +333,10 @@ RSpec.describe SessionLoader do
 
       it "raises AuthenticationFailure" do
         expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      end
+
+      it "does not raise SessionInvalid" do
+        expect { loader.load }.to(raise_error { |e| expect(e).not_to be_a(SessionLoader::SessionInvalid) })
       end
     end
   end
@@ -600,6 +629,24 @@ RSpec.describe SessionLoader do
 
       it "does not raise AuthenticationFailure" do
         expect { loader.load }.not_to raise_error
+      end
+    end
+
+    context "when the banned user authenticates via API key" do
+      it "does not raise SessionInvalid" do
+        expect { loader.load }.to(raise_error { |e| expect(e).not_to be_a(SessionLoader::SessionInvalid) })
+      end
+    end
+
+    context "when the banned user authenticates via session" do
+      before do
+        env["QUERY_STRING"] = ""
+        request.session[:user_id] = user.id
+        request.session[:ph] = user.password_token
+      end
+
+      it "raises SessionInvalid" do
+        expect { loader.load }.to raise_error(SessionLoader::SessionInvalid, /forever/)
       end
     end
   end
