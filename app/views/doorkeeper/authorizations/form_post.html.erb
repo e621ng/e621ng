@@ -6,10 +6,15 @@
   <% auth.body.compact.each do |key, value| %>
     <%= hidden_field_tag key, value %>
   <% end %>
+  <%# Visible fallback in case the auto-submit doesn't run; unnamed so no commit param reaches the client. %>
+  <%= submit_tag t(".submit"), name: nil %>
 <% end %>
 
-<script>
-  window.onload = function () {
-    document.forms['redirect_form'].submit();
-  };
-</script>
+<%= javascript_tag nonce: true do -%>
+  // Runs as soon as the form is parsed; disabling the button first prevents a second submission of the one-time code.
+  (function () {
+    var form = document.forms['redirect_form'];
+    form.querySelector('[type=submit]').disabled = true;
+    form.submit();
+  })();
+<% end -%>
