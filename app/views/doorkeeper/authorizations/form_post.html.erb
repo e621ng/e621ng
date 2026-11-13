@@ -11,7 +11,10 @@
 <% end %>
 
 <%= javascript_tag nonce: true do -%>
-  window.onload = function () {
-    document.forms['redirect_form'].submit();
-  };
+  // Runs as soon as the form is parsed; disabling the button first prevents a second submission of the one-time code.
+  (function () {
+    var form = document.forms['redirect_form'];
+    form.querySelector('[type=submit]').disabled = true;
+    form.submit();
+  })();
 <% end -%>
