@@ -12,7 +12,7 @@
     <mj-button
       mj-class="button"
       align="center"
-      href="<%= activate_user_email_url(sig: email_sig(@user, :activate, 48.hours)) %>"
+      href="<%= activate_user_email_url(sig: email_activation_sig(@user)) %>"
     >
       Verify email address
     </mj-button>
