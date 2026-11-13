@@ -78,7 +78,7 @@ class UserDeletion
       blacklisted_tags: "",
       time_zone: "Eastern Time (US & Canada)",
       email: "",
-      email_verification_key: "1",
+      email_verification_key: User.generate_email_verification_key,
       avatar_id: nil,
       profile_about: "",
       profile_artinfo: "",

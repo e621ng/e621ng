@@ -89,6 +89,14 @@ RSpec.describe EmailsController do
           expect(response).to redirect_to(home_users_path)
           expect(flash[:notice]).to eq("Activation email resent")
         end
+
+        it "rotates the verification key so earlier links stop working" do
+          old_key = unverified_member.email_verification_key
+          get resend_confirmation_email_path
+          expect(unverified_member.reload.email_verification_key).to be_present
+          expect(unverified_member.email_verification_key).not_to eq(old_key)
+          expect(unverified_member.is_verified?).to be(false)
+        end
       end
     end
   end
@@ -126,11 +134,11 @@ RSpec.describe EmailsController do
 
     context "with a valid sig" do
       let(:target_user) { unverified_member }
-      let(:sig)         { EmailLinkValidator.generate(target_user.id.to_s, :activate) }
+      let(:sig)         { activation_sig(target_user) }
 
       context "when the email is blacklisted" do
         before do
-          target_user # force DB creation before EmailBlacklist stub is installed
+          sig # force DB creation before EmailBlacklist stub is installed
           allow(EmailBlacklist).to receive(:is_banned?).and_return(true)
         end
 
@@ -141,7 +149,7 @@ RSpec.describe EmailsController do
       end
 
       context "when the user is already verified" do
-        let(:sig) { EmailLinkValidator.generate(member.id.to_s, :activate) }
+        let(:sig) { EmailLinkValidator.generate([member.id, User.generate_email_verification_key], :activate) }
 
         it "redirects to the login page" do
           get activate_user_email_path(sig: sig)
@@ -162,5 +170,85 @@ RSpec.describe EmailsController do
         end
       end
     end
+
+    # E6SEC-509: links must stop working once the key they carry is rotated
+    context "with a stale or malformed sig" do
+      let(:target_user) { unverified_member }
+
+      shared_examples "a rejected activation link" do
+        it "does not verify the user" do
+          expect { get activate_user_email_path(sig: sig) }
+            .not_to(change { target_user.reload.is_verified? })
+        end
+
+        it "redirects to the login page" do
+          get activate_user_email_path(sig: sig)
+          expect(response).to redirect_to(new_session_path(url: activate_user_email_path(sig: sig)))
+        end
+      end
+
+      context "when the sig carries only the user id (legacy format)" do
+        let(:sig) { EmailLinkValidator.generate(target_user.id.to_s, :activate) }
+
+        it_behaves_like "a rejected activation link"
+      end
+
+      context "when the sig carries a different key" do
+        let(:sig) { EmailLinkValidator.generate([target_user.id, User.generate_email_verification_key], :activate) }
+
+        it_behaves_like "a rejected activation link"
+      end
+
+      context "when the account still has the legacy placeholder key" do
+        let(:sig) do
+          target_user.update_columns(email_verification_key: "1")
+          EmailLinkValidator.generate([target_user.id, nil], :activate)
+        end
+
+        it_behaves_like "a rejected activation link"
+      end
+
+      context "when the sig names a missing user" do
+        let(:sig) { EmailLinkValidator.generate([0, User.generate_email_verification_key], :activate) }
+
+        it "redirects to the login page" do
+          get activate_user_email_path(sig: sig)
+          expect(response).to redirect_to(new_session_path(url: activate_user_email_path(sig: sig)))
+        end
+      end
+
+      context "when the email changed after the link was sent" do
+        let(:sig) do
+          old_sig = activation_sig(target_user)
+          allow(Danbooru.config.custom_configuration).to receive(:enable_email_verification?).and_return(true)
+          UserEmailChange.new(target_user, "new-address@example.com", "hexerade").process
+          raise "email change failed: #{target_user.errors.full_messages}" if target_user.errors.any?
+          old_sig
+        end
+
+        it_behaves_like "a rejected activation link"
+
+        it "accepts a link for the new key" do
+          sig
+          new_sig = activation_sig(target_user.reload)
+          expect { get activate_user_email_path(sig: new_sig) }
+            .to change { target_user.reload.is_verified? }.from(false).to(true)
+        end
+      end
+
+      context "when the user was unverified again after the link was sent" do
+        let(:sig) do
+          old_sig = activation_sig(target_user)
+          target_user.mark_unverified!
+          old_sig
+        end
+
+        it_behaves_like "a rejected activation link"
+      end
+    end
+  end
+
+  def activation_sig(user)
+    EmailLinkValidator.generate([user.id, user.email_verification_key], :activate, 48.hours)
   end
 end

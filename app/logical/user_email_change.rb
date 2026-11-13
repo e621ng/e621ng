@@ -25,7 +25,7 @@ class UserEmailChange
     else
       user.validate_email_format = true
       user.email = new_email
-      user.email_verification_key = '1' if Danbooru.config.enable_email_verification?
+      user.email_verification_key = ::User.generate_email_verification_key if Danbooru.config.enable_email_verification?
       user.save
 
       if user.errors.empty?

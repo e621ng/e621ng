@@ -37,13 +37,13 @@ RSpec.describe EmailBlacklist do
     it "marks users with a matching email domain as unverified" do
       user = create(:user, email: "someone@blacklisted.example.com")
       create(:email_blacklist, domain: domain)
-      expect(user.reload.email_verification_key).to eq("1")
+      expect(user.reload.is_verified?).to be(false)
     end
 
     it "does not affect users with a different email domain" do
       user = create(:user, email: "someone@safe.example.com")
       create(:email_blacklist, domain: domain)
-      expect(user.reload.email_verification_key).not_to eq("1")
+      expect(user.reload.is_verified?).to be(true)
     end
 
     it "skips unverification when the matching user count exceeds the threshold" do
@@ -53,7 +53,7 @@ RSpec.describe EmailBlacklist do
 
       create(:email_blacklist, domain: domain)
 
-      expect(user.reload.email_verification_key).not_to eq("1")
+      expect(user.reload.is_verified?).to be(true)
     end
   end
 end

@@ -214,7 +214,7 @@ class UsersController < ApplicationController
     User.transaction do
       @user = User.new(user_params(:create).merge({ last_ip_addr: request.remote_ip }))
       @user.validate_email_format = true
-      @user.email_verification_key = "1" if Danbooru.config.enable_email_verification?
+      @user.email_verification_key = User.generate_email_verification_key if Danbooru.config.enable_email_verification?
       if !Danbooru.config.enable_turnstile? || TurnstileVerifier.verify(params["cf-turnstile-response"], request.remote_ip)
         @user.save
         if @user.errors.empty?

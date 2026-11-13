@@ -488,12 +488,26 @@ class User < ApplicationRecord
   end
 
   module EmailMethods
+    extend ActiveSupport::Concern
+
+    module ClassMethods
+      # Carried in activation links; rotating it invalidates every outstanding link
+      def generate_email_verification_key
+        SecureRandom.hex(16)
+      end
+    end
+
     def is_verified?
       id.present? && email_verification_key.nil?
     end
 
     def mark_unverified!
-      update_attribute(:email_verification_key, "1")
+      update_attribute(:email_verification_key, User.generate_email_verification_key)
+    end
+
+    def email_verification_key_matches?(key)
+      return false unless key.is_a?(String) && key.present? && email_verification_key.present?
+      ActiveSupport::SecurityUtils.secure_compare(email_verification_key, key)
     end
 
     def mark_verified!

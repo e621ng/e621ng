@@ -109,7 +109,7 @@ FactoryBot.define do
     end
 
     factory :unverified_user do
-      email_verification_key { "1" }
+      email_verification_key { User.generate_email_verification_key }
     end
   end
 end
