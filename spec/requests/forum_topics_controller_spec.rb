@@ -457,4 +457,100 @@ RSpec.describe ForumTopicsController do
       end.not_to change(ForumSubscription, :count)
     end
   end
+
+  describe "polls" do
+    let(:category) { create(:forum_category) }
+    let(:privileged) { create(:privileged_user) }
+    let(:poll_attributes) do
+      { duration: "7d", max_choices: 1, options_attributes: { "0" => { body: "Yes" }, "1" => { body: "No" } } }
+    end
+    let(:params_with_poll) do
+      { forum_topic: { title: "poll topic", category_id: category.id, original_post_attributes: { body: "question" }, poll_attributes: poll_attributes } }
+    end
+
+    it "creates a poll with the topic for an eligible user" do
+      sign_in_as privileged
+      expect { post forum_topics_path, params: params_with_poll }.to change(ForumPoll, :count).by(1)
+      topic = ForumTopic.last
+      expect(response).to redirect_to(forum_topic_path(topic))
+      expect(topic.poll.options.map(&:body)).to eq(%w[Yes No])
+      expect(topic.poll.creator).to eq(privileged)
+    end
+
+    it "ignores the poll subtree below forum_poll_min_level" do
+      sign_in_as user
+      expect { post forum_topics_path, params: params_with_poll }.to change(ForumTopic, :count).by(1)
+      expect(ForumPoll.count).to eq(0)
+      expect(ForumTopic.last.poll).to be_nil
+    end
+
+    it "ignores the poll subtree on update" do
+      sign_in_as privileged
+      topic = CurrentUser.scoped(privileged) { create(:forum_topic) }
+      put forum_topic_path(topic), params: { forum_topic: { title: "renamed", poll_attributes: poll_attributes } }
+      expect(response).to redirect_to(forum_topic_path(topic))
+      expect(topic.reload.title).to eq("renamed")
+      expect(topic.poll).to be_nil
+    end
+
+    it "treats empty poll_attributes as no poll" do
+      sign_in_as privileged
+      post forum_topics_path(format: :json), params: { forum_topic: { title: "t", category_id: category.id, original_post_attributes: { body: "b" }, poll_attributes: {} } }
+      expect(response).to have_http_status(:created)
+      expect(ForumTopic.last.poll).to be_nil
+    end
+
+    it "fails the whole topic on an invalid poll and re-renders the poll section" do
+      sign_in_as privileged
+      bad = params_with_poll.deep_merge(forum_topic: { poll_attributes: { options_attributes: { "0" => { body: "" }, "1" => { body: "" } } } })
+      expect { post forum_topics_path, params: bad }.not_to change(ForumTopic, :count)
+      expect(response).to have_http_status(:ok)
+      assert_select "#forum-topic-add-poll[checked]"
+      assert_select "fieldset.forum-poll-fieldset:not([disabled])"
+      assert_select ".forum-poll-option-rows .forum-poll-option-row", 2
+    end
+
+    it "shows the poll section on new only to eligible users" do
+      sign_in_as privileged
+      get new_forum_topic_path
+      assert_select "fieldset.forum-poll-fieldset[disabled]"
+
+      sign_in_as user
+      get new_forum_topic_path
+      assert_select "fieldset.forum-poll-fieldset", 0
+    end
+
+    it "renders the poll on the topic page and marks it in the listing" do
+      topic = CurrentUser.scoped(privileged) { create(:forum_topic, poll_attributes: poll_attributes) }
+      sign_in_as user
+      get forum_topic_path(topic)
+      assert_select "section#forum-poll"
+      assert_select "section#forum-poll input[name='option_ids[]']", 2
+      assert_select "details.forum-poll-ballots", 0
+
+      get forum_topics_path
+      assert_select "tr.forum-topic-row span.poll-topic", 1
+    end
+
+    it "shows moderators a collapsed ballot table with one row per voter" do
+      topic = CurrentUser.scoped(privileged) { create(:forum_topic, poll_attributes: poll_attributes.merge(max_choices: 2)) }
+      voter = create(:user, created_at: 2.weeks.ago)
+      topic.poll.cast_ballot!(voter, topic.poll.options.map(&:id))
+      sign_in_as create(:moderator_user)
+      get forum_topic_path(topic)
+      assert_select "details.forum-poll-ballots:not([open])", 1
+      assert_select "details.forum-poll-ballots tr.forum-poll-ballot-row", 1
+      assert_select "details.forum-poll-ballots td", text: "#1 Yes, #2 No"
+      assert_select "details.forum-poll-ballots th", text: "IP", count: 0
+    end
+
+    it "exposes poll_id in JSON" do
+      topic = CurrentUser.scoped(privileged) { create(:forum_topic, poll_attributes: poll_attributes) }
+      sign_in_as user
+      get forum_topic_path(topic, format: :json)
+      expect(response.parsed_body["poll_id"]).to eq(topic.poll.id)
+      get forum_topics_path(format: :json)
+      expect(response.parsed_body.find { |t| t["id"] == topic.id }["poll_id"]).to eq(topic.poll.id)
+    end
+  end
 end

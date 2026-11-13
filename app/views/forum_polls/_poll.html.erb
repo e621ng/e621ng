@@ -1,0 +1,78 @@
+<%# locals: (poll:, topic:) -%>
+<% user = CurrentUser.user %>
+<% can_vote = topic.can_access?(user) && poll.can_vote?(user) %>
+<% selected = poll.selected_option_ids(user) %>
+<% show_voters = user.is_moderator? %>
+<% ballots = show_voters ? poll.votes.includes(:user).group_by(&:user_id) : {} %>
+<% vote_path = forum_topic_poll_vote_path(topic) %>
+
+<section
+  class="forum-poll <%= "forum-poll-grid" if poll.has_embeds? %>"
+  id="forum-poll"
+  data-topic-id="<%= topic.id %>"
+  data-max-choices="<%= poll.max_choices %>"
+  data-open="<%= poll.open? %>"
+  data-state="ready"
+>
+  <%= form_with url: vote_path, method: :put, class: "forum-poll-ballot" do %>
+    <ol class="forum-poll-options">
+      <% poll.options.each do |option| %>
+        <%= render "forum_polls/option", option: option, poll: poll, can_vote: can_vote, selected: selected %>
+      <% end %>
+    </ol>
+
+    <% if can_vote %>
+      <div class="forum-poll-actions">
+        <%= submit_tag(selected.any? ? "Update vote" : "Vote", class: "button btn-success forum-poll-submit", data: { disable_with: false }) %>
+      </div>
+    <% end %>
+  <% end %>
+
+  <% if can_vote && selected.any? %>
+    <%= button_to "Clear vote", vote_path, method: :delete, class: "button btn-neutral forum-poll-clear", form_class: "forum-poll-clear-form" %>
+  <% end %>
+
+  <% unless can_vote %>
+    <% reason = topic.can_access?(user) ? poll.vote_denial_reason(user) : nil %>
+    <p class="forum-poll-reason"><%= reason %></p>
+  <% end %>
+
+  <footer class="forum-poll-footer">
+    <span class="forum-poll-voter-count"><%= pluralize(poll.voter_count, "voter") %></span>
+    <span class="forum-poll-status">
+      <% if poll.open? %>
+        Closes <%= time_ago_in_words_tagged(poll.expires_at) %>
+      <% else %>
+        Closed <%= time_ago_in_words_tagged(poll.expires_at) %><% if poll.closed_early? %> (early, by <%= link_to_user poll.closed_early_by %>)<% end %>
+      <% end %>
+    </span>
+    <% if poll.multiple? %><span class="forum-poll-multiple-note">Pick up to <%= poll.max_choices %></span><% end %>
+
+    <% if poll.can_edit?(user) || poll.can_close?(user) || poll.can_destroy?(user) %>
+      <menu class="forum-poll-menu">
+        <% if poll.can_edit?(user) %>
+          <li><%= link_to "Edit poll", "#forum-poll-edit", class: "forum-poll-edit-link" %></li>
+        <% end %>
+        <% if poll.can_close?(user) %>
+          <li><%= button_to "Close poll", close_forum_topic_poll_path(topic), method: :post, class: "forum-poll-close", form: { data: { confirm: "Close this poll now? This cannot be undone." } } %></li>
+        <% end %>
+        <% if poll.can_destroy?(user) %>
+          <li><%= button_to "Delete poll", forum_topic_poll_path(topic), method: :delete, class: "forum-poll-delete", form: { data: { confirm: "Delete this poll and all of its votes?" } } %></li>
+        <% end %>
+      </menu>
+    <% end %>
+  </footer>
+
+  <% if poll.can_edit?(user) %>
+    <div class="forum-poll-edit" id="forum-poll-edit" hidden>
+      <%= custom_form_for(poll, url: forum_topic_poll_path(topic), method: :put, html: { class: "forum-poll-edit-form" }) do |f| %>
+        <%= render "forum_polls/fields", f: f, poll: poll %>
+        <%= f.button :submit, "Save poll" %>
+      <% end %>
+    </div>
+  <% end %>
+</section>
+
+<% if show_voters %>
+  <%= render "forum_polls/ballots", poll: poll, ballots: ballots, show_ips: user.is_admin? %>
+<% end %>

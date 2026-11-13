@@ -919,6 +919,107 @@ ALTER SEQUENCE public.forum_categories_id_seq OWNED BY public.forum_categories.i
 
 
 --
+-- Name: forum_poll_options; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.forum_poll_options (
+    id bigint NOT NULL,
+    forum_poll_id bigint NOT NULL,
+    "position" integer NOT NULL,
+    body text NOT NULL,
+    vote_count integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: forum_poll_options_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.forum_poll_options_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: forum_poll_options_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.forum_poll_options_id_seq OWNED BY public.forum_poll_options.id;
+
+
+--
+-- Name: forum_poll_votes; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.forum_poll_votes (
+    id bigint NOT NULL,
+    forum_poll_id bigint NOT NULL,
+    forum_poll_option_id bigint NOT NULL,
+    user_id integer NOT NULL,
+    user_ip_addr inet,
+    created_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: forum_poll_votes_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.forum_poll_votes_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: forum_poll_votes_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.forum_poll_votes_id_seq OWNED BY public.forum_poll_votes.id;
+
+
+--
+-- Name: forum_polls; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.forum_polls (
+    id bigint NOT NULL,
+    forum_topic_id integer NOT NULL,
+    creator_id integer NOT NULL,
+    max_choices integer DEFAULT 1 NOT NULL,
+    expires_at timestamp(6) without time zone NOT NULL,
+    closed_early_by_id integer,
+    voter_count integer DEFAULT 0 NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: forum_polls_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.forum_polls_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: forum_polls_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.forum_polls_id_seq OWNED BY public.forum_polls.id;
+
+
+--
 -- Name: forum_post_votes; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3457,6 +3558,27 @@ ALTER TABLE ONLY public.forum_categories ALTER COLUMN id SET DEFAULT nextval('pu
 
 
 --
+-- Name: forum_poll_options id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_poll_options ALTER COLUMN id SET DEFAULT nextval('public.forum_poll_options_id_seq'::regclass);
+
+
+--
+-- Name: forum_poll_votes id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_poll_votes ALTER COLUMN id SET DEFAULT nextval('public.forum_poll_votes_id_seq'::regclass);
+
+
+--
+-- Name: forum_polls id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_polls ALTER COLUMN id SET DEFAULT nextval('public.forum_polls_id_seq'::regclass);
+
+
+--
 -- Name: forum_post_votes id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4073,6 +4195,30 @@ ALTER TABLE ONLY public.favorites
 
 ALTER TABLE ONLY public.forum_categories
     ADD CONSTRAINT forum_categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: forum_poll_options forum_poll_options_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_poll_options
+    ADD CONSTRAINT forum_poll_options_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: forum_poll_votes forum_poll_votes_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_poll_votes
+    ADD CONSTRAINT forum_poll_votes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: forum_polls forum_polls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_polls
+    ADD CONSTRAINT forum_polls_pkey PRIMARY KEY (id);
 
 
 --
@@ -5061,6 +5207,41 @@ CREATE INDEX index_favorites_on_user_id_and_id ON public.favorites USING btree (
 --
 
 CREATE UNIQUE INDEX index_favorites_on_user_id_and_post_id ON public.favorites USING btree (user_id, post_id);
+
+
+--
+-- Name: index_forum_poll_options_on_forum_poll_id_and_position; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_poll_options_on_forum_poll_id_and_position ON public.forum_poll_options USING btree (forum_poll_id, "position");
+
+
+--
+-- Name: index_forum_poll_votes_on_forum_poll_id_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_poll_votes_on_forum_poll_id_and_user_id ON public.forum_poll_votes USING btree (forum_poll_id, user_id);
+
+
+--
+-- Name: index_forum_poll_votes_on_forum_poll_option_id_and_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_forum_poll_votes_on_forum_poll_option_id_and_user_id ON public.forum_poll_votes USING btree (forum_poll_option_id, user_id);
+
+
+--
+-- Name: index_forum_poll_votes_on_user_id_and_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_poll_votes_on_user_id_and_created_at ON public.forum_poll_votes USING btree (user_id, created_at);
+
+
+--
+-- Name: index_forum_polls_on_forum_topic_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_forum_polls_on_forum_topic_id ON public.forum_polls USING btree (forum_topic_id);
 
 
 --
@@ -6342,6 +6523,22 @@ ALTER TABLE ONLY public.appeals
 
 
 --
+-- Name: forum_polls fk_rails_12afac1e7b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_polls
+    ADD CONSTRAINT fk_rails_12afac1e7b FOREIGN KEY (closed_early_by_id) REFERENCES public.users(id);
+
+
+--
+-- Name: forum_polls fk_rails_175b96557f; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_polls
+    ADD CONSTRAINT fk_rails_175b96557f FOREIGN KEY (forum_topic_id) REFERENCES public.forum_topics(id);
+
+
+--
 -- Name: avoid_posting_versions fk_rails_1d1f54e17a; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6379,6 +6576,14 @@ ALTER TABLE ONLY public.staff_wiki_versions
 
 ALTER TABLE ONLY public.oauth_access_grants
     ADD CONSTRAINT fk_rails_330c32d8d9 FOREIGN KEY (resource_owner_id) REFERENCES public.users(id);
+
+
+--
+-- Name: forum_poll_options fk_rails_3517510890; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_poll_options
+    ADD CONSTRAINT fk_rails_3517510890 FOREIGN KEY (forum_poll_id) REFERENCES public.forum_polls(id);
 
 
 --
@@ -6438,6 +6643,14 @@ ALTER TABLE ONLY public.appeals
 
 
 --
+-- Name: forum_poll_votes fk_rails_5a8f38f6ad; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_poll_votes
+    ADD CONSTRAINT fk_rails_5a8f38f6ad FOREIGN KEY (forum_poll_option_id) REFERENCES public.forum_poll_options(id);
+
+
+--
 -- Name: user_ip_addresses fk_rails_5ea8388355; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6451,6 +6664,14 @@ ALTER TABLE ONLY public.user_ip_addresses
 
 ALTER TABLE ONLY public.saved_searches
     ADD CONSTRAINT fk_rails_63c5382842 FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
+-- Name: forum_polls fk_rails_6ef7e1ce71; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_polls
+    ADD CONSTRAINT fk_rails_6ef7e1ce71 FOREIGN KEY (creator_id) REFERENCES public.users(id);
 
 
 --
@@ -6574,6 +6795,14 @@ ALTER TABLE ONLY public.post_events
 
 
 --
+-- Name: forum_poll_votes fk_rails_c1dc67980a; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_poll_votes
+    ADD CONSTRAINT fk_rails_c1dc67980a FOREIGN KEY (user_id) REFERENCES public.users(id);
+
+
+--
 -- Name: exception_logs fk_rails_c720bf523c; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6622,6 +6851,14 @@ ALTER TABLE ONLY public.avoid_postings
 
 
 --
+-- Name: forum_poll_votes fk_rails_d8577f3c12; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.forum_poll_votes
+    ADD CONSTRAINT fk_rails_d8577f3c12 FOREIGN KEY (forum_poll_id) REFERENCES public.forum_polls(id);
+
+
+--
 -- Name: staff_notes fk_rails_eaa7223eea; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6644,6 +6881,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261112151250'),
 ('20261112141709'),
 ('20261107150000'),
 ('20261107120000'),

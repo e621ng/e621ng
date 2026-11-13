@@ -1,0 +1,31 @@
+<%# locals: (f:, poll:, new_poll: false) -%>
+<div class="forum-poll-fields" data-max-options="<%= Danbooru.config.forum_poll_max_options %>">
+  <div class="forum-poll-option-rows">
+    <%= f.simple_fields_for :options do |of| %>
+      <%= render "forum_polls/option_row", f: of %>
+    <% end %>
+  </div>
+
+  <template class="forum-poll-option-template">
+    <%= f.simple_fields_for :options, ForumPollOption.new, child_index: "__INDEX__" do |of| %>
+      <%= render "forum_polls/option_row", f: of %>
+    <% end %>
+  </template>
+
+  <button type="button" class="button btn-neutral forum-poll-add-option">Add option</button>
+
+  <div class="input boolean forum-poll-multiple">
+    <%= check_box_tag "poll_allow_multiple", "1", poll.multiple?, id: "poll_allow_multiple_#{f.object_id}", class: "forum-poll-allow-multiple" %>
+    <label for="poll_allow_multiple_<%= f.object_id %>">Allow multiple selections</label>
+  </div>
+
+  <%= f.input :max_choices, as: :integer, label: "Max choices", input_html: { min: 1, class: "forum-poll-max-choices" } %>
+
+  <% if new_poll %>
+    <%= f.input :duration, as: :select, label: "Duration", include_blank: false,
+                collection: ForumPoll.durations.map { |key, length| [length.inspect, key] },
+                selected: poll.duration || ForumPoll::DEFAULT_DURATION %>
+  <% end %>
+
+  <p class="hint">Results are public at all times. Individual votes are shown only to the voter and to site staff.</p>
+</div>
