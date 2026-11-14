@@ -747,13 +747,20 @@ RSpec.describe Post do
         expect(post.known_artist_tags.map(&:name)).not_to include(unknown_tag_name)
       end
 
-      it "includes category-1 tags not in NON_KNOWN_ARTIST_TAGS" do
+      it "excludes tags in ACCOUNTABILITY_TAGS" do
+        create(:tag, name: "real_artist", category: 1)
+        Post::ACCOUNTABILITY_TAGS.each { |name| create(:tag, name: name, category: 1) }
+        post = create(:post, tag_string: "real_artist #{Post::ACCOUNTABILITY_TAGS.join(' ')} #{(1..10).map { |i| "gen_#{i}" }.join(' ')}")
+        expect(post.known_artist_tags.map(&:name)).to contain_exactly("real_artist")
+      end
+
+      it "includes category-1 tags not in NON_KNOWN_ARTIST_TAGS or ACCOUNTABILITY_TAGS" do
         post = create(:post)
         # NOTE: the e6ai fork does not have artist tags, but the method
         # is still named artist_tags for the sake of compatibility.
         cat1_tag_names = post.artist_tags.map(&:name)
         expect(post.known_artist_tags.map(&:name)).to match_array(
-          cat1_tag_names.reject { |n| Post::NON_KNOWN_ARTIST_TAGS.include?(n) },
+          cat1_tag_names.reject { |n| Post::NON_KNOWN_ARTIST_TAGS.include?(n) || Post::ACCOUNTABILITY_TAGS.include?(n) },
         )
       end
     end
