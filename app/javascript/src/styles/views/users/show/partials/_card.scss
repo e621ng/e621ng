@@ -16,7 +16,10 @@ $avatar-height: 4.5rem;
 .user-card {
   display: grid;
   grid-template-columns: $avatar-height auto min-content;
-  width: 22rem;
+
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 22rem;
   gap: 0.5rem;
 
   background: theme.color("section");

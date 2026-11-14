@@ -184,6 +184,19 @@ RSpec.describe FileValidator, type: :model do
         expect(v.record.errors[:base]).to include(include("video must not be longer than #{max} seconds"))
       end
     end
+
+    context "when the container understates the duration" do
+      include_context "with forged video durations"
+
+      it "adds an error" do
+        allow(Danbooru.config.custom_configuration).to receive(:max_video_duration).and_return(1)
+        path = forge_webm_duration("file_validator/animated-vp9.webm", 0.5)
+        upload = build(:upload, file_ext: "webm")
+        v = FileValidator.new(upload, path)
+        v.validate_duration(upload.video(path))
+        expect(v.record.errors[:base]).to include(include("video must not be longer than 1 seconds"))
+      end
+    end
   end
 
   # ------------------------------------------------------------------ #

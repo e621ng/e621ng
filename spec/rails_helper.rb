@@ -59,14 +59,23 @@ RSpec.configure do |config|
     Setting.clear_cache
   end
 
+  # The resolved site (doc 38) lives in RequestStore; only requests clear it.
+  config.after do
+    RequestStore.delete(:current_site)
+    RequestStore.delete(:site_safe_mode)
+  end
+
   config.include ActiveSupport::Testing::TimeHelpers
 
   config.before(:suite) do
-    # Ensure the OpenSearch indices exist for this process. Under parallel_test each
+    # Recreate the OpenSearch indices for this process. Under parallel_test each
     # process resolves a distinct, TEST_ENV_NUMBER-suffixed index name (see
-    # DocumentStore::Model), so this creates the per-process index with the correct
-    # mappings. Idempotent: create_index! is a no-op when the index already exists.
-    [Post, PostVersion].each { |model| model.document_store.create_index! }
+    # DocumentStore::Model), so no two workers touch the same index. Index writes
+    # are not rolled back with the DB transaction, so a reused index accumulates
+    # stale documents across runs; once a schema reload resets the DB sequences
+    # those documents outrank fresh posts in id:> searches. Dropping the index
+    # also picks up mapping changes without a manual delete.
+    [Post, PostVersion].each { |model| model.document_store.create_index!(delete_existing: true) }
 
     # Sometimes, a schema rebuild may run on test databases, which can clear seeded data.
     # Here, we make sure that the very basic records are present - without these, tests will fail.

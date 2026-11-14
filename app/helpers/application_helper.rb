@@ -1,6 +1,15 @@
 # frozen_string_literal: true
 
 module ApplicationHelper
+  # Per site: links in the cached ToS are rewritten to the site's domain (doc 38)
+  def self.tos_cache_key(site = CurrentSite.cache_key)
+    ["tos_content", site].compact.join(":")
+  end
+
+  def self.clear_tos_cache
+    CurrentSite.cache_keys.each { |site| Cache.delete(tos_cache_key(site)) }
+  end
+
   def disable_mobile_mode?
     if CurrentUser.user.blank? || CurrentUser.user.is_logged_out?
       return cookies[:nmm].present?
@@ -175,7 +184,7 @@ module ApplicationHelper
   end
 
   def tos_content
-    Cache.fetch("tos_content", expires_in: 1.day) do
+    Cache.fetch(ApplicationHelper.tos_cache_key, expires_in: 1.day) do
       wiki = WikiPage.titled("e621:terms_of_service")
       return "Terms of use not found." if wiki.nil?
       processed_body = replace_cross_domain_links(wiki.body)
@@ -185,7 +194,7 @@ module ApplicationHelper
 
   def safe_new_session_path
     return new_session_path if request.path == new_session_path
-    url = request.fullpath[0, 2000]
+    url = SensitiveParams.strip_from_path(request.fullpath)[0, 2000]
     path = new_session_path(url: url)
     max = 2000 + new_session_path(url: "").length
     return path if path.length <= max

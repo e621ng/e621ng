@@ -31,6 +31,13 @@ RSpec.describe FileMethods, type: :model do
         expect(upload.file_header_to_file_ext(path)).to eq(expected_ext)
       end
     end
+
+    # Uploads can't produce a "swf" ext, so FileValidator rejects flash as an unknown type.
+    it "returns the raw MIME type for a SWF file, never 'swf'" do
+      upload = build(:upload)
+      path = file_fixture("flash.swf").to_s
+      expect(upload.file_header_to_file_ext(path)).to eq("application/vnd.adobe.flash.movie")
+    end
   end
 
   # ----------------------------------------------------------------------- #
@@ -98,6 +105,19 @@ RSpec.describe FileMethods, type: :model do
         allow(ExternalCommand).to receive(:run).with(Danbooru.config.ffprobe_path, any_args, timeout: anything).and_return(["", "ffprobe error", instance_double(Process::Status, success?: false)])
         expect { upload.calculate_dimensions("/path/to/video.mp4") }.to raise_error(Upload::Error, "Could not retrieve video dimensions")
       end
+    end
+  end
+
+  describe ".ffmpeg_input" do
+    { "webm" => "matroska", "mp4" => "mov", "gif" => "gif" }.each do |file_ext, demuxer|
+      it "forces the #{demuxer} demuxer and the file protocol for #{file_ext}" do
+        expect(described_class.ffmpeg_input("/tmp/file", file_ext)).to eq(["-protocol_whitelist", "file", "-f", demuxer, "-i", "/tmp/file"])
+      end
+    end
+
+    it "refuses types ffmpeg shouldn't read" do
+      expect { described_class.ffmpeg_input("/tmp/file", "png") }.to raise_error(ArgumentError)
+      expect { described_class.ffmpeg_input("/tmp/file", nil) }.to raise_error(ArgumentError)
     end
   end
 
@@ -205,7 +225,7 @@ RSpec.describe FileMethods, type: :model do
       allow(ExternalCommand).to receive(:run).and_call_original
       upload = build(:upload, file_ext: "mp4")
       upload.video_has_sound?(file_fixture("sound/tone-aac.mp4").to_s)
-      expect(ExternalCommand).to have_received(:run).with(Danbooru.config.ffmpeg_path, "-nostats", "-hide_banner", "-vn", "-threads", "1", "-filter_threads", "1", "-i", any_args, timeout: anything)
+      expect(ExternalCommand).to have_received(:run).with(Danbooru.config.ffmpeg_path, "-nostats", "-hide_banner", "-vn", "-threads", "1", "-filter_threads", "1", "-protocol_whitelist", "file", "-f", "mov", "-i", any_args, timeout: anything)
     end
 
     it "tolerates non-UTF-8 metadata in ffmpeg's output" do

@@ -3,6 +3,7 @@
   <% if @nonce %>
     <%= form_tag(maintenance_user_password_reset_path, :method => :put, :class => "simple_form session_form") do %>
       <h1>Reset Password</h1>
+      <%= error_messages_for :nonce %>
       
       <%= hidden_field_tag :uid, params[:uid] %>
       <%= hidden_field_tag :key, params[:key] %>

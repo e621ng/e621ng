@@ -17,7 +17,7 @@ function make () {
 }
 
 function fetchOk (post: unknown) {
-  return { ok: true, status: 200, json: async () => ({ post }) };
+  return { ok: true, status: 200, json: async () => post };
 }
 
 async function type (w: VueWrapper, v: string) {
@@ -46,11 +46,11 @@ describe("uploads/parent_post_input", () => {
 
   it("fetches and shows a preview for a valid id", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      fetchOk({ id: 123, preview: { url: "/data/preview/123.jpg" } }) as unknown as Response,
+      fetchOk({ id: 123, preview_url: "/data/preview/123.jpg" }) as unknown as Response,
     );
     const w = make();
     await type(w, "123");
-    expect(globalThis.fetch).toHaveBeenCalledWith("/posts/123.json", expect.anything());
+    expect(globalThis.fetch).toHaveBeenCalledWith("/posts/123.json?mode=thumbnails", expect.anything());
     const img = w.find(".upload-parent-preview img");
     expect(img.exists()).toBe(true);
     expect(img.attributes("src")).toBe("/data/preview/123.jpg");
@@ -64,7 +64,7 @@ describe("uploads/parent_post_input", () => {
   });
 
   it("reports a post with no preview as unavailable", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(fetchOk({ id: 7, preview: { url: null } }) as unknown as Response);
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(fetchOk({ id: 7, preview_url: null }) as unknown as Response);
     const w = make();
     await type(w, "7");
     expect(error(w).text()).toContain("unavailable");

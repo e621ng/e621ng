@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { jsonResponse, setMeta, setSiteData } from "../../../helpers";
 
-const { alertSpy, dialogs } = vi.hoisted(() => ({
+const { alertSpy, deferSpy, dialogs } = vi.hoisted(() => ({
   alertSpy: vi.fn(),
+  deferSpy: vi.fn(),
   dialogs: [] as FakeDialog[],
 }));
 
@@ -15,7 +16,7 @@ class FakeDialog {
 }
 
 vi.mock("@/components/dialog", () => ({ default: FakeDialog }));
-vi.mock("@/utility/Toast", () => ({ default: { alert: (msg: string) => alertSpy(msg), create: vi.fn(), notice: vi.fn() } }));
+vi.mock("@/utility/Toast", () => ({ default: { alert: (msg: string) => alertSpy(msg), create: vi.fn(), notice: vi.fn(), defer: (msg: string) => deferSpy(msg) } }));
 
 const POST_ID = 42;
 const FOR_SELECT = { Owned: [["my set", 7], ["other set", 8]], Maintained: [["shared set", 9]] };
@@ -65,6 +66,7 @@ async function submit (): Promise<void> {
 describe("AddToSetDialog", () => {
   beforeEach(() => {
     alertSpy.mockReset();
+    deferSpy.mockReset();
     dialogs.length = 0;
     render();
   });
@@ -127,6 +129,17 @@ describe("AddToSetDialog", () => {
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
+  it("queues a confirmation toast for after the reload", async () => {
+    stubFetch();
+    const { reload } = await load();
+    await open();
+    $("#add-to-set-id").val("8");
+    await submit();
+
+    expect(deferSpy).toHaveBeenCalledWith("Added post to <a href=\"/post_sets/8\">set #8</a>");
+    expect(deferSpy.mock.invocationCallOrder[0]).toBeLessThan(reload.mock.invocationCallOrder[0]);
+  });
+
   it("shows the backend message on failure and does not reload", async () => {
     stubFetch(jsonResponse({ message: "This set contains too many posts and can no longer be edited." }, { status: 422 }));
     const { reload } = await load();
@@ -135,6 +148,7 @@ describe("AddToSetDialog", () => {
 
     expect(alertSpy).toHaveBeenCalledWith("Error: This set contains too many posts and can no longer be edited.");
     expect(reload).not.toHaveBeenCalled();
+    expect(deferSpy).not.toHaveBeenCalled();
   });
 
   it("alerts without a request when no set is selected", async () => {

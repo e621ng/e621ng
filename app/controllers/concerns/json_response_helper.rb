@@ -5,6 +5,11 @@ module JsonResponseHelper
 
   private
 
+  # The legacy API format is opt-in via ?v1=true until it is removed
+  def legacy_api_format?
+    params[:v1] == "true"
+  end
+
   # Renders JSON data with optional unwrapping for API transition
   #
   # @param data [Hash, Array] The data to render
@@ -25,7 +30,7 @@ module JsonResponseHelper
     render_json_with_wrapper(posts_data, wrapper_key: wrapper_key)
   end
 
-  def render_events_json(events_data, legacy: true)
+  def render_events_json(events_data, legacy: legacy_api_format?)
     if legacy
       render_json_with_wrapper(events_data, wrapper_key: :post_events)
     else
@@ -33,7 +38,7 @@ module JsonResponseHelper
     end
   end
 
-  def pick_json_format(posts, collection: true, legacy: true, mode: "basic")
+  def pick_json_format(posts, collection: true, legacy: legacy_api_format?, mode: "basic")
     Post.preload_stats!(posts)
 
     # Legacy format

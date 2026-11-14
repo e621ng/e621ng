@@ -154,6 +154,7 @@ export default class ReownerDialog {
     try {
       const response = await HTTP.post(`/staff/post/posts/${CurrentPost.id}/reowner.json`, body);
       if (response.ok) {
+        ToastManager.defer("Post owner reassigned");
         ReownerDialog.reloadPage();
         return;
       }

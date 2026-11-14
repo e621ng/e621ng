@@ -23,6 +23,12 @@ RSpec.describe FavoritesController do
     it "returns a JSON array for JSON format" do
       get favorites_path(user_id: member.id, format: :json)
       expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to be_an(Array)
+    end
+
+    it "returns a posts key for JSON format when v1 is requested" do
+      get favorites_path(user_id: member.id, format: :json), params: { v1: "true" }
+      expect(response).to have_http_status(:ok)
       expect(response.parsed_body["posts"]).to be_an(Array)
     end
 
@@ -50,7 +56,7 @@ RSpec.describe FavoritesController do
         sign_in_as member
         get favorites_path(user_id: other_member.id, format: :json)
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["posts"]).to be_empty
+        expect(response.parsed_body).to be_empty
       end
 
       it "returns favorites to the owner themselves" do
@@ -58,7 +64,7 @@ RSpec.describe FavoritesController do
         sign_in_as other_member
         get favorites_path(user_id: other_member.id, format: :json)
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["posts"]).not_to be_empty
+        expect(response.parsed_body).not_to be_empty
       end
 
       it "returns favorites to a moderator" do
@@ -66,7 +72,7 @@ RSpec.describe FavoritesController do
         sign_in_as moderator
         get favorites_path(user_id: other_member.id, format: :json)
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["posts"]).not_to be_empty
+        expect(response.parsed_body).not_to be_empty
       end
     end
 
@@ -83,7 +89,7 @@ RSpec.describe FavoritesController do
 
         get favorites_path(user_id: blocked_user.id, format: :json)
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["posts"]).to be_empty
+        expect(response.parsed_body).to be_empty
       end
 
       it "returns 200 and the favorites list for the banned user themselves" do
@@ -91,7 +97,7 @@ RSpec.describe FavoritesController do
         sign_in_as blocked_user
         get favorites_path(user_id: blocked_user.id, format: :json)
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["posts"]).not_to be_empty
+        expect(response.parsed_body).not_to be_empty
       end
 
       it "returns 200 and the favorites list for a staff member" do
@@ -99,7 +105,7 @@ RSpec.describe FavoritesController do
         sign_in_as moderator
         get favorites_path(user_id: blocked_user.id, format: :json)
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["posts"]).not_to be_empty
+        expect(response.parsed_body).not_to be_empty
       end
     end
   end

@@ -29,5 +29,42 @@ RSpec.describe SitemapGeneratorJob do
       xml = ActiveSupport::Gzip.decompress(written[key])
       expect(xml).to include("<urlset").and include("/static/site_map")
     end
+
+    context "with an e926 profile" do
+      include_context "with e926 site profile"
+
+      def xml_for(hostname)
+        ActiveSupport::Gzip.decompress(written.fetch("sitemap:#{hostname}:sitemap.xml.gz"))
+      end
+
+      it "generates the primary sitemap and queues one job per profile" do
+        expect { described_class.new.perform }.to enqueue_sidekiq_job(described_class).with("e926")
+        expect(written.keys).to eq(["sitemap:#{Danbooru.config.hostname}:sitemap.xml.gz"])
+      end
+
+      it "generates the e926 sitemap as e926" do
+        safe_post = CurrentUser.scoped(create(:user)) { create(:post, rating: "s") }
+        explicit_post = CurrentUser.scoped(create(:user)) { create(:post, rating: "e") }
+        allow(PostSets::Popular).to receive(:new).and_wrap_original do |original, *args|
+          set = original.call(*args)
+          # Popular reads safe mode itself; record what it would have filtered
+          allow(set).to receive(:posts) { Post.where(id: [safe_post.id, explicit_post.id]).then { |q| CurrentUser.safe_mode? ? q.where(rating: "s") : q } }
+          set
+        end
+
+        expect { described_class.new.perform("e926") }.not_to enqueue_sidekiq_job(described_class)
+
+        xml = xml_for("e926.net")
+        expect(xml).to include("https://e926.net/static/site_map")
+        expect(xml).to include("/posts/#{safe_post.id}").and include("static1.e926.net")
+        expect(xml).not_to include("/posts/#{explicit_post.id}")
+        expect(CurrentSite.id).to eq("e621")
+      end
+
+      it "skips an unknown site" do
+        described_class.new.perform("bogus")
+        expect(written).to be_empty
+      end
+    end
   end
 end

@@ -8,7 +8,7 @@ RSpec.describe TotpsController do
   let(:user) { create(:user) }
 
   before do
-    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
+    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1, reset!: nil))
   end
 
   around { |example| travel_to(Time.zone.at(1_775_000_010), &example) }
@@ -34,7 +34,7 @@ RSpec.describe TotpsController do
 
     it "rejects api key authentication" do
       api_key = create(:api_key, user: user)
-      get new_totp_path, params: { login: user.name, api_key: api_key.key }
+      get new_totp_path, params: { login: user.name, api_key: api_key.key }, headers: { "Accept" => "application/json" }
       expect(response).to have_http_status(:forbidden)
     end
 

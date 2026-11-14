@@ -73,6 +73,15 @@ RSpec.describe ApplicationHelper do
       it { is_expected.to eq(new_session_path(url: "/posts?search[tags]=test")) }
     end
 
+    context "when the current path carries a password reset key" do
+      before do
+        request = instance_double(ActionDispatch::Request, path: "/maintenance/user/password_reset/edit", fullpath: "/maintenance/user/password_reset/edit?key=SECRET&uid=3")
+        allow(helper).to receive(:request).and_return(request)
+      end
+
+      it { is_expected.to eq(new_session_path(url: "/maintenance/user/password_reset/edit?uid=3")) }
+    end
+
     context "when the current path is longer than 2000 characters" do
       before do
         long_path = "/posts?search[tags]=#{'a' * 3000}"

@@ -19,6 +19,10 @@
       <h4>Last IP & Login Time</h4>
 
       <span><%= link_to_ip(user.last_ip_addr) %> | <%= user.last_logged_in_at ? compact_date(user.last_logged_in_at) : "(none)" %></span>
+    <% elsif CurrentUser.is_staff? %>
+      <h4>Last Login Time</h4>
+
+      <span><%= user.last_logged_in_at ? compact_date(user.last_logged_in_at) : "(none)" %></span>
     <% end %>
 
     <% if CurrentUser.is_moderator? %>

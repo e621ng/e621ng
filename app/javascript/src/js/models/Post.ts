@@ -70,7 +70,7 @@ export default class Post {
   static update (post_id: number, params: PostUpdateParams): Promise<PostThumbnailJSON> {
     return ApiRequest.json(`/posts/${post_id}.json`, {
       method: "PUT",
-      params: { v2: "true", mode: "thumbnails" },
+      params: { mode: "thumbnails" },
       json: { post: params },
       queue: { name: "Post.update" },
       errorText: (error) => `There was an error updating <a href="/posts/${post_id}">post #${post_id}</a>: ${error.message}`,

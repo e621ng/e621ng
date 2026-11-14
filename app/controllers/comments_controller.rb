@@ -140,8 +140,8 @@ class CommentsController < ApplicationController
     end
   end
 
-  def respond_with_comment(record, **opts, &block)
-    respond_with(record, **opts) do |format|
+  def respond_with_comment(record, **, &block)
+    respond_with(record, **) do |format|
       format.json { render json: CommentBlueprint.render_as_hash(record) }
       block&.call(format)
     end

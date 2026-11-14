@@ -115,4 +115,11 @@ RSpec.describe PostsHelper do
       expect(html[2]["href"]).to eq("/posts?tags=source%3Ahttp%3A%2F%2Fexample.com".html_safe)
     end
   end
+
+  describe "#nav_params_for" do
+    it "keeps the search but drops API credentials" do
+      helper.params.merge!(controller: "posts", action: "index", tags: "fox", login: "someone", api_key: "secret")
+      expect(helper.send(:nav_params_for, 2)[:params].to_h).to eq("tags" => "fox", "page" => 2)
+    end
+  end
 end

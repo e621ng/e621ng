@@ -1,4 +1,5 @@
 import Logger from "./Logger";
+import SStorage from "./storage/Session";
 import SVGIcon from "./SVGIcon";
 import TaskQueue from "./TaskQueue";
 
@@ -104,12 +105,23 @@ export default class ToastManager {
   }
 
 
+  /**
+   * Queues a notice toast for the next page load.
+   * Use before `location.reload()`, which would otherwise discard a toast shown now.
+   * @param message The message to display; rendered as HTML.
+   */
+  public static defer (message: string): void {
+    SStorage.Toast.Pending = message;
+  }
+
+
   /* ==================== */
   /* == Initialization == */
   /* ==================== */
 
   public static bootstrap () {
     this.bootstrapRailsMessages();
+    this.bootstrapDeferred();
     this.bootstrapHotkeys();
     this.bootstrapEventListeners();
   }
@@ -129,6 +141,13 @@ export default class ToastManager {
       $element.find(".toast-close").show().on("click", dismiss);
       if (!$element.hasClass("toast-alert")) setTimeout(dismiss, 3000);
     });
+  }
+
+  private static bootstrapDeferred () {
+    const message = SStorage.Toast.Pending;
+    if (!message) return;
+    SStorage.Toast.Pending = ""; // Clear first, so a failure can't repeat it on every load
+    ToastManager.notice(message);
   }
 
   private static bootstrapHotkeys () {

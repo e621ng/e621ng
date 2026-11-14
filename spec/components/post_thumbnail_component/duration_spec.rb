@@ -7,8 +7,8 @@ RSpec.describe PostThumbnailComponent, type: :component do
 
   let(:post) { create(:post) }
 
-  def component(post, **options)
-    described_class.new(post: post, **options)
+  def component(post, **)
+    described_class.new(post: post, **)
   end
 
   describe "#duration_text" do

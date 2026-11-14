@@ -83,6 +83,7 @@ export default class AddToSetDialog {
       const body = new URLSearchParams({ "post_ids[]": String(CurrentPost.id) });
       const response = await HTTP.post(`/post_sets/${setId}/add_posts.json`, body);
       if (response.ok) {
+        ToastManager.defer(`Added post to <a href="/post_sets/${setId}">set #${setId}</a>`);
         AddToSetDialog.reloadPage();
         return;
       }

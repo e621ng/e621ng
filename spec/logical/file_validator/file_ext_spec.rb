@@ -39,5 +39,15 @@ RSpec.describe FileValidator, type: :model do
         expect { validator.validate_file_ext(max_file_sizes) }.to throw_symbol(:abort)
       end
     end
+
+    # Legacy flash posts still exist, but new flash files must not be accepted.
+    context "with the legacy swf extension" do
+      subject(:validator) { validator_for("swf") }
+
+      it "adds an error and throws :abort" do
+        expect { validator.validate_file_ext(max_file_sizes) }.to throw_symbol(:abort)
+        expect(validator.record.errors[:file_ext]).to include(include("swf is invalid"))
+      end
+    end
   end
 end

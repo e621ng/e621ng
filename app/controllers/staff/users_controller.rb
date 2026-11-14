@@ -108,9 +108,16 @@ module Staff
       end
 
       invalidate_old_password = params.dig(:admin, :invalidate_old_password)&.truthy? || false
-      @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*") if invalidate_old_password
+      @user.invalidate_password_reset_nonces
+      if invalidate_old_password
+        User.transaction do
+          @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*")
+          # The hash change only ends web sessions.
+          @user.revoke_api_credentials!
+        end
+      end
       @reset_key = UserPasswordResetNonce.create(user_id: @user.id)
-      ModAction.log(:password_reset, { user_id: @user.id, invalidated: invalidate_old_password })
+      ModAction.log(:password_reset, { user_id: @user.id, invalidated: invalidate_old_password, credentials_revoked: invalidate_old_password })
     end
 
     def totp_reset

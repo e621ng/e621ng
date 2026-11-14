@@ -16,8 +16,9 @@ class AvatarCleanupJob < ApplicationJob
     sm.delete_avatar(user_id, "webp")
 
     if force
+      # Atomic so a bit_prefs write made since the find above isn't clobbered.
       flag = User.flag_value_for("has_cropped_avatar")
-      user.update_columns(bit_prefs: user.bit_prefs & ~flag)
+      User.where(id: user_id).update_all(["bit_prefs = bit_prefs & ~?", flag])
     end
   rescue ActiveRecord::RecordNotFound
     nil

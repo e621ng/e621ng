@@ -119,7 +119,7 @@ class FeaturedPostsPreview {
   private static async fetchPosts (ids: number[]): Promise<DeferredPostData[] | null> {
     this.Logger.log("Fetching posts:", ids);
     try {
-      const response = await fetch(`/posts.json?v2=true&mode=thumbnail&tags=id:${ids.join(",")}`);
+      const response = await fetch(`/posts.json?mode=thumbnail&tags=id:${ids.join(",")}`);
       if (!response.ok) {
         console.error(`Failed to fetch posts: ${response.statusText}`);
         return null;

@@ -21,7 +21,7 @@
 </div></div>
 
 <%= javascript_tag nonce: true do -%>
-  <% if !Danbooru.config.safe_mode? %>
+  <% if !CurrentSite.safe_mode? %>
     window.furidURL = "<%= Danbooru.config.storage_manager.furids_url %>";
   <% end %>
 <% end -%>

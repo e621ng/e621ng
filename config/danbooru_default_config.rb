@@ -34,13 +34,38 @@ module Danbooru
       "localhost:3000"
     end
 
+    # The site served when a request matches no profile in `site_profiles`.
+    def primary_site
+      "e621"
+    end
+
+    # Other sites served by this deployment, selected per request by the
+    # load balancer's X-E6-Site header or the Host (doc 38). Example:
+    #   {
+    #     "e926" => {
+    #       hosts: %w[e926.net www.e926.net],
+    #       safe_mode: true,
+    #       overrides: { app_name: "e926", hostname: "e926.net", ... },
+    #     },
+    #   }
+    # Override keys are limited to EnvironmentConfiguration::SITE_SCOPED.
+    def site_profiles
+      {}
+    end
+
+    # Base URL for stored files. nil keeps the StorageManager default.
+    def storage_base_url
+      nil
+    end
+
     # Contact email address of the admin.
+    # Goes through Danbooru.config so that site overrides of `domain` apply.
     def contact_email
-      "management@#{domain}"
+      "management@#{Danbooru.config.domain}"
     end
 
     def takedown_email
-      "takedowns@#{domain}"
+      "takedowns@#{Danbooru.config.domain}"
     end
 
     # System actions, such as sending automated dmails, will be performed with
@@ -382,7 +407,7 @@ module Danbooru
 
     # Issuer label shown in authenticator apps.
     def totp_issuer
-      app_name
+      Danbooru.config.app_name
     end
 
     def require_totp_for_staff?
@@ -567,7 +592,11 @@ module Danbooru
       # base_url - where to serve files from (default: http://#{hostname}/data)
       # hierarchical: false - store files in a single directory
       # hierarchical: true - store files in a hierarchical directory structure, based on the MD5 hash
-      StorageManager::Local.new(base_dir: Rails.public_path.join("data").to_s, hierarchical: true)
+      StorageManager::Local.new(
+        **{ base_url: Danbooru.config.storage_base_url }.compact,
+        base_dir: Rails.public_path.join("data").to_s,
+        hierarchical: true,
+      )
 
       # Select the storage method based on the post's id and type (preview, large, or original).
       # StorageManager::Hybrid.new do |id, md5, file_ext, type|
@@ -1107,6 +1136,11 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
   class EnvironmentConfiguration
     class ValidationError < StandardError; end
 
+    # Config values a site profile may override per request (doc 38).
+    # Never add a secret here: secrets are shared by every site.
+    SITE_SCOPED = Set[:app_name, :hostname, :domain, :description, :ads_config, :storage_base_url, :analytics_client_id].freeze
+    SITE_ID_FORMAT = /\A[a-z0-9_-]+\z/
+
     def custom_configuration
       @custom_configuration ||= CustomConfiguration.new
     end
@@ -1123,13 +1157,18 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     end
 
     def method_missing(method, *) # rubocop:disable Style/MissingRespondToMissing
-      var = ENV.fetch("DANBOORU_#{method.to_s.upcase.chomp('?')}", nil)
-
-      if var.present?
-        env_to_boolean(method, var)
-      else
-        custom_configuration.send(method, *)
+      if SITE_SCOPED.include?(method)
+        # Read RequestStore directly: this file loads before app autoloading
+        overrides = RequestStore.store[:current_site]&.overrides
+        return overrides[method] if overrides&.key?(method)
       end
+
+      config_value(method, *)
+    end
+
+    # The value for the primary site, ignoring the current site's overrides.
+    def primary_value(method, *)
+      config_value(method, *)
     end
 
     def validate!
@@ -1143,6 +1182,60 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       unless free.nil? || (free >= 1 && free <= 10)
         raise ValidationError, "upload_karma_free_threshold must be either nil, or an integer between 1 and 10"
       end
+
+      validate_site_profiles!
+    end
+
+    private
+
+    def config_value(method, *)
+      var = ENV.fetch("DANBOORU_#{method.to_s.upcase.chomp('?')}", nil)
+
+      if var.present?
+        env_to_boolean(method, var)
+      else
+        custom_configuration.send(method, *)
+      end
+    end
+
+    def validate_site_profiles!
+      profiles = site_profiles
+      raise ValidationError, "site_profiles must be a Hash" unless profiles.is_a?(Hash)
+
+      primary_host = primary_value(:hostname).to_s.downcase
+      seen_hosts = {}
+
+      profiles.each do |id, profile|
+        unless id.is_a?(String) && id.match?(SITE_ID_FORMAT)
+          raise ValidationError, "site_profiles: invalid site id #{id.inspect}"
+        end
+        raise ValidationError, "site_profiles: #{id} is the primary site" if id == primary_site
+        raise ValidationError, "site_profiles: #{id} must be a Hash" unless profile.is_a?(Hash)
+
+        hosts = profile[:hosts]
+        unless hosts.is_a?(Array) && hosts.any? && hosts.all? { |h| h.is_a?(String) && h == h.downcase }
+          raise ValidationError, "site_profiles: #{id} hosts must be a non-empty array of lowercase strings"
+        end
+        hosts.each do |host|
+          raise ValidationError, "site_profiles: #{id} claims the primary hostname #{host}" if host == primary_host
+          raise ValidationError, "site_profiles: #{host} is claimed by #{seen_hosts[host]} and #{id}" if seen_hosts.key?(host)
+          seen_hosts[host] = id
+        end
+
+        unless [true, false].include?(profile[:safe_mode])
+          raise ValidationError, "site_profiles: #{id} safe_mode must be true or false"
+        end
+
+        overrides = profile.fetch(:overrides, {})
+        raise ValidationError, "site_profiles: #{id} overrides must be a Hash" unless overrides.is_a?(Hash)
+        unknown = overrides.keys.reject { |key| SITE_SCOPED.include?(key) }
+        raise ValidationError, "site_profiles: #{id} cannot override #{unknown.join(', ')}" if unknown.any?
+      end
+
+      # The managed config (doc 39) lists its secrets; none may be site-scoped
+      return unless CustomConfiguration.const_defined?(:SECRET_KEYS, false)
+      clash = CustomConfiguration::SECRET_KEYS.map(&:to_sym).select { |key| SITE_SCOPED.include?(key) }
+      raise ValidationError, "SITE_SCOPED includes secrets: #{clash.join(', ')}" if clash.any?
     end
   end
 

@@ -89,6 +89,9 @@ GEM
     bootsnap (1.26.1)
       msgpack (~> 1.5)
     builder (3.3.0)
+    bundler-audit (0.9.3)
+      bundler (>= 1.2.0)
+      thor (~> 1.0)
     cgi (0.5.2)
     chunky_png (1.4.0)
     concurrent-ruby (1.3.8)
@@ -100,6 +103,7 @@ GEM
     cronex (0.15.0)
       tzinfo
       unicode (>= 0.4.4.5)
+    csv (3.3.7)
     dalli (3.2.15)
       logger
     datadog (2.48.0)
@@ -358,7 +362,7 @@ GEM
     rspec-mocks (3.13.8)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
-    rspec-rails (8.0.4)
+    rspec-rails (8.1.0)
       actionpack (>= 7.2)
       activesupport (>= 7.2)
       railties (>= 7.2)
@@ -371,7 +375,7 @@ GEM
       rspec-expectations (~> 3.0)
       rspec-mocks (~> 3.0)
       sidekiq (>= 5, < 9)
-    rspec-support (3.13.7)
+    rspec-support (3.13.8)
     rubocop (1.92.2)
       json (>= 2.3)
       language_server-protocol (~> 3.17.0.2)
@@ -449,7 +453,7 @@ GEM
     unicode-emoji (4.3.0)
     uri (1.1.2)
     useragent (0.16.11)
-    view_component (4.21.0)
+    view_component (4.23.0)
       actionview (>= 7.1.0)
       activesupport (>= 7.1.0)
       prism (>= 1.0)
@@ -483,6 +487,8 @@ DEPENDENCIES
   bcrypt (= 3.1.22)
   blueprinter (= 1.3.0)
   bootsnap (= 1.26.1)
+  bundler-audit (= 0.9.3)
+  csv (= 3.3.7)
   dalli (= 3.2.15)
   datadog (= 2.48.0)
   debug (= 1.11.1)
@@ -517,7 +523,7 @@ DEPENDENCIES
   responders (= 3.2.1)
   rotp (= 6.4.0)
   rqrcode (= 3.2.0)
-  rspec-rails (= 8.0.4)
+  rspec-rails (= 8.1.0)
   rspec-sidekiq (= 5.3.0)
   rubocop (= 1.92.2)
   rubocop-erb (= 0.8.2)
@@ -535,7 +541,7 @@ DEPENDENCIES
   simplecov (= 1.3.2)
   sitemap_generator (= 7.1.1)
   stringio (= 3.2.0)
-  view_component (= 4.21.0)
+  view_component (= 4.23.0)
   vite_rails (= 3.11.1)
   webmock (= 3.34.0)
   zxcvbn-ruby (= 2.0.1)
@@ -563,6 +569,7 @@ CHECKSUMS
   bootsnap (1.26.1) sha256=5b5bd90f8f13ea338627c1d56ffbe2ea25e743ac48c2afec1a9bea3a06a264e2
   builder (3.3.0) sha256=497918d2f9dca528fdca4b88d84e4ef4387256d984b8154e9d5d3fe5a9c8835f
   bundler (4.0.23) sha256=407ba8a1d928f412847f819aa5f8b6aef7c59fb51feb517112af8a165487287b
+  bundler-audit (0.9.3) sha256=81c8766c71e47d0d28a0f98c7eed028539f21a6ea3cd8f685eb6f42333c9b4e9
   cgi (0.5.2) sha256=61ca30298171190fd4fa0d8018e57ada456eae9b7a2b78526debf7f0a0e6f8bb
   chunky_png (1.4.0) sha256=89d5b31b55c0cf4da3cf89a2b4ebc3178d8abe8cbaf116a1dba95668502fdcfe
   concurrent-ruby (1.3.8) sha256=b2f1be836e968ccc78ccfce277ea79c72a88633f22306782c16ff23fb415d1e1
@@ -570,6 +577,7 @@ CHECKSUMS
   crack (1.0.1) sha256=ff4a10390cd31d66440b7524eb1841874db86201d5b70032028553130b6d4c7e
   crass (1.0.8) sha256=7a0145c7a2c59f8e7923b3a69ce819c444823a00a5127d805298fea13be24efe
   cronex (0.15.0) sha256=21c794e085fad2951c4f2e279f440340a35ba2297e0b738f22f263f69fbe2186
+  csv (3.3.7) sha256=15a3f16f6628da8664d455eb634e7f22031bcf53044923caf56975109e71b9f8
   dalli (3.2.15) sha256=68f94d5e68e17f7371a43a298fb3a6d5315ed6ba42d188903aee053508479541
   datadog (2.48.0) sha256=0bf955f306ce997ba825d14bbf176872d605a3d810fa5d284f0adc9bb4d804c3
   datadog-ruby_core_source (3.5.6) sha256=07d8909b9314af709da80966cf7e160da19ca1c396a8f45d175615f675a89569
@@ -690,9 +698,9 @@ CHECKSUMS
   rspec-core (3.13.6) sha256=a8823c6411667b60a8bca135364351dda34cd55e44ff94c4be4633b37d828b2d
   rspec-expectations (3.13.5) sha256=33a4d3a1d95060aea4c94e9f237030a8f9eae5615e9bd85718fe3a09e4b58836
   rspec-mocks (3.13.8) sha256=086ad3d3d17533f4237643de0b5c42f04b66348c28bf6b9c2d3f4a3b01af1d47
-  rspec-rails (8.0.4) sha256=06235692fc0892683d3d34977e081db867434b3a24ae0dd0c6f3516bad4e22df
+  rspec-rails (8.1.0) sha256=5e6c6a4e7f7d644b56e412d410824f6480c1e5a9c61b8448998236b4a4dbf3be
   rspec-sidekiq (5.3.0) sha256=a49405aa8767c9806d680dcac717024a88579673ce883285dea379fa9eddb3c6
-  rspec-support (3.13.7) sha256=0640e5570872aafefd79867901deeeeb40b0c9875a36b983d85f54fb7381c47c
+  rspec-support (3.13.8) sha256=e4160030309b7e3e9d9863dfe720a35dfcc577162f5402cd68fc8c5258a0ffd6
   rubocop (1.92.2) sha256=14fb31eed143a0dc6f78186c550c1715e81cd38f59d05d1165050e445c1f5382
   rubocop-ast (1.50.0) sha256=b9ca88300da0803ee222ad20cdb30494c0a784eed06fdc35d254b06d662788db
   rubocop-erb (0.8.2) sha256=180e2881587e42a61b18b1b0a644bef5cc30bcf5e0e7846b88db2da86ec2cc11
@@ -722,7 +730,7 @@ CHECKSUMS
   unicode-emoji (4.3.0) sha256=11c02fa73290378c066bb0562cd4c87d8e1b706fbbe0059ca12746a4244de8ce
   uri (1.1.2) sha256=89292e98eabbef6248b0a0ed5e7e398e152f83f17560023a6d94a7f492b169fb
   useragent (0.16.11) sha256=700e6413ad4bb954bb63547fa098dddf7b0ebe75b40cc6f93b8d54255b173844
-  view_component (4.21.0) sha256=d390f3efa833d3afa89f6cb7840c50fe04feb88dc7bf91e328721d67a51e280f
+  view_component (4.23.0) sha256=2bcb6fe6251edaec534d4aefc5f735096a8393c3b9b627f6de59fbc859858a01
   vite_rails (3.11.1) sha256=61fa4a7c9248fc28f22a05e0760810bf79f645b776c721d888a815c5d21dd338
   vite_ruby (3.11.1) sha256=51286571c86ae1639356755e141d5b191aac690e68d7ad52ef924a95c0710dcd
   webmock (3.34.0) sha256=72eed29dc8c00148d592acaedaaa6b869e2e397de57dfc8602b84aa834f46b33

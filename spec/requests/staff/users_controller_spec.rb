@@ -189,6 +189,21 @@ RSpec.describe Staff::UsersController do
         expect(mod[:values]).to include("user_id" => target.id, "added" => [], "removed" => ["unlimited uploads"])
       end
 
+      it "grants oauth_applications_beta and logs a user_flags_change ModAction" do
+        patch staff_user_path(user), params: { user: { level: user.level, oauth_applications_beta: "true" } }
+        expect(user.reload.oauth_applications_beta?).to be true
+        mod = ModAction.where(action: "user_flags_change").last
+        expect(mod[:values]).to include("user_id" => user.id, "added" => ["oauth applications beta"], "removed" => [])
+      end
+
+      it "revokes oauth_applications_beta and logs a user_flags_change ModAction" do
+        target = create(:user, oauth_applications_beta: true)
+        patch staff_user_path(target), params: { user: { level: target.level, oauth_applications_beta: "false" } }
+        expect(target.reload.oauth_applications_beta?).to be false
+        mod = ModAction.where(action: "user_flags_change").last
+        expect(mod[:values]).to include("user_id" => target.id, "added" => [], "removed" => ["oauth applications beta"])
+      end
+
       it "does not log user_flags_change when can_upload_free is unchanged" do
         expect do
           patch staff_user_path(user), params: { user: { level: user.level, can_upload_free: "false" } }
@@ -438,12 +453,12 @@ RSpec.describe Staff::UsersController do
         expect do
           post password_reset_staff_user_path(user)
         end.to change(ModAction.where(action: "password_reset"), :count).by(1)
-        expect(ModAction.last[:values]).to include("user_id" => user.id, "invalidated" => false)
+        expect(ModAction.last[:values]).to include("user_id" => user.id, "invalidated" => false, "credentials_revoked" => false)
 
         expect do
           post password_reset_staff_user_path(user), params: { admin: { invalidate_old_password: "1" } }
         end.to change(ModAction.where(action: "password_reset"), :count).by(1)
-        expect(ModAction.last[:values]).to include("user_id" => user.id, "invalidated" => true)
+        expect(ModAction.last[:values]).to include("user_id" => user.id, "invalidated" => true, "credentials_revoked" => true)
       end
 
       it "invalidates the old password when invalidate_old_password is truthy" do
@@ -453,10 +468,63 @@ RSpec.describe Staff::UsersController do
         expect(user.reload.bcrypt_password_hash).to eq("*AC*")
       end
 
+      it "replaces the user's existing nonces" do
+        old_nonce = create(:user_password_reset_nonce, user: user)
+        post password_reset_staff_user_path(user)
+        expect(UserPasswordResetNonce.where(id: old_nonce.id)).not_to exist
+        expect(UserPasswordResetNonce.where(user_id: user.id).count).to eq(1)
+      end
+
+      it "replaces the user's existing nonces when invalidating the old password" do
+        old_nonce = create(:user_password_reset_nonce, user: user)
+        post password_reset_staff_user_path(user), params: { admin: { invalidate_old_password: "1" } }
+        expect(UserPasswordResetNonce.where(id: old_nonce.id)).not_to exist
+        expect(UserPasswordResetNonce.where(user_id: user.id).count).to eq(1)
+        expect(user.reload.bcrypt_password_hash).to eq("*AC*")
+      end
+
       it "preserves the old password hash when invalidate_old_password is not set" do
         original_hash = user.bcrypt_password_hash
         post password_reset_staff_user_path(user)
         expect(user.reload.bcrypt_password_hash).to eq(original_hash)
+      end
+
+      describe "API credentials" do
+        let(:oauth_app) do
+          Doorkeeper::Application.create!(
+            name: "third-party-app", redirect_uri: "http://localhost/cb",
+            scopes: "openid full", owner: create(:user)
+          )
+        end
+        let!(:api_key) { create(:api_key, user: user) }
+        let!(:token) { Doorkeeper::AccessToken.create!(application: oauth_app, resource_owner_id: user.id, scopes: "openid full") }
+        let!(:grant) do
+          Doorkeeper::AccessGrant.create!(
+            application: oauth_app, resource_owner_id: user.id, scopes: "openid full",
+            expires_in: 600, redirect_uri: "http://localhost/cb"
+          )
+        end
+
+        it "revokes API keys and OAuth credentials when invalidating the old password" do
+          post password_reset_staff_user_path(user), params: { admin: { invalidate_old_password: "1" } }
+          expect(user.api_keys.count).to eq(0)
+          expect(User.authenticate_api_key(user.name, api_key.key)).to be_nil
+          expect(token.reload.revoked?).to be true
+          expect(grant.reload.revoked?).to be true
+        end
+
+        it "keeps 2FA when invalidating the old password" do
+          create(:user_totp, user: user)
+          post password_reset_staff_user_path(user), params: { admin: { invalidate_old_password: "1" } }
+          expect(user.reload.totp).to be_present
+        end
+
+        it "leaves API credentials alone when invalidate_old_password is not set" do
+          post password_reset_staff_user_path(user)
+          expect(User.authenticate_api_key(user.name, api_key.key)).to be_present
+          expect(token.reload.revoked?).to be false
+          expect(grant.reload.revoked?).to be false
+        end
       end
     end
   end

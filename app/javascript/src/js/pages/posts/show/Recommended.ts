@@ -358,7 +358,6 @@ export default class Recommended {
 
     try {
       const data = await HTTP.getJSON<DeferredPostData[]>("/posts.json", {
-        v2: "true",
         mode: "thumbnail",
         tags: `id:${postIds.join(",")}`,
       });

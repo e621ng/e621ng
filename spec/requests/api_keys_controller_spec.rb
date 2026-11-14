@@ -28,7 +28,7 @@ RSpec.describe ApiKeysController do
       CurrentUser.scoped(User.anonymous) do
         # NOTE: Doesn't test `api_key_path(id: k.id)` or `regenerate_api_key_path(k.id)`; 404 before redirect
         [api_keys_path, new_api_key_path].each do |p|
-          get p, params: { login: api_user.name, api_key: k.key }
+          get p, params: { login: api_user.name, api_key: k.key }, headers: { "Accept" => "application/json" }
           expect(response).to have_http_status(:forbidden), "expected the response from #{p} to have status code :forbidden (403) but it was #{response.status}"
         end
       end

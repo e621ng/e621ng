@@ -3,18 +3,22 @@
 module Maintenance
   module User
     class LoginRemindersController < ApplicationController
+      include RecoveryRequestGuard
+
       def new
       end
 
       def create
-        ::User.with_email(params[:user][:email]).each do |user|
-          next if user.is_moderator?
-          LoginReminderMailer.notice(user).deliver_now
+        email = params.dig(:user, :email).to_s.strip
+        case throttle_recovery_request(email, new_maintenance_user_login_reminder_path, "user.login_reminder")
+        when :rejected then return
+        when :allowed
+          ::User.with_email(email).each do |user|
+            next if user.is_moderator?
+            LoginReminderMailer.notice(user).deliver_now
+          end
         end
-
-        flash[:notice] = "If your email was on file, an email has been sent your way. It should arrive within the next few minutes. Make sure to check your spam folder"
-
-        redirect_to new_maintenance_user_login_reminder_path
+        redirect_to new_maintenance_user_login_reminder_path, notice: RecoveryRequestGuard::GENERIC_NOTICE
       end
     end
   end

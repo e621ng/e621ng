@@ -45,11 +45,18 @@ class SStorage extends StorageObject {
   Posts = {
     Mode: "view",
   };
+
+  Toast = {
+    Pending: "",
+  };
 }
 
 const StorageKeys: StorageConfig<SStorage> = {
   Posts: {
     Mode: "e6.posts.mode",
+  },
+  Toast: {
+    Pending: "e6.toast.pending",
   },
 };
 

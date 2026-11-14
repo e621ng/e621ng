@@ -17,6 +17,8 @@ gem "responders", "3.2.1"
 # Nothing depends on these since rdoc 8; unpinned, Ruby's older bundled psych/stringio would load instead
 gem "psych", "5.5.0"
 gem "stringio", "3.2.0"
+# Bundled (not default) gem since Ruby 3.4, so it must be declared; used by script/audit_*.rb
+gem "csv", "3.3.7"
 
 ### Data stores
 gem "dalli", "3.2.15" # Held on 3.2.x: 5.x needs memcached 1.6+ and 4.x+ crashes Ruby < 3.3.8 (bug #21195)
@@ -34,7 +36,7 @@ gem "blueprinter", "1.3.0"
 gem "draper", "4.0.6"
 gem "simple_form", "5.4.1"
 gem "sitemap_generator", "7.1.1"
-gem "view_component", "4.21.0"
+gem "view_component", "4.23.0"
 gem "vite_rails", "3.11.1"
 
 ### Text processing and versioning
@@ -84,7 +86,7 @@ group :development, :test do
   ### Testing
   gem "factory_bot_rails", "6.5.1", require: false
   gem "parallel_tests", "5.9.0"
-  gem "rspec-rails", "8.0.4", require: false
+  gem "rspec-rails", "8.1.0", require: false
   gem "rspec-sidekiq", "5.3.0", require: false
   gem "simplecov", "1.3.2", require: false
   gem "webmock", "3.34.0", require: false
@@ -95,6 +97,7 @@ end
 
 group :development do
   gem "debug", "1.11.1", require: false
+  gem "bundler-audit", "0.9.3", require: false
 
   ### Linting
   gem "rubocop", "1.92.2", require: false

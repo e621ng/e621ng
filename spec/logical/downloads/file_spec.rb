@@ -242,6 +242,14 @@ RSpec.describe Downloads::File do
       "IPv4-compatible loopback (::7f00:1)" => "::7f00:1",
       "unspecified address (0.0.0.0)" => "0.0.0.0",
       "unspecified IPv6 address (::)" => "::",
+      # Reserved / special-purpose ranges outside the RFC 1918 and link-local blocks
+      "IETF protocol assignments (192.0.0.192)" => "192.0.0.192",
+      "benchmarking (198.18.0.1)" => "198.18.0.1",
+      "IPv4 multicast (224.0.0.1)" => "224.0.0.1",
+      "reserved (240.0.0.1)" => "240.0.0.1",
+      "limited broadcast (255.255.255.255)" => "255.255.255.255",
+      "IPv6 site-local (fec0::1)" => "fec0::1",
+      "IPv6 multicast (ff02::1)" => "ff02::1",
     }.each do |description, address|
       it "raises Downloads::File::Error for #{description}" do
         allow(Resolv).to receive(:getaddresses).and_return([address])

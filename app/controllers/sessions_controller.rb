@@ -15,17 +15,24 @@ class SessionsController < ApplicationController
       end
       return
     end
+    account_limiter = account_limiter_for(sparams[:name])
+    if account_limiter&.throttled? && !known_ip?(sparams[:name]) && reject_throttled_account?(sparams[:url])
+      return
+    end
+
     session_creator = SessionCreator.new(request, session, cookies, sparams[:name], sparams[:password], sparams[:remember].to_s.truthy?)
-    url = url_from(sparams[:url])
+    url = local_redirect_path(sparams[:url])
 
     case session_creator.authenticate(url: url)
     when :succeeded
+      account_limiter&.reset!
       DanbooruLogger.add_attributes("user.login" => "success")
       respond_to do |fmt|
         fmt.html { redirect_to(url || posts_path) }
         fmt.json { render(json: { url: url || posts_path }) }
       end
     when :totp_required
+      account_limiter&.reset!
       DanbooruLogger.add_attributes("user.login" => "totp_challenge")
       respond_to do |fmt|
         fmt.html { redirect_to(totp_session_path) }
@@ -33,6 +40,7 @@ class SessionsController < ApplicationController
       end
     else
       login_limiter.hit!
+      account_limiter&.hit!
       DanbooruLogger.add_attributes("user.login" => "fail")
       respond_to do |fmt|
         fmt.html { redirect_back(fallback_location: new_session_path, allow_other_host: false, notice: "Username / Password was incorrect.") }
@@ -123,7 +131,58 @@ class SessionsController < ApplicationController
     RateLimiter.new("login:#{request.remote_ip}", limit: 15, period: 6.hours, lockout: 12.hours)
   end
 
+  # Per-account counter, so guessing spread across many IPs is still bounded.
+  # Keyed on the normalized name so nonexistent accounts are limited too without
+  # revealing which names exist. Names no user can have skip it; the IP limiter
+  # still counts those.
+  def account_limiter_for(name)
+    normalized = User.normalize_name(name)
+    return nil if normalized.blank? || normalized.length > 20
+    RateLimiter.new("login:account:#{normalized}", limit: 20, period: 1.hour)
+  end
+
+  # An IP the account has logged in from before bypasses the account limiter,
+  # so a stranger cannot lock the real owner out of their usual location.
+  def known_ip?(name)
+    user = User.find_by_name(name) # rubocop:disable Rails/DynamicFindBy
+    ip = UserIpTracker.normalize(request.remote_ip)
+    return false if user.nil? || ip.nil?
+    user.last_ip_addr.to_s == ip.to_s || UserIpAddress.where(user_id: user.id, ip_addr: ip.to_s).exists?
+  end
+
+  # Renders the rejection and returns true, unless Turnstile is on and the
+  # attempt carries a solved token. The login overlay cannot host the widget
+  # (its injected scripts are not nonced), so JSON callers get a url to the
+  # full page instead.
+  def reject_throttled_account?(url)
+    if Danbooru.config.enable_turnstile?
+      return false if TurnstileVerifier.verify(params["cf-turnstile-response"], request.remote_ip)
+
+      DanbooruLogger.add_attributes("user.login" => "captcha_required")
+      message = "Too many failed login attempts for this account. Please complete the captcha and try again."
+      captcha_url = new_session_path({ url: local_redirect_path(url), captcha: 1 }.compact)
+      respond_to do |fmt|
+        fmt.html { redirect_to(captcha_url, notice: message) }
+        fmt.json { render(json: { error: message, code: "captcha_required", url: captcha_url }, status: 429) }
+      end
+    else
+      DanbooruLogger.add_attributes("user.login" => "account_rate_limited")
+      message = "Too many failed login attempts for this account. Try again later."
+      respond_to do |fmt|
+        fmt.html { redirect_to(new_session_path, notice: message) }
+        fmt.json { render(json: { error: message }, status: 429) }
+      end
+    end
+    true
+  end
+
   def session_creator
     SessionCreator.new(request, session, cookies, nil, nil)
+  end
+
+  # url_from checks only the host, so it lets `javascript://<host>/...` through.
+  def local_redirect_path(url)
+    url = url_from(url)
+    url if url.is_a?(String) && url.match?(%r{\A/(?![/\\])})
   end
 end

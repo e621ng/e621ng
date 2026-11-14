@@ -7,6 +7,7 @@
       <label for="nonce_email" class="required">Email</label>
       <%= text_field_tag :email %>
     </div>
+    <%= render "application/turnstile" %>
     <%= submit_tag "Submit" %>
   <% end %>
   <section class="session_info">

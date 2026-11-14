@@ -5,7 +5,8 @@ require Rails.root.join("app/logical/oidc_signing_key")
 Doorkeeper::OpenidConnect.configure do
   issuer do |_resource_owner, _application|
     scheme = Rails.env.production? ? "https" : "http"
-    "#{scheme}://#{Danbooru.config.hostname}"
+    # Pinned to the primary site: tokens must validate whichever site issued them (doc 38)
+    "#{scheme}://#{Danbooru.config.primary_value(:hostname)}"
   end
 
   signing_key -> { OidcSigningKey.pem }
@@ -46,7 +47,7 @@ Doorkeeper::OpenidConnect.configure do
     normal_claim :picture do |resource_owner|
       next nil unless resource_owner.avatar_id
 
-      safe_mode = Danbooru.config.safe_mode? || resource_owner.enable_safe_mode?
+      safe_mode = CurrentSite.safe_mode? || resource_owner.enable_safe_mode?
       avatar_post = Post.find_by(id: resource_owner.avatar_id) if safe_mode || !resource_owner.has_cropped_avatar?
       next nil if safe_mode && avatar_post&.rating != "s"
 

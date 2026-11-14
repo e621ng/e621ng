@@ -95,6 +95,14 @@ RSpec.describe TagQuery, type: :model do
     # The reported abusive query: many unbalanced opening parens.
     let(:redos_query) { "#{'( ' * 28}a ) )" }
 
+    def with_strict_regexp_timeout
+      previous = Regexp.timeout
+      Regexp.timeout = 0.5
+      yield
+    ensure
+      Regexp.timeout = previous
+    end
+
     describe ".group_depth_exceeded?" do
       it "flags unbalanced deeply-nested parentheses" do
         expect(TagQuery.group_depth_exceeded?(redos_query)).to be(true)
@@ -134,6 +142,42 @@ RSpec.describe TagQuery, type: :model do
       end
     end
 
+    # E6SEC-201: `has_groups?` runs first in `parse_query`, and its long-query regex is quadratic
+    # on runs of group openers.
+    describe ".has_groups?" do
+      it "returns quickly on a long run of group openers" do
+        with_strict_regexp_timeout do
+          expect(TagQuery.has_groups?("( " * 8000)).to be(true)
+        end
+      end
+
+      it "returns quickly on group openers inside a long quoted metatag" do
+        with_strict_regexp_timeout do
+          expect(TagQuery.has_groups?(%(a:"#{'( ' * 7000}"))).to be(false)
+        end
+      end
+
+      it "detects groups in a long query" do
+        query = Array.new(30) { |i| "( t#{i} ~u#{i} )" }.join(" ")
+        expect(query.length).to be > TagQuery::LONG_QUERY_LENGTH
+        expect(TagQuery.has_groups?(query)).to be(true)
+      end
+
+      it "ignores parentheses inside quoted metatags in a long query" do
+        query = %(source:"x ( a ) y" #{Array.new(40) { |i| "tag#{i}" }.join(' ')})
+        expect(query.length).to be > TagQuery::LONG_QUERY_LENGTH
+        expect(TagQuery.has_groups?(query)).to be(false)
+      end
+
+      it "parses unclosed openers as a single tag on the full TagQuery.new parse path" do
+        with_strict_regexp_timeout do
+          query = TagQuery.new("( " * 8000, resolve_aliases: false)
+          expect(query[:tags]).to eq(must: ["("], must_not: [], should: [])
+          expect(query.is_grouped_search?).to be(false)
+        end
+      end
+    end
+
     it "processes the emoticon query without error (not a false positive)" do
       # ":( :( ... a )" is not deeply-nested groups; it must scan normally, not raise.
       expect do
@@ -151,14 +195,10 @@ RSpec.describe TagQuery, type: :model do
     it "returns quickly rather than backtracking, even under a strict Regexp timeout" do
       # Without the pre-check this backtracks for ~1s and raises Regexp::TimeoutError;
       # with it, the query is rejected up front and no timeout is hit.
-      previous = Regexp.timeout
-      Regexp.timeout = 0.5
-      begin
+      with_strict_regexp_timeout do
         expect do
           TagQuery.scan_search(redos_query, error_on_depth_exceeded: true)
         end.to raise_error(TagQuery::DepthExceededError)
-      ensure
-        Regexp.timeout = previous
       end
     end
 
@@ -166,14 +206,10 @@ RSpec.describe TagQuery, type: :model do
       # TagQuery.new's default path degrades gracefully (error_on_depth_exceeded: false),
       # so it must not raise Regexp::TimeoutError under a strict timeout — the abusive query
       # is dropped up front rather than driving the tokenizer into catastrophic backtracking.
-      previous = Regexp.timeout
-      Regexp.timeout = 0.5
-      begin
+      with_strict_regexp_timeout do
         expect do
           TagQuery.new(redos_query, resolve_aliases: false)
         end.not_to raise_error
-      ensure
-        Regexp.timeout = previous
       end
     end
   end

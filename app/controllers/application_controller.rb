@@ -142,9 +142,12 @@ class ApplicationController < ActionController::Base
     when SessionLoader::LevelBelowMinimum
       response.set_header("WWW-Authenticate", %(Bearer error="invalid_token", error_description="user level below application minimum"))
       render_expected_error(401, "Account level below application minimum")
-    when SessionLoader::AuthenticationFailure
+    when SessionLoader::SessionInvalid
       session.delete(:user_id)
       cookies.delete :remember
+      render_expected_error(401, exception.message)
+    when SessionLoader::AuthenticationFailure
+      # Failed API credentials leave the cookie login alone (E6SEC-506).
       render_expected_error(401, exception.message)
     when ActionController::InvalidAuthenticityToken
       render_expected_error(403, "ActionController::InvalidAuthenticityToken. Did you properly authorize your request?")
@@ -173,6 +176,12 @@ class ApplicationController < ActionController::Base
     when OpenSearch::Transport::Transport::Errors::InternalServerError
       if exception.message.include?("time_exceeded_exception")
         render_expected_error(422, "The search timed out. Try using fewer or simpler tags.")
+      else
+        render_error_page(500, exception)
+      end
+    when OpenSearch::Transport::Transport::Errors::BadRequest
+      if exception.message.include?("maxClauseCount")
+        render_expected_error(422, "Your query was too complex to process. Try simplifying it.")
       else
         render_error_page(500, exception)
       end
@@ -259,13 +268,14 @@ class ApplicationController < ActionController::Base
   def reset_current_user
     CurrentUser.user = nil
     CurrentUser.ip_addr = nil
-    CurrentUser.safe_mode = Danbooru.config.safe_mode?
+    CurrentUser.safe_mode = CurrentSite.safe_mode?
     CurrentUser.oauth_token = nil
   end
 
   def requires_reauthentication
     return redirect_to(new_session_path(url: request.fullpath)) if CurrentUser.user.is_logged_out?
-    last_authenticated_at = session[:last_authenticated_at]
+    # The timestamp belongs to the cookie login, not to API credentials on this request.
+    last_authenticated_at = session[:last_authenticated_at] if session[:user_id] == CurrentUser.id
     if last_authenticated_at.blank? || Time.zone.parse(last_authenticated_at) < 1.hour.ago
       if request.get?
         return_to = request.fullpath
@@ -298,7 +308,7 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  %i[is_bd_staff is_bd_auditor can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries].each do |role|
+  %i[is_bd_staff is_bd_auditor can_view_staff_notes can_handle_takedowns can_edit_avoid_posting_entries can_manage_oauth_applications].each do |role|
     define_method("#{role}_only") do
       user_access_check("#{role}?")
     end

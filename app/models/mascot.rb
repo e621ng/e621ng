@@ -35,7 +35,7 @@ class Mascot < ApplicationRecord
   end
 
   def self.active_for_browser
-    Cache.fetch("active_mascots", expires_in: 1.day) do
+    Cache.fetch(active_cache_key, expires_in: 1.day) do
       query = Mascot.where(active: true).where("? = ANY(available_on)", Danbooru.config.app_name)
       mascots = query.map do |mascot|
         mascot.slice(:id, :background_color, :foreground_color, :is_layered, :artist_url, :artist_name).merge(background_url: mascot.url_path)
@@ -44,12 +44,17 @@ class Mascot < ApplicationRecord
     end
   end
 
+  # Per site: the list depends on app_name and the storage URL (doc 38)
+  def self.active_cache_key(site = CurrentSite.cache_key)
+    ["active_mascots", site].compact.join(":")
+  end
+
   def self.active_for_browser_base64
     Base64.strict_encode64(active_for_browser.to_json)
   end
 
   def invalidate_cache
-    Cache.delete("active_mascots")
+    CurrentSite.cache_keys.each { |site| Cache.delete(Mascot.active_cache_key(site)) }
   end
 
   def remove_storage_file

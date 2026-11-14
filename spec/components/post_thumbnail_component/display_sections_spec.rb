@@ -8,8 +8,8 @@ RSpec.describe PostThumbnailComponent, type: :component do
   let(:post) { create(:post) }
   let(:pool) { create(:pool) }
 
-  def component(post, **options)
-    described_class.new(post: post, **options)
+  def component(post, **)
+    described_class.new(post: post, **)
   end
 
   describe "#should_show_similarity?" do

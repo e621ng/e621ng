@@ -8,7 +8,7 @@ afterEach(() => {
 });
 
 function make (data: { url: string, isVideo: boolean }) {
-  const wrapper = mount(FilePreview, { props: { classes: "", data } });
+  const wrapper = mount(FilePreview, { props: { classes: "", data }, attachTo: document.body });
   wrappers.push(wrapper);
   return wrapper;
 }

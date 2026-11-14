@@ -25,13 +25,6 @@ updates:
     commit-message:
       prefix: "[NPM] "
     ignore:
-      # Known blockers; drop these entries once the Docker image moves to Node >= 22.
-      - dependency-name: vitest
-        update-types: ["version-update:semver-major"]
-      - dependency-name: "@vitest/coverage-v8"
-        update-types: ["version-update:semver-major"]
-      - dependency-name: jsdom
-        update-types: ["version-update:semver-major"]
       # TypeScript 7 ships no JS API yet (typescript-eslint and vue-tsc cannot load it).
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]

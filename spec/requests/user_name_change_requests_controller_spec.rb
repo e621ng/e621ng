@@ -107,10 +107,26 @@ RSpec.describe UserNameChangeRequestsController do
       expect(response).to redirect_to(new_session_path(url: new_user_name_change_request_path))
     end
 
-    it "returns 200 for a member" do
+    it "redirects a member without recent reauthentication to confirm_password" do
       sign_in_as member
       get new_user_name_change_request_path
+      expect(response).to redirect_to(confirm_password_session_path(url: new_user_name_change_request_path))
+    end
+
+    it "returns 200 for a reauthenticated member" do
+      sign_in_as member, reauthenticated: true
+      get new_user_name_change_request_path
       expect(response).to have_http_status(:ok)
+    end
+
+    # E6SEC-519: the cookie login's reauth timestamp must not cover another account's API key.
+    it "does not lend the cookie user's reauthentication to API credentials" do
+      allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1, reset!: nil))
+      make_session(member)
+      api_key = create(:api_key, user: other_member)
+      get new_user_name_change_request_path(format: :json), params: { login: other_member.name, api_key: api_key.key }
+      expect(response).to have_http_status(:redirect)
+      expect(response.location).to start_with(confirm_password_session_url)
     end
   end
 
@@ -133,8 +149,19 @@ RSpec.describe UserNameChangeRequestsController do
       end
     end
 
-    context "as a member" do
+    context "as a member without recent reauthentication" do
       before { sign_in_as member }
+
+      it "redirects to confirm_password without renaming" do
+        original_name = member.name
+        expect { post user_name_change_requests_path, params: valid_params }.not_to change(UserNameChangeRequest, :count)
+        expect(response).to redirect_to(confirm_password_session_path)
+        expect(member.reload.name).to eq(original_name)
+      end
+    end
+
+    context "as a reauthenticated member" do
+      before { sign_in_as member, reauthenticated: true }
 
       it "creates a request and redirects with a success flash" do
         expect { post user_name_change_requests_path, params: valid_params }.to change(UserNameChangeRequest, :count).by(1)

@@ -234,6 +234,33 @@ RSpec.describe UploadService do
       end
     end
 
+    context "with a SWF file" do
+      let(:file) do
+        Tempfile.new(["flash", ".swf"]).tap do |f|
+          f.binmode
+          f.write(File.binread(file_fixture("flash.swf").to_s))
+          f.rewind
+        end
+      end
+      let(:service) { described_class.new({ uploader: uploader, uploader_ip_addr: "127.0.0.1", rating: "s", file: file }) }
+
+      after do
+        file.close!
+      rescue StandardError
+        nil
+      end
+
+      it "rejects the file as an invalid type" do
+        upload = service.start!
+        expect(upload.status).to eq("failed")
+        expect(upload.error_message).to include("is invalid")
+      end
+
+      it "does not create a Post" do
+        expect { service.start! }.not_to change(Post, :count)
+      end
+    end
+
     context "when the Upload is invalid (bad rating)" do
       let(:params)  { { uploader: uploader, uploader_ip_addr: "127.0.0.1", rating: "z" } }
       let(:service) { described_class.new(params) }

@@ -69,6 +69,7 @@ class User < ApplicationRecord
     is_bd_staff
     is_bd_auditor
     has_cropped_avatar
+    oauth_applications_beta
   ].freeze
 
   include Danbooru::HasBitFlags
@@ -121,6 +122,8 @@ class User < ApplicationRecord
   # after_create :notify_sock_puppets
   after_create :create_user_status
   before_update :encrypt_password_on_update
+  after_update :invalidate_password_reset_nonces,
+               if: -> { saved_change_to_bcrypt_password_hash? || saved_change_to_email? }
   after_save :update_cache
   after_save :clear_cropped_avatar_on_avatar_change
 
@@ -288,6 +291,10 @@ class User < ApplicationRecord
       update_columns(password_hash: "", bcrypt_password_hash: User.bcrypt(pass))
     end
 
+    def invalidate_password_reset_nonces
+      UserPasswordResetNonce.where(user_id: id).delete_all
+    end
+
     def password_is_secure
       begin
         analysis = ZXCVBN_TESTER.test(password, [name, email])
@@ -337,6 +344,23 @@ class User < ApplicationRecord
       def bcrypt(pass)
         BCrypt::Password.create(pass)
       end
+    end
+
+    # Credentials that authenticate without the password; changing the hash doesn't end them.
+    def revoke_api_credentials!
+      api_keys.delete_all
+      revoke_oauth_credentials!
+    end
+
+    # Covers tokens the user holds and tokens issued by apps they own; app rows are kept.
+    def revoke_oauth_credentials!
+      Doorkeeper::AccessToken.where(resource_owner_id: id, revoked_at: nil).find_each(&:revoke)
+      Doorkeeper::AccessGrant.where(resource_owner_id: id, revoked_at: nil).find_each(&:revoke)
+
+      owned_app_ids = Doorkeeper::Application.where(owner: self).pluck(:id)
+      return if owned_app_ids.empty?
+      Doorkeeper::AccessToken.where(application_id: owned_app_ids, revoked_at: nil).find_each(&:revoke)
+      Doorkeeper::AccessGrant.where(application_id: owned_app_ids, revoked_at: nil).find_each(&:revoke)
     end
   end
 
@@ -470,12 +494,26 @@ class User < ApplicationRecord
   end
 
   module EmailMethods
+    extend ActiveSupport::Concern
+
+    module ClassMethods
+      # Carried in activation links; rotating it invalidates every outstanding link
+      def generate_email_verification_key
+        SecureRandom.hex(16)
+      end
+    end
+
     def is_verified?
       id.present? && email_verification_key.nil?
     end
 
     def mark_unverified!
-      update_attribute(:email_verification_key, "1")
+      update_attribute(:email_verification_key, User.generate_email_verification_key)
+    end
+
+    def email_verification_key_matches?(key)
+      return false unless key.is_a?(String) && key.present? && email_verification_key.present?
+      ActiveSupport::SecurityUtils.secure_compare(email_verification_key, key)
     end
 
     def mark_verified!
@@ -547,7 +585,8 @@ class User < ApplicationRecord
     def saved_search_badge
       return nil unless is_logged_in? && has_tracked_saved_searches
       summary = SavedSearch.badge_summary(self)
-      SavedSearchBadgeJob.perform_async(id, CurrentUser.safe_mode? || false) unless summary[:fresh]
+      # No site argument on the primary site, so its payload (and unique-lock digest) is unchanged
+      SavedSearchBadgeJob.perform_async(id, CurrentUser.safe_mode? || false, *[CurrentSite.cache_key].compact) unless summary[:fresh]
       summary
     end
   end
@@ -723,6 +762,10 @@ class User < ApplicationRecord
 
     def can_replace?
       is_staff? || replacements_beta?
+    end
+
+    def can_manage_oauth_applications?
+      is_staff? || oauth_applications_beta?
     end
 
     def can_view_staff_notes?
@@ -965,6 +1008,7 @@ class User < ApplicationRecord
           enable_safe_mode
           disable_responsive_mode no_flagging disable_user_dmails
           enable_compact_uploader replacements_beta forum_notification_dot
+          oauth_applications_beta
         ]
         list += boolean_attributes + %i[
           updated_at email last_logged_in_at last_forum_read_at

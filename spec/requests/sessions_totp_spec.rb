@@ -10,7 +10,7 @@ RSpec.describe "TOTP login challenge" do
   let!(:user_totp) { create(:user_totp, user: user, secret: secret) }
 
   before do
-    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
+    allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1, reset!: nil))
   end
 
   # Step-aligned instant so code validity doesn't depend on where inside the
@@ -80,6 +80,12 @@ RSpec.describe "TOTP login challenge" do
       post verify_totp_session_path, params: { totp: { code: current_code } }
       expect(response).to redirect_to("/artists")
       expect(response.cookies["remember"]).to be_present
+    end
+
+    it "does not stash a non-local url" do
+      login!(url: "javascript://www.example.com/%0Aalert(1)")
+      post verify_totp_session_path, params: { totp: { code: current_code } }
+      expect(response).to redirect_to(posts_path)
     end
 
     it "rejects a wrong code and keeps the challenge alive" do

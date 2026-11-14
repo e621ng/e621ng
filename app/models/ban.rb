@@ -96,13 +96,7 @@ class Ban < ApplicationRecord
   end
 
   def revoke_oauth_credentials
-    Doorkeeper::AccessToken.where(resource_owner_id: user_id, revoked_at: nil).find_each(&:revoke)
-    Doorkeeper::AccessGrant.where(resource_owner_id: user_id, revoked_at: nil).find_each(&:revoke)
-
-    owned_app_ids = Doorkeeper::Application.where(owner: user).pluck(:id)
-    return if owned_app_ids.empty?
-    Doorkeeper::AccessToken.where(application_id: owned_app_ids, revoked_at: nil).find_each(&:revoke)
-    Doorkeeper::AccessGrant.where(application_id: owned_app_ids, revoked_at: nil).find_each(&:revoke)
+    user.revoke_oauth_credentials!
   end
 
   def user_name

@@ -4,6 +4,8 @@ class SessionLoader
   class AuthenticationFailure < StandardError; end
   class InsufficientScope < AuthenticationFailure; end
   class LevelBelowMinimum < AuthenticationFailure; end
+  # The cookie login itself is invalid; only this clears session/remember state (E6SEC-506).
+  class SessionInvalid < AuthenticationFailure; end
 
   attr_reader :session, :cookies, :request, :params
 
@@ -24,17 +26,20 @@ class SessionLoader
     CurrentUser.ip_addr = request.remote_ip
 
     if oauth_bearer_auth?
+      @auth_source = :bearer
       load_session_for_bearer
     elsif has_api_authentication?
+      @auth_source = :api
       load_session_for_api
     elsif session[:user_id]
+      @auth_source = :session
       load_session_user
     elsif has_remember_token?
       load_remember_token
     end
 
     # Record the IP for everyone, including attempted logins from banned users.
-    UserIpTracker.track!(CurrentUser.user, CurrentUser.ip_addr)
+    UserIpTracker.track!(CurrentUser.user, CurrentUser.ip_addr) if attributable_ip?
 
     CurrentUser.user.unban! if CurrentUser.user.ban_expired?
     if CurrentUser.user.is_restricted?
@@ -44,7 +49,8 @@ class SessionLoader
         if recent_ban&.expires_at.present?
           ban_message = "Account is suspended for another #{recent_ban.expire_days}"
         end
-        raise AuthenticationFailure, ban_message
+        # A banned API key must not log out the browser's cookie user.
+        raise (cookie_auth? ? SessionInvalid : AuthenticationFailure), ban_message
       end
     end
     update_user_login_tracking
@@ -104,8 +110,30 @@ class SessionLoader
 
   private
 
+  def cookie_auth?
+    @auth_source.in?(%i[session remember])
+  end
+
   def has_basic_authorization?
     request.authorization.to_s.start_with?("Basic ")
+  end
+
+  # Navigations and subresource loads; fetch()/XHR send Sec-Fetch-Dest: empty.
+  def browser_load?
+    dest = request.headers["Sec-Fetch-Dest"]
+    request.headers["Sec-Fetch-Mode"] == "navigate" || (dest.present? && dest != "empty")
+  end
+
+  def api_format?
+    format = request.format
+    format.present? && (format.json? || format.xml? || format.atom?)
+  end
+
+  # CORS allows any origin, so a cross-site page can send credentials from a visitor's
+  # browser. That IP is the visitor's, not the credential owner's (E6SEC-519).
+  def attributable_ip?
+    return true unless @auth_source.in?(%i[api bearer])
+    !request.headers["Sec-Fetch-Site"].in?(%w[cross-site same-site])
   end
 
   def load_session_for_bearer
@@ -142,6 +170,7 @@ class SessionLoader
       return unless user
       return if pieces[1].to_i != user.password_token
       CurrentUser.user = user
+      @auth_source = :remember
       session[:user_id] = user.id
       session[:ph] = user.password_token # This has been validated by the remember token
       # Mirrors SessionCreator so OIDC auth_time reflects this restore.
@@ -151,13 +180,20 @@ class SessionLoader
     end
   end
 
+  # API credentials may be attacker-supplied; never rewrite the cookie login with them.
   def refresh_old_remember_token
+    return unless cookie_auth?
     if cookies.encrypted[:remember] && !CurrentUser.user.is_logged_out?
       cookies.encrypted[:remember] = {value: @remember_validator.generate("#{CurrentUser.id}:#{CurrentUser.password_token}", purpose: "rbr", expires_in: 14.days), expires: Time.now + 14.days, httponly: true, same_site: :lax, secure: Rails.env.production?}
     end
   end
 
+  # Key/Basic credentials can be planted in a victim's browser through a link or embed (E6SEC-519).
   def load_session_for_api
+    if browser_load? || !api_format?
+      raise AuthenticationFailure, "API credentials are only accepted on .json, .xml or .atom requests from API clients or fetch()"
+    end
+
     if request.authorization
       authenticate_basic_auth
     elsif params[:login].present? && params[:api_key].present?
@@ -213,7 +249,7 @@ class SessionLoader
 
   def load_session_user
     user = User.find_by(id: session[:user_id])
-    raise AuthenticationFailure if user.nil?
+    raise SessionInvalid if user.nil?
     return if session[:ph] != user.password_token
     CurrentUser.user = user
     CurrentUser.api_key = nil
@@ -239,7 +275,7 @@ class SessionLoader
       CurrentUser.user.update_attribute(:last_logged_in_at, Time.now)
     end
 
-    if CurrentUser.user.last_ip_addr != @request.remote_ip
+    if attributable_ip? && CurrentUser.user.last_ip_addr != @request.remote_ip
       CurrentUser.user.update_attribute(:last_ip_addr, @request.remote_ip)
     end
 
@@ -248,7 +284,7 @@ class SessionLoader
   end
 
   def set_safe_mode
-    safe_mode = Danbooru.config.safe_mode? || params[:safe_mode].to_s.truthy? || CurrentUser.user.enable_safe_mode?
+    safe_mode = CurrentSite.safe_mode? || params[:safe_mode].to_s.truthy? || CurrentUser.user.enable_safe_mode?
     CurrentUser.safe_mode = safe_mode
   end
 
@@ -261,6 +297,7 @@ class SessionLoader
   # This should normally happen when the user reads their last unread dmail.
   def refresh_unread_dmails
     return if skip_cookies?
+    return unless cookie_auth?
     return if CurrentUser.user.is_logged_out?
     return if cookies[:hide_dmail_notice].blank?
 

@@ -54,6 +54,15 @@ RSpec.describe UserDeletion do
         expect(user.bcrypt_password_hash).to eq("*LK*")
       end
 
+      it "deletes outstanding password reset nonces so a pre-requested link cannot revive the account" do
+        nonce = create(:user_password_reset_nonce, user: user)
+        other = create(:user_password_reset_nonce)
+        deletion.delete!
+        expect(UserPasswordResetNonce.where(id: nonce.id)).not_to exist
+        expect(UserPasswordResetNonce.where(id: other.id)).to exist
+        expect(user.reload.bcrypt_password_hash).to eq("*LK*")
+      end
+
       it "logs a :user_delete ModAction" do
         deletion.delete!
         expect(ModAction.last.action).to eq("user_delete")
@@ -66,6 +75,118 @@ RSpec.describe UserDeletion do
 
       it "enqueues AvatarCleanupJob with force" do
         expect { deletion.delete! }.to enqueue_sidekiq_job(AvatarCleanupJob).with(user.id, true)
+      end
+
+      it "deletes the user's API keys so they no longer authenticate" do
+        key = create(:api_key, user: user)
+        create(:expiring_api_key, user: user)
+        deletion.delete!
+        expect(user.api_keys.count).to eq(0)
+        expect(User.authenticate_api_key("user_#{user.id}", key.key)).to be_nil
+      end
+
+      it "removes TOTP enrollment" do
+        create(:user_totp, user: user)
+        expect(user.reload.totp_enabled?).to be true
+        deletion.delete!
+        expect(UserTotp.where(user_id: user.id)).not_to exist
+        expect(user.reload.totp_enabled?).to be false
+      end
+
+      it "clears privilege and preference flags but keeps restrictions" do
+        user.update!(can_approve_posts: true, oauth_applications_beta: true, is_bd_staff: true,
+                     enable_safe_mode: true, no_uploading: true, no_flagging: true, no_karma_free: true)
+        deletion.delete!
+        user.reload
+        expect(user.can_approve_posts?).to be false
+        expect(user.oauth_applications_beta?).to be false
+        expect(user.is_bd_staff?).to be false
+        expect(user.enable_safe_mode?).to be false
+        expect(user.no_uploading?).to be true
+        expect(user.no_flagging?).to be true
+        expect(user.no_karma_free?).to be true
+      end
+
+      it "enables privacy mode so favorites stay hidden while they are flushed" do
+        deletion.delete!
+        user.reload
+        expect(user.enable_privacy_mode?).to be true
+        CurrentUser.user = create(:user)
+        expect(user.hide_favorites?).to be true
+      end
+
+      it "leaves the passed-in user object current" do
+        user.update!(can_approve_posts: true)
+        deletion.delete!
+        expect(user.can_approve_posts?).to be false
+      end
+
+      context "when a step fails partway through" do
+        before { allow(user).to receive(:revoke_oauth_credentials!).and_raise(ActiveRecord::StatementInvalid) }
+
+        it "rolls back so the deletion can be retried" do
+          original_name = user.name
+          key = create(:api_key, user: user)
+          expect { deletion.delete! }.to raise_error(ActiveRecord::StatementInvalid)
+          user.reload
+          expect(user.name).to eq(original_name)
+          expect(user.bcrypt_password_hash).not_to eq("*LK*")
+          expect(ApiKey.exists?(key.id)).to be true
+          expect(UserNameChangeRequest.where(user_id: user.id)).not_to exist
+        end
+
+        it "expires the name cache entries written by the rolled-back rename" do
+          allow(Cache).to receive(:delete).and_call_original
+          expect { deletion.delete! }.to raise_error(ActiveRecord::StatementInvalid)
+          expect(Cache).to have_received(:delete).with("uin:#{user.id}")
+          expect(Cache).to have_received(:delete).with("uni:user_#{user.id}")
+        end
+
+        it "does not enqueue cleanup jobs" do
+          expect { deletion.delete! }.to raise_error(ActiveRecord::StatementInvalid)
+          expect(AvatarCleanupJob.jobs).to be_empty
+          expect(FlushFavoritesJob.jobs).to be_empty
+        end
+      end
+
+      describe "OAuth credentials" do
+        let(:other_user) { create(:user) }
+        let(:other_app) do
+          Doorkeeper::Application.create!(
+            name: "other-app", redirect_uri: "http://localhost/cb",
+            scopes: "openid full", owner: other_user
+          )
+        end
+        let(:owned_app) do
+          Doorkeeper::Application.create!(
+            name: "owned-by-deleted-user", redirect_uri: "http://localhost/cb",
+            scopes: "openid full", owner: user
+          )
+        end
+
+        it "revokes tokens and grants the user holds on other apps" do
+          token = Doorkeeper::AccessToken.create!(application: other_app, resource_owner_id: user.id, scopes: "openid full")
+          grant = Doorkeeper::AccessGrant.create!(
+            application: other_app, resource_owner_id: user.id, scopes: "openid full",
+            expires_in: 600, redirect_uri: "http://localhost/cb"
+          )
+          deletion.delete!
+          expect(token.reload.revoked?).to be true
+          expect(grant.reload.revoked?).to be true
+        end
+
+        it "revokes tokens issued by apps the user owns, keeping the app row" do
+          token = Doorkeeper::AccessToken.create!(application: owned_app, resource_owner_id: other_user.id, scopes: "openid full")
+          deletion.delete!
+          expect(token.reload.revoked?).to be true
+          expect(Doorkeeper::Application.exists?(owned_app.id)).to be true
+        end
+
+        it "does not touch other users' unrelated tokens" do
+          unrelated = Doorkeeper::AccessToken.create!(application: other_app, resource_owner_id: other_user.id, scopes: "openid full")
+          deletion.delete!
+          expect(unrelated.reload.revoked?).to be false
+        end
       end
     end
 
@@ -104,6 +225,24 @@ RSpec.describe UserDeletion do
 
       it "enqueues FlushFavoritesJob" do
         expect { deletion.delete! }.to enqueue_sidekiq_job(FlushFavoritesJob).with(user.id)
+      end
+
+      it "deletes the user's API keys" do
+        create(:api_key, user: user)
+        deletion.delete!
+        expect(user.api_keys.count).to eq(0)
+      end
+
+      it "revokes OAuth tokens and clears grant flags" do
+        user.update!(oauth_applications_beta: true)
+        app = Doorkeeper::Application.create!(
+          name: "admin-deleted-app", redirect_uri: "http://localhost/cb",
+          scopes: "openid full", owner: create(:user)
+        )
+        token = Doorkeeper::AccessToken.create!(application: app, resource_owner_id: user.id, scopes: "openid full")
+        deletion.delete!
+        expect(token.reload.revoked?).to be true
+        expect(user.reload.oauth_applications_beta?).to be false
       end
     end
 

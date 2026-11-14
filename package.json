@@ -1,19 +1,19 @@
 {
   "name": "e621ng",
   "private": true,
-  "packageManager": "npm@10.8.2",
+  "packageManager": "npm@11.20.0",
   "engines": {
-    "node": ">=20.19.2",
-    "npm": ">=10.8.2"
+    "node": ">=26.0.0",
+    "npm": ">=11.20.0"
   },
   "version": "0.1.0",
   "dependencies": {
     "@openpanel/web": "1.4.4",
     "@rails/ujs": "7.1.600",
-    "@videojs/html": "10.2.0",
+    "@videojs/html": "10.3.0",
     "chart.js": "4.6.1",
     "jquery": "4.0.0",
-    "vue": "3.5.44",
+    "vue": "3.5.45",
     "zxcvbn": "4.4.2"
   },
   "devDependencies": {
@@ -22,17 +22,17 @@
     "@stylistic/eslint-plugin": "5.10.0",
     "@types/jquery": "4.0.1",
     "@vitejs/plugin-vue": "6.0.10",
-    "@vitest/coverage-v8": "4.1.12",
+    "@vitest/coverage-v8": "5.1.0",
     "@vue/test-utils": "2.5.1",
     "eslint": "10.14.0",
     "globals": "17.14.0",
-    "jsdom": "29.1.1",
-    "sass": "1.107.1",
+    "jsdom": "31.0.0",
+    "sass": "1.108.1",
     "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
-    "vite": "8.3.5",
+    "vite": "8.3.6",
     "vite-plugin-ruby": "5.2.6",
-    "vitest": "4.1.12",
+    "vitest": "5.1.0",
     "vue-tsc": "3.3.14"
   },
   "scripts": {

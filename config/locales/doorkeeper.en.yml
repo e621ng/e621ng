@@ -74,6 +74,7 @@ en:
         title: 'Authorization code:'
       form_post:
         title: 'Submit this form'
+        submit: 'Continue'
 
     authorized_applications:
       confirmations:

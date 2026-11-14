@@ -2113,7 +2113,8 @@ CREATE TABLE public.saved_searches (
     last_seen_post_id bigint,
     created_at timestamp(6) without time zone NOT NULL,
     updated_at timestamp(6) without time zone NOT NULL,
-    is_subscription boolean DEFAULT false NOT NULL
+    is_subscription boolean DEFAULT false NOT NULL,
+    site_watermarks jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -6643,6 +6644,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261112141709'),
 ('20261107150000'),
 ('20261107120000'),
 ('20261106120000'),

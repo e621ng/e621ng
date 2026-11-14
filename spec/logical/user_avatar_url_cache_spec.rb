@@ -56,4 +56,21 @@ RSpec.describe UserAvatarUrlCache do
       expect(Cache.fetch(UserAvatarUrlCache.key(user.id))).to be_nil
     end
   end
+
+  context "with an e926 profile" do
+    include_context "with e926 site profile"
+
+    it "keys entries per site, leaving the primary key unchanged" do
+      expect(UserAvatarUrlCache.key(123)).to eq("user_avatar_url:123")
+      CurrentSite.with("e926") { expect(UserAvatarUrlCache.key(123)).to eq("user_avatar_url:123:e926") }
+    end
+
+    it "invalidates every site's entry" do
+      Cache.write("user_avatar_url:5", "a")
+      Cache.write("user_avatar_url:5:e926", "b")
+      UserAvatarUrlCache.invalidate(5)
+      expect(Cache.fetch("user_avatar_url:5")).to be_nil
+      expect(Cache.fetch("user_avatar_url:5:e926")).to be_nil
+    end
+  end
 end
