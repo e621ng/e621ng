@@ -187,7 +187,7 @@ class ModAction < ApplicationRecord
       if value.include?("*")
         where("lower(#{qualified_column}) LIKE :value ESCAPE E'\\\\'", value: value.downcase.to_escaped_for_sql_like)
       else
-        where("to_tsvector(:ts_config, #{qualified_column}) @@ plainto_tsquery(:ts_config, :value)", ts_config: "english", value: value)
+        tsquery_matches(qualified_column, value)
       end
     end
 

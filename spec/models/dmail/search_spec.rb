@@ -233,4 +233,10 @@ RSpec.describe Dmail do
       end
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :title_matches, :title, build: ->(text) { make_dmail(title: text) }
+  it_behaves_like "tsquery fallback search", :message_matches, :body, build: ->(text) { make_dmail(body: text) }
 end

@@ -170,4 +170,9 @@ RSpec.describe ForumTopic do
       expect(ordered_ids(nil)).to eq([topic_a.id, topic_c.id, topic_b.id])
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :title_matches, :title, build: ->(text) { make_topic(title: text) }
 end

@@ -125,4 +125,10 @@ RSpec.describe AvoidPosting do
       expect(ids.index(dnp_zebra.id)).to be < ids.index(dnp_aardvark.id)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :details, :details
+  it_behaves_like "tsquery fallback search", :staff_notes, :staff_notes
 end
