@@ -134,4 +134,9 @@ RSpec.describe Blip do
       expect(Blip.for_creator("")).to eq(Blip.none)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :body_matches, :body
 end

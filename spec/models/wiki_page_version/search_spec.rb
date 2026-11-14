@@ -170,4 +170,9 @@ RSpec.describe WikiPageVersion do
       end
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :body, :body, build: ->(text) { create(:wiki_page, body: text).versions.first }
 end

@@ -146,4 +146,9 @@ RSpec.describe NoteVersion do
       expect(result).to include(version_custom_ip)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :body_matches, :body, build: ->(text) { create(:note, body: text).versions.last }
 end

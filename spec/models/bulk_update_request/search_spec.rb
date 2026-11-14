@@ -143,4 +143,9 @@ RSpec.describe BulkUpdateRequest do
       expect(ids.index(bur_a.id)).to be < ids.index(bur_b.id)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :title_matches, :title
 end
