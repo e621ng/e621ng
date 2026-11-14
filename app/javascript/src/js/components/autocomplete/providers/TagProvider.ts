@@ -36,7 +36,6 @@ export default class TagProvider extends Provider<TagItem> {
   public static async findTags (term: string): Promise<TagItem[]> {
     const params = new URLSearchParams({
       "search[name_matches]": term,
-      "expiry": "7",
     });
 
     try {
