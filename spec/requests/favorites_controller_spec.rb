@@ -359,7 +359,7 @@ RSpec.describe FavoritesController do
         sign_in_as member
         get favorites_path(user_id: other_member.id, format: :json)
         expect(response).to have_http_status(:ok)
-        expect(response.parsed_body["posts"]).to be_empty
+        expect(response.parsed_body).to be_empty
       end
     end
 
@@ -426,7 +426,7 @@ RSpec.describe FavoritesController do
         sign_in_as member
 
         get favorites_path(format: :json)
-        expect(response.parsed_body["posts"].pluck("id")).to include(post_record.id)
+        expect(response.parsed_body.pluck("id")).to include(post_record.id)
       end
 
       it "still shows a filed favorite when a different member views this member's favorites page (non-owner viewing stays flat)" do

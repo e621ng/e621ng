@@ -15,7 +15,7 @@ class FavoriteFoldersController < ApplicationController
   end
 
   def update
-    folder = CurrentUser.user.favorite_folders.find(params[:id])
+    folder = CurrentUser.user.favorite_folders.find(params.expect(:id))
     FavoriteFolderManager.rename!(user: CurrentUser.user, folder: folder, name: params[:name])
     render json: folder
   rescue FavoriteFolderManager::Error, ActiveRecord::RecordNotFound => e
@@ -23,7 +23,7 @@ class FavoriteFoldersController < ApplicationController
   end
 
   def move
-    folder = CurrentUser.user.favorite_folders.find(params[:id])
+    folder = CurrentUser.user.favorite_folders.find(params.expect(:id))
     destination_parent_id = params[:parent_id].presence&.to_i
     moved = FavoriteFolderManager.move_folder!(user: CurrentUser.user, folder: folder, destination_parent_id: destination_parent_id)
     render json: { id: moved.id, parent_id: moved.parent_id }
@@ -32,7 +32,7 @@ class FavoriteFoldersController < ApplicationController
   end
 
   def destroy
-    folder = CurrentUser.user.favorite_folders.find(params[:id])
+    folder = CurrentUser.user.favorite_folders.find(params.expect(:id))
     parent_id = folder.parent_id # captured before delete! runs, so we always know where to redirect
 
     FavoriteFolderManager.delete!(user: CurrentUser.user, folder: folder)
@@ -47,7 +47,7 @@ class FavoriteFoldersController < ApplicationController
 
   def parent_folder
     return nil if params[:parent_id].blank?
-    CurrentUser.user.favorite_folders.find(params[:parent_id])
+    CurrentUser.user.favorite_folders.find(params.expect(:parent_id))
   end
 
   def ensure_lockdown_disabled

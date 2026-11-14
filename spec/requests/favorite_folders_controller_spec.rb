@@ -296,7 +296,7 @@ RSpec.describe FavoriteFoldersController do
 
         delete favorite_folder_path(folder)
         expect(response).to redirect_to(favorites_path(folder_id: parent.id))
-        expect(flash[:alert]).to match(/already exists/)
+        expect(flash[:alert]).to include("already exists")
         expect(FavoriteFolder.exists?(folder.id)).to be true
       end
 
