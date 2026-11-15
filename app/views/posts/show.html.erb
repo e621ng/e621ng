@@ -168,7 +168,7 @@
         </div>
       <% end %>
 
-      <% if CurrentUser.user.is_member? && @post.verified_artist_tags.any? %>
+      <% if CurrentUser.user.is_member? && @post.subscribable_artist_tags.any? %>
         <%= render "posts/partials/show/content/artist_subscribe", post: @post %>
       <% end %>
 

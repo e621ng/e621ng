@@ -1207,6 +1207,15 @@ class Post < ApplicationRecord
     end
 
     ## DB!
+    # Artist tags to offer subscriptions for: verified first, then most posts first, ties broken by name.
+    def subscribable_artist_tags
+      @subscribable_artist_tags ||= begin
+        verified = verified_artist_tags.to_set(&:name)
+        known_artist_tags.sort_by { |tag| [verified.include?(tag.name) ? 0 : 1, -tag.post_count, tag.name] }
+      end
+    end
+
+    ## DB!
     # Fetches ALL linked users for the post's artist tags and returns the user IDs.
     # Sends a db request to look up the artist data.
     def linked_users
@@ -2338,8 +2347,10 @@ class Post < ApplicationRecord
     @typed_tags = nil
     @categorized_tags = nil
     @artist_tags = nil
+    @known_artist_tags = nil
     @artists_with_linked_users = nil
     @verified_artist_tags = nil
+    @subscribable_artist_tags = nil
     @uploader_linked_artists = nil
     @linked_users = nil
     @avoid_posting_tags = nil
