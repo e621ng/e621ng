@@ -122,7 +122,7 @@ services:
       test: curl "opensearch:9200/_cluster/health?wait_for_status=yellow&timeout=2s"
 
   iqdb:
-    image: ghcr.io/e621ng/eris:1.0.0
+    image: ghcr.io/e621ng/eris:1.0.2
     environment:
       ERIS_DATABASE_URL: postgres://e621@postgres:5432/eris
     depends_on:
