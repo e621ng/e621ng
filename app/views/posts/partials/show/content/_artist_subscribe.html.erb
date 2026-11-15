@@ -7,10 +7,10 @@
     <div class="subscribe-banner">
       <div class="subscribe-banner-name">
         <%= link_to short_artist_path(tag.name), class: "tag-type-#{tag.category}" do %>
-          <%= tag.name %>
           <% if verified.include?(tag.name) %>
             <%= svg_icon(:chexagon, class: "chexagon", title: "Verified artist") %>
           <% end %>
+          <%= tag.name %>
         <% end %>
       </div>
       <div class="subscribe-banner-actions">
