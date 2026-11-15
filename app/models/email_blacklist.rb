@@ -2,6 +2,7 @@
 
 class EmailBlacklist < ApplicationRecord
   UNVERIFY_COUNT_TRESHOLD = 250
+  BANNED_CACHE_KEY = "banned_emails_1"
 
   belongs_to_creator
 
@@ -14,21 +15,35 @@ class EmailBlacklist < ApplicationRecord
   def self.is_banned?(email)
     return false if email.blank? || email.exclude?("@")
     parts = email.split("@")
-    # We can't just split, because the `last` item would be the user part if the domain is blank
     return false if parts.length != 2 || parts.any?(&:blank?)
-    email_domain = parts.last.strip.downcase
-    banned_domains = Cache.fetch("banned_emails", expires_in: 1.hour) do
-      all.map { |x| x.domain.strip.downcase }.flatten
-    end
+    email_domain = normalize_domain(parts.last)
+    return false if email_domain.blank?
 
-    get_mx_records(email_domain).each do |mx_domain|
-      return true if domain_matches?(banned_domains, mx_domain)
-    end
-    domain_matches?(banned_domains, email_domain)
+    banned_domains = banned_domain_set
+    return false if banned_domains.empty?
+
+    return true if domain_matches?(banned_domains, email_domain)
+    get_mx_records(email_domain).any? { |mx_domain| domain_matches?(banned_domains, mx_domain) }
   end
 
+  # Only match at domain boundaries (don't match partial names).
   def self.domain_matches?(banned_domains, domain)
-    banned_domains.any? { |banned_domain| domain.end_with?(banned_domain) }
+    labels = normalize_domain(domain).split(".")
+
+    # Don't match TLDs
+    (0...(labels.length - 1)).any? do |i|
+      banned_domains.include?(labels[i..].join("."))
+    end
+  end
+
+  def self.normalize_domain(domain)
+    domain.to_s.strip.downcase.chomp(".")
+  end
+
+  def self.banned_domain_set
+    Cache.fetch(BANNED_CACHE_KEY, expires_in: 1.hour) do
+      all.map { |x| normalize_domain(x.domain) }.compact_blank.to_set
+    end
   end
 
   def self.search(params)
@@ -69,7 +84,7 @@ class EmailBlacklist < ApplicationRecord
   end
 
   def invalidate_cache
-    Cache.delete("banned_emails")
+    Cache.delete(BANNED_CACHE_KEY)
   end
 
   def unverify_accounts
