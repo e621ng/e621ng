@@ -1,23 +1,25 @@
 <div id="c-pool-orders">
   <div id="a-edit">
     <h2>Order Pool: <%= @pool.pretty_name %></h2>
-    <p>Drag and drop the list below to determine ordering.</p>
+    <p>Drag a post by its move handle to change the order.</p>
 
     <%= render partial: "application/blacklist_inline" %>
 
-    <ul class="sortable">
+    <section class="posts-container sortable">
       <% @posts.each do |post| %>
-        <li class="sortable-thumbnail" data-id="<%= post.id %>">
-          <% component = PostThumbnailComponent.new(post: post, stats: false, show_deleted: true, no_blacklist: true) %>
+        <div class="sortable-thumbnail" data-id="<%= post.id %>">
+          <% component = PostThumbnailComponent.new(post: post, show_deleted: true, no_blacklist: true) %>
           <% if component.render? %>
             <%= render(component) %>
           <% else %>
-            Hidden: Post #<%= post.id %>
+            <div class="sortable-hidden-post">Hidden: Post #<%= post.id %></div>
           <% end %>
-          <div class="sortable-handle" aria-hidden="true"></div>
-        </li>
+          <span class="sortable-handle" aria-hidden="true" title="Drag to reorder">
+            <%= svg_icon(:move, width: 16, height: 16) %>
+          </span>
+        </div>
       <% end %>
-    </ul>
+    </section>
 
     <%= custom_form_for(@pool, html: { id: "ordering-form" }) do |f| %>
       <%= f.hidden_field :post_ids_string, id: "pool_post_ids_string", value: @pool.post_ids_string %>
