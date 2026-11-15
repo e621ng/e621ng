@@ -51,11 +51,22 @@ RSpec.describe Post do
       expect(Post.find(post.id).verified_artist_tags.map(&:name)).to eq(["big_(artist)", "small_(artist)"])
     end
 
+    it "returns subscribable artist tags, verified first, then most posts first" do
+      expect(post.subscribable_artist_tags.map(&:name)).to eq(["big_(artist)", "small_(artist)", "no_entry_(artist)", "unlinked_(artist)"])
+    end
+
+    it "excludes non-artist and placeholder tags from subscribable artist tags" do
+      %w[unknown_artist avoid_posting].each { |name| create(:artist_tag, name: name) }
+      other_post = Post.find(create(:post, tag_string: "small_(artist) unknown_artist avoid_posting solo").id)
+      expect(other_post.subscribable_artist_tags.map(&:name)).to eq(["small_(artist)"])
+    end
+
     it "looks up all artists in a single query" do
       queries = artist_queries do
         post.artists_with_linked_users
         post.uploader_linked_artists
         post.verified_artist_tags
+        post.subscribable_artist_tags
         post.linked_users
       end
       expect(queries.size).to eq(1)
@@ -68,10 +79,12 @@ RSpec.describe Post do
 
     it "clears the memoized artists on reload" do
       expect(post.uploader_linked_artists).to eq(["small_(artist)"])
+      expect(post.subscribable_artist_tags.first.name).to eq("big_(artist)")
       Artist.find_by(name: "small_(artist)").update_columns(linked_user_id: nil)
       post.reload
       expect(post.uploader_linked_artists).to eq([])
       expect(post.verified_artist_tags.map(&:name)).to eq(["big_(artist)"])
+      expect(post.subscribable_artist_tags.map(&:name)).to eq(["big_(artist)", "no_entry_(artist)", "unlinked_(artist)", "small_(artist)"])
       expect(post.linked_users).to eq([other.id])
     end
   end

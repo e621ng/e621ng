@@ -1,11 +1,17 @@
 <%# locals: (post:) %>
-<% tags = post.verified_artist_tags.first(Post::SUBSCRIBE_BANNER_LIMIT) %>
+<% tags = post.subscribable_artist_tags.first(Post::SUBSCRIBE_BANNER_LIMIT) %>
+<% verified = post.verified_artist_tags.to_set(&:name) %>
 <% subscriptions = CurrentUser.user.tag_subscriptions.where(tag_id: tags.map(&:id)).index_by(&:tag_id) %>
 <div id="post-artist-subscribe">
   <% tags.each do |tag| %>
     <div class="subscribe-banner">
       <div class="subscribe-banner-name">
-        <%= link_to tag.name, short_artist_path(tag.name), class: "tag-type-#{tag.category}" %>
+        <%= link_to short_artist_path(tag.name), class: "tag-type-#{tag.category}" do %>
+          <% if verified.include?(tag.name) %>
+            <%= svg_icon(:chexagon, class: "chexagon", title: "Verified artist") %>
+          <% end %>
+          <%= tag.name %>
+        <% end %>
       </div>
       <div class="subscribe-banner-actions">
         <%= render "wiki_pages/subscribe_button", tag: tag, subscription: subscriptions[tag.id] %>

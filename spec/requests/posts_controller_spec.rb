@@ -253,27 +253,48 @@ RSpec.describe PostsController do
 
     describe "artist subscribe banners" do
       let(:member) { create(:user) }
-      let(:banners) { Nokogiri::HTML(response.body).css("#post-artist-subscribe .subscribe-banner-name a").map(&:text) }
+      let(:links) { Nokogiri::HTML(response.body).css("#post-artist-subscribe .subscribe-banner-name a") }
+      let(:banners) { links.map { |link| link.xpath("text()").text.strip } }
 
-      # Verified artists with ascending post counts, plus one unlinked artist
+      # Verified artists with low post counts, plus unlinked artists with high ones
       let!(:artist_post) do
-        names = Array.new(7) { |i| "verified#{i}_(artist)" }
-        names.each { |name| create(:artist, name: name, linked_user: create(:user)) }
-        create(:artist, name: "plain_(artist)")
-        created = create(:post, tag_string: "#{names.join(' ')} plain_(artist) solo")
-        names.each_with_index { |name, i| Tag.where(name: name).update_all(category: Tag.categories.artist, post_count: (i + 1) * 10) }
-        Tag.where(name: "plain_(artist)").update_all(category: Tag.categories.artist, post_count: 1000)
+        verified = Array.new(3) { |i| "verified#{i}_(artist)" }
+        plain = Array.new(3) { |i| "plain#{i}_(artist)" }
+        verified.each { |name| create(:artist, name: name, linked_user: create(:user)) }
+        create(:artist, name: plain.first)
+        counts = verified.each_with_index.to_h { |name, i| [name, (i + 1) * 10] }
+        counts.merge!(plain.each_with_index.to_h { |name, i| [name, (i + 1) * 1000] })
+        artist_post_with(counts)
+      end
+
+      def artist_post_with(counts)
+        created = create(:post, tag_string: "#{counts.keys.join(' ')} solo")
+        counts.each { |name, count| Tag.where(name: name).update_all(category: Tag.categories.artist, post_count: count) }
         created
       end
 
-      it "shows the five verified artists with the most posts" do
+      it "shows verified artists first, then the artists with the most posts, up to the limit" do
         sign_in_as member
         get post_path(artist_post)
-        expect(banners).to eq(%w[verified6_(artist) verified5_(artist) verified4_(artist) verified3_(artist) verified2_(artist)])
+        expect(banners).to eq(%w[verified2_(artist) verified1_(artist) verified0_(artist) plain2_(artist) plain1_(artist)])
+      end
+
+      it "marks only the verified artists with the chexagon icon" do
+        sign_in_as member
+        get post_path(artist_post)
+        expect(links.map { |link| link.at_css("svg.chexagon").present? }).to eq([true, true, true, false, false])
+      end
+
+      it "shows unverified artists without the icon" do
+        plain_post = artist_post_with("lonely_(artist)" => 5)
+        sign_in_as member
+        get post_path(plain_post)
+        expect(banners).to eq(["lonely_(artist)"])
+        expect(links.css("svg.chexagon")).to be_empty
       end
 
       it "reflects the member's subscriptions" do
-        sub = create(:tag_subscription, user: member, tag: Tag.find_by(name: "verified6_(artist)"))
+        sub = create(:tag_subscription, user: member, tag: Tag.find_by(name: "plain2_(artist)"))
         sign_in_as member
         get post_path(artist_post)
         doc = Nokogiri::HTML(response.body)
@@ -300,9 +321,16 @@ RSpec.describe PostsController do
         expect(response.body).not_to include("post-artist-subscribe")
       end
 
-      it "is hidden on posts without verified artists" do
+      it "is hidden on posts without artist tags" do
         sign_in_as member
-        get post_path(post)
+        get post_path(create(:post, tag_string: "solo"))
+        expect(response.body).not_to include("post-artist-subscribe")
+      end
+
+      it "is hidden on posts with only placeholder artist tags" do
+        placeholder_post = artist_post_with("unknown_artist" => 5000)
+        sign_in_as member
+        get post_path(placeholder_post)
         expect(response.body).not_to include("post-artist-subscribe")
       end
     end
