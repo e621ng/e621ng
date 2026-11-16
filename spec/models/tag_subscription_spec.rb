@@ -22,6 +22,19 @@ RSpec.describe TagSubscription do
     end
   end
 
+  describe ".subscriber_counts" do
+    it "counts subscribers per tag, with zero for tags nobody follows" do
+      fox = create(:tag)
+      cat = create(:tag)
+      create_list(:tag_subscription, 2, tag: fox)
+      expect(TagSubscription.subscriber_counts([fox.id, cat.id, fox.id])).to eq(fox.id => 2, cat.id => 0)
+    end
+
+    it "returns an empty hash for no tags" do
+      expect(TagSubscription.subscriber_counts([])).to eq({})
+    end
+  end
+
   describe ".subscribe!" do
     it "creates the anchor and the subscriptions" do
       fox = create(:tag, name: "fox")

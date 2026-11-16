@@ -108,4 +108,56 @@ describe("SubscribeTag", () => {
     expect(fox.dataset.subscribed).toBe("true");
     expect(fox.getAttribute("href")).toBe("/tag_subscriptions/7");
   });
+
+  describe("subscriber count", () => {
+    function renderCounted (subscribed: boolean, count: number) {
+      document.body.innerHTML = `<span class="tag-subscription">${linkHTML(subscribed)}
+        <span class="tag-subscriber-count" data-count="${count}">x</span></span>`;
+      return {
+        link: document.querySelector("a.tag-subscription-toggle") as HTMLAnchorElement,
+        counter: document.querySelector(".tag-subscriber-count") as HTMLElement,
+      };
+    }
+
+    it("goes up by one on subscribe", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ added: [{ id: 12, tag_name: "fox" }], skipped: [] }));
+      const { link, counter } = renderCounted(false, 0);
+      await load();
+      await click(link);
+
+      expect(counter.dataset.count).toBe("1");
+      expect(counter.textContent).toBe("1 subscriber");
+      expect(counter.title).toBe("1 subscriber");
+    });
+
+    it("goes down by one on unsubscribe, never below zero", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 204 }));
+      const { link, counter } = renderCounted(true, 0);
+      await load();
+      await click(link);
+
+      expect(counter.dataset.count).toBe("0");
+      expect(counter.textContent).toBe("0 subscribers");
+    });
+
+    it("rounds large counts like the server", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ added: [{ id: 12, tag_name: "fox" }], skipped: [] }));
+      const { link, counter } = renderCounted(false, 999);
+      await load();
+      await click(link);
+
+      expect(counter.textContent).toBe("1.0k subscribers");
+      expect(counter.title).toBe("1,000 subscribers");
+    });
+
+    it("stays put when the request fails", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("", { status: 500 }));
+      const { link, counter } = renderCounted(true, 5);
+      await load();
+      await click(link);
+
+      expect(counter.dataset.count).toBe("5");
+      expect(counter.textContent).toBe("x");
+    });
+  });
 });

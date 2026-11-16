@@ -155,9 +155,28 @@ RSpec.describe WikiPagesController do
       expect(response.body).to include(">Unsubscribe<")
     end
 
+    it "shows the subscriber count" do
+      create(:tag_subscription, tag: tag)
+      sign_in_as user
+      get wiki_page_path(wiki_page)
+      count = Nokogiri::HTML(response.body).at_css(".tag-subscription .tag-subscriber-count")
+      expect(count.text).to eq("1 subscriber")
+      expect(count["data-count"]).to eq("1")
+    end
+
+    it "rounds large subscriber counts" do
+      allow(TagSubscription).to receive(:subscriber_counts).and_return(tag.id => 1426)
+      sign_in_as user
+      get wiki_page_path(wiki_page)
+      count = Nokogiri::HTML(response.body).at_css(".tag-subscriber-count")
+      expect(count.text).to eq("1.4k subscribers")
+      expect(count["title"]).to eq("1,426 subscribers")
+    end
+
     it "is hidden from anonymous users" do
       get wiki_page_path(wiki_page)
       expect(response.body).not_to include("tag-subscription-toggle")
+      expect(response.body).not_to include("tag-subscriber-count")
     end
 
     it "is hidden on pages that are not tags" do
@@ -178,6 +197,13 @@ RSpec.describe WikiPagesController do
         get wiki_page_path(wiki_page)
         expect(response.body).to include(tag_subscription_path(sub))
         expect(response.body).to include("is aliased to #{consequent.name}")
+      end
+
+      it "shows the consequent's subscriber count" do
+        create_list(:tag_subscription, 2, tag: consequent)
+        sign_in_as user
+        get wiki_page_path(wiki_page)
+        expect(Nokogiri::HTML(response.body).at_css(".tag-subscriber-count").text).to eq("2 subscribers")
       end
 
       it "shows Subscribe when not subscribed to the consequent" do

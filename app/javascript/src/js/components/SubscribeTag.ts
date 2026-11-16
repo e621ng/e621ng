@@ -83,5 +83,23 @@ export default class SubscribeTag {
     link.title = subscribed
       ? "Stop counting new posts with this tag in your subscriptions"
       : "Count new posts with this tag in your subscriptions";
+
+    // The server's count is cached, so it is adjusted locally rather than refetched
+    const counter = link.closest(".tag-subscription")?.querySelector<HTMLElement>(".tag-subscriber-count");
+    if (!counter) return;
+    const count = Math.max(0, (Number(counter.dataset.count) || 0) + (subscribed ? 1 : -1));
+    const noun = count === 1 ? "subscriber" : "subscribers";
+    counter.dataset.count = String(count);
+    counter.textContent = `${SubscribeTag.countLabel(count)} ${noun}`;
+    counter.title = `${count.toLocaleString("en-US")} ${noun}`;
+  }
+
+  // Mirrors TagSetPresenter.post_count_label
+  private static countLabel (count: number): string {
+    if (count < 1_000) return String(count);
+    if (count < 10_000) return (count / 1_000).toFixed(1) + "k";
+    if (count < 1_000_000) return Math.floor(count / 1_000) + "k";
+    if (count < 10_000_000) return (count / 1_000_000).toFixed(1) + "m";
+    return Math.floor(count / 1_000_000) + "m";
   }
 }

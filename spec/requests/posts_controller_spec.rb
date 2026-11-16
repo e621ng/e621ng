@@ -302,12 +302,21 @@ RSpec.describe PostsController do
         expect(doc.css(%(a.tag-subscription-toggle[data-subscribed="false"])).size).to eq(4)
       end
 
-      it "loads the subscriptions in a single query" do
+      it "loads the subscriptions and the subscriber counts in one query each" do
         sign_in_as member
         queries = []
         callback = ->(*, payload) { queries << payload[:sql] if payload[:sql].include?(%(FROM "tag_subscriptions")) }
         ActiveSupport::Notifications.subscribed(callback, "sql.active_record") { get post_path(artist_post) }
-        expect(queries.size).to eq(1)
+        expect(queries.size).to eq(2)
+        expect(queries.count { |sql| sql.include?("COUNT(") }).to eq(1)
+      end
+
+      it "shows each artist's subscriber count" do
+        create_list(:tag_subscription, 2, tag: Tag.find_by(name: "plain2_(artist)"))
+        sign_in_as member
+        get post_path(artist_post)
+        counts = Nokogiri::HTML(response.body).css("#post-artist-subscribe .tag-subscriber-count")
+        expect(counts.map(&:text)).to eq((["0 subscribers"] * 3) + ["2 subscribers", "0 subscribers"])
       end
 
       it "is hidden from anonymous users" do
