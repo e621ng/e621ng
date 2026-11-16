@@ -52,6 +52,16 @@ RSpec.describe UploadUrlRule do
       expect(rule.errors[:pattern].first).to include("catastrophic backtracking")
     end
 
+    it "rejects a pattern that is only slow on URL-length input" do
+      rule = build(:upload_url_rule, pattern: "(.*)(.*)\\2x", replacement: "")
+      expect(rule).not_to be_valid
+      expect(rule.errors[:pattern].first).to include("catastrophic backtracking")
+    end
+
+    it "probes patterns at the longest URL that is checked" do
+      expect(described_class::PATTERN_PROBES.map(&:length)).to all(be_between(described_class::MAX_URL_LENGTH - 10, described_class::MAX_URL_LENGTH))
+    end
+
     it "rejects a replacement referring to a missing numbered group" do
       rule = build(:upload_url_rule, pattern: "(sample)/", replacement: "\\2/")
       expect(rule).not_to be_valid

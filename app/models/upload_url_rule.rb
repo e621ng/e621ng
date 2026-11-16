@@ -30,7 +30,16 @@ class UploadUrlRule < ApplicationRecord
   HANDLINGS = %w[recommend block].freeze
   CACHE_KEY = "upload_url_rules"
   MAX_URL_LENGTH = 2_000
-  MATCH_TIMEOUT = 0.1 # seconds, per rule
+  # Seconds, per rule. Wall-clock, and Sidekiq threads share the GVL, so it leaves headroom
+  # over VALIDATION_TIMEOUT: a saved pattern must not time out on a busy worker.
+  MATCH_TIMEOUT = 1.0
+  VALIDATION_TIMEOUT = 0.05
+  # Near-miss URLs as long as any that is checked, ending in a character no canonical URL contains.
+  PATTERN_PROBES = [
+    "https://#{'a' * 1_000}.example/#{'a' * 975}",
+    "https://example.com/#{'a/' * 989}",
+    "https://example.com/a?#{'a=1&' * 494}",
+  ].map { |probe| "#{probe}\u0000".freeze }.freeze
 
   belongs_to_creator
   belongs_to_updater
@@ -189,8 +198,8 @@ class UploadUrlRule < ApplicationRecord
   def validate_pattern
     return if pattern.blank?
 
-    regexp = Regexp.new(pattern, Regexp::IGNORECASE, timeout: 0.5)
-    regexp.match?("https://#{'a' * 100}.example/#{'a' * 100}\u0000")
+    regexp = Regexp.new(pattern, Regexp::IGNORECASE, timeout: VALIDATION_TIMEOUT)
+    PATTERN_PROBES.each { |probe| regexp.match?(probe) }
     errors.add(:pattern, "must not match an empty string") if regexp.match?("")
   rescue Regexp::TimeoutError
     errors.add(:pattern, "causes catastrophic backtracking and cannot be used")
