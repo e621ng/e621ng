@@ -9,6 +9,8 @@ class StaffWikiRefParser
   # Matches the resource segment and identifier of a reference URL. Tolerates a
   # missing scheme/host and a trailing query string or anchor.
   URL_PATTERN = %r{/(users|artists|staff/wikis)/([^/?#\s]+)}i
+  # Short artist URLs (/a/name) are always by name, which may contain slashes.
+  SHORT_ARTIST_PATTERN = %r{\A(?:https?://[^/\s]+)?/a/([^?#\s]+)}i
 
   SEGMENT_TYPES = {
     "users"       => "User",
@@ -29,6 +31,16 @@ class StaffWikiRefParser
     failures = []
 
     @text.split(/\s+/).compact_blank.each do |token|
+      if (short = token.match(SHORT_ARTIST_PATTERN))
+        id = artist_id_by_name(URI.decode_uri_component(short[1]))
+        if id
+          references << { related_type: "Artist", related_id: id }
+        else
+          failures << { input: token, reason: "no matching Artist" }
+        end
+        next
+      end
+
       match = token.match(URL_PATTERN)
       unless match
         failures << { input: token, reason: "not a recognized reference URL" }
@@ -59,7 +71,12 @@ class StaffWikiRefParser
     when "User"
       User.find_by_name(identifier)&.id # rubocop:disable Rails/DynamicFindBy
     when "Artist"
-      Artist.named(identifier)&.id
+      artist_id_by_name(identifier)
     end
+  end
+
+  # Follows active aliases, matching the artist page the URL displays.
+  def artist_id_by_name(name)
+    Artist.named(TagAlias.to_aliased([Artist.normalize_name(name)]).first)&.id
   end
 end

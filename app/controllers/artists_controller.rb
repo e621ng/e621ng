@@ -2,7 +2,6 @@
 
 class ArtistsController < ApplicationController
   include ConditionalSearchCount
-  include ArtistShowPage
 
   respond_to :html, :json
   before_action :member_only, except: %i[index show show_or_new]
@@ -31,24 +30,16 @@ class ArtistsController < ApplicationController
   end
 
   def show
-    if params[:id] =~ /\A\d+\z/
-      @artist = Artist.find(params[:id])
-    else
-      @artist = Artist.named(params[:id])
-      unless @artist
-        respond_to do |format|
-          format.html do
-            redirect_to(show_or_new_artists_path(name: params[:id]))
-          end
-          format.json do
-            raise ActiveRecord::RecordNotFound
-          end
-        end
-        return
+    respond_to do |format|
+      format.html do
+        name = params[:id] =~ /\A\d+\z/ ? Artist.find(params[:id]).name : params[:id]
+        redirect_to(short_artist_path(name), status: 301)
+      end
+      format.json do
+        load_artist
+        render(json: @artist.to_json(methods: [:domains], include: [:urls]))
       end
     end
-    load_artist_show_page
-    respond_with(@artist, methods: [:domains], include: [:urls])
   end
 
   def new
@@ -63,14 +54,14 @@ class ArtistsController < ApplicationController
 
   def create
     @artist = Artist.create(artist_params)
-    respond_with(@artist)
+    respond_with(@artist, location: -> { short_artist_path(@artist.name) })
   end
 
   def update
     ensure_can_edit(CurrentUser.user)
     @artist.update(artist_params)
     flash[:notice] = @artist.valid? ? "Artist updated" : @artist.errors.full_messages.join("; ")
-    respond_with(@artist)
+    respond_with(@artist, location: -> { short_artist_path(@artist.name) })
   end
 
   def destroy
@@ -87,18 +78,15 @@ class ArtistsController < ApplicationController
     ensure_can_edit(CurrentUser.user)
     @version = @artist.versions.find(params[:version_id])
     @artist.revert_to!(@version)
-    respond_with(@artist)
+    respond_with(@artist, location: -> { short_artist_path(@artist.name) })
   end
 
   def show_or_new
-    params[:name] = params[:name].to_s
-    @artist = Artist.named(params[:name])
-    if @artist
-      redirect_to artist_path(@artist)
-    else
-      @artist = Artist.new(name: Artist.normalize_name(params[:name] || ""))
-      @post_set = PostSets::Post.new(@artist.name, 1, limit: 10)
-      respond_with(@artist)
+    name = Artist.normalize_name(params[:name].to_s)
+    raise ActiveRecord::RecordNotFound if name.blank?
+    respond_to do |format|
+      format.html { redirect_to(short_artist_path(name), status: 301) }
+      format.json { render(json: Artist.find_by!(name: name).to_json(methods: [:domains], include: [:urls])) }
     end
   end
 

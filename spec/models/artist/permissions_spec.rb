@@ -49,15 +49,4 @@ RSpec.describe Artist do
       expect(create(:locked_artist).editable_by?(create(:user))).to be false
     end
   end
-
-  # -------------------------------------------------------------------------
-  # #visible?
-  # -------------------------------------------------------------------------
-  describe "#visible?" do
-    it "always returns true" do
-      expect(make_artist.visible?).to be true
-      expect(create(:locked_artist).visible?).to be true
-      expect(create(:inactive_artist).visible?).to be true
-    end
-  end
 end

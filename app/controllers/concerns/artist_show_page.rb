@@ -8,7 +8,7 @@ module ArtistShowPage
 
   def load_artist_show_page
     @post_set = PostSets::Post.new(@artist.name, 1, limit: 10)
-    return unless CurrentUser.user.is_staff?
+    return unless CurrentUser.user.is_staff? && @artist.persisted?
     @staff_wikis = StaffWiki.joins(:references).where(references: { related_type: "Artist", related_id: @artist.id }).distinct
   end
 end

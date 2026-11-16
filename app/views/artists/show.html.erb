@@ -1,11 +1,17 @@
 <%= render layout: "show" do %>
-  <% if @artist.visible? %>
-    <div>
+  <div>
+    <% if @artist.new_record? %>
+      <p>This artist entry does not exist. <%= link_to "Create new artist entry", new_artist_path(artist: { name: @artist.name }) %>.</p>
+    <% else %>
       <%= render "summary", artist: @artist %>
-    </div>
-  <% else %>
-    <p>The artist requested removal of this page.</p>
-  <% end %>
+    <% end %>
+  </div>
 <% end %>
 
-<% render(partial: "static/embed", locals: { record: @artist, name: @artist.pretty_name, description: @artist.notes.present? ? format_plaintext(@artist.notes) : "" }) %>
+<% if @artist.new_record? %>
+  <% content_for(:html_header) do %>
+    <meta name="robots" content="noindex" />
+  <% end %>
+<% else %>
+  <% render(partial: "static/embed", locals: { record: @artist, name: @artist.pretty_name, description: @artist.notes.present? ? format_plaintext(@artist.notes) : "", url: short_artist_url(@artist.name, host: Danbooru.config.hostname, protocol: "https") }) %>
+<% end %>

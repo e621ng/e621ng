@@ -5,7 +5,7 @@ module ArtistsHelper
     artist = Artist.find_by(name: name)
 
     if artist
-      link_to(artist.name, artist_path(artist))
+      link_to(artist.name, short_artist_path(artist.name))
     else
       link = link_to(name, new_artist_path(artist: { name: name }))
       return link.html_safe if hide_new_notice

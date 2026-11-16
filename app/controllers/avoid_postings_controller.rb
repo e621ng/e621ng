@@ -69,7 +69,7 @@ class AvoidPostingsController < ApplicationController
 
   def destroy
     @avoid_posting.destroy
-    redirect_to(artist_path(@avoid_posting.artist), notice: "Avoid posting entry destroyed")
+    redirect_to(short_artist_path(@avoid_posting.artist_name), notice: "Avoid posting entry destroyed")
   end
 
   def delete

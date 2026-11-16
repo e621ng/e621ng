@@ -12,7 +12,7 @@ class ArtistsShortController < ApplicationController
     return redirect_to(short_artist_path(alias_name)) if alias_name
     return redirect_to(short_artist_path(name)) if name != params[:name]
 
-    @artist = Artist.find_by!(name: name)
+    @artist = Artist.find_by(name: name) || artist_stub(name)
     load_artist_show_page
   end
 
@@ -21,4 +21,13 @@ class ArtistsShortController < ApplicationController
     [controller_path, "artists"]
   end
   private_class_method :local_prefixes
+
+  private
+
+  # Artist-category tags without an artist entry get a placeholder page offering to create one.
+  def artist_stub(name)
+    tag = Tag.find_by(name: name)
+    raise ActiveRecord::RecordNotFound, "Artist not found" unless tag&.category == Tag.categories.artist
+    Artist.new(name: name).tap { |artist| artist.association(:tag).target = tag }
+  end
 end
