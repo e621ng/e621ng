@@ -15,6 +15,7 @@ class Upload < ApplicationRecord
   before_validation :fixup_source, on: :create
   validate :uploader_is_not_limited, on: :create
   validate :direct_url_is_whitelisted, on: :create
+  validate :direct_url_passes_rules, on: :create
   validates :rating, inclusion: { in: %w(q e s) }, allow_nil: false
   validate :md5_is_unique, on: :file
   validate on: :file do |upload|
@@ -76,7 +77,7 @@ class Upload < ApplicationRecord
       case exception
       when ActiveRecord::RecordInvalid
         exception.record.errors.full_messages.join("; ")
-      when UploadService::Utils::CorruptFileError, UploadService::Utils::MissingFileError, Upload::Error
+      when UploadService::Utils::CorruptFileError, UploadService::Utils::MissingFileError, Upload::Error, Downloads::File::RuleError
         exception.message
       when ExternalCommand::TimeoutError, VipsCommand::TimeoutError
         "processing timed out"
@@ -229,6 +230,19 @@ class Upload < ApplicationRecord
       return false
     end
     true
+  end
+
+  def direct_url_passes_rules
+    # With a file attached the URL is never fetched.
+    return true if file.present? || direct_url_parsed.nil?
+
+    result = UploadUrlRule.evaluate(direct_url)
+    return true unless result&.block?
+    errors.add(:source, UploadUrlRule.block_message(result))
+    false
+  rescue UploadUrlRule::EvaluationError => e
+    errors.add(:source, UploadUrlRule.failure_message(e))
+    false
   end
 
   def md5_is_unique

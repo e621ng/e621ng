@@ -2829,6 +2829,44 @@ ALTER SEQUENCE public.upload_karma_events_id_seq OWNED BY public.upload_karma_ev
 
 
 --
+-- Name: upload_url_rules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.upload_url_rules (
+    id bigint NOT NULL,
+    label character varying NOT NULL,
+    pattern character varying NOT NULL,
+    replacement character varying DEFAULT ''::character varying NOT NULL,
+    message character varying DEFAULT ''::character varying NOT NULL,
+    handling character varying NOT NULL,
+    enabled boolean DEFAULT true NOT NULL,
+    creator_id bigint NOT NULL,
+    updater_id bigint NOT NULL,
+    created_at timestamp(6) without time zone NOT NULL,
+    updated_at timestamp(6) without time zone NOT NULL
+);
+
+
+--
+-- Name: upload_url_rules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.upload_url_rules_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: upload_url_rules_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.upload_url_rules_id_seq OWNED BY public.upload_url_rules.id;
+
+
+--
 -- Name: upload_whitelists; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -3807,6 +3845,13 @@ ALTER TABLE ONLY public.upload_karma_events ALTER COLUMN id SET DEFAULT nextval(
 
 
 --
+-- Name: upload_url_rules id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.upload_url_rules ALTER COLUMN id SET DEFAULT nextval('public.upload_url_rules_id_seq'::regclass);
+
+
+--
 -- Name: upload_whitelists id; Type: DEFAULT; Schema: public; Owner: -
 --
 
@@ -4483,6 +4528,14 @@ ALTER TABLE ONLY public.tickets
 
 ALTER TABLE ONLY public.upload_karma_events
     ADD CONSTRAINT upload_karma_events_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: upload_url_rules upload_url_rules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.upload_url_rules
+    ADD CONSTRAINT upload_url_rules_pkey PRIMARY KEY (id);
 
 
 --
@@ -6024,6 +6077,27 @@ CREATE INDEX index_upload_karma_events_on_user_id_and_id ON public.upload_karma_
 
 
 --
+-- Name: index_upload_url_rules_on_creator_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_upload_url_rules_on_creator_id ON public.upload_url_rules USING btree (creator_id);
+
+
+--
+-- Name: index_upload_url_rules_on_lower_label; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_upload_url_rules_on_lower_label ON public.upload_url_rules USING btree (lower((label)::text));
+
+
+--
+-- Name: index_upload_url_rules_on_updater_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_upload_url_rules_on_updater_id ON public.upload_url_rules USING btree (updater_id);
+
+
+--
 -- Name: index_uploads_on_md5_in_flight; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6382,6 +6456,14 @@ ALTER TABLE ONLY public.oauth_access_grants
 
 
 --
+-- Name: upload_url_rules fk_rails_38414fb2f2; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.upload_url_rules
+    ADD CONSTRAINT fk_rails_38414fb2f2 FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
 -- Name: appeals fk_rails_3f7cd477a6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -6483,6 +6565,14 @@ ALTER TABLE ONLY public.staff_wikis
 
 ALTER TABLE ONLY public.staff_files
     ADD CONSTRAINT fk_rails_804a297dc9 FOREIGN KEY (creator_id) REFERENCES public.users(id);
+
+
+--
+-- Name: upload_url_rules fk_rails_825d0f5443; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.upload_url_rules
+    ADD CONSTRAINT fk_rails_825d0f5443 FOREIGN KEY (updater_id) REFERENCES public.users(id);
 
 
 --
@@ -6644,6 +6734,7 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261115234800'),
 ('20261112141709'),
 ('20261107150000'),
 ('20261107120000'),

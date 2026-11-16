@@ -266,6 +266,8 @@ module SiteMap
   group :staff, "Staff"
   page :staff, :mod_actions, "Mod Actions"
   page :staff, :upload_whitelists, "Upload Whitelist"
+  page :staff, :upload_url_rules, "Upload URL Rules",
+       gate: { inline: "logged-in only" }, visible: ->(u) { u.is_logged_in? }
   page :staff, :edit_histories, "Edit Histories", level: UserLevel::MODERATOR
   page :staff, :staff_automod_dmails, "AutoMod DMails", level: UserLevel::STAFF
   page :staff, :staff_notes, "Staff Notes",

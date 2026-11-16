@@ -1,0 +1,52 @@
+<div id="c-upload-url-rules">
+  <div id="a-index">
+    <%= render "search" %>
+    <h1>Upload URL Rules</h1>
+    <p>Direct upload URLs are checked against these rules. A match either recommends a better URL or blocks the upload.</p>
+
+    <table class="striped">
+      <thead>
+        <tr>
+          <th>Label</th>
+          <th>Pattern</th>
+          <th>Replacement</th>
+          <th>Handling</th>
+          <th>Message</th>
+          <th>Enabled</th>
+          <th>Updated</th>
+          <% if CurrentUser.is_staff? %>
+            <th>Updated by</th>
+            <th></th>
+            <th></th>
+          <% end %>
+        </tr>
+      </thead>
+      <tbody>
+        <% @rules.each do |rule| %>
+          <tr>
+            <td><%= rule.label %></td>
+            <td><code><%= rule.pattern %></code></td>
+            <td><code><%= rule.replacement %></code></td>
+            <td><%= rule.handling.titleize %></td>
+            <td><%= rule.message %></td>
+            <td><%= rule.enabled ? "Yes" : "No" %></td>
+            <td><%= compact_time rule.updated_at %></td>
+            <% if CurrentUser.is_staff? %>
+              <td><%= link_to_user rule.updater %></td>
+              <td><%= link_to "Edit", edit_upload_url_rule_path(rule) %></td>
+              <td><%= link_to "Delete", upload_url_rule_path(rule), method: :delete, data: { confirm: "Do you really want to delete the rule \"#{rule.label}\"?" } %></td>
+            <% end %>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render PaginatorComponent.new(records: @rules) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Upload URL Rules
+<% end %>

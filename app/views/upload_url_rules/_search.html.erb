@@ -1,0 +1,7 @@
+<%= form_search(path: upload_url_rules_path) do |f| %>
+  <%= f.input :label, label: "Label", hint: "Use * for wildcard" %>
+  <%= f.input :pattern, label: "Pattern", hint: "Use * for wildcard" %>
+  <%= f.input :handling, collection: UploadUrlRule::HANDLINGS.map { |h| [h.titleize, h] }, include_blank: true %>
+  <%= f.input :enabled, collection: [%w[Yes true], %w[No false]], include_blank: true %>
+  <%= f.input :order, collection: [["Oldest first", ""], ["Label", "label"], ["Last updated", "updated_at"]], include_blank: false %>
+<% end %>

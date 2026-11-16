@@ -132,5 +132,60 @@ RSpec.describe Upload do
         end
       end
     end
+
+    # -------------------------------------------------------------------------
+    # direct_url_passes_rules (on: :create)
+    # -------------------------------------------------------------------------
+    describe "direct_url_passes_rules" do
+      let(:url) { "https://example.com/sample/1.jpg" }
+
+      before do
+        CurrentUser.user = create(:moderator_user)
+        allow(Sources::Strategies).to receive(:find)
+          .and_return(instance_double(Sources::Strategies::Base, canonical_url: nil))
+        allow(UploadWhitelist).to receive(:is_whitelisted?).and_return([true, nil])
+      end
+
+      after { CurrentUser.user = nil }
+
+      it "is valid when no rule matches" do
+        create(:blocking_upload_url_rule, pattern: "other\\.com/")
+        expect(build(:upload, direct_url: url)).to be_valid
+      end
+
+      it "is valid when only a recommend rule matches" do
+        create(:upload_url_rule)
+        expect(build(:upload, direct_url: url)).to be_valid
+      end
+
+      it "is invalid when a block rule matches, naming the rule and the suggestion" do
+        create(:blocking_upload_url_rule, label: "Sample URL", message: "Find the full size.")
+        upload = build(:upload, direct_url: url)
+        expect(upload).not_to be_valid
+        expect(upload.errors[:source].first).to eq("is not allowed: Sample URL. Find the full size. Use https://example.com/full/1.jpg instead.")
+      end
+
+      it "is valid when a file is attached alongside a blocked URL" do
+        create(:blocking_upload_url_rule)
+        expect(build(:upload, direct_url: url, file: Tempfile.new)).to be_valid
+      end
+
+      it "is invalid when a rule fails to evaluate" do
+        allow(UploadUrlRule).to receive(:evaluate).and_raise(UploadUrlRule::EvaluationError.new("Slow"))
+        upload = build(:upload, direct_url: url)
+        expect(upload).not_to be_valid
+        expect(upload.errors[:source].first).to include("could not be checked: rule 'Slow' failed")
+      end
+
+      it "shows a fetch-time rule refusal as is" do
+        error = Downloads::File::RuleError.new("'https://example.com/x' is not allowed: Sample URL.")
+        expect(described_class.error_message_for(error)).to eq("'https://example.com/x' is not allowed: Sample URL.")
+      end
+
+      it "does not consult rules when a file is attached" do
+        allow(UploadUrlRule).to receive(:evaluate).and_raise(UploadUrlRule::EvaluationError.new("Slow"))
+        expect(build(:upload, direct_url: url, file: Tempfile.new)).to be_valid
+      end
+    end
   end
 end
