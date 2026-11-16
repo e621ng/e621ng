@@ -155,4 +155,9 @@ RSpec.describe PostFlag do
       end
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :reason_matches, :reason, factory: :deletion_post_flag
 end

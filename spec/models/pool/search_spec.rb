@@ -203,4 +203,9 @@ RSpec.describe Pool do
       expect(timestamps).to eq(timestamps.sort.reverse)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :description_matches, :description, build: ->(text) { make_pool(description: text) }
 end

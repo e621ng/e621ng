@@ -109,19 +109,11 @@ class Comment < ApplicationRecord
       if params[:body_matches].present? && params[:body_matches].exclude?("*")
         search_term = params[:body_matches].strip.gsub(/\s+/, " ")
 
-        if params[:advanced_search]
-          # Advanced search using websearch_to_tsquery
-          subquery = Comment
-                     .unscoped
-                     .select(:id)
-                     .where("to_tsvector('english', body) @@ websearch_to_tsquery('english', ?)", search_term)
-        else
-          # Loose word search
-          subquery = Comment
-                     .unscoped
-                     .select(:id)
-                     .where("to_tsvector('english', body) @@ plainto_tsquery('english', ?)", search_term)
-        end
+        # Advanced search uses websearch_to_tsquery, otherwise loose word search
+        subquery = Comment
+                   .unscoped
+                   .select(:id)
+                   .tsquery_matches("body", search_term, mode: params[:advanced_search] ? :websearch : :plain)
 
         # Search by creator, if specified
         Comment.with_resolved_user_ids(:creator, params) do |user_ids|

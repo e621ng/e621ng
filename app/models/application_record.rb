@@ -3,6 +3,8 @@
 class ApplicationRecord < ActiveRecord::Base
   self.abstract_class = true
 
+  TSQUERY_FUNCTIONS = { plain: "plainto_tsquery", websearch: "websearch_to_tsquery" }.freeze
+
   concerning :SearchMethods do
     class_methods do
       def paginate(page, options = {})
@@ -104,8 +106,27 @@ class ApplicationRecord < ActiveRecord::Base
         if value =~ /\*/
           where("lower(#{qualified_column}) LIKE :value ESCAPE E'\\\\'", value: value.downcase.to_escaped_for_sql_like)
         else
-          where("to_tsvector(:ts_config, #{qualified_column}) @@ plainto_tsquery(:ts_config, :value)", ts_config: "english", value: value)
+          tsquery_matches(qualified_column, value)
         end
+      end
+
+      # Full-text search on column, falling back to a substring match when
+      # Postgres rejects the query for having no lexemes (stopwords like
+      # "myself", or only punctuation/emoji), since that would never match
+      def tsquery_matches(column, value, mode: :plain)
+        return none if value.blank?
+
+        function = TSQUERY_FUNCTIONS.fetch(mode)
+        if tsquery_rejected?(value, mode: mode)
+          where("lower(#{column}) LIKE :value ESCAPE E'\\\\'", value: "*#{value}*".downcase.to_escaped_for_sql_like)
+        else
+          where("to_tsvector('english', #{column}) @@ #{function}('english', :value)", value: value)
+        end
+      end
+
+      def tsquery_rejected?(value, mode: :plain)
+        function = TSQUERY_FUNCTIONS.fetch(mode)
+        connection.select_value(sanitize_sql_array(["SELECT numnode(#{function}('english', ?)) = 0", value]))
       end
 
       def with_resolved_user_ids(query_field, params, &)

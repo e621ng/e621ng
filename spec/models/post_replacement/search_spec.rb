@@ -216,4 +216,9 @@ RSpec.describe PostReplacement do
       end
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :reason, :reason, build: ->(text) { make_replacement(reason: text) }
 end

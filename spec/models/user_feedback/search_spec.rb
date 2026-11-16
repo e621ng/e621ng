@@ -152,4 +152,9 @@ RSpec.describe UserFeedback do
       end
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :body_matches, :body, build: ->(text) { make_feedback(body: text) }
 end

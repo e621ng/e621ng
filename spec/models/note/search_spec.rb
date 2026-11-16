@@ -141,4 +141,9 @@ RSpec.describe Note do
       expect(result).not_to include(note_alpha)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :body_matches, :body, build: ->(text) { make_note(body: text) }
 end

@@ -124,4 +124,9 @@ RSpec.describe StaffWikiVersion do
       end
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :body, :body, build: ->(text) { create(:staff_wiki, body: text).versions.first }
 end

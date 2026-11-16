@@ -186,4 +186,10 @@ RSpec.describe EditHistory do
       expect(ids).to eq(ids.sort.reverse)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # Queries with no lexemes fall back to a substring match
+  # -------------------------------------------------------------------------
+  it_behaves_like "tsquery fallback search", :body_matches, :body
+  it_behaves_like "tsquery fallback search", :subject_matches, :subject
 end

@@ -81,6 +81,15 @@ RSpec.describe ModAction do
         expect(result).to include(matching)
         expect(result).not_to include(non_matching)
       end
+
+      it "falls back to a substring match when the query has no lexemes" do
+        matching     = make_action(:user_feedback_create, { user_id: 1, reason: "did it myself", type: "negative", record_id: 1 })
+        non_matching = make_action(:user_feedback_create, { user_id: 2, reason: "positive contribution", type: "positive", record_id: 2 })
+
+        result = ModAction.search(action: "user_feedback_create", "reason" => "myself")
+        expect(result).to include(matching)
+        expect(result).not_to include(non_matching)
+      end
     end
 
     # -------------------------------------------------------------------------
