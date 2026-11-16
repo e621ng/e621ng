@@ -10,7 +10,7 @@
     <div class="subscribe-banner">
       <div class="subscribe-banner-count">
         <%= content_tag :span, "#{TagSetPresenter.post_count_label(subscriber_count)} #{'subscriber'.pluralize(subscriber_count)}",
-                        class: "tag-subscriber-count", title: "This value is cached and may not reflect the latest subscriber count",
+                        class: "tag-subscriber-count", title: "#{number_with_delimiter(subscriber_count)} #{'subscriber'.pluralize(subscriber_count)}",
                         data: { count: subscriber_count, tag: tag.name } %>
       </div>
       <div class="subscribe-banner-name">
