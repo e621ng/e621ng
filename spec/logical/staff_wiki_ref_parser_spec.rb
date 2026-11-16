@@ -33,6 +33,23 @@ RSpec.describe StaffWikiRefParser do
       expect(result.references).to eq([{ related_type: "Artist", related_id: artist.id }])
     end
 
+    it "resolves a short artist URL" do
+      result = parse("https://e621.net/a/#{artist.name}")
+      expect(result.references).to eq([{ related_type: "Artist", related_id: artist.id }])
+    end
+
+    it "resolves a short artist URL by name even when numeric or slashed" do
+      numeric = create(:artist, name: "2000")
+      slashed = create(:artist, name: "foo/bar")
+      result = parse("/a/2000 https://e621.net/a/foo%2Fbar")
+      expect(result.references).to eq([{ related_type: "Artist", related_id: numeric.id }, { related_type: "Artist", related_id: slashed.id }])
+    end
+
+    it "fails a short artist URL for a nonexistent artist" do
+      result = parse("https://e621.net/a/does_not_exist")
+      expect(result.failures.first[:reason]).to eq("no matching Artist")
+    end
+
     it "resolves a numeric staff wiki URL" do
       result = parse("https://e621.net/staff/wikis/#{wiki.id}")
       expect(result.references).to eq([{ related_type: "StaffWiki", related_id: wiki.id }])

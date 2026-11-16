@@ -23,24 +23,42 @@ RSpec.describe ArtistsController do
   let(:artgerm) { CurrentUser.scoped(user) { create(:artist, creator: user, name: "artgerm", url_string: "http://artgerm.deviantart.com/") } }
 
   describe "show action" do
-    it "render" do
+    it "redirects to the short URL by id" do
       get artist_path(artist)
-      expect(response).to have_http_status(:success)
+      expect(response).to have_http_status(:moved_permanently)
+      expect(response).to redirect_to(short_artist_path(artist.name))
     end
 
-    it "render with name" do
+    it "redirects to the short URL by name" do
       get artist_path(id: artist.name)
-      expect(response).to have_http_status(:success)
+      expect(response).to have_http_status(:moved_permanently)
+      expect(response).to redirect_to(short_artist_path(artist.name))
+    end
+
+    it "redirects unknown names to the short URL" do
+      get artist_path(id: "nobody")
+      expect(response).to redirect_to(short_artist_path("nobody"))
+    end
+
+    it "returns 404 for an unknown id" do
+      get artist_path(id: 999_999)
+      expect(response).to have_http_status(:not_found)
     end
 
     it "work (json)" do
       get artist_path(artist, format: :json)
       expect(response).to have_http_status(:success)
+      expect(response.parsed_body).to include("name" => artist.name, "urls" => [], "domains" => [])
     end
 
     it "work with name (json)" do
       get artist_path(id: artist.name, format: :json)
       expect(response).to have_http_status(:success)
+    end
+
+    it "returns 404 for an unknown name (json)" do
+      get artist_path(id: "nobody", format: :json)
+      expect(response).to have_http_status(:not_found)
     end
   end
 
@@ -53,23 +71,40 @@ RSpec.describe ArtistsController do
   end
 
   describe "show_or_new action" do
-    it "render for a nonexistent artist" do
-      sign_in_as user
+    it "redirects a nonexistent artist to the short URL" do
       get show_or_new_artists_path(name: "nobody")
-      expect(response).to have_http_status(:success)
+      expect(response).to have_http_status(:moved_permanently)
+      expect(response).to redirect_to(short_artist_path("nobody"))
     end
 
-    it "redirect for an existing artist" do
-      sign_in_as user
+    it "redirects an existing artist to the short URL" do
       get show_or_new_artists_path(name: masao.name)
-      expect(response).to have_http_status(:redirect)
-      expect(response).to redirect_to(artist_path(masao))
+      expect(response).to redirect_to(short_artist_path(masao.name))
+    end
+
+    it "normalizes the name" do
+      get show_or_new_artists_path(name: "Some Artist")
+      expect(response).to redirect_to(short_artist_path("some_artist"))
+    end
+
+    it "returns 404 without a name" do
+      get show_or_new_artists_path
+      expect(response).to have_http_status(:not_found)
     end
 
     it "not crash when name is a hash" do
-      sign_in_as user
       get show_or_new_artists_path, params: { name: { "$eq" => "lillymoo" } }
-      expect(response).to have_http_status(:success)
+      expect(response).to have_http_status(:moved_permanently)
+    end
+
+    it "returns the artist (json)" do
+      get show_or_new_artists_path(name: masao.name, format: :json)
+      expect(response.parsed_body).to include("id" => masao.id)
+    end
+
+    it "returns 404 for a nonexistent artist (json)" do
+      get show_or_new_artists_path(name: "nobody", format: :json)
+      expect(response).to have_http_status(:not_found)
     end
   end
 
@@ -117,7 +152,7 @@ RSpec.describe ArtistsController do
 
       artist = Artist.named(attributes[:name])
       expect(artist).not_to be_nil
-      expect(response).to redirect_to(artist_path(artist.id))
+      expect(response).to redirect_to(short_artist_path(artist.name))
     end
   end
 
@@ -147,7 +182,7 @@ RSpec.describe ArtistsController do
         wiki_page = artist.wiki_page
         expect(artist.notes).to eq("rex")
         expect(wiki_page.updated_at).not_to eq(old_timestamp)
-        assert_redirected_to(artist_path(artist.id))
+        assert_redirected_to(short_artist_path(artist.name))
       end
 
       it "sets the wiki page timestamp to the time of the update" do
@@ -161,7 +196,7 @@ RSpec.describe ArtistsController do
         wiki_page = artist.wiki_page
         expect(artist.notes).to eq("rex")
         expect(wiki_page.updated_at).to be_within(1.second).of(frozen_at)
-        expect(response).to redirect_to(artist_path(artist.id))
+        expect(response).to redirect_to(short_artist_path(artist.name))
       end
 
       it "not touch the updater_id and updated_at fields when nothing is changed" do
@@ -188,6 +223,7 @@ RSpec.describe ArtistsController do
           wiki_page.reload
           expect(wiki_page.title).to eq("bbb")
           expect(wiki_page.body).to eq("more testing")
+          expect(response).to redirect_to(short_artist_path("bbb"))
         end
       end
     end
@@ -213,7 +249,7 @@ RSpec.describe ArtistsController do
       sign_in_as user
       put revert_artist_path(artist.id), params: { version_id: version.id }
       expect(artist.reload.name).to eq("artist1")
-      assert_redirected_to(artist_path(artist.id))
+      assert_redirected_to(short_artist_path(artist.name))
     end
 
     it "not allow reverting to a previous version of another artist" do
@@ -222,7 +258,7 @@ RSpec.describe ArtistsController do
       put artist_path(artist.id), params: { version_id: artist2.versions.first.id }
       artist.reload
       expect(artist2.name).not_to eq(artist.name)
-      assert_redirected_to(artist_path(artist.id))
+      assert_redirected_to(short_artist_path(artist.name))
     end
   end
 

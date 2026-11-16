@@ -37,9 +37,43 @@ RSpec.describe ArtistsShortController do
       expect(response).to have_http_status(:not_found)
     end
 
-    it "returns 404 for an unknown artist" do
+    it "returns 404 when neither an artist nor a tag exists" do
       get short_artist_path("nobody_here")
       expect(response).to have_http_status(:not_found)
+    end
+
+    it "returns 404 for a non-artist tag" do
+      create(:tag, name: "general_tag")
+      get short_artist_path("general_tag")
+      expect(response).to have_http_status(:not_found)
+    end
+
+    context "with an artist tag but no artist entry" do
+      before { create(:artist_tag, name: "unlisted_artist") }
+
+      it "renders the page with a link to create the entry" do
+        get short_artist_path("unlisted_artist")
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Artist - unlisted_artist")
+        expect(response.body).to include("Create new artist entry")
+        expect(response.body).to include('<meta name="robots" content="noindex" />')
+      end
+
+      it "shows the subscribe button" do
+        sign_in_as create(:user)
+        get short_artist_path("unlisted_artist")
+        expect(response.body).to include("tag-subscription-toggle")
+      end
+
+      it "does not create an artist entry" do
+        expect { get short_artist_path("unlisted_artist") }.not_to change(Artist, :count)
+      end
+    end
+
+    it "does not offer to create an existing artist" do
+      get short_artist_path(artist.name)
+      expect(response.body).not_to include("Create new artist entry")
+      expect(response.body).not_to include('content="noindex"')
     end
 
     context "with an active alias" do

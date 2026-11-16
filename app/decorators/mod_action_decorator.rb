@@ -101,7 +101,7 @@ class ModActionDecorator < ApplicationDecorator
     when "artist_delete"
       "Deleted artist ##{vals['artist_id']} (#{vals['artist_name']})"
     when "artist_page_rename"
-      "Renamed artist page (\"#{vals['old_name']}\":/artists/show_or_new?name=#{vals['old_name']} → \"#{vals['new_name']}\":/artists/show_or_new?name=#{vals['new_name']})"
+      "Renamed artist page (\"#{vals['old_name']}\":/a/#{vals['old_name']} → \"#{vals['new_name']}\":/a/#{vals['new_name']})"
     when "artist_page_lock"
       "Locked artist page artist ##{vals['artist_page']}"
     when "artist_page_unlock"

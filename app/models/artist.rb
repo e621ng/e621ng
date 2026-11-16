@@ -566,10 +566,6 @@ class Artist < ApplicationRecord
     true
   end
 
-  def visible?
-    true
-  end
-
   def is_note_locked?
     return false if CurrentUser.is_staff?
     wiki_page&.is_locked? || false

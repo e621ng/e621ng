@@ -37,7 +37,7 @@
       </div>
     <% end %>
 
-    <% if @artist.notes.present? && @artist.visible? %>
+    <% if @artist.notes.present? %>
       <div class="dtext-container">
         <%= format_text(@artist.notes, allow_color: true) %>
       </div>

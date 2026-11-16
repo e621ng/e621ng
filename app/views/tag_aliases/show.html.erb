@@ -34,7 +34,7 @@
         <li>
           <br />
           <strong>Note:</strong> This tag alias is associated with a DNP artist.<br />
-          Please check the <%= link_to "artist page", artist_path(@tag_alias.consequent_tag&.artist || @tag_alias.antecedent_tag&.artist) %> for more information.
+          Please check the <%= link_to "artist page", short_artist_path((@tag_alias.consequent_tag&.artist || @tag_alias.antecedent_tag&.artist).name) %> for more information.
         </li>
       <% end %>
 

@@ -465,7 +465,7 @@ RSpec.describe AvoidPostingsController do
       it "redirects to the artist page with a success flash" do
         artist = avoid_posting.artist
         delete avoid_posting_path(avoid_posting)
-        expect(response).to redirect_to(artist_path(artist))
+        expect(response).to redirect_to(short_artist_path(artist.name))
         expect(flash[:notice]).to eq("Avoid posting entry destroyed")
       end
 
