@@ -54,6 +54,23 @@ class TagSubscription < ApplicationRecord
     { added: where(user_id: user.id, tag_id: to_add.keys).includes(:tag).to_a, skipped: skipped }
   end
 
+  SUBSCRIBER_COUNT_TTL = 10.minutes
+
+  # Returns { tag_id => subscriber count }. Not expired on change; the UI adjusts its own count.
+  def self.subscriber_counts(tag_ids)
+    tag_ids = tag_ids.uniq
+    counts = Cache.read_multi(tag_ids, "tsc")
+    missing = tag_ids - counts.keys
+    return counts if missing.empty?
+
+    fresh = where(tag_id: missing).group(:tag_id).count
+    missing.each do |tag_id|
+      counts[tag_id] = fresh.fetch(tag_id, 0)
+      Cache.write("tsc:#{tag_id}", counts[tag_id], expires_in: SUBSCRIBER_COUNT_TTL)
+    end
+    counts
+  end
+
   # The anchor's cached count no longer matches its tag set.
   def self.expire_badge_counts(user_id)
     SavedSearch.badge_cache_keys(user_id).each { |key| Cache.delete(key) }

@@ -1,4 +1,4 @@
-<%# locals: (tag:, subscription: :lookup) %>
+<%# locals: (tag:, subscription: :lookup, subscriber_count: :lookup) %>
 <%# Pass a preloaded `subscription` (or nil) for tags known not to be aliased, to skip the lookups %>
 <% if tag.present? && CurrentUser.user.is_member? %>
   <% if subscription == :lookup %>
@@ -10,13 +10,20 @@
     <% target = tag %>
   <% end %>
   <% if target %>
+    <% subscriber_count = TagSubscription.subscriber_counts([target.id])[target.id] if subscriber_count == :lookup %>
     <% aliased_note = target == tag ? "" : " (#{tag.name} is aliased to #{target.name})" %>
-    <% if subscription %>
-      <%= link_to "Unsubscribe", tag_subscription_path(subscription), method: :delete, class: "button btn-neutral tag-subscription-toggle",
-                  title: "Stop counting new posts with this tag in your subscriptions#{aliased_note}", data: { tag: tag.name, subscribed: "true" } %>
-    <% else %>
-      <%= link_to "Subscribe", tag_subscriptions_path(tag_name: tag.name), method: :post, class: "button btn-success tag-subscription-toggle",
-                  title: "Count new posts with this tag in your subscriptions#{aliased_note}", data: { tag: tag.name, subscribed: "false" } %>
-    <% end %>
+    <span class="tag-subscription">
+      <% if subscription %>
+        <%= link_to "Unsubscribe", tag_subscription_path(subscription), method: :delete, class: "button btn-neutral tag-subscription-toggle",
+                    title: "Stop counting new posts with this tag in your subscriptions#{aliased_note}", data: { tag: tag.name, subscribed: "true" } %>
+      <% else %>
+        <%= link_to "Subscribe", tag_subscriptions_path(tag_name: tag.name), method: :post, class: "button btn-success tag-subscription-toggle",
+                    title: "Count new posts with this tag in your subscriptions#{aliased_note}", data: { tag: tag.name, subscribed: "false" } %>
+      <% end %>
+      <%# `tag` is a local here, shadowing the helper %>
+      <%= content_tag :span, "#{TagSetPresenter.post_count_label(subscriber_count)} #{'subscriber'.pluralize(subscriber_count)}",
+                      class: "tag-subscriber-count", title: "#{number_with_delimiter(subscriber_count)} #{'subscriber'.pluralize(subscriber_count)}",
+                      data: { count: subscriber_count } %>
+    </span>
   <% end %>
 <% end %>

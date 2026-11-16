@@ -2,6 +2,7 @@
 <% tags = post.subscribable_artist_tags.first(Post::SUBSCRIBE_BANNER_LIMIT) %>
 <% verified = post.verified_artist_tags.to_set(&:name) %>
 <% subscriptions = CurrentUser.user.tag_subscriptions.where(tag_id: tags.map(&:id)).index_by(&:tag_id) %>
+<% subscriber_counts = TagSubscription.subscriber_counts(tags.map(&:id)) %>
 <div id="post-artist-subscribe">
   <% tags.each do |tag| %>
     <div class="subscribe-banner">
@@ -14,7 +15,7 @@
         <% end %>
       </div>
       <div class="subscribe-banner-actions">
-        <%= render "wiki_pages/subscribe_button", tag: tag, subscription: subscriptions[tag.id] %>
+        <%= render "wiki_pages/subscribe_button", tag: tag, subscription: subscriptions[tag.id], subscriber_count: subscriber_counts[tag.id] %>
       </div>
     </div>
   <% end %>

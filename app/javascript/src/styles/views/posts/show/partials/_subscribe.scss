@@ -27,5 +27,15 @@ div#post-artist-subscribe {
       min-width: 7.5rem;
       text-align: center;
     }
+
+    // Count to the left of the button
+    .tag-subscription {
+      display: flex;
+      flex-direction: row-reverse;
+      align-items: center;
+      gap: 0.5rem;
+
+      .tag-subscriber-count { margin-left: 0; }
+    }
   }
 }

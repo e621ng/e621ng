@@ -192,3 +192,12 @@
     .ts-created { display: none; }
   }
 }
+
+// Beside every subscribe button
+.tag-subscription .tag-subscriber-count {
+  margin-left: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: normal;
+  color: theme.color("text-muted");
+  white-space: nowrap;
+}
