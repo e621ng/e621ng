@@ -85,7 +85,7 @@ export default class SubscribeTag {
       : "Count new posts with this tag in your subscriptions";
 
     // The server's count is cached, so it is adjusted locally rather than refetched
-    const counter = link.closest(".tag-subscription")?.querySelector<HTMLElement>(".tag-subscriber-count");
+    const counter = document.querySelector<HTMLElement>(`.tag-subscriber-count[data-tag="${CSS.escape(link.dataset.tag ?? "")}"]`);
     if (!counter) return;
     const count = Math.max(0, (Number(counter.dataset.count) || 0) + (subscribed ? 1 : -1));
     const noun = count === 1 ? "subscriber" : "subscribers";

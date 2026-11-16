@@ -7,12 +7,14 @@ div#post-artist-subscribe {
   gap: 0.5rem;
 
   .subscribe-banner {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr min-content;
+    grid-template-areas: "name actions" "count actions";
+
     align-items: center;
     justify-content: space-between;
     max-width: 50rem;
     border-radius: 0.25rem;
-    padding: 0.5rem;
     box-sizing: border-box;
 
     background: theme.color("section");
@@ -20,22 +22,39 @@ div#post-artist-subscribe {
     box-shadow: 0 0 0.25rem -0.125rem black;
 
     &-name {
+      grid-area: name;
       font-size: 1rem;
+      padding: 0.25rem 0 0 0.5rem;
+
+      svg.chexagon {
+        vertical-align: middle;
+      }
     }
 
-    a.tag-subscription-toggle {
-      min-width: 7.5rem;
-      text-align: center;
+    &-actions {
+      grid-area: actions;
+      padding: 0.25rem 0.5rem;
+
+      a.tag-subscription-toggle {
+        min-width: 7.5rem;
+        text-align: center;
+        
+        &[data-subscribed="true"] {
+          color: theme.color("text-muted");
+        }
+      }
     }
 
-    // Count to the left of the button
-    .tag-subscription {
-      display: flex;
-      flex-direction: row-reverse;
-      align-items: center;
-      gap: 0.5rem;
+    &-count {
+      grid-area: count;
+      font-size: 75%;
+      color: theme.color("text-muted");
+      padding: 0 0 0.25rem 0.5rem;
+      margin-top: -0.25rem;
 
-      .tag-subscriber-count { margin-left: 0; }
+      .tag-subscriber-count {
+        cursor: help;
+      }
     }
   }
 }
