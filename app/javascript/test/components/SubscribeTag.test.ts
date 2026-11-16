@@ -110,9 +110,14 @@ describe("SubscribeTag", () => {
   });
 
   describe("subscriber count", () => {
+    function counterHTML (count: number, tag = "fox") {
+      return `<span class="tag-subscriber-count" data-count="${count}" data-tag="${tag}">x</span>`;
+    }
+
     function renderCounted (subscribed: boolean, count: number) {
-      document.body.innerHTML = `<span class="tag-subscription">${linkHTML(subscribed)}
-        <span class="tag-subscriber-count" data-count="${count}">x</span></span>`;
+      document.body.innerHTML = `<div class="subscribe-banner">
+        <div class="subscribe-banner-count">${counterHTML(count)}</div>
+        <div class="subscribe-banner-actions">${linkHTML(subscribed)}</div></div>`;
       return {
         link: document.querySelector("a.tag-subscription-toggle") as HTMLAnchorElement,
         counter: document.querySelector(".tag-subscriber-count") as HTMLElement,
@@ -158,6 +163,34 @@ describe("SubscribeTag", () => {
 
       expect(counter.dataset.count).toBe("5");
       expect(counter.textContent).toBe("x");
+    });
+
+    it("only updates the counter for the toggled tag", async () => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ added: [{ id: 12, tag_name: "wolf" }], skipped: [] }));
+      document.body.innerHTML = counterHTML(3, "fox") + counterHTML(8, "wolf") + linkHTML(true, "fox", 7) + linkHTML(false, "wolf");
+      const [, wolf] = document.querySelectorAll<HTMLAnchorElement>("a.tag-subscription-toggle");
+      const [foxCounter, wolfCounter] = document.querySelectorAll<HTMLElement>(".tag-subscriber-count");
+      await load();
+      await click(wolf);
+
+      expect(wolfCounter.dataset.count).toBe("9");
+      expect(foxCounter.dataset.count).toBe("3");
+    });
+
+    it("finds the counter for tags with selector-breaking characters", async () => {
+      const tag = "o'neil_\"quoted\"_(artist)";
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({ added: [{ id: 12, tag_name: tag }], skipped: [] }));
+      document.body.innerHTML = `<span class="tag-subscriber-count" data-count="2">x</span>
+        <a class="button btn-success tag-subscription-toggle" href="/tag_subscriptions" data-subscribed="false">x</a>`;
+      const counter = document.querySelector(".tag-subscriber-count") as HTMLElement;
+      const link = document.querySelector("a.tag-subscription-toggle") as HTMLAnchorElement;
+      counter.dataset.tag = tag;
+      link.dataset.tag = tag;
+      await load();
+      await click(link);
+
+      expect(link.dataset.subscribed).toBe("true");
+      expect(counter.dataset.count).toBe("3");
     });
   });
 });
