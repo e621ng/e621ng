@@ -177,6 +177,13 @@ RSpec.describe Upload do
         expect(upload.errors[:source].first).to include("could not be checked: rule 'Slow' failed")
       end
 
+      it "is invalid when an overlong URL cannot be checked against a block rule" do
+        create(:blocking_upload_url_rule)
+        upload = build(:upload, direct_url: "#{url}?pad=#{'a' * 2_000}")
+        expect(upload).not_to be_valid
+        expect(upload.errors[:source].first).to include("longer than 2000 characters")
+      end
+
       it "shows a fetch-time rule refusal as is" do
         error = Downloads::File::RuleError.new("'https://example.com/x' is not allowed: Sample URL.")
         expect(described_class.error_message_for(error)).to eq("'https://example.com/x' is not allowed: Sample URL.")

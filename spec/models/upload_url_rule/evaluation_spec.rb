@@ -104,6 +104,28 @@ RSpec.describe UploadUrlRule do
       expect(described_class.evaluate("not a url with sample")).to be_nil
     end
 
+    it "raises UncheckableUrlError for an overlong http(s) URL while a block rule is enabled" do
+      create(:blocking_upload_url_rule)
+      expect { described_class.evaluate("#{url}?pad=#{'a' * 2_000}") }.to raise_error(described_class::UncheckableUrlError)
+    end
+
+    it "raises UncheckableUrlError for an http(s) URL with invalid encoding while a block rule is enabled" do
+      create(:blocking_upload_url_rule)
+      expect { described_class.evaluate("#{url}\xFF".dup.force_encoding("UTF-8")) }.to raise_error(described_class::UncheckableUrlError)
+    end
+
+    it "returns nil for an overlong URL when no block rule is enabled" do
+      create(:upload_url_rule)
+      create(:blocking_upload_url_rule, enabled: false)
+      expect(described_class.evaluate("#{url}?pad=#{'a' * 2_000}")).to be_nil
+    end
+
+    it "returns nil for non-http(s) input even while a block rule is enabled" do
+      create(:blocking_upload_url_rule)
+      expect(described_class.evaluate("not a url")).to be_nil
+      expect(described_class.evaluate("")).to be_nil
+    end
+
     it "raises EvaluationError naming the rule when a match times out" do
       create(:upload_url_rule, label: "Slow")
       allow(Regexp).to receive(:new).and_call_original
@@ -118,6 +140,16 @@ RSpec.describe UploadUrlRule do
       create(:upload_url_rule, label: "Fine", pattern: "example")
       create(:upload_url_rule, label: "Broken").update_columns(pattern: "sample(")
       expect { described_class.evaluate(url) }.to raise_error(described_class::EvaluationError) { |e| expect(e.label).to eq("Broken") }
+    end
+  end
+
+  describe ".failure_message" do
+    it "names the failed rule" do
+      expect(described_class.failure_message(described_class::EvaluationError.new("Slow"))).to include("rule 'Slow' failed")
+    end
+
+    it "explains an uncheckable URL" do
+      expect(described_class.failure_message(described_class::UncheckableUrlError.new)).to include("longer than 2000 characters")
     end
   end
 

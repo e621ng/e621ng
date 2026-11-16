@@ -419,6 +419,11 @@ RSpec.describe Downloads::File do
           .to raise_error(Downloads::File::RuleError, /could not be checked/)
       end
 
+      it "refuses an overlong URL that the rules cannot check" do
+        expect { described_class.new("#{blocked}?pad=#{'a' * 2_000}", enforce_rules: true) }
+          .to raise_error(Downloads::File::RuleError, /longer than 2000 characters/)
+      end
+
       it "ignores recommend rules" do
         UploadUrlRule.update_all(handling: "recommend")
         UploadUrlRule.clear_cache

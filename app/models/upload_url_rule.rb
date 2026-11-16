@@ -7,9 +7,17 @@ class UploadUrlRule < ApplicationRecord
   class EvaluationError < StandardError
     attr_reader :label
 
-    def initialize(label)
+    def initialize(label, message = "upload URL rule '#{label}' failed")
       @label = label
-      super("upload URL rule '#{label}' failed")
+      super(message)
+    end
+  end
+
+  # An http(s) URL that cannot be canonicalized, so no rule can be checked against it.
+  # Refused, or padding a URL past MAX_URL_LENGTH would slip it past every block rule.
+  class UncheckableUrlError < EvaluationError
+    def initialize
+      super(nil, "upload URL cannot be checked against the rules")
     end
   end
 
@@ -106,7 +114,10 @@ class UploadUrlRule < ApplicationRecord
     # run until a block is found, so a broken rule fails loudly whatever precedes it.
     def evaluate(url)
       canonical = canonicalize(url)
-      return nil if canonical.nil?
+      if canonical.nil?
+        raise UncheckableUrlError if url.to_s.scrub.strip.match?(%r{\Ahttps?://}i) && cached_rules.any? { |rule| rule["handling"] == "block" }
+        return nil
+      end
 
       recommended = nil
       cached_rules.each do |rule|
@@ -128,6 +139,7 @@ class UploadUrlRule < ApplicationRecord
     end
 
     def failure_message(error)
+      return "could not be checked: it is not a valid URL or is longer than #{MAX_URL_LENGTH} characters." if error.is_a?(UncheckableUrlError)
       "could not be checked: rule '#{error.label}' failed. Please report this to staff."
     end
 

@@ -129,6 +129,16 @@ describe("uploads/file_input — direct URL checks", () => {
     expect(lastChange(w).invalid).toBe(true);
   });
 
+  it("blocks the upload when the URL cannot be checked (422 url_uncheckable)", async () => {
+    mockEndpoints({ rule: { error: "url_uncheckable" }, ruleStatus: 422 });
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/art.png");
+    const box = w.find(".url-rule");
+    expect(box.classes()).toContain("background-red");
+    expect(box.text()).toContain("too long to be checked");
+    expect(lastChange(w).invalid).toBe(true);
+  });
+
   it.each([500, 429])("does not block when the check itself fails (%i)", async (status) => {
     mockEndpoints({ rule: { message: "nope" }, ruleStatus: status });
     const w = await mountFileInput();

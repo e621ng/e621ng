@@ -52,6 +52,9 @@
         <template v-if="rule.status === 'failed'">
           This URL could not be checked (rule: {{ rule.label }}). Please report this to staff.
         </template>
+        <template v-else-if="rule.status === 'uncheckable'">
+          This URL is not valid or is too long to be checked, and cannot be uploaded.
+        </template>
         <template v-else>
           <b>{{ rule.label }}:</b>
           {{ rule.status === 'block' ? "this URL cannot be uploaded." : "a better version may be available." }}
@@ -107,8 +110,9 @@ const whitelist = reactive({
 // Sequencing token so out-of-order whitelist responses can't show a stale verdict.
 let whitelistRequestId = 0;
 // Verdict of the staff-defined upload URL rules for the current URL.
-// "failed" = a rule could not be evaluated; the server refuses such uploads.
-type RuleStatus = "none" | "recommend" | "block" | "failed";
+// "failed" = a rule could not be evaluated; "uncheckable" = the URL could not be canonicalized.
+// The server refuses both.
+type RuleStatus = "none" | "recommend" | "block" | "failed" | "uncheckable";
 const rule = reactive({ status: "none" as RuleStatus, label: "", message: "", suggestedUrl: "" });
 let ruleRequestId = 0;
 const uploader = reactive({ dragging: false });
@@ -127,7 +131,7 @@ const currentPreview = ref<PreviewData>({ url: "", isVideo: false });
 
 const post_file = ref<HTMLInputElement | null>(null);
 
-const invalidUploadValue = computed(() => rule.status === "block" || rule.status === "failed" || fileTooLarge.value);
+const invalidUploadValue = computed(() => ["block", "failed", "uncheckable"].includes(rule.status) || fileTooLarge.value);
 
 // Debounce the network/preview work (whitelist lookup + preview src) so typing a
 // URL doesn't fire a request per keystroke; the value/validity emit stays
@@ -194,9 +198,14 @@ function checkURLRules() {
     const data = await response.json();
     if (requestId !== ruleRequestId) return;
     if (response.status === 422) {
-      if (data.error !== "rule_failed") return;
-      rule.status = "failed";
-      rule.label = data.label ?? "";
+      if (data.error === "rule_failed") {
+        rule.status = "failed";
+        rule.label = data.label ?? "";
+      } else if (data.error === "url_uncheckable") {
+        rule.status = "uncheckable";
+      } else {
+        return;
+      }
     } else if (data.match === true && (data.handling === "block" || data.handling === "recommend")) {
       rule.status = data.handling;
       rule.label = data.label ?? "";

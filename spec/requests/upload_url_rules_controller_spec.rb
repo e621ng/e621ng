@@ -181,6 +181,14 @@ RSpec.describe UploadUrlRulesController do
       expect(response.parsed_body).to eq("error" => "rule_failed", "label" => "Slow")
     end
 
+    it "responds 422 url_uncheckable for a URL that cannot be checked" do
+      sign_in_as member
+      create(:blocking_upload_url_rule)
+      get check_upload_url_rules_path(format: :json), params: { url: "#{url}?pad=#{'a' * 2_000}" }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.parsed_body).to eq("error" => "url_uncheckable")
+    end
+
     it "is throttled" do
       sign_in_as member
       allow(RateLimiter).to receive(:throttle!).and_return(true)

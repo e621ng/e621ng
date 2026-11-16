@@ -53,6 +53,8 @@ class UploadUrlRulesController < ApplicationController
     else
       render json: { match: true }.merge(result.to_h)
     end
+  rescue UploadUrlRule::UncheckableUrlError
+    render json: { error: "url_uncheckable" }, status: 422
   rescue UploadUrlRule::EvaluationError => e
     render json: { error: "rule_failed", label: e.label }, status: 422
   end
