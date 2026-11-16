@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddUpdatedAtIndexToUserFeedback < ActiveRecord::Migration[8.1]
   def change
     UserFeedback.without_timeout do
