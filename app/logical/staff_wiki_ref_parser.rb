@@ -32,7 +32,7 @@ class StaffWikiRefParser
 
     @text.split(/\s+/).compact_blank.each do |token|
       if (short = token.match(SHORT_ARTIST_PATTERN))
-        id = Artist.named(URI.decode_uri_component(short[1]))&.id
+        id = artist_id_by_name(URI.decode_uri_component(short[1]))
         if id
           references << { related_type: "Artist", related_id: id }
         else
@@ -71,7 +71,12 @@ class StaffWikiRefParser
     when "User"
       User.find_by_name(identifier)&.id # rubocop:disable Rails/DynamicFindBy
     when "Artist"
-      Artist.named(identifier)&.id
+      artist_id_by_name(identifier)
     end
+  end
+
+  # Follows active aliases, matching the artist page the URL displays.
+  def artist_id_by_name(name)
+    Artist.named(TagAlias.to_aliased([Artist.normalize_name(name)]).first)&.id
   end
 end

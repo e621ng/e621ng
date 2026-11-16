@@ -147,6 +147,11 @@ RSpec.describe ModActionDecorator do
         expect(desc).to include("old_artist", "new_artist")
       end
 
+      it "artist_page_rename escapes reserved characters in the links" do
+        desc = decorate(:artist_page_rename, { "old_name" => "what?", "new_name" => "new_artist" }).format_description
+        expect(desc).to include('"what?":/a/what%3F', '"new_artist":/a/new_artist')
+      end
+
       it "artist_page_lock includes artist page" do
         desc = decorate(:artist_page_lock, { "artist_page" => "myartist" }).format_description
         expect(desc).to include("myartist")

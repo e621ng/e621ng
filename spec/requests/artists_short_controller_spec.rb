@@ -14,6 +14,11 @@ RSpec.describe ArtistsShortController do
       expect(response.body).to include("Artist - some_artist")
     end
 
+    it "declares the short URL as canonical" do
+      get short_artist_path(artist.name)
+      expect(response.body).to match(%r{<link rel="canonical" href="https://[^/"]+/a/some_artist">})
+    end
+
     it "renders for staff" do
       sign_in_as create(:janitor_user)
       get short_artist_path(artist.name)

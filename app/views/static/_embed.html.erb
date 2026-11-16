@@ -1,4 +1,4 @@
-<%# locals: (record:, name:, description: "", post: nil, avatar: false) -%>
+<%# locals: (record:, name:, description: "", post: nil, avatar: false, url: nil) -%>
 
 <% content_for(:html_header) do %>
   <% short_description = description.to_s.truncate(200) %>
@@ -7,8 +7,9 @@
   <%= tag.meta(property: "og:site_name", content: Danbooru.config.app_name) %>
   <%= tag.meta(property: "og:title", content: "#{name} - #{Danbooru.config.app_name}") %>
   <%= tag.meta(property: "og:description", content: short_description) %>
-  <%= tag.meta(property: "og:url", content: polymorphic_url(record, host: Danbooru.config.hostname, protocol: "https")) %>
-  <%= tag.link(rel: "canonical", href: polymorphic_url(record, host: Danbooru.config.hostname, protocol: "https")) %>
+  <% url ||= polymorphic_url(record, host: Danbooru.config.hostname, protocol: "https") %>
+  <%= tag.meta(property: "og:url", content: url) %>
+  <%= tag.link(rel: "canonical", href: url) %>
 
   <% if post.present? %>
     <% if post.visible? %>
