@@ -111,7 +111,7 @@ RSpec.describe UploadUrlRule do
 
     it "raises UncheckableUrlError for an http(s) URL with invalid encoding while a block rule is enabled" do
       create(:blocking_upload_url_rule)
-      expect { described_class.evaluate("#{url}\xFF".dup.force_encoding("UTF-8")) }.to raise_error(described_class::UncheckableUrlError)
+      expect { described_class.evaluate("#{url}\xFF".force_encoding("UTF-8")) }.to raise_error(described_class::UncheckableUrlError)
     end
 
     it "returns nil for an overlong URL when no block rule is enabled" do
