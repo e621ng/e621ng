@@ -1,0 +1,19 @@
+<%# locals: (f:, forum_topic:) -%>
+<%# Rendered only on the new-topic form. The fieldset stays disabled (and so unsubmitted) until "Add a poll" is checked. %>
+<% poll = forum_topic.poll || ForumPoll.new(duration: ForumPoll::DEFAULT_DURATION) %>
+<% 2.times { poll.options.build } if poll.options.empty? %>
+<% has_poll = forum_topic.poll.present? %>
+
+<div class="forum-poll-section">
+  <div class="input boolean">
+    <%= check_box_tag "add_poll", "1", has_poll, id: "forum-topic-add-poll" %>
+    <label for="forum-topic-add-poll">Add a poll</label>
+  </div>
+
+  <fieldset class="forum-poll-fieldset" <%= "disabled hidden" unless has_poll %>>
+    <legend>Poll</legend>
+    <%= f.simple_fields_for :poll, poll do |pf| %>
+      <%= render "forum_polls/fields", f: pf, poll: poll, new_poll: true %>
+    <% end %>
+  </fieldset>
+</div>

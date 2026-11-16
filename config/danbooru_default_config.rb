@@ -286,6 +286,43 @@ module Danbooru
       50
     end
 
+    # Minimum user level that may attach a poll to a new forum topic.
+    def forum_poll_min_level
+      UserLevel::PRIVILEGED
+    end
+
+    # Polls a user may create per day (staff exempt).
+    def forum_poll_limit
+      2
+    end
+
+    def forum_poll_max_options
+      20
+    end
+
+    def forum_poll_option_max_size
+      250
+    end
+
+    # Standing poll ballots a user may cast per hour (staff exempt).
+    def forum_poll_vote_limit
+      30
+    end
+
+    # Duration presets offered on the poll form; the key is what the form submits.
+    def forum_poll_durations
+      {
+        "1h" => 1.hour,
+        "6h" => 6.hours,
+        "12h" => 12.hours,
+        "1d" => 1.day,
+        "3d" => 3.days,
+        "7d" => 7.days,
+        "14d" => 14.days,
+        "30d" => 30.days,
+      }
+    end
+
     # Blips created in the last hour
     def blip_limit
       25

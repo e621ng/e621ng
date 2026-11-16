@@ -7,6 +7,7 @@ class ForumTopic < ApplicationRecord
   has_many :posts, -> {order("forum_posts.id asc")}, :class_name => "ForumPost", :foreign_key => "topic_id", :dependent => :destroy
   has_one :original_post, -> {order("forum_posts.id asc")}, class_name: "ForumPost", foreign_key: "topic_id", inverse_of: :topic
   has_many :subscriptions, :class_name => "ForumSubscription"
+  has_one :poll, class_name: "ForumPoll", dependent: :destroy, inverse_of: :topic
 
   before_validation :initialize_is_hidden, on: :create
   validates :creator_id, presence: true
@@ -18,6 +19,8 @@ class ForumTopic < ApplicationRecord
   validates :title, length: { maximum: 250 }
 
   accepts_nested_attributes_for :original_post
+  accepts_nested_attributes_for :poll, reject_if: :all_blank
+  after_validation :promote_poll_errors
   after_update :update_original_post
   before_destroy :create_mod_action_for_delete
 
@@ -271,7 +274,19 @@ class ForumTopic < ApplicationRecord
     end
   end
 
+  def poll_id
+    poll&.id
+  end
+
+  # Poll-level messages are full sentences; keep them that way instead of "Poll <message>".
+  def promote_poll_errors
+    messages = errors.where(:"poll.base").map(&:message)
+    return if messages.empty?
+    errors.delete(:"poll.base")
+    messages.each { |message| errors.add(:base, message) }
+  end
+
   def method_attributes
-    super + %i[creator_name updater_name]
+    super + %i[creator_name updater_name poll_id]
   end
 end

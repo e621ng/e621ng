@@ -21,7 +21,7 @@ class ForumTopicsController < ApplicationController
 
     @query = ForumTopic.visible(CurrentUser.user).search(search_params)
     @forum_topics = @query
-                    .includes(:creator, :updater)
+                    .includes(:creator, :updater, :poll)
                     .paginate(params[:page], limit: per_page, search_count: params[:search])
 
     respond_with(@forum_topics)
@@ -147,7 +147,15 @@ class ForumTopicsController < ApplicationController
     permitted_params += %i[is_sticky is_locked] if CurrentUser.is_moderator?
     permitted_params += %i[do_not_bump] if context == :update
 
-    params.fetch(:forum_topic, {}).permit(permitted_params)
+    topic_params = params.fetch(:forum_topic, {})
+    if context == :create && CurrentUser.user.can_create_forum_poll?
+      permitted_params << { poll_attributes: [:max_choices, :duration, { options_attributes: %i[body _destroy] }] }
+    else
+      # Dropped rather than left unpermitted: unpermitted params raise (403) in this app.
+      topic_params = topic_params.except(:poll_attributes)
+    end
+
+    topic_params.permit(permitted_params)
   end
 
   def load_topic

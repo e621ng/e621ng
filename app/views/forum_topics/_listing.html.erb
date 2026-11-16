@@ -31,6 +31,9 @@
           <% if topic.is_hidden? %>
             <span class="locked-topic">(hidden)</span>
           <% end %>
+          <% if topic.poll %>
+            <span class="poll-topic" title="This topic has a poll"><%= svg_icon(:chart_bar, width: 14, height: 14) %>(poll)</span>
+          <% end %>
         </td>
         <td class="updated-at updater"><%= link_to_user topic.updater %> <%= time_ago_in_words_tagged topic.updated_at, compact: true %></td>
         <td class="created-at creator"><%= link_to_user topic.creator %> <%= time_ago_in_words_tagged topic.created_at, compact: true %></td>

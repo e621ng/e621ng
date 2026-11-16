@@ -1,0 +1,7 @@
+<%# locals: (f:) -%>
+<div class="forum-poll-option-row">
+  <%= f.input :body, as: :string, label: false, required: false,
+              input_html: { maxlength: Danbooru.config.forum_poll_option_max_size, placeholder: "Option text (DText; thumb #123 embeds a post)" } %>
+  <%= f.hidden_field :_destroy, value: "0", class: "forum-poll-option-destroy" %>
+  <button type="button" class="forum-poll-remove-option" title="Remove option">&times;</button>
+</div>

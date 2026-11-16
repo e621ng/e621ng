@@ -16,6 +16,12 @@
       </div>
     <% end %>
 
+    <% if @forum_topic.poll %>
+      <div id="forum-poll-container">
+        <%= render "forum_polls/poll", poll: @forum_topic.poll, topic: @forum_topic %>
+      </div>
+    <% end %>
+
     <%= render "forum_posts/listing", :forum_posts => @forum_posts, :original_forum_post_id => @forum_topic.original_post.id %>
 
     <% if CurrentUser.user.is_member? %>

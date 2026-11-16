@@ -278,6 +278,10 @@ Rails.application.routes.draw do
       post :mark_all_as_read
     end
     resource :visit, controller: "forum_topic_visits"
+    resource :poll, controller: "forum_polls", only: %i[show update destroy] do
+      post :close
+      resource :vote, controller: "forum_poll_votes", only: %i[show update destroy]
+    end
   end
   resources :forum_categories
   resources :help_pages, controller: "help", path: "help" do
