@@ -74,6 +74,18 @@ RSpec.describe UploadUrlRule do
       expect(rule.errors[:replacement]).to be_present
     end
 
+    ["\\k<image-id>", "\\k<>", "\\k<1>", "\\k<kind"].each do |reference|
+      it "rejects the malformed named reference #{reference}" do
+        rule = build(:upload_url_rule, pattern: "(?<kind>sample)/", replacement: "full/#{reference}")
+        expect(rule).not_to be_valid
+        expect(rule.errors[:replacement].first).to include("invalid group reference")
+      end
+    end
+
+    it "accepts an escaped backslash before k<name>" do
+      expect(build(:upload_url_rule, pattern: "(sample)/", replacement: "full\\\\k<x>/")).to be_valid
+    end
+
     it "accepts a replacement referring to existing groups" do
       expect(build(:upload_url_rule, pattern: "(sample)/(\\d+)", replacement: "full/\\2")).to be_valid
       expect(build(:upload_url_rule, pattern: "(?<kind>sample)/", replacement: "\\k<kind>-full/")).to be_valid

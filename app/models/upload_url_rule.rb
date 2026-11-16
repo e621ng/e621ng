@@ -214,13 +214,15 @@ class UploadUrlRule < ApplicationRecord
     # The newline ends a trailing (?x) comment, which would otherwise swallow the "|".
     groups = Regexp.new("#{pattern}\n|").match("")
     return if groups.nil?
-    replacement.scan(/\\(?:(\d)|k<(\w+)>)/) do |number, name|
-      if number && number.to_i > groups.captures.size
+    replacement.scan(/\\(\d)/) do |(number)|
+      if number.to_i > groups.captures.size
         errors.add(:replacement, "refers to group \\#{number}, which the pattern does not have")
-      elsif name && groups.names.exclude?(name)
-        errors.add(:replacement, "refers to group '#{name}', which the pattern does not have")
       end
     end
+    # Unknown or malformed \k<name> references raise only when substituted, so substitute once.
+    "".sub(groups.regexp, replacement)
+  rescue IndexError, RuntimeError => e
+    errors.add(:replacement, "has an invalid group reference: #{e.message}")
   rescue RegexpError
     # Reported by validate_pattern.
   end
