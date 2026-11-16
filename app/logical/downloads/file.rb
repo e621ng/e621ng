@@ -47,10 +47,12 @@ module Downloads
       raise Error, errors.full_messages.join("; ") unless valid?
     end
 
-    def download!(max_size: Danbooru.config.max_file_size, retries: 3)
+    # deadline: total seconds allowed for the transfer; Faraday's timeout only bounds each read.
+    def download!(max_size: Danbooru.config.max_file_size, retries: 3, deadline: nil)
       # Validate the actual URL we're about to fetch (which can differ from the source
       # url via the strategy's image_url) before opening any socket.
       validate_uri_allowed!(uncached_url)
+      expires_at = Process.clock_gettime(Process::CLOCK_MONOTONIC) + deadline if deadline
 
       file = Tempfile.new(binmode: true)
       conn = Faraday.new(Danbooru.config.faraday_options) do |f|
@@ -70,6 +72,7 @@ module Downloads
           next if Faraday::FollowRedirects::Middleware::REDIRECT_CODES.include?(env.status)
 
           raise Error, "File is too large (max size: #{max_size})" if overall_recieved_bytes > max_size
+          raise Error, "The remote server took too long to respond" if expires_at && Process.clock_gettime(Process::CLOCK_MONOTONIC) > expires_at
           file.write(chunk)
         end
       end

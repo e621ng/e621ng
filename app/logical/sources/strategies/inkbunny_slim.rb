@@ -28,6 +28,10 @@ module Sources
       def headers
         { referer: "https://inkbunny.net" }
       end
+
+      def hotlink_protected?
+        true
+      end
     end
   end
 end

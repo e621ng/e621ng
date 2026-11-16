@@ -33,13 +33,19 @@ const height = ref(0);
 const width = ref(0);
 const overDims = ref(false);
 const failed = ref(false);
+// Retrying through the backend, which sends the Referer some sites require.
+const proxied = ref(false);
 
 const previewDimensions = computed(() => {
   if (width.value > 1 && height.value > 1)
     return width.value + "×" + height.value;
   return "";
 });
-const finalPreviewUrl = computed(() => props.data.url === "" ? thumbNone : props.data.url);
+const finalPreviewUrl = computed(() => {
+  if (props.data.url === "") return thumbNone;
+  if (proxied.value) return "/uploads/preview?url=" + encodeURIComponent(props.data.url);
+  return props.data.url;
+});
 
 watch(() => props.data, () => resetFilePreview());
 
@@ -54,8 +60,13 @@ function resetFilePreview() {
   width.value = 0;
   height.value = 0;
   failed.value = false;
+  proxied.value = false;
 }
 function previewFailed() {
+  if (!proxied.value && !props.data.isVideo && /^https?:\/\//i.test(props.data.url)) {
+    proxied.value = true;
+    return;
+  }
   failed.value = true;
 }
 </script>

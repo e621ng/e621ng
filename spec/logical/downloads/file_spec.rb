@@ -395,5 +395,16 @@ RSpec.describe Downloads::File do
       expect { make_downloader(url).download!(max_size: 4) }
         .to raise_error(Downloads::File::Error, /too large/)
     end
+
+    it "raises Downloads::File::Error when the transfer outlasts the deadline" do
+      stub_request(:get, url).to_return(status: 200, body: "IMAGE")
+      expect { make_downloader(url).download!(deadline: -1) }
+        .to raise_error(Downloads::File::Error, /took too long/)
+    end
+
+    it "returns the body when the transfer finishes within the deadline" do
+      stub_request(:get, url).to_return(status: 200, body: "IMAGE")
+      expect(make_downloader(url).download!(deadline: 60).read).to eq("IMAGE")
+    end
   end
 end

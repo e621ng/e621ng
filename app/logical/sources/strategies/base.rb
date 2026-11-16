@@ -96,6 +96,12 @@ module Sources
         return Danbooru.config.http_headers
       end
 
+      # Whether the site refuses files without these headers, so upload previews
+      # must be fetched server-side.
+      def hotlink_protected?
+        false
+      end
+
       def file_url
         image_url
       end

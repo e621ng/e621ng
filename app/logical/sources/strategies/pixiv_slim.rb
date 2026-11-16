@@ -63,6 +63,10 @@ module Sources
       def headers
         { referer: "https://www.pixiv.net" }
       end
+
+      def hotlink_protected?
+        true
+      end
     end
   end
 end
