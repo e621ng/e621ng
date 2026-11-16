@@ -36,7 +36,7 @@ gem "blueprinter", "1.3.0"
 gem "draper", "4.0.6"
 gem "simple_form", "5.4.1"
 gem "sitemap_generator", "7.1.1"
-gem "view_component", "4.23.0"
+gem "view_component", "4.24.0"
 gem "vite_rails", "3.11.1"
 
 ### Text processing and versioning
@@ -73,7 +73,7 @@ gem "faraday-follow_redirects", "0.5.0"
 gem "faraday-retry", "2.4.0"
 
 ### Monitoring
-gem "datadog", "2.48.0", require: "datadog/auto_instrument"
+gem "datadog", "2.49.0", require: "datadog/auto_instrument"
 
 group :production do
   gem "pitchfork", "0.18.2"
@@ -81,7 +81,7 @@ end
 
 group :development, :test do
   gem "listen", "3.10.1"
-  gem "puma", "8.0.2"
+  gem "puma", "8.0.3"
 
   ### Testing
   gem "factory_bot_rails", "6.5.1", require: false
