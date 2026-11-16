@@ -64,8 +64,9 @@ module Sources
         { referer: "https://www.pixiv.net" }
       end
 
+      # Only the file hosts; www.pixiv.net URLs are pages.
       def hotlink_protected?
-        true
+        parsed_url&.domain == "pximg.net"
       end
     end
   end

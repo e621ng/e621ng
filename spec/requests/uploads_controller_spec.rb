@@ -433,6 +433,26 @@ RSpec.describe UploadsController do
         expect(RateLimiter).not_to have_received(:new)
       end
 
+      [
+        "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=46324488",
+        "https://inkbunny.net/s/3200751",
+      ].each do |page_url|
+        it "returns 404 without downloading for the page URL #{page_url}" do
+          allow(download).to receive(:strategy).and_return(Sources::Strategies.find(page_url))
+          get preview_uploads_path, params: { url: page_url }
+          expect(response).to have_http_status(:not_found)
+          expect(download).not_to have_received(:download!)
+          expect(RateLimiter).not_to have_received(:new)
+        end
+      end
+
+      it "serves previews from the Inkbunny file host" do
+        file_url = "https://us.ib.metapix.net/files/full/5604/5604180_ColdBloodedTwilight_2025.png"
+        allow(download).to receive(:strategy).and_return(Sources::Strategies.find(file_url))
+        get preview_uploads_path, params: { url: file_url }
+        expect(response).to have_http_status(:ok)
+      end
+
       it "returns 422 when the URL is refused" do
         allow(Downloads::File).to receive(:new).and_raise(Downloads::File::Error, "not whitelisted")
         get preview_uploads_path, params: { url: pixiv_url }
