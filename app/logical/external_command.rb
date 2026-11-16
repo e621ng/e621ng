@@ -67,11 +67,16 @@ module ExternalCommand
 
   def read_tail(io)
     output = +"".b
+    truncated = false
     loop do
       output << io.readpartial(64.kilobytes)
-      output = output.byteslice(-OUTPUT_LIMIT, OUTPUT_LIMIT) if output.bytesize > OUTPUT_LIMIT
+      next unless output.bytesize > OUTPUT_LIMIT
+      output = output.byteslice(-OUTPUT_LIMIT, OUTPUT_LIMIT)
+      truncated = true
     end
   rescue EOFError
+    # The cut lands mid-line; a partial line can parse as a different value (905.3231 -> 3231).
+    output = output.partition("\n").last if truncated
     output.force_encoding(Encoding.default_external)
   end
 

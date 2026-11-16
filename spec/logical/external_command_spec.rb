@@ -80,9 +80,20 @@ RSpec.describe ExternalCommand do
 
     it "keeps only the end of long output" do
       stdout, _stderr, _status = described_class.run("sh", "-c", "yes x | head -c 3000000; echo TAIL", timeout: 30)
-      expect(stdout.bytesize).to eq(described_class::OUTPUT_LIMIT)
-      expect(stdout).to end_with("TAIL\n")
+      expect(stdout.bytesize).to be_within(2).of(described_class::OUTPUT_LIMIT)
+      expect(stdout).to start_with("x\n").and end_with("TAIL\n")
       expect(stdout.encoding).to eq(Encoding.default_external)
+    end
+
+    it "drops the partial line left at the start of truncated output" do
+      stdout, _stderr, _status = described_class.run("sh", "-c", "yes 905.3231 | head -n 200000", timeout: 30)
+      expect(stdout).to start_with("905.3231\n")
+      expect(stdout.bytesize).to be < described_class::OUTPUT_LIMIT
+    end
+
+    it "keeps short output whole" do
+      stdout, _stderr, _status = described_class.run("printf", "partial", timeout: 5)
+      expect(stdout).to eq("partial")
     end
 
     it "does not let commands write core dumps" do
