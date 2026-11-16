@@ -96,7 +96,7 @@ module Fixes
     def self.run
       CurrentUser.as_system do
         RULES.each do |attributes|
-          if UploadUrlRule.exists?(["lower(label) = ?", attributes[:label].downcase])
+          if UploadUrlRule.where("lower(label) = ?", attributes[:label].downcase).exists?
             puts "Skipped \"#{attributes[:label]}\": a rule with that label exists."
           else
             UploadUrlRule.create!(attributes)

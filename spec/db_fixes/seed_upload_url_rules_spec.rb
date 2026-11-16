@@ -96,7 +96,7 @@ RSpec.describe Fixes::SeedUploadUrlRules do
   it "creates every rule as the system user" do
     run!
     expect(UploadUrlRule.count).to eq(described_class::RULES.size)
-    expect(UploadUrlRule.pluck(:creator_id).uniq).to eq([User.system.id])
+    expect(UploadUrlRule.distinct.pluck(:creator_id)).to eq([User.system.id])
   end
 
   it "skips labels that already exist, keeping staff edits" do
@@ -107,14 +107,14 @@ RSpec.describe Fixes::SeedUploadUrlRules do
     expect(UploadUrlRule.find_by(label: "pixiv SAMPLE").pattern).to eq("pximg\\.net/edited/")
   end
 
-  it "has examples for every rule" do
-    expect(samples.keys).to match_array(described_class::RULES.pluck(:label))
-  end
-
   describe "with the rules seeded" do
     before { run! }
 
-    samples.each do |label, examples|
+    described_class::RULES.to_h { |rule| [rule[:label], samples.fetch(rule[:label], {})] }.each do |label, examples|
+      it "has examples for #{label}" do
+        expect(examples).not_to be_empty
+      end
+
       examples.each do |url, suggestion|
         it "matches #{url} with #{label}" do
           expect(UploadUrlRule.evaluate(url)).to have_attributes(label: label, suggested_url: suggestion)
