@@ -69,6 +69,13 @@ RSpec.describe UploadUrlRule do
       expect(build(:upload_url_rule, pattern: "(?<kind>sample)/", replacement: "\\k<kind>-full/")).to be_valid
     end
 
+    it "checks group references in an extended pattern ending in a comment" do
+      expect(build(:upload_url_rule, pattern: "(?x) (sample) / # the sample dir", replacement: "\\1-full/")).to be_valid
+      rule = build(:upload_url_rule, pattern: "(?x) (sample) / # the sample dir", replacement: "\\2/")
+      expect(rule).not_to be_valid
+      expect(rule.errors[:replacement]).to be_present
+    end
+
     it "caps field lengths" do
       expect(build(:upload_url_rule, label: "a" * 101)).not_to be_valid
       expect(build(:upload_url_rule, pattern: "a" * 501)).not_to be_valid

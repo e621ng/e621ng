@@ -202,7 +202,9 @@ class UploadUrlRule < ApplicationRecord
     return if replacement.blank? || pattern.blank?
 
     # The alternation with nothing makes the pattern match "", exposing its groups.
-    groups = Regexp.new("#{pattern}|").match("")
+    # The newline ends a trailing (?x) comment, which would otherwise swallow the "|".
+    groups = Regexp.new("#{pattern}\n|").match("")
+    return if groups.nil?
     replacement.scan(/\\(?:(\d)|k<(\w+)>)/) do |number, name|
       if number && number.to_i > groups.captures.size
         errors.add(:replacement, "refers to group \\#{number}, which the pattern does not have")
