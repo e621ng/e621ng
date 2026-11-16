@@ -75,6 +75,10 @@ def setup_upload_whitelist
   end
 end
 
+def setup_upload_url_rules
+  require Rails.root.join("db/fixes/145_seed_upload_url_rules").to_s # runs on load
+end
+
 def setup_report_reasons
   PostReportReason.create!(reason: "Malicious File", description: "The file contains either malicious code or contains a hidden file archive. This is not for imagery depicted in the image itself.")
 end
@@ -148,6 +152,7 @@ unless Rails.env.test?
   begin
     import_mascots
     setup_upload_whitelist
+    setup_upload_url_rules
     setup_report_reasons
     setup_flag_reasons
   rescue Exception => e # rubocop:disable Lint/RescueException
