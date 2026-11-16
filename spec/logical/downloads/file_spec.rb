@@ -406,5 +406,66 @@ RSpec.describe Downloads::File do
       stub_request(:get, url).to_return(status: 200, body: "IMAGE")
       expect(make_downloader(url).download!(deadline: 60).read).to eq("IMAGE")
     end
+
+    it "stops following redirects once the deadline passes" do
+      stub_request(:get, url).to_return(status: 302, headers: { "Location" => "https://example.com/real.jpg" }, body: "<html>Moved</html>")
+      stub_request(:get, "https://example.com/real.jpg").to_return(status: 200, body: "IMAGE")
+      downloader = make_downloader(url)
+      # Start, first hop's timeouts, then the redirect body arrives past the deadline.
+      allow(downloader).to receive(:monotonic_now).and_return(0, 0, 100)
+      expect { downloader.download!(deadline: 20) }.to raise_error(Downloads::File::Error, /took too long/)
+      expect(WebMock::RequestRegistry.instance.times_executed(a_request(:get, "https://example.com/real.jpg"))).to eq(0)
+    end
+
+    describe "temporary file cleanup" do
+      let(:tempfiles) { [] }
+
+      before do
+        allow(Tempfile).to receive(:new).and_wrap_original do |original, *args, **kwargs|
+          original.call(*args, **kwargs).tap { |file| tempfiles << file }
+        end
+      end
+
+      it "closes the file when the size limit is exceeded" do
+        stub_request(:get, url).to_return(status: 200, body: "IMAGE")
+        expect { make_downloader(url).download!(max_size: 4) }.to raise_error(Downloads::File::Error)
+        expect(tempfiles).to all(be_closed)
+      end
+
+      it "closes the file when the deadline passes" do
+        stub_request(:get, url).to_return(status: 200, body: "IMAGE")
+        expect { make_downloader(url).download!(deadline: -1) }.to raise_error(Downloads::File::Error)
+        expect(tempfiles).to all(be_closed)
+      end
+
+      it "closes the file on an HTTP error status" do
+        stub_request(:get, url).to_return(status: 404)
+        expect { make_downloader(url).download! }.to raise_error(Downloads::File::Error, /404/)
+        expect(tempfiles).to all(be_closed)
+      end
+    end
+  end
+
+  describe "#limit_timeouts!" do
+    let(:http) { Net::HTTP.new("example.com").tap { |h| h.open_timeout = h.read_timeout = 10 } }
+    let(:downloader) { make_downloader }
+
+    before { allow(downloader).to receive(:monotonic_now).and_return(100) }
+
+    it "shrinks the open and read timeouts to the time left" do
+      downloader.limit_timeouts!(http, 103)
+      expect(http.open_timeout).to eq(3)
+      expect(http.read_timeout).to eq(3)
+    end
+
+    it "keeps shorter timeouts" do
+      downloader.limit_timeouts!(http, 150)
+      expect(http.open_timeout).to eq(10)
+      expect(http.read_timeout).to eq(10)
+    end
+
+    it "raises once the deadline has passed" do
+      expect { downloader.limit_timeouts!(http, 100) }.to raise_error(Downloads::File::Error, /took too long/)
+    end
   end
 end

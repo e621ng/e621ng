@@ -380,7 +380,7 @@ RSpec.describe UploadsController do
         f.rewind
       end
     end
-    let(:download) { instance_double(Downloads::File, strategy: Sources::Strategies.find(pixiv_url), download!: tempfile) }
+    let(:download) { instance_double(Downloads::File, download!: tempfile) }
 
     before do
       allow(Downloads::File).to receive(:new).and_return(download)
@@ -425,11 +425,10 @@ RSpec.describe UploadsController do
         expect(response).to have_http_status(:bad_request)
       end
 
-      it "returns 404 without downloading for sites that allow hotlinking" do
-        allow(download).to receive(:strategy).and_return(Sources::Strategies.find("https://example.com/a.png"))
+      it "returns 404 without resolving or throttling for sites that allow hotlinking" do
         get preview_uploads_path, params: { url: "https://example.com/a.png" }
         expect(response).to have_http_status(:not_found)
-        expect(download).not_to have_received(:download!)
+        expect(Downloads::File).not_to have_received(:new)
         expect(RateLimiter).not_to have_received(:new)
       end
 
@@ -437,20 +436,29 @@ RSpec.describe UploadsController do
         "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=46324488",
         "https://inkbunny.net/s/3200751",
       ].each do |page_url|
-        it "returns 404 without downloading for the page URL #{page_url}" do
-          allow(download).to receive(:strategy).and_return(Sources::Strategies.find(page_url))
+        it "returns 404 without resolving or throttling for the page URL #{page_url}" do
           get preview_uploads_path, params: { url: page_url }
           expect(response).to have_http_status(:not_found)
-          expect(download).not_to have_received(:download!)
+          expect(Downloads::File).not_to have_received(:new)
           expect(RateLimiter).not_to have_received(:new)
         end
       end
 
       it "serves previews from the Inkbunny file host" do
         file_url = "https://us.ib.metapix.net/files/full/5604/5604180_ColdBloodedTwilight_2025.png"
-        allow(download).to receive(:strategy).and_return(Sources::Strategies.find(file_url))
         get preview_uploads_path, params: { url: file_url }
         expect(response).to have_http_status(:ok)
+      end
+
+      it "matches the file host case-insensitively" do
+        get preview_uploads_path, params: { url: "https://I.PXIMG.NET/img-original/img/a.png" }
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 422 for an unparseable URL" do
+        get preview_uploads_path, params: { url: "https://i.pximg.net:abc/a.png" }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(Downloads::File).not_to have_received(:new)
       end
 
       it "returns 422 when the URL is refused" do
@@ -477,7 +485,7 @@ RSpec.describe UploadsController do
         allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: true, hit!: 1))
         get preview_uploads_path, params: { url: pixiv_url }
         expect(response).to have_http_status(:too_many_requests)
-        expect(download).not_to have_received(:download!)
+        expect(Downloads::File).not_to have_received(:new)
       end
     end
   end

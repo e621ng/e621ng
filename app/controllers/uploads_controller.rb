@@ -88,18 +88,19 @@ class UploadsController < ApplicationController
     url = params[:url]
     return head(400) unless url.is_a?(String)
 
-    download = Downloads::File.new(url)
-    return head(404) unless download.strategy.hotlink_protected?
+    # Gate and throttle before Downloads::File, which resolves the host while validating.
+    strategy = Sources::Strategies.find(Addressable::URI.parse(url).normalize.to_s)
+    return head(404) unless strategy.hotlink_protected?
 
     throttle_preview!
-    file = download.download!(max_size: PREVIEW_MAX_SIZE, retries: 0, deadline: PREVIEW_DEADLINE)
+    file = Downloads::File.new(url).download!(max_size: PREVIEW_MAX_SIZE, retries: 0, deadline: PREVIEW_DEADLINE)
     mime_type = Marcel::MimeType.for(file)
     return head(422) unless mime_type.in?(PREVIEW_MIME_TYPES)
 
     file.rewind
     response.headers["Cache-Control"] = "private, no-store"
     send_data(file.read, type: mime_type, disposition: "inline")
-  rescue Downloads::File::Error
+  rescue Addressable::URI::InvalidURIError, Downloads::File::Error
     head(422)
   ensure
     file&.close!
