@@ -19,19 +19,25 @@ module Fixes
       },
       {
         label: "Twitter sample",
-        pattern: '\A(https://pbs\.twimg\.com/media/[\w-]+\?format=\w+)(?:&name=(?!orig\z)\w+)?\z',
-        replacement: '\1&name=orig',
+        pattern: '\A(https://pbs\.twimg\.com/media/[\w-]+\?(?:[^&]*&)*)name=(?!orig(?:&|\z))[^&]*',
+        replacement: '\1name=orig',
+        handling: "block",
+      },
+      {
+        label: "Twitter sample (no size)",
+        pattern: '\Ahttps://pbs\.twimg\.com/media/[\w-]+\?(?!(?:[^&]*&)*name=).*',
+        replacement: '\0&name=orig',
         handling: "block",
       },
       {
         label: "Twitter sample (legacy URL)",
-        pattern: '\A(https://pbs\.twimg\.com/media/[\w-]+\.(?:jpe?g|png|webp))(?::(?!orig\z)\w+)?\z',
+        pattern: '\A(https://pbs\.twimg\.com/media/[\w-]+\.(?:jpe?g|png|webp))(?::(?!orig(?:\?|\z))\w+)?(?=\?|\z)',
         replacement: '\1:orig',
         handling: "block",
       },
       {
         label: "Derpibooru sample",
-        pattern: '\A(?<base>https://derpicdn\.net/img/)(?<date>\d+/\d+/\d+)/(?<id>\d+)/(?!full\.)[a-z_]+(?<ext>\.\w+)\z',
+        pattern: '\A(?<base>https://derpicdn\.net/img/)(?<date>\d+/\d+/\d+)/(?<id>\d+)/(?!full\.)[a-z_]+(?<ext>\.\w+)(?=\?|\z)',
         replacement: '\k<base>view/\k<date>/\k<id>\k<ext>',
         handling: "block",
       },
@@ -68,7 +74,7 @@ module Fixes
       },
       {
         label: "Bluesky sample",
-        pattern: '\Ahttps://(?:av-)?cdn\.bsky\.app/img/feed_(?:thumbnail|fullsize)/plain/(did:[a-z0-9]+:[a-z0-9.:-]+)/([a-z0-9]+)(?:@[a-z]+)?\z',
+        pattern: '\Ahttps://(?:av-)?cdn\.bsky\.app/img/feed_(?:thumbnail|fullsize)/plain/(did:[a-z0-9]+:[a-z0-9.:-]+)/([a-z0-9]+)(?:@[a-z]+)?(?:\?.*)?\z',
         replacement: 'https://bsky.social/xrpc/com.atproto.sync.getBlob?cid=\2&did=\1',
         handling: "block",
       },
@@ -86,7 +92,7 @@ module Fixes
       },
       {
         label: "Tumblr sample",
-        pattern: '\A(?<base>https://\d+\.media\.tumblr\.com/[0-9a-f]+/tumblr_[^/]+_)(?:75sq|\d{2,3})(?<ext>\.(?:jpe?g|png))\z',
+        pattern: '\A(?<base>https://\d+\.media\.tumblr\.com/[0-9a-f]+/tumblr_[^/]+_)(?:75sq|\d{2,3})(?<ext>\.(?:jpe?g|png))(?=\?|\z)',
         replacement: '\k<base>1280\k<ext>',
         handling: "recommend",
         message: "Tumblr keeps a larger copy up to 1280 pixels wide. Prefer the artist's other galleries if the art is posted there.",

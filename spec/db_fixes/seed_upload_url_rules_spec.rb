@@ -25,15 +25,21 @@ RSpec.describe Fixes::SeedUploadUrlRules do
       "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?format=jpg&name=large" => "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?format=jpg&name=orig",
       "https://pbs.twimg.com/media/GuuuzqmWIAAfahk?format=jpg&name=4096x4096" => "https://pbs.twimg.com/media/GuuuzqmWIAAfahk?format=jpg&name=orig",
       "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?name=small&format=png" => "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?format=png&name=orig",
+      "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?format=jpg&name=large&s=1" => "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?format=jpg&name=orig&s=1",
+    },
+    "Twitter sample (no size)" => {
       "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?format=jpg" => "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?format=jpg&name=orig",
+      "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?format=jpg&s=1" => "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?format=jpg&s=1&name=orig",
     },
     "Twitter sample (legacy URL)" => {
       "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd.jpg:large" => "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd.jpg:orig",
       "https://pbs.twimg.com/media/EwBlZPIWQAAcOv3.jpg" => "https://pbs.twimg.com/media/EwBlZPIWQAAcOv3.jpg:orig",
+      "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd.jpg:large?s=1" => "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd.jpg:orig?s=1",
     },
     "Derpibooru sample" => {
       "https://derpicdn.net/img/2026/5/18/3820752/large.png" => "https://derpicdn.net/img/view/2026/5/18/3820752.png",
       "https://derpicdn.net/img/2026/7/11/3852602/large.webm" => "https://derpicdn.net/img/view/2026/7/11/3852602.webm",
+      "https://derpicdn.net/img/2026/5/18/3820752/large.png?x=1" => "https://derpicdn.net/img/view/2026/5/18/3820752.png?x=1",
     },
     "Inkbunny sample" => {
       "https://sf.ib.metapix.net/files/screen/6065/6065328_nocneko_spoiler_img_4321.jpg" => "https://sf.ib.metapix.net/files/full/6065/6065328_nocneko_spoiler_img_4321.jpg",
@@ -60,6 +66,8 @@ RSpec.describe Fixes::SeedUploadUrlRules do
         "https://bsky.social/xrpc/com.atproto.sync.getBlob?cid=bafkreiccfee4iv3hp5ztay6jvqhmuf3olvlc4semi7z7z3wg4kkphbygtu&did=did:plc:pj6ilk2gtkz4n2rcwdk34dfq",
       "https://cdn.bsky.app/img/feed_thumbnail/plain/did:plc:wi6ijxe3iiz37ky6borktpzr/bafkreihdyupk432szkbawux2q66rn2qji5gidnwf3qfeyvmllxcrewronq@jpeg" =>
         "https://bsky.social/xrpc/com.atproto.sync.getBlob?cid=bafkreihdyupk432szkbawux2q66rn2qji5gidnwf3qfeyvmllxcrewronq&did=did:plc:wi6ijxe3iiz37ky6borktpzr",
+      "https://cdn.bsky.app/img/feed_fullsize/plain/did:plc:pj6ilk2gtkz4n2rcwdk34dfq/bafkreiccfee4iv3hp5ztay6jvqhmuf3olvlc4semi7z7z3wg4kkphbygtu@jpeg?x=1" =>
+        "https://bsky.social/xrpc/com.atproto.sync.getBlob?cid=bafkreiccfee4iv3hp5ztay6jvqhmuf3olvlc4semi7z7z3wg4kkphbygtu&did=did:plc:pj6ilk2gtkz4n2rcwdk34dfq",
     },
     "Newgrounds sample" => {
       "https://art.ngfiles.com/medium_views/8203000/8203625_3830255_pokkuti_untitled-8203625.c83a28f6559bb4fd6b9af80e9f03c202.webp" => nil,
@@ -70,6 +78,7 @@ RSpec.describe Fixes::SeedUploadUrlRules do
     "Tumblr sample" => {
       "https://64.media.tumblr.com/497e72365511c85904a71e7b4b484db7/tumblr_pb9itjmQOn1vw8l1po1_640.png" => "https://64.media.tumblr.com/497e72365511c85904a71e7b4b484db7/tumblr_pb9itjmQOn1vw8l1po1_1280.png",
       "https://64.media.tumblr.com/3e2f557ee591c8d20244b7347696de90/tumblr_inline_pbof777VIL1unv7vv_500.png" => "https://64.media.tumblr.com/3e2f557ee591c8d20244b7347696de90/tumblr_inline_pbof777VIL1unv7vv_1280.png",
+      "https://64.media.tumblr.com/497e72365511c85904a71e7b4b484db7/tumblr_pb9itjmQOn1vw8l1po1_640.png?x=1" => "https://64.media.tumblr.com/497e72365511c85904a71e7b4b484db7/tumblr_pb9itjmQOn1vw8l1po1_1280.png?x=1",
     },
   }
 
@@ -78,6 +87,8 @@ RSpec.describe Fixes::SeedUploadUrlRules do
     "https://i.pximg.net/img-original/img/2026/04/21/01/07/55/143802541_p1.png",
     "https://pbs.twimg.com/media/HUY0kklbkAACBQ1?format=jpg&name=orig",
     "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd.jpg:orig",
+    "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd?format=jpg&name=orig&s=1",
+    "https://pbs.twimg.com/media/HXFYP7FaEAAkgtd.jpg:orig?s=1",
     "https://derpicdn.net/img/view/2026/11/16/3933008.png",
     "https://derpicdn.net/img/2026/5/18/3820752/full.png",
     "https://tx1.ib.metapix.net/files/full/3486/3486072_LilChu_sketch2124.png",
