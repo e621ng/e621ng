@@ -8,6 +8,7 @@ class Post < ApplicationRecord
   # Tags to copy when copying notes.
   NOTE_COPY_TAGS = %w[translated partially_translated translation_check translation_request].freeze
   NON_ARTIST_TAGS = %w[avoid_posting conditional_dnp epilepsy_warning sound_warning].freeze
+  ACCOUNTABILITY_TAGS = %w[ai_assisted ai_generated_background ai_generated_reference].freeze
   NON_KNOWN_ARTIST_TAGS = %w[unknown_artist anonymous_artist third-party_edit].freeze
   SUBSCRIBE_BANNER_LIMIT = 5
 
@@ -1174,10 +1175,11 @@ class Post < ApplicationRecord
     end
 
     ## DB!
-    # Like `artist_tags`, but also excludes artist tags that aren't known to be actual artists
+    # Like `artist_tags`, but also excludes artist tags that aren't known to be actual artists,
+    # along with the AI accountability tags
     def known_artist_tags
       @known_artist_tags ||= artist_tags.filter do |tag|
-        NON_KNOWN_ARTIST_TAGS.exclude?(tag.name)
+        NON_KNOWN_ARTIST_TAGS.exclude?(tag.name) && ACCOUNTABILITY_TAGS.exclude?(tag.name)
       end
     end
 
