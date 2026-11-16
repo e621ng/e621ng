@@ -46,7 +46,7 @@ module Fixes
         pattern: '\A(https://(?:[a-z0-9]+\.ib\.metapix\.net|inkbunny\.net)/files/)(?:screen|preview)/',
         replacement: '\1full/',
         handling: "block",
-        message: "If the suggested URL does not load, the full-size file may be a .png.",
+        message: "If the suggested URL does not load, the full-size file may be a .png file.",
       },
       {
         label: "SoFurry preview",
