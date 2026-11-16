@@ -28,6 +28,11 @@ module Sources
       def headers
         { referer: "https://inkbunny.net" }
       end
+
+      # Only the file hosts; inkbunny.net URLs are pages.
+      def hotlink_protected?
+        parsed_url&.domain == "metapix.net"
+      end
     end
   end
 end

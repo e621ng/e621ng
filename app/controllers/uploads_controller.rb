@@ -4,11 +4,21 @@ class UploadsController < ApplicationController
   before_action :member_only
   before_action :staff_only, only: [:index]
   before_action :ensure_uploads_enabled, only: %i[new create]
+  before_action :reject_api_key_auth, :reject_bearer_auth, :same_origin_only, only: [:preview]
   respond_to :html, :json
   content_security_policy only: [:new] do |p|
     p.img_src :self, :data, :blob, "*"
     p.media_src :self, :data, :blob, "*"
   end
+  # Third-party bytes served from our origin: never let them run as a document.
+  content_security_policy only: [:preview] do |p|
+    p.default_src :none
+    p.sandbox
+  end
+
+  PREVIEW_MAX_SIZE = 25.megabytes
+  PREVIEW_DEADLINE = 20 # seconds
+  PREVIEW_MIME_TYPES = %w[image/jpeg image/png image/gif image/webp].freeze
 
   def index
     @uploads = Upload.search(search_params).includes(:post, :uploader).paginate(params[:page], :limit => params[:limit])
@@ -72,7 +82,47 @@ class UploadsController < ApplicationController
     end
   end
 
+  # Fetches the preview of a URL from a site that refuses hotlinks, sending the strategy's
+  # headers. The uploader falls back to this when loading the file directly fails.
+  def preview
+    url = params[:url]
+    return head(400) unless url.is_a?(String)
+
+    # Gate and throttle before Downloads::File, which resolves the host while validating.
+    strategy = Sources::Strategies.find(Addressable::URI.parse(url).normalize.to_s)
+    return head(404) unless strategy.hotlink_protected?
+
+    throttle_preview!
+    file = Downloads::File.new(url).download!(max_size: PREVIEW_MAX_SIZE, retries: 0, deadline: PREVIEW_DEADLINE)
+    mime_type = Marcel::MimeType.for(file)
+    return head(422) unless mime_type.in?(PREVIEW_MIME_TYPES)
+
+    file.rewind
+    response.headers["Cache-Control"] = "private, no-store"
+    send_data(file.read, type: mime_type, disposition: "inline")
+  rescue Addressable::URI::InvalidURIError, Downloads::File::Error
+    head(422)
+  ensure
+    file&.close!
+  end
+
   private
+
+  def same_origin_only
+    site = request.headers["Sec-Fetch-Site"]
+    head(403) if site.present? && site != "same-origin"
+  end
+
+  def throttle_preview!
+    return if Danbooru.config.disable_throttles?
+
+    limiters = [
+      RateLimiter.new("upload_preview:user:#{CurrentUser.id}", limit: 30, period: 10.minutes),
+      RateLimiter.new("upload_preview:ip:#{CurrentUser.ip_addr}", limit: 30, period: 10.minutes),
+    ]
+    raise APIThrottled if limiters.any?(&:throttled?)
+    limiters.each(&:hit!)
+  end
 
   def upload_params
     permitted_params = %i[

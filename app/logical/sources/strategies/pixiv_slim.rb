@@ -63,6 +63,11 @@ module Sources
       def headers
         { referer: "https://www.pixiv.net" }
       end
+
+      # Only the file hosts; www.pixiv.net URLs are pages.
+      def hotlink_protected?
+        parsed_url&.domain == "pximg.net"
+      end
     end
   end
 end

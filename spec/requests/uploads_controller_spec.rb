@@ -368,6 +368,129 @@ RSpec.describe UploadsController do
   end
 
   # ---------------------------------------------------------------------------
+  # GET /uploads/preview
+  # ---------------------------------------------------------------------------
+
+  describe "GET /uploads/preview" do
+    let(:pixiv_url) { "https://i.pximg.net/img-original/img/2014/10/03/18/10/20/46324488_p0.png" }
+    let(:image) { Rails.root.join("spec/fixtures/files/sample.png") }
+    let(:tempfile) do
+      Tempfile.new(binmode: true).tap do |f|
+        f.write(File.binread(image))
+        f.rewind
+      end
+    end
+    let(:download) { instance_double(Downloads::File, download!: tempfile) }
+
+    before do
+      allow(Downloads::File).to receive(:new).and_return(download)
+      allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1))
+    end
+
+    it "redirects anonymous to the login page" do
+      get preview_uploads_path, params: { url: pixiv_url }
+      expect(response).to have_http_status(:redirect)
+      expect(Downloads::File).not_to have_received(:new)
+    end
+
+    it "rejects api_key auth" do
+      api_key = create(:api_key, user: member)
+      get preview_uploads_path, params: { url: pixiv_url, login: member.name, api_key: api_key.key }, headers: { "Accept" => "application/json" }
+      expect(response).to have_http_status(:forbidden)
+      expect(Downloads::File).not_to have_received(:new)
+    end
+
+    context "with a member" do
+      before { sign_in_as member }
+
+      it "serves the image with safe headers" do
+        get preview_uploads_path, params: { url: pixiv_url }, headers: { "Sec-Fetch-Site" => "same-origin" }
+        expect(response).to have_http_status(:ok)
+        expect(response.media_type).to eq("image/png")
+        expect(response.body.b).to eq(File.binread(image))
+        expect(response.headers["Cache-Control"]).to include("no-store")
+        expect(response.headers["Content-Security-Policy"]).to include("sandbox")
+        expect(Downloads::File).to have_received(:new).with(pixiv_url)
+        expect(download).to have_received(:download!).with(max_size: UploadsController::PREVIEW_MAX_SIZE, retries: 0, deadline: UploadsController::PREVIEW_DEADLINE)
+      end
+
+      it "rejects cross-site requests" do
+        get preview_uploads_path, params: { url: pixiv_url }, headers: { "Sec-Fetch-Site" => "cross-site" }
+        expect(response).to have_http_status(:forbidden)
+        expect(Downloads::File).not_to have_received(:new)
+      end
+
+      it "returns 400 when url is not a string" do
+        get preview_uploads_path, params: { url: { nested: "value" } }
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "returns 404 without resolving or throttling for sites that allow hotlinking" do
+        get preview_uploads_path, params: { url: "https://example.com/a.png" }
+        expect(response).to have_http_status(:not_found)
+        expect(Downloads::File).not_to have_received(:new)
+        expect(RateLimiter).not_to have_received(:new)
+      end
+
+      [
+        "https://www.pixiv.net/member_illust.php?mode=medium&illust_id=46324488",
+        "https://inkbunny.net/s/3200751",
+      ].each do |page_url|
+        it "returns 404 without resolving or throttling for the page URL #{page_url}" do
+          get preview_uploads_path, params: { url: page_url }
+          expect(response).to have_http_status(:not_found)
+          expect(Downloads::File).not_to have_received(:new)
+          expect(RateLimiter).not_to have_received(:new)
+        end
+      end
+
+      it "serves previews from the Inkbunny file host" do
+        file_url = "https://us.ib.metapix.net/files/full/5604/5604180_ColdBloodedTwilight_2025.png"
+        get preview_uploads_path, params: { url: file_url }
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "matches the file host case-insensitively" do
+        get preview_uploads_path, params: { url: "https://I.PXIMG.NET/img-original/img/a.png" }
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 422 for an unparseable URL" do
+        get preview_uploads_path, params: { url: "https://i.pximg.net:abc/a.png" }
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(Downloads::File).not_to have_received(:new)
+      end
+
+      it "returns 422 when the URL is refused" do
+        allow(Downloads::File).to receive(:new).and_raise(Downloads::File::Error, "not whitelisted")
+        get preview_uploads_path, params: { url: pixiv_url }
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "returns 422 when the download fails" do
+        allow(download).to receive(:download!).and_raise(Downloads::File::Error, "too large")
+        get preview_uploads_path, params: { url: pixiv_url }
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "returns 422 for content that is not an allowed image" do
+        tempfile.write("<html><script>alert(1)</script></html>")
+        tempfile.truncate(tempfile.pos)
+        tempfile.rewind
+        get preview_uploads_path, params: { url: pixiv_url }
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "returns 429 when throttled" do
+        allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: true, hit!: 1))
+        get preview_uploads_path, params: { url: pixiv_url }
+        expect(response).to have_http_status(:too_many_requests)
+        expect(Downloads::File).not_to have_received(:new)
+      end
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # Upload lockdown — cross-cutting
   # ---------------------------------------------------------------------------
 

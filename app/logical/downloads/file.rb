@@ -35,6 +35,8 @@ module Downloads
       2001::/32
     ].map { |range| IPAddr.new(range) }.freeze
 
+    DEADLINE_MESSAGE = "The remote server took too long to respond"
+
     attr_reader :url
 
     validate :validate_url
@@ -51,25 +53,32 @@ module Downloads
       raise Error, errors.full_messages.join("; ") unless valid?
     end
 
-    def download!(max_size: Danbooru.config.max_file_size, retries: 3)
+    # deadline: total seconds allowed for the transfer, redirects included; Faraday's timeouts only bound each wait.
+    def download!(max_size: Danbooru.config.max_file_size, retries: 3, deadline: nil)
       # Validate the actual URL we're about to fetch (which can differ from the source
       # url via the strategy's image_url) before opening any socket.
       validate_uri_allowed!(uncached_url)
+      expires_at = monotonic_now + deadline if deadline
 
       file = Tempfile.new(binmode: true)
       conn = Faraday.new(Danbooru.config.faraday_options) do |f|
         f.response :follow_redirects, callback: ->(_old_env, new_env) { validate_uri_allowed!(new_env.url) }
-        f.request :retry, max: retries, retry_block: ->(*) { file = Tempfile.new(binmode: true) }
+        f.request :retry, max: retries, retry_block: ->(*) {
+          file.close!
+          file = Tempfile.new(binmode: true)
+        }
         # Pin the connection to a validated IP. The adapter block runs per request —
         # including every redirect and retry — so the exact address checked against
         # BLOCKED_IP_RANGES is the exact address connected to (no DNS-rebind window).
         f.adapter :net_http do |http|
+          limit_timeouts!(http, expires_at) if expires_at
           pin_connection!(http)
         end
       end
 
       res = conn.get(uncached_url, nil, strategy.headers) do |req|
         req.options.on_data = ->(chunk, overall_recieved_bytes, env) do
+          raise Error, DEADLINE_MESSAGE if expires_at && monotonic_now > expires_at
           # Redirect bodies aren't part of the file; follow_redirects fetches the target next.
           next if Faraday::FollowRedirects::Middleware::REDIRECT_CODES.include?(env.status)
 
@@ -88,6 +97,9 @@ module Downloads
     rescue Faraday::Error
       file&.close!
       raise Error, "Couldn't download the file. The remote server may be down or unreachable."
+    rescue Error
+      file&.close!
+      raise
     end
 
     def validate_url
@@ -153,6 +165,20 @@ module Downloads
     # Pin the underlying Net::HTTP connection to a validated IP so it can't be re-resolved
     # to a blocked address between validation and connect. Keeps the hostname as #address
     # (preserving TLS SNI and the Host header) while overriding only the socket target.
+    # Shrinks this request's timeouts to what is left of the deadline, so waits for
+    # headers and every redirect hop count toward it.
+    def limit_timeouts!(http, expires_at)
+      remaining = expires_at - monotonic_now
+      raise Error, DEADLINE_MESSAGE if remaining <= 0
+
+      http.open_timeout = [http.open_timeout, remaining].compact.min
+      http.read_timeout = [http.read_timeout, remaining].compact.min
+    end
+
+    def monotonic_now
+      Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    end
+
     def pin_connection!(http)
       return if http.address.blank?
 
