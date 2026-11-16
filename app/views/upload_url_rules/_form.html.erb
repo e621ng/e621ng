@@ -1,0 +1,49 @@
+<%= custom_form_for(@rule) do |f| %>
+  <%= error_messages_for "rule" %>
+
+  <%= f.input :label, as: :string, hint: "Shown to the uploader, e.g. \"Twitter sample\"." %>
+  <%= f.input :pattern, as: :string, input_html: { size: 80 }, hint: "Ruby regular expression, case-insensitive, matched against the canonical form of the URL." %>
+  <%= f.input :replacement, as: :string, input_html: { size: 80 }, hint: "Replaces the matched part to build the suggested URL. \\1 or \\k<name> refer to groups. Leave blank if no better URL can be derived." %>
+  <%= f.input :handling, as: :select, collection: UploadUrlRule::HANDLINGS.map { |h| [h.titleize, h] }, include_blank: false, hint: "Recommend: the uploader may keep the original URL. Block: the upload is refused." %>
+  <%= f.input :message, as: :string, input_html: { size: 80 }, hint: "Optional help text shown to the uploader under the label." %>
+  <%= f.input :enabled, as: :boolean %>
+
+  <div class="input">
+    <label class="block" for="test_url">Test URL</label>
+    <%= text_field_tag :test_url, @test_url, size: 80 %>
+    <span class="hint">"Test" applies the rule above to this URL without saving it.</span>
+  </div>
+
+  <% if @tested && @rule.errors.none? %>
+    <div class="box-section">
+      <% if @test_error %>
+        <b><%= @test_error %></b>
+      <% elsif @test_canonical.nil? %>
+        <b>Not checked.</b> The test URL is not a valid http(s) URL, or is too long.
+      <% else %>
+        Canonical form: <code><%= @test_canonical %></code><br>
+        <% if @test_result.nil? %>
+          <b>No match.</b>
+        <% elsif @test_result.suggested_url %>
+          <b>Match.</b> Suggested URL: <code><%= @test_result.suggested_url %></code>
+        <% else %>
+          <b>Match.</b> No suggested URL.
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%= f.button :submit, "Save" %>
+  <%= f.button :submit, "Test" %>
+<% end %>
+
+<div class="box-section">
+  <h4>Writing patterns</h4>
+  <ul>
+    <li>Patterns match the canonical form of the URL: lower-case scheme and host, no default port, no fragment, no repeated slashes, query parameters sorted by name. The test above shows it.</li>
+    <li>Avoid end anchors on the path. A pattern ending in <code>\.(jpg|png)$</code> is defeated by adding <code>?x=1</code>.</li>
+    <li>Match what makes the URL a sample (<code>/img-master/</code>, <code>/preview/</code>), not what a good URL looks like.</li>
+    <li>A rule that times out refuses every URL upload it is checked against until it is fixed or disabled.</li>
+    <li>Rules stop honest mistakes. They cannot stop someone from saving the sample and uploading it as a file.</li>
+  </ul>
+</div>

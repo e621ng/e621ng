@@ -4,6 +4,8 @@ module Downloads
   class File
     include ActiveModel::Validations
     class Error < StandardError; end
+    # An upload URL rule refused the URL. The message is safe to show to the user.
+    class RuleError < Error; end
 
     # Internal/non-public address ranges that downloads must never reach. Includes
     # IPv6 transition and IPv4-mapped ranges, which IPAddr#private?/#loopback?/
@@ -37,7 +39,9 @@ module Downloads
 
     validate :validate_url
 
-    def initialize(url)
+    # enforce_rules: also refuse URLs (including redirect targets) that an UploadUrlRule blocks.
+    def initialize(url, enforce_rules: false)
+      @enforce_rules = enforce_rules
       begin
         uri = url.is_a?(Addressable::URI) ? url.dup : Addressable::URI.parse(url.to_s)
         @url = uri.normalize
@@ -135,6 +139,15 @@ module Downloads
       unless valid
         raise Downloads::File::Error, "'#{uri}' is not whitelisted and can't be direct downloaded"
       end
+
+      validate_uri_passes_rules!(uri) if @enforce_rules
+    end
+
+    def validate_uri_passes_rules!(uri)
+      result = UploadUrlRule.evaluate(uri)
+      raise RuleError, "'#{uri}' #{UploadUrlRule.block_message(result)}" if result&.block?
+    rescue UploadUrlRule::EvaluationError => e
+      raise RuleError, "'#{uri}' #{UploadUrlRule.failure_message(e)}"
     end
 
     # Pin the underlying Net::HTTP connection to a validated IP so it can't be re-resolved

@@ -39,6 +39,18 @@ async function selectFile (w: VueWrapper, file: File) {
   await input.trigger("change");
 }
 
+const CHECK_PATH = "/upload_url_rules/check";
+const WHITELIST_PATH = "/upload_whitelists/is_allowed";
+const callsTo = (spy: { mock: { calls: unknown[][] } }, path: string) => spy.mock.calls.filter((call) => String(call[0]).includes(path)).length;
+
+// Route fetch by endpoint: the URL-rule check and the whitelist lookup fire side by side.
+function mockEndpoints (opts: { rule?: unknown, ruleStatus?: number, whitelist?: unknown } = {}) {
+  return vi.spyOn(globalThis, "fetch").mockImplementation((async (input: unknown) => {
+    if (String(input).includes(CHECK_PATH)) return jsonResponse(opts.rule ?? { match: false }, { status: opts.ruleStatus ?? 200 });
+    return jsonResponse(opts.whitelist ?? {});
+  }) as any);
+}
+
 // Set the URL field and let the debounced preview/whitelist work run.
 async function setUrl (w: VueWrapper, url: string) {
   await urlInput(w).setValue(url);
@@ -47,17 +59,125 @@ async function setUrl (w: VueWrapper, url: string) {
 }
 
 describe("uploads/file_input — direct URL checks", () => {
-  it.each([
-    ["https://a.furaffinity.net/1/x.jpg", "Thumbnail URL"],
-    ["https://pbs.twimg.com/media/AbC123.jpg", "Sample URL"],
-  ])("flags %s as a problem", async (url, reason) => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({}) as Response);
+  it("checks a pasted URL against the upload URL rules", async () => {
+    const fetchSpy = mockEndpoints();
     const w = await mountFileInput();
-    await setUrl(w, url);
-    const box = w.find(".linkinput-wrapper .background-red");
-    expect(box.exists()).toBe(true);
-    expect(box.text()).toContain(reason);
+    await setUrl(w, "https://example.com/sample/1.jpg");
+    const call = fetchSpy.mock.calls.find((c) => String(c[0]).includes(CHECK_PATH));
+    expect(String(call?.[0])).toContain("url=" + encodeURIComponent("https://example.com/sample/1.jpg"));
+    expect(w.find(".url-rule").exists()).toBe(false);
+    expect(lastChange(w).invalid).toBe(false);
+  });
+
+  it("does not check a value that is not an http(s) URL", async () => {
+    const fetchSpy = mockEndpoints();
+    const w = await mountFileInput();
+    await setUrl(w, "not a url");
+    expect(callsTo(fetchSpy, CHECK_PATH)).toBe(0);
+  });
+
+  it("shows a recommendation without blocking, and applies the suggested URL on click", async () => {
+    const fetchSpy = mockEndpoints({ rule: { match: true, handling: "recommend", label: "Sample URL", message: "Use the original.", suggested_url: "https://example.com/full/1.jpg" } });
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/sample/1.jpg");
+
+    const box = w.find(".linkinput-wrapper .url-rule");
+    expect(box.classes()).toContain("background-yellow");
+    expect(box.text()).toContain("Sample URL");
+    expect(box.text()).toContain("Use the original.");
+    expect(box.text()).toContain("https://example.com/full/1.jpg");
+    expect(lastChange(w).invalid).toBe(false);
+
+    fetchSpy.mockImplementation((async () => jsonResponse({ match: false })) as any);
+    await box.find("button").trigger("click");
+    await vi.advanceTimersByTimeAsync(300);
+    await flushPromises();
+    expect((urlInput(w).element as HTMLInputElement).value).toBe("https://example.com/full/1.jpg");
+    expect(lastChange(w).value).toBe("https://example.com/full/1.jpg");
+    expect(w.find(".url-rule").exists()).toBe(false);
+  });
+
+  it("blocks the upload when a block rule matches", async () => {
+    mockEndpoints({ rule: { match: true, handling: "block", label: "Thumbnail URL", message: "", suggested_url: "https://example.com/full/1.jpg" } });
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/thumb/1.jpg");
+    const box = w.find(".linkinput-wrapper .url-rule");
+    expect(box.classes()).toContain("background-red");
+    expect(box.text()).toContain("Thumbnail URL");
+    expect(box.find("button").exists()).toBe(true);
     expect(lastChange(w).invalid).toBe(true);
+  });
+
+  it("points to the sourcing guide when a rule has no suggestion", async () => {
+    mockEndpoints({ rule: { match: true, handling: "block", label: "Thumbnail URL", message: "", suggested_url: null } });
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/thumb/1.jpg");
+    const box = w.find(".url-rule");
+    expect(box.find("button").exists()).toBe(false);
+    expect(box.find("a[href='/wiki_pages/howto:sites_and_sources']").exists()).toBe(true);
+    expect(lastChange(w).invalid).toBe(true);
+  });
+
+  it("blocks the upload when a rule could not be evaluated (422 rule_failed)", async () => {
+    mockEndpoints({ rule: { error: "rule_failed", label: "Slow rule" }, ruleStatus: 422 });
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/art.png");
+    const box = w.find(".url-rule");
+    expect(box.classes()).toContain("background-red");
+    expect(box.text()).toContain("could not be checked");
+    expect(box.text()).toContain("Slow rule");
+    expect(lastChange(w).invalid).toBe(true);
+  });
+
+  it("blocks the upload when the URL cannot be checked (422 url_uncheckable)", async () => {
+    mockEndpoints({ rule: { error: "url_uncheckable" }, ruleStatus: 422 });
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/art.png");
+    const box = w.find(".url-rule");
+    expect(box.classes()).toContain("background-red");
+    expect(box.text()).toContain("too long to be checked");
+    expect(lastChange(w).invalid).toBe(true);
+  });
+
+  it.each([500, 429])("does not block when the check itself fails (%i)", async (status) => {
+    mockEndpoints({ rule: { message: "nope" }, ruleStatus: status });
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/art.png");
+    expect(w.find(".url-rule").exists()).toBe(false);
+    expect(lastChange(w).invalid).toBe(false);
+  });
+
+  it("clears the verdict as soon as the URL is edited", async () => {
+    mockEndpoints({ rule: { match: true, handling: "block", label: "Thumbnail URL", message: "", suggested_url: null } });
+    const w = await mountFileInput();
+    await setUrl(w, "https://example.com/thumb/1.jpg");
+    expect(lastChange(w).invalid).toBe(true);
+
+    // No timer advance: the verdict belongs to the previous URL.
+    await urlInput(w).setValue("https://example.com/thumb/2.jpg");
+    expect(w.find(".url-rule").exists()).toBe(false);
+    expect(lastChange(w).invalid).toBe(false);
+  });
+
+  it("ignores a stale rule verdict when the URL has since changed (latest wins)", async () => {
+    const resolvers: ((v: unknown) => void)[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(((input: unknown) => {
+      if (!String(input).includes(CHECK_PATH)) return Promise.resolve(jsonResponse({}));
+      return new Promise((resolve) => { resolvers.push(resolve); });
+    }) as any);
+    const w = await mountFileInput();
+    await urlInput(w).setValue("https://example.com/thumb/1.jpg");
+    await vi.advanceTimersByTimeAsync(300);
+    await urlInput(w).setValue("https://example.com/full/1.jpg");
+    await vi.advanceTimersByTimeAsync(300);
+
+    resolvers[1](jsonResponse({ match: false }));
+    await flushPromises();
+    resolvers[0](jsonResponse({ match: true, handling: "block", label: "Thumbnail URL", message: "", suggested_url: null }));
+    await flushPromises();
+
+    expect(w.find(".url-rule").exists()).toBe(false);
+    expect(lastChange(w).invalid).toBe(false);
   });
 
   it("emits a valid file state on a fresh mount", async () => {
@@ -70,7 +190,7 @@ describe("uploads/file_input — direct URL checks", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({}) as Response);
     const w = await mountFileInput();
     await setUrl(w, "https://example.com/art.png");
-    expect(w.find(".linkinput-wrapper .background-red").exists()).toBe(false);
+    expect(w.find(".linkinput-wrapper .url-rule").exists()).toBe(false);
     expect(lastChange(w).value).toBe("https://example.com/art.png");
     expect(lastChange(w).preview).toEqual({ url: "https://example.com/art.png", isVideo: false });
   });
@@ -89,7 +209,10 @@ describe("uploads/file_input — direct URL checks", () => {
   it("ignores a stale whitelist response when the URL has since changed (latest wins)", async () => {
     // Defer each lookup so responses can be resolved out of order.
     const resolvers: ((v: unknown) => void)[] = [];
-    vi.spyOn(globalThis, "fetch").mockImplementation((() => new Promise((resolve) => { resolvers.push(resolve); })) as any);
+    vi.spyOn(globalThis, "fetch").mockImplementation(((input: unknown) => {
+      if (String(input).includes(CHECK_PATH)) return Promise.resolve(jsonResponse({ match: false }));
+      return new Promise((resolve) => { resolvers.push(resolve); });
+    }) as any);
     const w = await mountFileInput();
 
     // Advance past the debounce after each edit so BOTH lookups actually fire
@@ -214,10 +337,11 @@ describe("uploads/file_input — whitelistAllowed payload", () => {
     );
     const w = await mountFileInput();
     await setUrl(w, "https://example.com/art.png");
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(callsTo(fetchSpy, WHITELIST_PATH)).toBe(1);
 
     await setUrl(w, "https://example.com/other.png");
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(callsTo(fetchSpy, WHITELIST_PATH)).toBe(1);
+    expect(callsTo(fetchSpy, CHECK_PATH)).toBe(2); // rules are checked for every URL
     expect(lastChange(w).whitelistAllowed).toBe(true);
   });
 
@@ -233,7 +357,7 @@ describe("uploads/file_input — whitelistAllowed payload", () => {
     expect(lastChange(w).whitelistAllowed).toBe(true);
 
     await setUrl(w, "https://static1.example.com/other.png");
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(callsTo(fetchSpy, WHITELIST_PATH)).toBe(1);
     expect(lastChange(w).whitelistAllowed).toBe(true);
   });
 
@@ -252,14 +376,15 @@ describe("uploads/file_input — whitelistAllowed payload", () => {
 });
 
 describe("uploads/file_input — URL debounce (#9)", () => {
-  it("does not fire the whitelist lookup until the debounce elapses", async () => {
+  it("does not fire the whitelist lookup or the rule check until the debounce elapses", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({}) as Response);
     const w = await mountFileInput();
     await urlInput(w).setValue("https://example.com/a.png");
     expect(fetchSpy).not.toHaveBeenCalled();
 
     await vi.advanceTimersByTimeAsync(300);
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(callsTo(fetchSpy, WHITELIST_PATH)).toBe(1);
+    expect(callsTo(fetchSpy, CHECK_PATH)).toBe(1);
   });
 
   it("coalesces rapid edits into a single lookup", async () => {
@@ -272,15 +397,19 @@ describe("uploads/file_input — URL debounce (#9)", () => {
     await urlInput(w).setValue("https://c.com/x.png");
     await vi.advanceTimersByTimeAsync(300);
     await flushPromises();
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(callsTo(fetchSpy, WHITELIST_PATH)).toBe(1);
+    expect(callsTo(fetchSpy, CHECK_PATH)).toBe(1);
   });
 
-  it("emits value + validity immediately, before the debounce", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(jsonResponse({}) as Response);
+  it("emits the value immediately, before the debounce; the rule verdict follows the check", async () => {
+    mockEndpoints({ rule: { match: true, handling: "block", label: "Sample URL", message: "", suggested_url: null } });
     const w = await mountFileInput();
-    // A sample URL is flagged by the sync directURLCheck computed — no timer advance.
     await urlInput(w).setValue("https://pbs.twimg.com/media/AbC123.jpg");
     expect(lastChange(w).value).toBe("https://pbs.twimg.com/media/AbC123.jpg");
+    expect(lastChange(w).invalid).toBe(false); // check not fired yet: hold, not deny
+
+    await vi.advanceTimersByTimeAsync(300);
+    await flushPromises();
     expect(lastChange(w).invalid).toBe(true);
   });
 });

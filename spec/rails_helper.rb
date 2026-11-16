@@ -57,6 +57,7 @@ RSpec.configure do |config|
   # Stale cached values (e.g. takedowns_disabled=true) would then bleed into later tests.
   config.after do
     Setting.clear_cache
+    UploadUrlRule.clear_cache
   end
 
   # The resolved site (doc 38) lives in RequestStore; only requests clear it.

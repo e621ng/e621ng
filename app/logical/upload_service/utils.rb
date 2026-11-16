@@ -79,7 +79,7 @@ class UploadService
       return file if file.present?
       raise "No file or source URL provided" if upload.direct_url_parsed.blank?
 
-      download = Downloads::File.new(upload.direct_url_parsed)
+      download = Downloads::File.new(upload.direct_url_parsed, enforce_rules: true)
       download.download!
     end
   end

@@ -390,6 +390,47 @@ RSpec.describe Downloads::File do
       end
     end
 
+    context "with upload URL rules" do
+      let(:blocked) { "https://example.com/sample/real.jpg" }
+
+      before do
+        create(:blocking_upload_url_rule, label: "Sample URL")
+        stub_request(:get, url).to_return(status: 302, headers: { "Location" => blocked })
+        stub_request(:get, blocked).to_return(status: 200, body: "IMAGE")
+      end
+
+      it "follows a redirect to a blocked URL when rules are not enforced" do
+        expect(make_downloader(url).download!.read).to eq("IMAGE")
+      end
+
+      it "refuses a redirect to a blocked URL when rules are enforced" do
+        expect { described_class.new(url, enforce_rules: true).download! }
+          .to raise_error(Downloads::File::RuleError, /is not allowed: Sample URL/)
+      end
+
+      it "refuses a blocked URL at construction when rules are enforced" do
+        expect { described_class.new(blocked, enforce_rules: true) }.to raise_error(Downloads::File::RuleError)
+        expect { described_class.new(blocked) }.not_to raise_error
+      end
+
+      it "refuses when a rule fails to evaluate" do
+        allow(UploadUrlRule).to receive(:evaluate).and_raise(UploadUrlRule::EvaluationError.new("Slow"))
+        expect { described_class.new(url, enforce_rules: true) }
+          .to raise_error(Downloads::File::RuleError, /could not be checked/)
+      end
+
+      it "refuses an overlong URL that the rules cannot check" do
+        expect { described_class.new("#{blocked}?pad=#{'a' * 2_000}", enforce_rules: true) }
+          .to raise_error(Downloads::File::RuleError, /longer than 2000 characters/)
+      end
+
+      it "ignores recommend rules" do
+        UploadUrlRule.update_all(handling: "recommend")
+        UploadUrlRule.clear_cache
+        expect(described_class.new(url, enforce_rules: true).download!.read).to eq("IMAGE")
+      end
+    end
+
     it "raises Downloads::File::Error when the file exceeds max_size" do
       stub_request(:get, url).to_return(status: 200, body: "IMAGE")
       expect { make_downloader(url).download!(max_size: 4) }

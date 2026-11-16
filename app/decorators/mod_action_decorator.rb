@@ -460,6 +460,21 @@ class ModActionDecorator < ApplicationDecorator
         "Deleted whitelist entry '#{vals['note']}'"
       end
 
+      ### Upload URL rules ###
+
+    when "upload_url_rule_create"
+      "Created upload URL rule \"#{vals['label']}\" (#{vals['handling']}): `#{vals['pattern']}` → `#{vals['replacement']}`"
+
+    when "upload_url_rule_update"
+      text = "Edited upload URL rule \"#{vals['label']}\" (#{vals['handling']}#{', disabled' unless vals['enabled']}): `#{vals['pattern']}` → `#{vals['replacement']}`"
+      if vals.values_at("old_label", "old_handling", "old_pattern", "old_replacement") != vals.values_at("label", "handling", "pattern", "replacement")
+        text += "\nPreviously \"#{vals['old_label']}\" (#{vals['old_handling']}): `#{vals['old_pattern']}` → `#{vals['old_replacement']}`"
+      end
+      text
+
+    when "upload_url_rule_delete"
+      "Deleted upload URL rule \"#{vals['label']}\" (#{vals['handling']}): `#{vals['pattern']}` → `#{vals['replacement']}`"
+
       ### Help ###
 
     when "help_create"

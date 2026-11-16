@@ -713,6 +713,30 @@ RSpec.describe ModActionDecorator do
       end
     end
 
+    context "with upload_url_rule actions" do
+      let(:values) { { "label" => "Sample", "pattern" => "a/sample/", "replacement" => "a/full/", "handling" => "block", "enabled" => true } }
+
+      it "upload_url_rule_create includes label, handling, pattern and replacement" do
+        desc = decorate(:upload_url_rule_create, values).format_description
+        expect(desc).to include("Sample", "block", "a/sample/", "a/full/")
+      end
+
+      it "upload_url_rule_update includes the previous values when they changed" do
+        desc = decorate(:upload_url_rule_update, values.merge("old_label" => "Sample", "old_pattern" => "a/thumb/", "old_replacement" => "a/full/", "old_handling" => "recommend")).format_description
+        expect(desc).to include("a/sample/", "a/thumb/", "recommend")
+      end
+
+      it "upload_url_rule_update notes a disabled rule and omits unchanged previous values" do
+        desc = decorate(:upload_url_rule_update, values.merge("enabled" => false, "old_label" => "Sample", "old_pattern" => "a/sample/", "old_replacement" => "a/full/", "old_handling" => "block")).format_description
+        expect(desc).to include("disabled")
+        expect(desc).not_to include("Previously")
+      end
+
+      it "upload_url_rule_delete includes the label" do
+        expect(decorate(:upload_url_rule_delete, values).format_description).to include("Sample")
+      end
+    end
+
     context "with upload_whitelist actions" do
       context "as admin" do
         it "upload_whitelist_create with pattern includes the pattern" do

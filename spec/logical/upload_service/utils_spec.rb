@@ -390,7 +390,7 @@ RSpec.describe UploadService::Utils do
       let(:tempfile)   { instance_spy(Tempfile) }
 
       before do
-        allow(Downloads::File).to receive(:new).with(parsed_url).and_return(downloader)
+        allow(Downloads::File).to receive(:new).with(parsed_url, enforce_rules: true).and_return(downloader)
         allow(downloader).to receive(:download!).and_return(tempfile)
       end
 

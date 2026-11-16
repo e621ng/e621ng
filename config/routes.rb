@@ -291,6 +291,11 @@ Rails.application.routes.draw do
       get :is_allowed
     end
   end
+  resources :upload_url_rules, except: %i[show] do
+    collection do
+      get :check
+    end
+  end
   resources :email_blacklists, only: %i[new create destroy index]
   resources :search_trend_blacklists, only: %i[index new create edit update destroy]
   resource :iqdb_queries, only: %i[show] do

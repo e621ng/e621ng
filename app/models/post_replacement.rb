@@ -154,11 +154,25 @@ class PostReplacement < ApplicationRecord
         throw :abort
       end
 
-      download = Downloads::File.new(replacement_url_parsed)
+      begin
+        result = UploadUrlRule.evaluate(replacement_url)
+        rule_error = UploadUrlRule.block_message(result) if result&.block?
+      rescue UploadUrlRule::EvaluationError => e
+        rule_error = UploadUrlRule.failure_message(e)
+      end
+      if rule_error
+        errors.add(:replacement_url, rule_error)
+        throw :abort
+      end
+
+      download = Downloads::File.new(replacement_url_parsed, enforce_rules: true)
       file = download.download!
 
       self.replacement_file = file
       self.source = "#{source}\n" + replacement_url
+    rescue Downloads::File::RuleError => e
+      errors.add(:base, e.message)
+      throw :abort
     rescue Downloads::File::Error
       errors.add(:replacement_url, "failed to fetch file")
       throw :abort

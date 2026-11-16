@@ -96,4 +96,9 @@
     padding: 0.25em 1em;
   }
 
+  .url-rule {
+    .url-rule-suggestion { word-break: break-all; }
+    button { margin-top: 0.5em; }
+  }
+
 }
