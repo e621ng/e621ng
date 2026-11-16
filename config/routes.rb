@@ -19,6 +19,9 @@ Rails.application.routes.draw do
   require "sidekiq/cron/web"
 
   mount Sidekiq::Web => "/sidekiq", constraints: AdminRouteConstraint.new, as: "sidekiq"
+  # Admins whose login is too old to reach the mount above re-confirm their password.
+  get "sidekiq(/*path)", constraints: AdminRouteConstraint.new(require_reauth: false),
+                         to: redirect { |_params, req| Rails.application.routes.url_helpers.confirm_password_session_path(url: req.fullpath) }
 
   namespace :staff do
     # Staff wikis and files

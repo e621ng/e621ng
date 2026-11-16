@@ -21,6 +21,31 @@ RSpec.describe SessionLoader do
     CurrentUser.safe_mode   = nil
   end
 
+  describe ".session_token_valid?" do
+    let(:user) { create(:user) }
+
+    it "is true when session[:ph] matches the password token" do
+      expect(described_class.session_token_valid?({ ph: user.password_token }, user)).to be true
+    end
+
+    it "is false when session[:ph] is stale or missing" do
+      expect(described_class.session_token_valid?({ ph: 99_999_999 }, user)).to be false
+      expect(described_class.session_token_valid?({}, user)).to be false
+    end
+  end
+
+  describe ".recently_authenticated?" do
+    it "is true within the reauth window" do
+      expect(described_class.recently_authenticated?({ last_authenticated_at: 5.minutes.ago.utc.to_s })).to be true
+    end
+
+    it "is false outside the window, when missing, or when unparseable" do
+      expect(described_class.recently_authenticated?({ last_authenticated_at: 2.hours.ago.utc.to_s })).to be false
+      expect(described_class.recently_authenticated?({})).to be false
+      expect(described_class.recently_authenticated?({ last_authenticated_at: "not a time" })).to be false
+    end
+  end
+
   # ---------------------------------------------------------------------------
   # #has_api_authentication?
   # ---------------------------------------------------------------------------

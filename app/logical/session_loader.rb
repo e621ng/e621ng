@@ -7,7 +7,21 @@ class SessionLoader
   # The cookie login itself is invalid; only this clears session/remember state (E6SEC-506).
   class SessionInvalid < AuthenticationFailure; end
 
+  REAUTH_WINDOW = 1.hour
+
   attr_reader :session, :cookies, :request, :params
+
+  # A password or TOTP change rotates the token, invalidating older cookie sessions.
+  def self.session_token_valid?(session, user)
+    session[:ph] == user.password_token
+  end
+
+  def self.recently_authenticated?(session)
+    authenticated_at = Time.zone.parse(session[:last_authenticated_at].to_s)
+    authenticated_at.present? && authenticated_at >= REAUTH_WINDOW.ago
+  rescue ArgumentError
+    false
+  end
 
   def initialize(request)
     @request = request
@@ -250,7 +264,7 @@ class SessionLoader
   def load_session_user
     user = User.find_by(id: session[:user_id])
     raise SessionInvalid if user.nil?
-    return if session[:ph] != user.password_token
+    return unless self.class.session_token_valid?(session, user)
     CurrentUser.user = user
     CurrentUser.api_key = nil
   end
