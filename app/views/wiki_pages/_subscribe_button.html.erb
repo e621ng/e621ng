@@ -23,7 +23,7 @@
       <%# `tag` is a local here, shadowing the helper %>
       <%= content_tag :span, "#{TagSetPresenter.post_count_label(subscriber_count)} #{'subscriber'.pluralize(subscriber_count)}",
                       class: "tag-subscriber-count", title: "#{number_with_delimiter(subscriber_count)} #{'subscriber'.pluralize(subscriber_count)}",
-                      data: { count: subscriber_count } %>
+                      data: { count: subscriber_count, tag: tag.name } %>
     </span>
   <% end %>
 <% end %>

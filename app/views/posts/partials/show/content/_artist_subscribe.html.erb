@@ -5,17 +5,30 @@
 <% subscriber_counts = TagSubscription.subscriber_counts(tags.map(&:id)) %>
 <div id="post-artist-subscribe">
   <% tags.each do |tag| %>
+    <% subscription = subscriptions[tag.id] %>
+    <% subscriber_count = subscriber_counts[tag.id] %>
     <div class="subscribe-banner">
+      <div class="subscribe-banner-count">
+        <%= content_tag :span, "#{TagSetPresenter.post_count_label(subscriber_count)} #{'subscriber'.pluralize(subscriber_count)}",
+                        class: "tag-subscriber-count", title: "This value is cached and may not reflect the latest subscriber count",
+                        data: { count: subscriber_count, tag: tag.name } %>
+      </div>
       <div class="subscribe-banner-name">
         <%= link_to short_artist_path(tag.name), class: "tag-type-#{tag.category}" do %>
+          <%= tag.name %>
           <% if verified.include?(tag.name) %>
             <%= svg_icon(:chexagon, class: "chexagon", title: "Verified artist") %>
           <% end %>
-          <%= tag.name %>
         <% end %>
       </div>
       <div class="subscribe-banner-actions">
-        <%= render "wiki_pages/subscribe_button", tag: tag, subscription: subscriptions[tag.id], subscriber_count: subscriber_counts[tag.id] %>
+        <% if subscription %>
+          <%= link_to "Unsubscribe", tag_subscription_path(subscription), method: :delete, class: "button btn-neutral tag-subscription-toggle",
+                      title: "Stop counting new posts with this tag in your subscriptions", data: { tag: tag.name, subscribed: "true" } %>
+        <% else %>
+          <%= link_to "Subscribe", tag_subscriptions_path(tag_name: tag.name), method: :post, class: "button btn-success tag-subscription-toggle",
+                      title: "Count new posts with this tag in your subscriptions", data: { tag: tag.name, subscribed: "false" } %>
+        <% end %>
       </div>
     </div>
   <% end %>
