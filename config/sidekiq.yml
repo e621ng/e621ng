@@ -13,3 +13,5 @@
 <% end %>
 
 :concurrency: <%= ENV.fetch("SIDEKIQ_CONCURRENCY", 5) %>
+
+:tag: <%= ENV.fetch("SIDEKIQ_TAG", "app") %>
