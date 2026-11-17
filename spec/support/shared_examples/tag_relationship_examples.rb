@@ -563,6 +563,12 @@ RSpec.shared_examples "tag_relationship search" do |factory_name, model_class|
         expect(results).to include(target, second_target)
         expect(results).not_to include(other)
       end
+
+      it "matches case-insensitively" do
+        results = model_class.search(antecedent_name: "Specific_Antecedent")
+        expect(results).to include(target)
+        expect(results).not_to include(other)
+      end
     end
 
     # -------------------------------------------------------------------------
@@ -574,6 +580,12 @@ RSpec.shared_examples "tag_relationship search" do |factory_name, model_class|
 
       it "filters by exact consequent_name" do
         results = model_class.search(consequent_name: "specific_consequent")
+        expect(results).to include(target)
+        expect(results).not_to include(other)
+      end
+
+      it "matches case-insensitively" do
+        results = model_class.search(consequent_name: "SPECIFIC_consequent")
         expect(results).to include(target)
         expect(results).not_to include(other)
       end
