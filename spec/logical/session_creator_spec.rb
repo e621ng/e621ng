@@ -60,9 +60,11 @@ RSpec.describe SessionCreator do
 
     it "starts a fresh session, mints a row and writes the login keys" do
       session[:planted] = "by an attacker"
+      session[:recent_pool_ids] = "3,5"
       record = creator.establish(user)
 
       expect(session[:planted]).to be_nil
+      expect(session[:recent_pool_ids]).to eq("3,5")
       expect(session[:user_id]).to eq(user.id)
       expect(session[:ph]).to eq(user.password_token)
       expect(session[:sid]).to eq(record.id)

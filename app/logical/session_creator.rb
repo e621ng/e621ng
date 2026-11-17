@@ -112,7 +112,11 @@ class SessionCreator
 
     # Switching accounts ends the previous login.
     current&.revoke!("logout")
+    # The one session key unrelated to the login; keep it so logging in does not
+    # forget the pools the browser was just adding to.
+    recent_pool_ids = session[:recent_pool_ids]
     request.reset_session
+    session[:recent_pool_ids] = recent_pool_ids if recent_pool_ids.present?
     cookies.delete(:remember)
     cookies.delete(:remember_session)
 
