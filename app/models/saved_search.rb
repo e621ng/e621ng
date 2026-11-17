@@ -133,13 +133,25 @@ class SavedSearch < ApplicationRecord
       # have to switch to anonymous evaluation.
       def refresh_badge_counts!(user, safe_mode: CurrentUser.safe_mode?)
         counts = {}
+        searches = user.saved_searches.tracked.to_a
         CurrentUser.scoped(user) do
-          user.saved_searches.tracked.each do |saved_search|
-            counts[saved_search.id] = new_post_count(saved_search, safe_mode: safe_mode)
+          TagAlias.with_preloaded(badge_alias_candidates(searches)) do
+            searches.each do |saved_search|
+              counts[saved_search.id] = new_post_count(saved_search, safe_mode: safe_mode)
+            end
           end
         end
         write_badge_entry(badge_cache_key(user.id, safe_mode), counts)
         counts
+      end
+
+      # Best-effort tag names for the alias preload; metatags and other junk just match nothing
+      def badge_alias_candidates(searches)
+        searches.reject(&:is_subscription?)
+                .flat_map { |ss| ss.query.to_s.split }
+                .map { |token| Tag.normalize_name(token.sub(/\A[-~]/, "")) }
+                .reject { |name| name.empty? || %w[( )].include?(name) }
+                .uniq
       end
 
       # Cached entry ({ counts: {id => count}, at: epoch }) or nil when absent.

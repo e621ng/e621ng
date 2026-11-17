@@ -110,6 +110,21 @@ RSpec.describe SavedSearchBadgeJob do
       expect(SavedSearch.badge_entry_fresh?(SavedSearch.badge_entry(user))).to be(true)
     end
 
+    it "resolves aliases for all searches in one query" do
+      create(:active_tag_alias, antecedent_name: "badge_old", consequent_name: "badge_target")
+      create(:post, tag_string: "badge_target")
+      queries = ["badge_target", "-other_tag badge_target", "( badge_old ) -other_tag", "rating:s badge_target"]
+      searches = queries.map { |query| create(:saved_search, user: user, query: query, is_tracked: true) }
+      create(:post, tag_string: "badge_target")
+
+      alias_queries = 0
+      counter = ->(*, payload) { alias_queries += 1 if payload[:sql].include?("tag_aliases") }
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") { run_job }
+
+      expect(alias_queries).to eq(1)
+      expect(SavedSearch.badge_counts(user).values_at(*searches.map(&:id))).to eq([1, 1, 1, 1])
+    end
+
     it "evaluates as the owning user" do
       ss = create(:saved_search, user: user, query: "fav:me", is_tracked: true)
       run_job

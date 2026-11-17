@@ -36,6 +36,41 @@ RSpec.describe TagAlias do
   end
 
   # ---------------------------------------------------------------------------
+  # .with_preloaded
+  # ---------------------------------------------------------------------------
+  describe ".with_preloaded" do
+    def alias_queries(&)
+      count = 0
+      counter = ->(*, payload) { count += 1 if payload[:sql].include?("tag_aliases") }
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record", &)
+      count
+    end
+
+    before { create(:active_tag_alias, antecedent_name: "old_tag", consequent_name: "new_tag") }
+
+    it "resolves preloaded names without further queries" do
+      TagAlias.with_preloaded(%w[old_tag plain_tag]) do
+        result = nil
+        expect(alias_queries { result = TagAlias.to_aliased_with_originals(%w[old_tag plain_tag]) }).to eq(0)
+        expect(result).to eq("old_tag" => "new_tag", "plain_tag" => "plain_tag")
+      end
+    end
+
+    it "still looks up names that weren't preloaded" do
+      TagAlias.with_preloaded(%w[plain_tag]) do
+        result = nil
+        expect(alias_queries { result = TagAlias.to_aliased_with_originals(%w[old_tag plain_tag]) }).to eq(1)
+        expect(result).to eq("old_tag" => "new_tag", "plain_tag" => "plain_tag")
+      end
+    end
+
+    it "drops the preload after the block, even on error" do
+      expect { TagAlias.with_preloaded(%w[old_tag]) { raise "boom" } }.to raise_error("boom")
+      expect(alias_queries { TagAlias.to_aliased_with_originals(%w[old_tag]) }).to eq(1)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # .to_aliased
   # ---------------------------------------------------------------------------
   describe ".to_aliased" do
