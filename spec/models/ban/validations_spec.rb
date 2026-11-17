@@ -113,6 +113,25 @@ RSpec.describe Ban do
         expect(ban).not_to be_valid
         expect(ban.errors[:base]).to include("No one else can ban.")
       end
+
+      it "is invalid when a non-BD moderator tries to ban BD staff" do
+        ban = build(:ban, user: create(:bd_janitor_user), banner: moderator)
+        expect(ban).not_to be_valid
+        expect(ban.errors[:base]).to include("Only BD staff can ban BD staff.")
+      end
+
+      it "is invalid when a non-BD moderator tries to ban a BD auditor" do
+        ban = build(:ban, user: create(:bd_auditor_user), banner: moderator)
+        expect(ban).not_to be_valid
+        expect(ban.errors[:base]).to include("Only BD staff can ban BD staff.")
+      end
+
+      it "is valid when a BD-staff moderator bans BD staff of a lower level" do
+        bd_moderator = create(:bd_moderator_user)
+        CurrentUser.user = bd_moderator
+        ban = build(:ban, user: create(:bd_janitor_user), banner: bd_moderator)
+        expect(ban).to be_valid
+      end
     end
   end
 end

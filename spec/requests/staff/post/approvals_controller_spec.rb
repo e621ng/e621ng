@@ -78,6 +78,13 @@ RSpec.describe Staff::Post::ApprovalsController do
       #   expect(flash[:notice]).to eq("You can't approve this post")
       # end
     end
+
+    it "returns 403 for an approver under a ban that still allows login" do
+      create(:ban, user: approver)
+      sign_in_as approver.reload
+      post staff_post_approval_path(format: :json), params: { post_id: pending_post.id }
+      expect(response).to have_http_status(:forbidden)
+    end
   end
 
   # ---------------------------------------------------------------------------
