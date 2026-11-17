@@ -3,6 +3,9 @@
 
 #c-users #a-edit {
 
+  // Rows and groups set their own display, which would otherwise override [hidden]
+  [hidden] { display: none !important; }
+
   form.simple_form {
     background: unset;
     padding: unset;
@@ -18,7 +21,12 @@
     }
   }
 
-  #settings-account-buttons tab-body {
+  // Fix for #2573.
+  #settings-blacklist textarea {
+    resize: vertical;
+  }
+
+  #settings-account-buttons settings-body {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
@@ -29,75 +37,75 @@
     }
   }
 
-  tab-submit {
-    input[type="submit"] {
-      background: theme.color("tag-artist");
-      font-size: 1.25rem;
-      padding: 0.25rem 1rem;
-      margin: 0.5rem;
-      border-radius: 0.25rem;
 
-      &:hover, &:active { background: theme.color("tag-artist-alt"); }
+  // Layout
+  .settings-layout {
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  .settings-nav {
+    display: flex;
+    flex-flow: column;
+    gap: 0.5rem;
+
+    input[name="find"], select {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 0.25rem;
+      font-size: 1rem;
+      line-height: 1rem;
+      padding: 0.25rem;
     }
   }
-}
 
+  .settings-nav-list {
+    display: none;
+    flex-flow: column;
+    list-style: none;
+    margin: 0;
 
+    a {
+      display: block;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.25rem;
+      font-size: 1rem;
+      line-height: 1rem;
 
-
-// Tabs section
-tabs-menu {
-  margin-top: 0.5rem;
-  display: flex;
-  width: 100%;
-  max-width: 50rem;
-  flex-wrap: wrap;
-
-  // TODO Smooth drag when overflowing
-  overflow: auto;
-
-  & > button {
-    background: unset;
-    color: theme.color("link");
-    padding: 0.5rem 1rem;
-    border-bottom: 2px solid theme.color("section");
-    font-size: 1rem;
-    line-height: 1rem;
-
-    &.active {
-      background: theme.color("section");
-      border-radius: 0.25rem 0.25rem 0 0;
-      &:first-child {
-        border-bottom-left-radius: 0.25rem;
+      &[aria-current="true"] {
+        background: theme.color("section");
+        color: theme.color("text");
       }
     }
   }
 
-  span.spacer {
-    flex: 1;
-    border-bottom: 2px solid theme.color("section");
+  .settings-nav-select {
+    display: flex;
+    gap: 0.5rem;
   }
 
-  input[name="search"] {
-    border-radius: 0 0 0.25rem 0.25rem;
-    font-size: 1rem;
-    line-height: 1rem;
-    padding: 0.25rem;
-    width: 100%;
-    box-sizing: border-box;
+  .settings-content {
+    display: flex;
+    flex-flow: column;
+    max-width: 50rem;
   }
-}
+
+  .settings-section {
+    display: flex;
+    flex-flow: column;
+  }
+
+  .settings-no-results {
+    padding: 0.5rem;
+    color: theme.color("text-muted");
+  }
 
 
-// Tabs structure
-tabs-content {
-  display: flex;
-  flex-flow: column;
-  max-width: 50rem;
-
-  tab-group {
-    display: none;
-    &.active { display: flex; }
+  // Rows
+  settings-group {
+    display: flex;
 
     font-size: 1rem;
     line-height: 1rem;
@@ -108,10 +116,8 @@ tabs-content {
     border-radius: 0.25rem 0.25rem 0 0;
   }
 
-  tab-entry {
-    display: none !important;
-    &.active { display: grid !important; }
-    &.flex.active { display: flex !important; }
+  settings-entry {
+    display: grid;
     grid-template-areas: "head" "body" "hint";
     grid-template-columns: 1fr;
 
@@ -120,8 +126,8 @@ tabs-content {
 
     background: theme.color("section");
     padding: 0.5rem;
-    
-    tab-head {
+
+    settings-head {
       grid-area: head;
       margin-left: 0.25em;
       font-size: 0.85rem;
@@ -129,11 +135,11 @@ tabs-content {
       label { font-weight: normal; }
     }
 
-    tab-body {
+    settings-body {
       grid-area: body;
     }
 
-    tab-hint {
+    settings-hint {
       grid-area: hint;
 
       font-size: 90%;
@@ -144,12 +150,7 @@ tabs-content {
       grid-template-areas: "head body" "hint hint";
       grid-template-columns: 2fr 1fr;
 
-      tab-body { justify-self: end; }
-    }
-
-    &.blocky {
-      grid-template-areas: "body";
-      grid-template-columns: 1fr;
+      settings-body { justify-self: end; }
     }
 
     &.bigtext {
@@ -157,7 +158,7 @@ tabs-content {
       grid-template-areas: "head" "body" "hint";
     }
 
-    &.with-button tab-body {
+    &.with-button settings-body {
       display: grid;
       grid-template-columns: 1fr;
       a.st-button {
@@ -165,7 +166,7 @@ tabs-content {
       }
     }
 
-    &.with-buttons tab-body {
+    &.with-buttons settings-body {
       display: grid;
       grid-template-columns: 1fr 4rem;
 
@@ -177,29 +178,45 @@ tabs-content {
       }
     }
   }
-}
 
-tab-submit {
-  position: sticky;
-  bottom: 0;
+  settings-submit {
+    position: sticky;
+    bottom: 0;
 
-  background: theme.color("section");
-  border-radius: 0.25rem;
-  width: min-content;
-  margin-top: 0.5rem;
-}
+    background: theme.color("section");
+    border-radius: 0.25rem;
+    width: min-content;
+    margin-top: 0.5rem;
 
-@include breakpoints.desktop {
-  tabs-menu {
-    input[name="search"] {
-      width: unset;
-      border-radius: 0.25rem 0.25rem 0.25rem 0;
-      border-bottom: 2px solid theme.color("section");
+    input[type="submit"] {
+      background: theme.color("tag-artist");
+      font-size: 1.25rem;
+      padding: 0.25rem 1rem;
+      margin: 0.5rem;
+      border-radius: 0.25rem;
+
+      &:hover, &:active { background: theme.color("tag-artist-alt"); }
     }
   }
 
-  tabs-content {
-    tab-entry {
+
+  @include breakpoints.desktop {
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 12rem minmax(0, 50rem);
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .settings-nav {
+      position: sticky;
+      top: 0.5rem;
+    }
+
+    .settings-nav-list { display: flex; }
+    .settings-nav-select { display: none; }
+
+    settings-entry {
       grid-template-areas: "head body" ". hint";
       grid-template-columns: 1fr 1fr;
       &.inline {

@@ -1,16 +1,14 @@
-<% tab_name = "apps" %>
-
-<!-- Security -->
-<tab-group name="security">Security</tab-group>
-
 <% if CurrentUser.user.is_logged_in? %>
-<tab-entry tab="<%= tab_name %>" group="security" class="with-button" search="two factor authentication 2fa totp authenticator app security code backup">
+<!-- Security -->
+<settings-group name="security">Security</settings-group>
+
+<settings-entry group="security" class="with-button" search="two factor authentication 2fa totp authenticator app security code backup">
   <% has_totp = CurrentUser.user.totp_enabled? %>
-  <tab-head>Two-Factor Authentication</tab-head>
-  <tab-body>
+  <settings-head>Two-Factor Authentication</settings-head>
+  <settings-body>
     <%= link_to "Manage 2FA", has_totp ? totp_path : new_totp_path, class: "st-button" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     <% if has_totp %>
       Enabled — a code from your authenticator app is required to log in.
       <% if CurrentUser.user.totp&.backup_code_digests&.empty? %>
@@ -19,59 +17,59 @@
     <% else %>
       Require a code from an authenticator app when logging in.
     <% end %>
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
-<tab-entry tab="<%= tab_name %>" group="security" class="with-button" search="active sessions logins devices browsers sign out everywhere revoke">
-  <tab-head>Active Sessions</tab-head>
-  <tab-body>
+<settings-entry group="security" class="with-button" search="active sessions logins devices browsers sign out everywhere revoke">
+  <settings-head>Active Sessions</settings-head>
+  <settings-body>
     <%= link_to "Manage Sessions", user_sessions_path, class: "st-button" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     Browsers signed in to your account; sign any of them out.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 <% end %>
 
-<!-- API access -->
-<tab-group name="access">API access</tab-group>
-
 <% if CurrentUser.user.is_member? %>
-<tab-entry tab="<%= tab_name %>" group="access" class="with-button" search="update change user profile account api key access">
-  <tab-head>API Keys</tab-head>
-  <tab-body>
+<!-- API access -->
+<settings-group name="access">API access</settings-group>
+
+<settings-entry group="access" class="with-button" search="update change user profile account api key access">
+  <settings-head>API Keys</settings-head>
+  <settings-body>
     <%= link_to "Manage API Keys", api_keys_path, class: "st-button" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     API access for automated processes.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
 <% if Danbooru.config.enable_oauth_provider? %>
-<tab-entry tab="<%= tab_name %>" group="access" class="with-button" search="oauth openid connect connected applications clients authorized grants tokens permissions revoke">
-  <tab-head>Connected Applications</tab-head>
-  <tab-body>
+<settings-entry group="access" class="with-button" search="oauth openid connect connected applications clients authorized grants tokens permissions revoke">
+  <settings-head>Connected Applications</settings-head>
+  <settings-body>
     <%= link_to "Manage Connected Applications", oauth_authorized_applications_path, class: "st-button" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     Third-party apps you have signed into.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 <% end %>
 <% end %>
 
 
 <% if Danbooru.config.enable_oauth_provider? && CurrentUser.user.can_manage_oauth_applications? %>
 <!-- Developer -->
-<tab-group name="developer">Developer</tab-group>
+<settings-group name="developer">Developer</settings-group>
 
-<tab-entry tab="<%= tab_name %>" group="developer" class="with-button" search="oauth openid connect applications clients developer register">
-  <tab-head>OAuth Applications</tab-head>
-  <tab-body>
+<settings-entry group="developer" class="with-button" search="oauth openid connect applications clients developer register">
+  <settings-head>OAuth Applications</settings-head>
+  <settings-body>
     <%= link_to "Manage OAuth Applications", mine_oauth_applications_path, class: "st-button" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     Your applications that connect to the site.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 <% end %>

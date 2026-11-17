@@ -1,6 +1,24 @@
 # frozen_string_literal: true
 
 module UsersHelper
+  SettingsSection = Struct.new(:key, :label)
+
+  # Order matters: the first section is the default. Each key renders users/partials/edit/_<key>.
+  SETTINGS_SECTIONS = [
+    SettingsSection.new("basic", "Basic"),
+    SettingsSection.new("advanced", "Advanced"),
+    SettingsSection.new("apps", "Apps"),
+    SettingsSection.new("blacklist", "Blacklist"),
+  ].freeze
+
+  def settings_sections
+    SETTINGS_SECTIONS
+  end
+
+  def active_settings_section(key)
+    SETTINGS_SECTIONS.find { |section| section.key == key } || SETTINGS_SECTIONS.first
+  end
+
   def email_sig(user, purpose, expires = nil)
     EmailLinkValidator.generate(user.id.to_s, purpose, expires)
   end

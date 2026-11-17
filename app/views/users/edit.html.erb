@@ -1,35 +1,38 @@
+<% active_section = active_settings_section(params[:tab]) %>
 <div id="c-users"><div id="a-edit">
   <h1>Settings</h1>
 
-  <tabs-menu id="settings-tabs">
-    <button role="tab" name="basic">Basic</button>
-    <button role="tab" name="advanced">Advanced</button>
-    <button role="tab" name="apps">Apps</button>
-    <button role="tab" name="blacklist">Blacklist</button>
-    <span class="spacer"></span>
-    <input type="text" name="search" placeholder="Search Settings" />
-  </tabs-menu>
+  <div class="settings-layout">
+    <nav class="settings-nav" aria-label="Settings sections">
+      <input type="search" name="find" value="<%= params[:find] %>" placeholder="Search Settings" aria-label="Search settings">
 
-  <%= custom_form_for @user do |form| %>
-  <tabs-content for="settings-tabs">
-    <%= render "users/partials/edit/basic", form: form %>
-    <%= render "users/partials/edit/advanced", form: form %>
-    <%= render "users/partials/edit/apps", form: form %>
-    <%= render "users/partials/edit/blacklist", form: form %>
-    <tab-submit>
-      <%= form.button :submit, "Save Settings" %>
-    </tab-submit>
-  </tabs-content>
-  <% end %>
+      <ul class="settings-nav-list">
+        <% settings_sections.each do |section| %>
+          <li><%= link_to section.label, "?tab=#{section.key}", data: { section: section.key }, aria: { current: section == active_section ? "true" : nil } %></li>
+        <% end %>
+      </ul>
+
+      <form class="settings-nav-select" method="get" action="<%= request.path %>">
+        <select name="tab" aria-label="Settings section">
+          <%= options_for_select(settings_sections.map { |section| [section.label, section.key] }, active_section.key) %>
+        </select>
+        <noscript><button type="submit" class="st-button">Go</button></noscript>
+      </form>
+    </nav>
+
+    <%= custom_form_for @user, html: { class: "settings-content" } do |form| %>
+      <% settings_sections.each do |section| %>
+        <section class="settings-section" id="settings-<%= section.key %>" data-section="<%= section.key %>" <%= "hidden" unless section == active_section %>>
+          <%= render "users/partials/edit/#{section.key}", form: form %>
+        </section>
+      <% end %>
+      <p class="settings-no-results" hidden>No settings found.</p>
+      <settings-submit>
+        <%= form.button :submit, "Save Settings" %>
+      </settings-submit>
+    <% end %>
+  </div>
 </div></div>
-
-<noscript>
-  <style>
-    tabs-menu { display: none !important; }
-    tab-group { display: flex !important; }
-    tabs-content tab-entry { display: grid !important; }
-  </style>
-</noscript>
 
 <% content_for(:page_title) do %>
   Settings
