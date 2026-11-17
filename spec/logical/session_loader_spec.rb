@@ -14,23 +14,54 @@ RSpec.describe SessionLoader do
   around do |example|
     example.run
   ensure
-    CurrentUser.user        = nil
-    CurrentUser.api_key     = nil
-    CurrentUser.oauth_token = nil
-    CurrentUser.ip_addr     = nil
-    CurrentUser.safe_mode   = nil
+    CurrentUser.user         = nil
+    CurrentUser.api_key      = nil
+    CurrentUser.oauth_token  = nil
+    CurrentUser.user_session = nil
+    CurrentUser.ip_addr      = nil
+    CurrentUser.safe_mode    = nil
   end
 
   describe ".session_token_valid?" do
     let(:user) { create(:user) }
+    let(:record) { create(:user_session, user: user, secret: "s3cret") }
 
-    it "is true when session[:ph] matches the password token" do
-      expect(described_class.session_token_valid?({ ph: user.password_token }, user)).to be true
+    it "is true for a matching token and a live row" do
+      expect(described_class.session_token_valid?({ ph: user.password_token, sid: record.id, sk: "s3cret" }, user)).to be true
     end
 
     it "is false when session[:ph] is stale or missing" do
-      expect(described_class.session_token_valid?({ ph: 99_999_999 }, user)).to be false
+      expect(described_class.session_token_valid?({ ph: 99_999_999, sid: record.id, sk: "s3cret" }, user)).to be false
       expect(described_class.session_token_valid?({}, user)).to be false
+    end
+
+    it "is false when the row is revoked, expired, mismatched or belongs to another user" do
+      expect(described_class.session_token_valid?({ ph: user.password_token, sid: record.id, sk: "wrong" }, user)).to be false
+      expect(described_class.session_token_valid?({ ph: user.password_token, sid: record.id }, user)).to be false
+      record.revoke!("user")
+      expect(described_class.session_token_valid?({ ph: user.password_token, sid: record.id, sk: "s3cret" }, user)).to be false
+      expired = create(:user_session, user: user, secret: "s3cret", expires_at: 1.minute.ago)
+      expect(described_class.session_token_valid?({ ph: user.password_token, sid: expired.id, sk: "s3cret" }, user)).to be false
+      foreign = create(:user_session, secret: "s3cret")
+      expect(described_class.session_token_valid?({ ph: user.password_token, sid: foreign.id, sk: "s3cret" }, user)).to be false
+    end
+
+    context "with a pre-rollout session (no sid)" do
+      let(:legacy) { { ph: user.password_token, user_id: user.id, last_authenticated_at: "2026-11-01 00:00:00 UTC" } }
+
+      it "is accepted while legacy sessions are accepted" do
+        expect(described_class.session_token_valid?(legacy, user)).to be true
+      end
+
+      it "is rejected once an adopted row for the same cookie is no longer active" do
+        create(:revoked_user_session, user: user, legacy_key: described_class.legacy_session_key(legacy))
+        expect(described_class.session_token_valid?(legacy, user)).to be false
+      end
+
+      it "is rejected once legacy sessions are no longer accepted" do
+        allow(Danbooru.config.custom_configuration).to receive(:accept_legacy_sessions?).and_return(false)
+        expect(described_class.session_token_valid?(legacy, user)).to be false
+      end
     end
   end
 
@@ -212,9 +243,10 @@ RSpec.describe SessionLoader do
         request.session[:ph] = 99_999_999
       end
 
-      it "leaves CurrentUser as anonymous" do
+      it "leaves CurrentUser as anonymous and forgets the login" do
         loader.load
         expect(CurrentUser.user.is_logged_out?).to be true
+        expect(request.session[:user_id]).to be_nil
       end
     end
 
@@ -223,6 +255,112 @@ RSpec.describe SessionLoader do
 
       it "raises SessionInvalid" do
         expect { loader.load }.to raise_error(SessionLoader::SessionInvalid)
+      end
+    end
+
+    context "with a session row" do
+      let(:cookie_jar) do
+        instance_spy(ActionDispatch::Cookies::CookieJar).tap do |jar|
+          allow(jar).to receive_messages(encrypted: encrypted_jar, "[]": nil)
+        end
+      end
+      let(:encrypted_jar) { {} }
+      let(:record) { create(:remembered_user_session, user: user, secret: "s3cret", created_at: 1.day.ago, last_seen_at: 1.day.ago) }
+
+      before do
+        allow(request).to receive(:cookie_jar).and_return(cookie_jar)
+        request.session[:user_id] = user.id
+        request.session[:ph] = user.password_token
+        request.session[:sid] = record.id
+        request.session[:sk] = "s3cret"
+        Cache.redis.del("user_session_touch:#{record.id}")
+      end
+
+      after { Cache.redis.del("user_session_touch:#{record.id}") }
+
+      it "logs the user in and exposes the row" do
+        loader.load
+        expect(CurrentUser.user).to eq(user)
+        expect(CurrentUser.user_session).to eq(record)
+      end
+
+      it "records activity once per interval and extends the remember cookie" do
+        loader.load
+        expect(record.reload.last_seen_at).to be_within(5.seconds).of(Time.now)
+        expect(record.expires_at).to be_within(5.seconds).of(Time.now + UserSession::REMEMBER_TIMEOUT)
+        expect(encrypted_jar.dig(:remember_session, :value)).to be_present
+
+        record.update_columns(last_seen_at: 1.hour.ago)
+        encrypted_jar.delete(:remember_session)
+        described_class.new(request).load
+        expect(record.reload.last_seen_at).to be_within(5.seconds).of(1.hour.ago)
+        expect(encrypted_jar).not_to have_key(:remember_session)
+      end
+
+      it "forgets a revoked login instead of serving it" do
+        record.revoke!("user")
+        loader.load
+        expect(CurrentUser.user.is_logged_out?).to be true
+        expect(request.session[:user_id]).to be_nil
+        expect(request.session[:sid]).to be_nil
+        expect(cookie_jar).to have_received(:delete).with(:remember_session)
+        expect(cookie_jar).to have_received(:delete).with(:remember)
+      end
+
+      it "forgets an expired login" do
+        record.update_columns(expires_at: 1.minute.ago)
+        loader.load
+        expect(CurrentUser.user.is_logged_out?).to be true
+        expect(request.session[:sid]).to be_nil
+      end
+    end
+
+    context "with a pre-rollout session (no sid)" do
+      let(:cookie_jar) do
+        instance_spy(ActionDispatch::Cookies::CookieJar).tap do |jar|
+          allow(jar).to receive_messages(encrypted: encrypted_jar, "[]": nil)
+        end
+      end
+      let(:encrypted_jar) { {} }
+
+      before do
+        allow(request).to receive(:cookie_jar).and_return(cookie_jar)
+        request.session[:user_id] = user.id
+        request.session[:ph] = user.password_token
+        request.session[:last_authenticated_at] = 5.minutes.ago.utc.to_s
+      end
+
+      it "adopts it into a row and writes sid/sk into the session" do
+        expect { loader.load }.to change(UserSession, :count).by(1)
+        expect(CurrentUser.user).to eq(user)
+        record = UserSession.last
+        expect(request.session[:sid]).to eq(record.id)
+        expect(UserSession.authenticate(request.session[:sid], request.session[:sk])).to eq(record)
+        expect(record.legacy_key).to eq(described_class.legacy_session_key(request.session))
+        expect(record.remember).to be false
+        expect(encrypted_jar).not_to have_key(:remember_session)
+      end
+
+      it "issues the new remember cookie when the old one is present, leaving the old one alone" do
+        encrypted_jar[:remember] = "old_cookie"
+        loader.load
+        record = UserSession.last
+        expect(record.remember).to be true
+        expect(encrypted_jar.dig(:remember_session, :value)).to be_present
+        expect(encrypted_jar[:remember]).to eq("old_cookie")
+      end
+
+      it "rejects a copy whose adopted row was revoked" do
+        create(:revoked_user_session, user: user, legacy_key: described_class.legacy_session_key(request.session))
+        expect { loader.load }.not_to change(UserSession, :count)
+        expect(CurrentUser.user.is_logged_out?).to be true
+        expect(request.session[:user_id]).to be_nil
+      end
+
+      it "rejects it once legacy sessions are no longer accepted" do
+        allow(Danbooru.config.custom_configuration).to receive(:accept_legacy_sessions?).and_return(false)
+        expect { loader.load }.not_to change(UserSession, :count)
+        expect(CurrentUser.user.is_logged_out?).to be true
       end
     end
   end
@@ -606,6 +744,90 @@ RSpec.describe SessionLoader do
       let(:remember_cookie) { verifier.generate("#{user.id}:99999999", purpose: "rbr", expires_in: 14.days) }
 
       it "leaves CurrentUser as anonymous" do
+        loader.load
+        expect(CurrentUser.user.is_logged_out?).to be true
+      end
+    end
+
+    context "with a pre-rollout remember cookie" do
+      let(:remember_cookie) { raw_token }
+      let(:encrypted_jar) { { remember: remember_cookie } }
+      let(:cookie_jar) do
+        instance_spy(ActionDispatch::Cookies::CookieJar).tap do |jar|
+          allow(jar).to receive_messages(encrypted: encrypted_jar, "[]": nil)
+        end
+      end
+
+      it "adopts it into a remembered row and issues the new cookie" do
+        expect { loader.load }.to change(UserSession, :count).by(1)
+        record = UserSession.last
+        expect(CurrentUser.user_session).to eq(record)
+        expect(record.remember).to be true
+        expect(record.legacy_key).to eq(described_class.legacy_remember_key(user.id, user.password_token))
+        expect(request.session[:sid]).to eq(record.id)
+        expect(request.session[:last_authenticated_at]).to be_nil
+        expect(encrypted_jar.dig(:remember_session, :value)).to be_present
+        expect(encrypted_jar[:remember]).to eq(raw_token)
+      end
+
+      it "rejects a copy whose adopted row was revoked and drops the cookie" do
+        create(:revoked_user_session, user: user, legacy_key: described_class.legacy_remember_key(user.id, user.password_token))
+        expect { loader.load }.not_to change(UserSession, :count)
+        expect(CurrentUser.user.is_logged_out?).to be true
+        expect(cookie_jar).to have_received(:delete).with(:remember)
+      end
+
+      it "drops it once legacy sessions are no longer accepted" do
+        allow(Danbooru.config.custom_configuration).to receive(:accept_legacy_sessions?).and_return(false)
+        expect { loader.load }.not_to change(UserSession, :count)
+        expect(CurrentUser.user.is_logged_out?).to be true
+        expect(cookie_jar).to have_received(:delete).with(:remember)
+      end
+    end
+
+    context "with a remember_session cookie" do
+      let(:record) { create(:remembered_user_session, user: user, secret: "s3cret") }
+      let(:remember_cookie) { nil }
+      let(:encrypted_jar) { { remember_session: verifier.generate("#{record.id}:s3cret", purpose: "rbs", expires_in: 14.days) } }
+      let(:cookie_jar) do
+        instance_spy(ActionDispatch::Cookies::CookieJar).tap do |jar|
+          allow(jar).to receive_messages(encrypted: encrypted_jar, "[]": nil)
+        end
+      end
+
+      it "restores the login into the session without a reauth timestamp" do
+        loader.load
+        expect(CurrentUser.user).to eq(user)
+        expect(CurrentUser.user_session).to eq(record)
+        expect(request.session[:user_id]).to eq(user.id)
+        expect(request.session[:ph]).to eq(user.password_token)
+        expect(request.session[:sid]).to eq(record.id)
+        expect(request.session[:sk]).to eq("s3cret")
+        expect(request.session[:last_authenticated_at]).to be_nil
+      end
+
+      it "is preferred over an old remember cookie" do
+        encrypted_jar[:remember] = raw_token
+        expect { loader.load }.not_to change(UserSession, :count)
+        expect(CurrentUser.user_session).to eq(record)
+      end
+
+      it "forgets a revoked row and drops both cookies" do
+        record.revoke!("user")
+        loader.load
+        expect(CurrentUser.user.is_logged_out?).to be true
+        expect(cookie_jar).to have_received(:delete).with(:remember_session)
+        expect(cookie_jar).to have_received(:delete).with(:remember)
+      end
+
+      it "ignores a tampered cookie" do
+        encrypted_jar[:remember_session] = "garbage"
+        expect { loader.load }.not_to raise_error
+        expect(CurrentUser.user.is_logged_out?).to be true
+      end
+
+      it "ignores a wrong secret" do
+        encrypted_jar[:remember_session] = verifier.generate("#{record.id}:wrong", purpose: "rbs", expires_in: 14.days)
         loader.load
         expect(CurrentUser.user.is_logged_out?).to be true
       end

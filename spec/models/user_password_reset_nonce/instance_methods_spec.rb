@@ -94,6 +94,13 @@ RSpec.describe UserPasswordResetNonce do
       expect(nonce.reset_user!("hexerade1234", "hexerade1234")).to be true
       expect(nonce.user.reload.bcrypt_password).to eq("hexerade1234")
     end
+
+    it "revokes every login session of the user" do
+      nonce = make_nonce
+      record = create(:user_session, user: nonce.user)
+      nonce.reset_user!("hexerade1234", "hexerade1234")
+      expect(record.reload.revoked_reason).to eq("credential_change")
+    end
   end
 
   # -------------------------------------------------------------------------

@@ -356,6 +356,14 @@ RSpec.describe UsersController do
           .to change(User, :count).by(1)
         expect(response).to have_http_status(:found)
       end
+
+      it "logs the new user in with a session row" do
+        expect { post users_path, params: valid_params }.to change(UserSession, :count).by(1)
+        user = User.find_by(name: "signup_test_user")
+        expect(session[:user_id]).to eq(user.id)
+        expect(UserSession.find(session[:sid]).user).to eq(user)
+        expect(SessionLoader.recently_authenticated?(session)).to be true
+      end
     end
 
     context "when turnstile is enabled" do
@@ -432,6 +440,29 @@ RSpec.describe UsersController do
         patch user_path(user), params: { user: { time_zone: "UTC" } }
         expect(response).to redirect_to(settings_users_path)
         expect(user.reload.time_zone).to eq("UTC")
+      end
+    end
+
+    context "when changing the password" do
+      before do
+        allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1, reset!: nil))
+        make_session(user)
+      end
+
+      it "keeps the current session and revokes every other one" do
+        other = create(:user_session, user: user)
+        current = UserSession.find(session[:sid])
+
+        patch user_path(user), params: { user: { old_password: "hexerade", password: "hexerade1234", password_confirmation: "hexerade1234" } }
+
+        expect(response).to redirect_to(settings_users_path)
+        expect(user.reload.bcrypt_password == "hexerade1234").to be true
+        expect(other.reload.revoked_reason).to eq("credential_change")
+        expect(current.reload).to be_active
+        expect(session[:ph]).to eq(user.password_token)
+
+        get settings_users_path
+        expect(response).to have_http_status(:ok)
       end
     end
 

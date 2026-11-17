@@ -626,6 +626,14 @@ module Danbooru
       true
     end
 
+    # Phase 1 of doc 42: cookie logins issued before user_sessions existed are
+    # adopted into rows on their next request. Set to false (phase 2, at least
+    # 14 days after phase 1 is live) to reject them and stop issuing the old
+    # `remember` cookie.
+    def accept_legacy_sessions?
+      true
+    end
+
     # Whether the OAuth2 / OpenID Connect provider is enabled. Requires a signing key.
     def enable_oauth_provider?
       false

@@ -1,0 +1,74 @@
+<h1>Active Sessions</h1>
+
+<div class="instructions">
+  <p>These are the browsers and devices currently signed in to your account. Revoke any you don't recognize.
+    Changing your password also signs out every other session.</p>
+</div>
+
+<div class="user-sessions-container">
+  <div class="user-sessions-list">
+    <div class="header">Device</div>
+    <div class="header">Site</div>
+    <div class="header">IP address</div>
+    <div class="header">Signed in</div>
+    <div class="header">Last active</div>
+    <div class="header">Actions</div>
+
+    <% @user_sessions.each do |user_session| %>
+      <% current = user_session.id == @current_session&.id %>
+      <% network = @networks[user_session.last_ip.to_s] %>
+      <div class="row<%= " current" if current %>" id="user-session-<%= user_session.id %>">
+        <div class="cell" data-label="Device">
+          <div>
+            <span title="<%= h(user_session.user_agent) %>"><%= UserAgentLabel.for(user_session.user_agent) %></span>
+            <% if user_session.remember %>
+              <br><small>Remembered</small>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="cell" data-label="Site"><%= user_session.site %></div>
+
+        <div class="cell" data-label="IP address">
+          <div>
+            <%= user_session.last_ip %>
+            <% if network %>
+              <br><small><%= network[:name] %><%= " (#{network[:country]})" if network[:country].present? %></small>
+            <% end %>
+            <% if user_session.created_ip.present? && user_session.created_ip != user_session.last_ip %>
+              <br><small>signed in from <%= user_session.created_ip %></small>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="cell" data-label="Signed in"><%= time_ago_in_words_tagged(user_session.created_at) %></div>
+
+        <div class="cell" data-label="Last active">
+          <% if current %>
+            now
+          <% else %>
+            <%= time_ago_in_words_tagged(user_session.last_seen_at) %>
+          <% end %>
+        </div>
+
+        <div class="cell" data-label="Actions">
+          <% if current %>
+            <strong>This session</strong>
+          <% else %>
+            <%= link_to("Revoke", user_session_path(user_session), data: { method: :delete, confirm: "Sign this session out?" }) %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<% if @user_sessions.size > 1 %>
+  <p class="revoke-others">
+    <%= link_to("Log out everywhere else", revoke_others_user_sessions_path, class: "button", data: { method: :delete, confirm: "Sign out every session except this one?" }) %>
+  </p>
+<% end %>
+
+<% content_for(:page_title) do %>
+  Active Sessions
+<% end %>

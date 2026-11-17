@@ -113,9 +113,8 @@ class SessionsController < ApplicationController
   end
 
   def destroy
-    session.delete(:user_id)
-    cookies.delete(:remember)
-    session.delete(:last_authenticated_at)
+    CurrentUser.user_session&.revoke!("logout")
+    session_creator.clear_login
     session_creator.clear_challenge
     redirect_back_or_to(root_path, allow_other_host: false, notice: "You are now logged out")
   end

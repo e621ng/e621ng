@@ -11,9 +11,33 @@ class SessionLoader
 
   attr_reader :session, :cookies, :request, :params
 
-  # A password or TOTP change rotates the token, invalidating older cookie sessions.
+  # A password or TOTP change rotates the token, invalidating older cookie sessions;
+  # the UserSession row behind the cookie must also still be live (doc 42).
   def self.session_token_valid?(session, user)
-    session[:ph] == user.password_token
+    session[:ph] == user.password_token && find_user_session(session, user).present?
+  end
+
+  # The row a cookie session names, :legacy for a pre-rollout cookie that may be
+  # adopted, or nil when the login must not be honoured. Read-only: the Sidekiq
+  # route constraint calls it outside any controller.
+  def self.find_user_session(session, user)
+    if session[:sid].present?
+      record = UserSession.authenticate(session[:sid], session[:sk])
+      record if record&.user_id == user.id && record.active?
+    elsif Danbooru.config.accept_legacy_sessions? && !UserSession.legacy_blocked?(user, legacy_session_key(session))
+      :legacy
+    end
+  end
+
+  # Stable per pre-rollout login, so a copy of the same cookie resolves to the same key.
+  def self.legacy_session_key(session)
+    Digest::SHA256.hexdigest("#{session[:user_id]}:#{session[:ph]}:#{session[:last_authenticated_at].presence || 'remember'}")
+  end
+
+  # Hashes the verified payload: the old cookie was re-signed on every request,
+  # so the signed string itself differs between copies.
+  def self.legacy_remember_key(user_id, token)
+    Digest::SHA256.hexdigest("#{user_id}:#{token}")
   end
 
   def self.recently_authenticated?(session)
@@ -32,7 +56,7 @@ class SessionLoader
     rescue ActionDispatch::Http::Parameters::ParseError
       {}
     end
-    @remember_validator = ActiveSupport::MessageVerifier.new(Danbooru.config.remember_key, serializer: JSON, digest: "SHA256")
+    @remember_validator = SessionCreator.remember_verifier
   end
 
   def load
@@ -68,8 +92,8 @@ class SessionLoader
       end
     end
     update_user_login_tracking
+    touch_user_session
     set_safe_mode
-    refresh_old_remember_token
     refresh_unread_dmails
     DanbooruLogger.initialize(CurrentUser.user)
   end
@@ -119,7 +143,7 @@ class SessionLoader
   end
 
   def has_remember_token?
-    cookies.encrypted[:remember].present?
+    cookies.encrypted[:remember_session].present? || cookies.encrypted[:remember].present?
   end
 
   private
@@ -175,31 +199,70 @@ class SessionLoader
   end
 
   def load_remember_token
-    begin
-      message = @remember_validator.verify(cookies.encrypted[:remember], purpose: "rbr")
-      return if message.nil?
-      pieces = message.split(":")
-      return unless pieces.length == 2
-      user = User.find_by_id(pieces[0].to_i)
-      return unless user
-      return if pieces[1].to_i != user.password_token
-      CurrentUser.user = user
-      @auth_source = :remember
-      session[:user_id] = user.id
-      session[:ph] = user.password_token # This has been validated by the remember token
-      # Mirrors SessionCreator so OIDC auth_time reflects this restore.
-      user.update_columns(last_logged_in_at: Time.now) unless user.is_restricted?
-    rescue
-      return
+    if cookies.encrypted[:remember_session].present?
+      restore_remembered_session
+    elsif Danbooru.config.accept_legacy_sessions?
+      restore_legacy_remember
+    else
+      cookies.delete(:remember)
     end
   end
 
-  # API credentials may be attacker-supplied; never rewrite the cookie login with them.
-  def refresh_old_remember_token
-    return unless cookie_auth?
-    if cookies.encrypted[:remember] && !CurrentUser.user.is_logged_out?
-      cookies.encrypted[:remember] = {value: @remember_validator.generate("#{CurrentUser.id}:#{CurrentUser.password_token}", purpose: "rbr", expires_in: 14.days), expires: Time.now + 14.days, httponly: true, same_site: :lax, secure: Rails.env.production?}
+  def restore_remembered_session
+    sid, secret = verify_remember(cookies.encrypted[:remember_session], purpose: "rbs").to_s.split(":", 2)
+    record = UserSession.authenticate(sid, secret)
+    if record.nil? || !record.active?
+      SessionCreator.clear_login(session, cookies)
+      return
     end
+    restore_login(record.user, record, secret)
+  end
+
+  def restore_legacy_remember
+    pieces = verify_remember(cookies.encrypted[:remember], purpose: "rbr").to_s.split(":")
+    return unless pieces.length == 2
+    user = User.find_by(id: pieces[0].to_i)
+    return if user.nil? || pieces[1].to_i != user.password_token
+
+    key = self.class.legacy_remember_key(user.id, user.password_token)
+    if UserSession.legacy_blocked?(user, key)
+      cookies.delete(:remember)
+      return
+    end
+    record, secret = UserSession.mint!(user, request: request, remember: true, legacy_key: key)
+    SessionCreator.set_remember_session(cookies, record.id, secret)
+    restore_login(user, record, secret)
+  end
+
+  def restore_login(user, record, secret)
+    CurrentUser.user = user
+    CurrentUser.api_key = nil
+    CurrentUser.user_session = record
+    @user_session = record
+    @auth_source = :remember
+    session[:user_id] = user.id
+    session[:ph] = user.password_token # This has been validated by the remember token
+    session[:sid] = record.id
+    session[:sk] = secret
+    # Mirrors SessionCreator so OIDC auth_time reflects this restore.
+    user.update_columns(last_logged_in_at: Time.now) unless user.is_restricted?
+  end
+
+  def verify_remember(value, purpose:)
+    @remember_validator.verify(value, purpose: purpose)
+  rescue ActiveSupport::MessageVerifier::InvalidSignature
+    nil
+  end
+
+  # Activity is recorded at most once per TOUCH_INTERVAL per session; revocation
+  # is still read on every request. The remember cookie's browser expiry is
+  # extended on the same cadence, with the same secret.
+  def touch_user_session
+    return if @user_session.nil?
+    return unless Cache.redis.set("user_session_touch:#{@user_session.id}", "1", nx: true, ex: UserSession::TOUCH_INTERVAL.to_i)
+
+    @user_session.touch_activity!(request)
+    SessionCreator.set_remember_session(cookies, @user_session.id, session[:sk]) if @user_session.remember && session[:sk].present?
   end
 
   # Key/Basic credentials can be planted in a victim's browser through a link or embed (E6SEC-519).
@@ -264,9 +327,33 @@ class SessionLoader
   def load_session_user
     user = User.find_by(id: session[:user_id])
     raise SessionInvalid if user.nil?
-    return unless self.class.session_token_valid?(session, user)
+
+    found = self.class.find_user_session(session, user) if session[:ph] == user.password_token
+    case found
+    when UserSession
+      @user_session = found
+    when :legacy
+      @user_session = adopt_legacy_session(user)
+    else
+      # Ended elsewhere (revoked, expired, credential change): forget it here so
+      # the dead login is not looked up again on every request.
+      SessionCreator.clear_login(session, cookies)
+      return
+    end
     CurrentUser.user = user
     CurrentUser.api_key = nil
+    CurrentUser.user_session = @user_session
+  end
+
+  # First request from a browser logged in before user_sessions existed. The old
+  # `remember` cookie is left in place (never refreshed) for rollback safety.
+  def adopt_legacy_session(user)
+    remembered = cookies.encrypted[:remember].present?
+    record, secret = UserSession.mint!(user, request: request, remember: remembered, legacy_key: self.class.legacy_session_key(session))
+    session[:sid] = record.id
+    session[:sk] = secret
+    SessionCreator.set_remember_session(cookies, record.id, secret) if remembered
+    record
   end
 
   def update_user_login_tracking

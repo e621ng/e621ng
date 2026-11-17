@@ -21,6 +21,16 @@
     <% end %>
   </tab-hint>
 </tab-entry>
+
+<tab-entry tab="<%= tab_name %>" group="security" class="with-button" search="active sessions logins devices browsers sign out everywhere revoke">
+  <tab-head>Active Sessions</tab-head>
+  <tab-body>
+    <%= link_to "Manage Sessions", user_sessions_path, class: "st-button" %>
+  </tab-body>
+  <tab-hint>
+    Browsers signed in to your account; sign any of them out.
+  </tab-hint>
+</tab-entry>
 <% end %>
 
 <!-- API access -->
