@@ -6288,13 +6288,6 @@ CREATE INDEX index_user_sessions_on_expires_at ON public.user_sessions USING btr
 
 
 --
--- Name: index_user_sessions_on_user_id; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_user_sessions_on_user_id ON public.user_sessions USING btree (user_id);
-
-
---
 -- Name: index_user_sessions_on_user_id_active; Type: INDEX; Schema: public; Owner: -
 --
 

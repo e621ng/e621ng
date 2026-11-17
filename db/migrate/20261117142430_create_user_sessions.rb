@@ -3,7 +3,8 @@
 class CreateUserSessions < ActiveRecord::Migration[8.1]
   def change
     create_table :user_sessions do |t|
-      t.references :user, null: false, foreign_key: { on_delete: :cascade }
+      # The partial index below serves the user_id lookups; no plain one needed.
+      t.references :user, null: false, foreign_key: { on_delete: :cascade }, index: false
       t.string :secret_digest, null: false
       t.string :site, null: false
       t.boolean :remember, null: false, default: false
