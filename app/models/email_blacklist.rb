@@ -4,27 +4,20 @@ class EmailBlacklist < ApplicationRecord
   UNVERIFY_COUNT_TRESHOLD = 250
   BANNED_CACHE_KEY = "banned_emails_1"
 
-  # alphanumeric and hyphens (except leading or trailing), 1-63 chars per part, at least 2 parts
-  DOMAIN_PART = /(?!-)[a-z0-9-]{1,63}(?<!-)/
-  DOMAIN_FORMAT = /\A#{DOMAIN_PART}(?:\.#{DOMAIN_PART})+\z/
-
   belongs_to_creator
 
   before_validation :normalize_domain_attribute
 
   validates :domain, presence: true
-  validates :domain, length: { maximum: 253 }
-  validates :domain,
-            format: {
-              with: DOMAIN_FORMAT,
-              message: "must be a plain domain name like example.com (no wildcards, no @)",
-            },
-            allow_blank: true
   validates :domain, uniqueness: { case_sensitive: false, message: "already exists" }
+  validate if: :domain do |record|
+    if (error = EmailAddressValidator.validation_error_domain_part(domain, bare_tld: true))
+      record.errors.add(:domain, error)
+    end
+  end
 
-  after_create :invalidate_cache
   after_create :unverify_accounts
-  after_destroy :invalidate_cache
+  after_commit :invalidate_cache, on: %i[create destroy]
 
   def self.is_banned?(email)
     return false if email.blank? || email.exclude?("@")
@@ -44,8 +37,10 @@ class EmailBlacklist < ApplicationRecord
   def self.domain_matches?(banned_domains, domain)
     labels = normalize_domain(domain).split(".")
 
-    # Don't match TLDs
-    (0...(labels.length - 1)).any? do |i|
+    # This allows bare TLD domains, but we're assuming no one is putting stuff
+    # like "com" in the blacklist. There also might still be value in blacklisting
+    # a novelty TLD commonly used by spammers.
+    (0...(labels.length)).any? do |i|
       banned_domains.include?(labels[i..].join("."))
     end
   end
@@ -56,7 +51,7 @@ class EmailBlacklist < ApplicationRecord
 
   def self.banned_domain_set
     Cache.fetch(BANNED_CACHE_KEY, expires_in: 1.hour) do
-      all.map { |x| normalize_domain(x.domain) }.compact_blank.to_set
+      pluck(:domain).map { |domain| normalize_domain(domain) }.compact_blank.to_set
     end
   end
 

@@ -20,7 +20,7 @@ RSpec.describe EmailBlacklist do
       expect(Cache).to have_received(:delete).with(EmailBlacklist::BANNED_CACHE_KEY).at_least(:once)
     end
 
-    it "clears the bannedemails cache after destroy" do
+    it "clears the banned mails cache after destroy" do
       entry = create(:email_blacklist)
       allow(Cache).to receive(:delete)
       entry.destroy!

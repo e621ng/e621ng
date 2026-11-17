@@ -56,6 +56,10 @@ RSpec.describe EmailBlacklist do
       expect(build(:email_blacklist, domain: "example.com")).to be_valid
     end
 
+    it "is valid with a bare TLD" do
+      expect(build(:email_blacklist, domain: "info")).to be_valid
+    end
+
     it "is valid with a subdomain and hyphens" do
       expect(build(:email_blacklist, domain: "mail-1.spam.example.com")).to be_valid
     end
@@ -85,7 +89,6 @@ RSpec.describe EmailBlacklist do
         "back\\slash.com",
         "-tmail.com",      # label starts with hyphen
         "tmail-.com",      # label ends with hyphen
-        "com",             # bare TLD, single label
         "bücher.example",  # non-ASCII; must be punycode
       ].each do |bad|
         record = build(:email_blacklist, domain: bad)
