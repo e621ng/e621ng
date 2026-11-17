@@ -23,6 +23,48 @@ RSpec.describe Ban do
           create(:ban, user: subject_user, banner: moderator)
         end.to change { subject_user.reload.level }.to(UserLevel::BLOCKED)
       end
+
+      context "with privilege flags set" do
+        let(:subject_user) do
+          create(:user, can_approve_posts: true, can_upload_free: true, replacements_beta: true,
+                        oauth_applications_beta: true, tag_warden: true, raised_favorite_limit: true,
+                        no_flagging: true, no_uploading: true, no_karma_free: true)
+        end
+
+        it "clears the privilege-granting flags" do
+          create(:ban, user: subject_user, banner: moderator)
+          subject_user.reload
+          expect(Ban::REVOKED_USER_FLAGS.keys.map { |flag| subject_user.send("#{flag}?") }).to all(be(false))
+        end
+
+        it "keeps restrictions and perks that are not privileges" do
+          create(:ban, user: subject_user, banner: moderator)
+          subject_user.reload
+          expect(subject_user).to have_attributes(raised_favorite_limit?: true, no_flagging?: true, no_uploading?: true, no_karma_free?: true)
+        end
+
+        it "logs the removed flags" do
+          create(:ban, user: subject_user, banner: moderator)
+          log = ModAction.where(action: "user_flags_change").last
+          expect(log[:values]).to include(
+            "user_id" => subject_user.id,
+            "added" => [],
+            "removed" => contain_exactly("approve posts", "unlimited uploads", "replacements beta", "oauth applications beta", "tag warden"),
+          )
+        end
+
+        it "does not restore the flags when the ban is destroyed" do
+          ban = create(:ban, user: subject_user, banner: moderator)
+          ban.destroy!
+          expect(subject_user.reload.can_approve_posts?).to be(false)
+        end
+      end
+
+      it "does not log a flag change when the user had no privilege flags" do
+        expect do
+          create(:ban, user: subject_user, banner: moderator)
+        end.not_to(change { ModAction.where(action: "user_flags_change").count })
+      end
     end
 
     # -------------------------------------------------------------------------

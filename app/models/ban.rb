@@ -4,6 +4,15 @@ class Ban < ApplicationRecord
   include Danbooru::HasBitFlags
   has_bit_flags %w[prevent_login], field: "ban_flags"
 
+  # Privilege-granting user flags stripped on ban; not restored on unban.
+  REVOKED_USER_FLAGS = {
+    "can_approve_posts" => "approve posts",
+    "can_upload_free" => "unlimited uploads",
+    "replacements_beta" => "replacements beta",
+    "oauth_applications_beta" => "oauth applications beta",
+    "tag_warden" => "tag warden",
+  }.freeze
+
   after_create :create_feedback
   after_create :update_user_on_create
   after_create :revoke_oauth_credentials
@@ -65,6 +74,9 @@ class Ban < ApplicationRecord
       if user.level >= UserLevel::ADMIN
         errors.add(:base, "You can never ban an admin.")
         false
+      elsif (user.is_bd_staff? || user.is_bd_auditor?) && !banner.is_bd_staff?
+        errors.add(:base, "Only BD staff can ban BD staff.")
+        false
       elsif user.level >= UserLevel::MODERATOR && banner.is_admin?
         true
       elsif user.level >= UserLevel::MODERATOR
@@ -81,8 +93,11 @@ class Ban < ApplicationRecord
 
   def update_user_on_create
     user.level = UserLevel::BLOCKED
+    revoked = REVOKED_USER_FLAGS.select { |flag, _| user.send("#{flag}?") }
+    revoked.each_key { |flag| user.send("#{flag}=", false) }
     # Don't validate in order for deleted users to be bannable
     user.save(validate: false)
+    ModAction.log(:user_flags_change, { user_id: user.id, added: [], removed: revoked.values }) if revoked.any?
   end
 
   def update_user_on_update
