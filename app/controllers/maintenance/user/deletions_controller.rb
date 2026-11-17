@@ -11,8 +11,7 @@ module Maintenance
       def destroy
         deletion = UserDeletion.new(CurrentUser.user, params[:password])
         deletion.delete!
-        cookies.delete :remember
-        session.delete(:user_id)
+        SessionCreator.clear_login(session, cookies)
         redirect_to(posts_path, :notice => "You are now logged out")
       rescue UserDeletion::ValidationError => e
         render_expected_error(400, e)

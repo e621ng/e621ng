@@ -468,6 +468,15 @@ RSpec.describe Staff::UsersController do
         expect(user.reload.bcrypt_password_hash).to eq("*AC*")
       end
 
+      it "revokes the user's login sessions only when invalidating the old password" do
+        record = create(:user_session, user: user)
+        post password_reset_staff_user_path(user)
+        expect(record.reload).to be_active
+
+        post password_reset_staff_user_path(user), params: { admin: { invalidate_old_password: "1" } }
+        expect(record.reload.revoked_reason).to eq("staff")
+      end
+
       it "replaces the user's existing nonces" do
         old_nonce = create(:user_password_reset_nonce, user: user)
         post password_reset_staff_user_path(user)
@@ -560,6 +569,18 @@ RSpec.describe Staff::UsersController do
 
       expect(response).to redirect_to(user_path(totp_user))
       expect(totp_user.reload.totp).to be_nil
+    end
+
+    it "revokes the user's login sessions, with or without a backing TOTP row" do
+      sign_in_as admin, reauthenticated: true
+      record = create(:user_session, user: totp_user)
+      post totp_reset_staff_user_path(totp_user)
+      expect(record.reload.revoked_reason).to eq("staff")
+
+      UserTotp.set_user_flag(totp_user.id, true)
+      stale = create(:user_session, user: totp_user)
+      post totp_reset_staff_user_path(totp_user)
+      expect(stale.reload.revoked_reason).to eq("staff")
     end
 
     it "refuses for a non-BD-staff admin when the target is staff" do

@@ -285,9 +285,67 @@ RSpec.describe SessionsController do
       expect(session[:user_id]).to be_nil
     end
 
+    it "revokes the session row and clears the remember cookies" do
+      record = UserSession.find(session[:sid])
+      expect(cookies["remember_session"]).to be_present
+      delete session_path
+      expect(record.reload.revoked_reason).to eq("logout")
+      expect(session[:sid]).to be_nil
+      expect(cookies["remember_session"]).to be_blank
+      expect(cookies["remember"]).to be_blank
+    end
+
+    it "leaves a copy of the pre-logout cookies logged out" do
+      copied_session = cookies["_danbooru_session"]
+      copied_remember = cookies["remember_session"]
+      delete session_path
+
+      cookies["_danbooru_session"] = copied_session
+      get "/users/me.json"
+      expect(response.parsed_body["id"]).to be_nil
+
+      cookies.delete("_danbooru_session")
+      cookies["remember_session"] = copied_remember
+      get "/users/me.json"
+      expect(response.parsed_body["id"]).to be_nil
+    end
+
     it "sets a logged-out flash notice" do
       delete session_path
       expect(flash[:notice]).to eq("You are now logged out")
+    end
+  end
+
+  describe "session rows" do
+    before do
+      allow(RateLimiter).to receive(:new).and_return(instance_double(RateLimiter, throttled?: false, hit!: 1, reset!: nil))
+    end
+
+    it "creates a row per login and revokes the previous one when switching accounts" do
+      make_session(member)
+      first = UserSession.find(session[:sid])
+      expect(first.user).to eq(member)
+      expect(first.remember).to be true
+
+      other = create(:user)
+      make_session(other)
+      expect(session[:sid]).not_to eq(first.id)
+      expect(first.reload.revoked_reason).to eq("logout")
+      expect(UserSession.find(session[:sid]).user).to eq(other)
+    end
+
+    it "keeps the row across a password re-confirmation" do
+      make_session(member)
+      sid = session[:sid]
+      expect { make_session(member) }.not_to change(UserSession, :count)
+      expect(session[:sid]).to eq(sid)
+    end
+
+    it "does not issue remember cookies without the remember flag" do
+      make_session(member, remember: false)
+      expect(UserSession.find(session[:sid]).remember).to be false
+      expect(cookies["remember_session"]).to be_blank
+      expect(cookies["remember"]).to be_blank
     end
   end
 

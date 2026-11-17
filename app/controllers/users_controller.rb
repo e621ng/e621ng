@@ -218,8 +218,7 @@ class UsersController < ApplicationController
       if !Danbooru.config.enable_turnstile? || TurnstileVerifier.verify(params["cf-turnstile-response"], request.remote_ip)
         @user.save
         if @user.errors.empty?
-          session[:user_id] = @user.id
-          session[:ph] = @user.password_token
+          SessionCreator.new(request, session, cookies, nil, nil).establish(@user)
           if Danbooru.config.enable_email_verification?
             Maintenance::User::EmailConfirmationMailer.confirmation(@user).deliver_now
           end
@@ -234,7 +233,8 @@ class UsersController < ApplicationController
       respond_with(@user)
     end
   rescue ::Mailgun::CommunicationError
-    session[:user_id] = nil
+    # The transaction rolled the UserSession row back along with the user.
+    SessionCreator.clear_login(session, cookies)
     @user.errors.add(:email, "There was a problem with your email that prevented sign up")
     @user.id = nil
     flash[:notice] = "There was a problem with your email that prevented sign up"
@@ -248,6 +248,9 @@ class UsersController < ApplicationController
     @user.update(user_params(:update))
     if @user.errors.any?
       flash[:notice] = @user.errors.full_messages.join("; ")
+    elsif @user.saved_change_to_bcrypt_password_hash? && CurrentUser.user_session
+      # The model hook ended every other session; this one keeps going.
+      session[:ph] = @user.password_token
     end
     respond_with(@user) do |format|
       format.html { redirect_back fallback_location: settings_users_path }

@@ -143,8 +143,7 @@ class ApplicationController < ActionController::Base
       response.set_header("WWW-Authenticate", %(Bearer error="invalid_token", error_description="user level below application minimum"))
       render_expected_error(401, "Account level below application minimum")
     when SessionLoader::SessionInvalid
-      session.delete(:user_id)
-      cookies.delete :remember
+      SessionCreator.clear_login(session, cookies)
       render_expected_error(401, exception.message)
     when SessionLoader::AuthenticationFailure
       # Failed API credentials leave the cookie login alone (E6SEC-506).
@@ -270,6 +269,7 @@ class ApplicationController < ActionController::Base
     CurrentUser.ip_addr = nil
     CurrentUser.safe_mode = CurrentSite.safe_mode?
     CurrentUser.oauth_token = nil
+    CurrentUser.user_session = nil
   end
 
   def requires_reauthentication

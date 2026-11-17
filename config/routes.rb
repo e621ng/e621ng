@@ -398,6 +398,11 @@ Rails.application.routes.draw do
       post :verify_totp
     end
   end
+  resources :user_sessions, path: "session/active", only: %i[index destroy] do
+    collection do
+      delete :revoke_others
+    end
+  end
   resources :stats, only: %i[index]
   resources :tags, constraints: id_name_constraint do
     resource :correction, only: %i[new create show], controller: "tag_corrections"

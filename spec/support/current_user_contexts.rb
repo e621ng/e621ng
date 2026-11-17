@@ -29,8 +29,9 @@
     end
 
     after do
-      CurrentUser.user    = nil
-      CurrentUser.ip_addr = nil
+      CurrentUser.user         = nil
+      CurrentUser.ip_addr      = nil
+      CurrentUser.user_session = nil
     end
   end
 end

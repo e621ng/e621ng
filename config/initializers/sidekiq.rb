@@ -148,6 +148,12 @@ Sidekiq.configure_server do |config| # rubocop:disable Metrics/BlockLength
       "queue" => "low_prio",
       "description" => "Prune user IP address rows unseen for the retention period",
     },
+    "UserSessionPruneJob" => {
+      "cron" => "10 2 * * *", # Every day at 2:10 AM
+      "class" => "UserSessionPruneJob",
+      "queue" => "low_prio",
+      "description" => "Prune revoked, expired and never-used login sessions",
+    },
   }
 
   Sidekiq::Cron::Job.load_from_hash! schedule, source: "schedule"

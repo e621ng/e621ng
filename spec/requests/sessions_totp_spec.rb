@@ -80,6 +80,14 @@ RSpec.describe "TOTP login challenge" do
       post verify_totp_session_path, params: { totp: { code: current_code } }
       expect(response).to redirect_to("/artists")
       expect(response.cookies["remember"]).to be_present
+      expect(response.cookies["remember_session"]).to be_present
+      expect(UserSession.find(session[:sid]).remember).to be true
+    end
+
+    it "creates exactly one session row, at the second step" do
+      expect { login! }.not_to change(UserSession, :count)
+      expect { post verify_totp_session_path, params: { totp: { code: current_code } } }.to change(UserSession, :count).by(1)
+      expect(UserSession.find(session[:sid]).user).to eq(user)
     end
 
     it "does not stash a non-local url" do

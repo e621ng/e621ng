@@ -33,6 +33,13 @@ RSpec.describe "Sidekiq dashboard access" do
     expect(response).to have_http_status(:not_found)
   end
 
+  it "returns 404 once the session row has been revoked elsewhere" do
+    sign_in_admin
+    UserSession.find(session[:sid]).revoke!("user")
+    get "/sidekiq"
+    expect(response).to have_http_status(:not_found)
+  end
+
   it "returns 404 from a banned IP" do
     sign_in_admin
     create(:ip_ban, ip_addr: "1.2.3.200")

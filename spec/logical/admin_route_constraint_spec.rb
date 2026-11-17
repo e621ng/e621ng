@@ -40,6 +40,30 @@ RSpec.describe AdminRouteConstraint do
     expect(constraint.matches?(request)).to be false
   end
 
+  context "with a session row" do
+    let(:record) { create(:user_session, user: admin, secret: "s3cret") }
+
+    before do
+      sign_in(admin)
+      request.session[:sid] = record.id
+      request.session[:sk] = "s3cret"
+    end
+
+    it "matches while the row is live" do
+      expect(constraint.matches?(request)).to be true
+    end
+
+    it "rejects once the row is revoked" do
+      record.revoke!("user")
+      expect(constraint.matches?(request)).to be false
+    end
+
+    it "rejects a wrong secret" do
+      request.session[:sk] = "wrong"
+      expect(constraint.matches?(request)).to be false
+    end
+  end
+
   it "rejects a banned IP" do
     sign_in(admin)
     create(:ip_ban, ip_addr: "1.2.3.200")

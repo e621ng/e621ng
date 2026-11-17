@@ -112,6 +112,7 @@ module Staff
       if invalidate_old_password
         User.transaction do
           @user.update_columns(password_hash: "", bcrypt_password_hash: "*AC*")
+          UserSession.revoke_all!(@user, reason: "staff")
           # The hash change only ends web sessions.
           @user.revoke_api_credentials!
         end
@@ -141,6 +142,8 @@ module Staff
         # 2FA UI and challenging logins.
         UserTotp.set_user_flag(@user.id, false)
       end
+      # Either branch changes password_token, which logs every session out.
+      UserSession.revoke_all!(@user, reason: "staff")
       ModAction.log(:totp_reset, { user_id: @user.id })
       Maintenance::User::TotpMailer.totp_disabled(@user).deliver_now
       redirect_to user_path(@user), notice: "Two-factor authentication removed from '#{@user.name}'"

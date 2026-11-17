@@ -43,6 +43,7 @@ class TotpsController < ApplicationController
     end
     session.delete(:pending_totp_secret)
     refresh_session_password_token
+    revoke_other_sessions
     Maintenance::User::TotpMailer.totp_enabled(CurrentUser.user).deliver_now
     render :backup_codes
   end
@@ -59,6 +60,7 @@ class TotpsController < ApplicationController
     else
       user_totp.destroy
       refresh_session_password_token
+      revoke_other_sessions
       Maintenance::User::TotpMailer.totp_disabled(CurrentUser.user).deliver_now
       redirect_to(settings_users_path, notice: "Two-factor authentication disabled")
     end
@@ -87,6 +89,11 @@ class TotpsController < ApplicationController
 
   def refresh_session_password_token
     session[:ph] = CurrentUser.user.reload.password_token
+  end
+
+  # The token change already logs the other sessions out; this keeps the list accurate.
+  def revoke_other_sessions
+    UserSession.revoke_all!(CurrentUser.user, reason: "credential_change", except: CurrentUser.user_session)
   end
 
   # Disable and backup-code regeneration are code-guessing surfaces just like the login

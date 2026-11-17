@@ -105,6 +105,13 @@ RSpec.describe TotpsController do
       expect(response).to have_http_status(:ok)
     end
 
+    it "revokes every other session" do
+      other = create(:user_session, user: user)
+      enroll!
+      expect(other.reload.revoked_reason).to eq("credential_change")
+      expect(UserSession.find(session[:sid])).to be_active
+    end
+
     it "prevents the enrollment code from being replayed at the login challenge" do
       get new_totp_path
       secret = session[:pending_totp_secret]
@@ -175,6 +182,15 @@ RSpec.describe TotpsController do
       codes = user.reload.totp.regenerate_backup_codes!
       delete totp_path, params: { totp: { code: codes.first } }
       expect(user.reload.totp).to be_nil
+    end
+
+    it "revokes every other session and keeps the current one" do
+      other = create(:user_session, user: user)
+      delete totp_path, params: { totp: { code: code_for(secret) } }
+      expect(other.reload.revoked_reason).to eq("credential_change")
+      expect(UserSession.find(session[:sid])).to be_active
+      get settings_users_path
+      expect(response).to have_http_status(:ok)
     end
 
     it "refuses without a valid code" do

@@ -124,6 +124,7 @@ class User < ApplicationRecord
   before_update :encrypt_password_on_update
   after_update :invalidate_password_reset_nonces,
                if: -> { saved_change_to_bcrypt_password_hash? || saved_change_to_email? }
+  after_update :revoke_sessions_on_credential_change, if: :saved_change_to_bcrypt_password_hash?
   after_save :update_cache
   after_save :clear_cropped_avatar_on_avatar_change
 
@@ -132,6 +133,7 @@ class User < ApplicationRecord
                       if: -> { saved_change_to_name? || saved_change_to_profile_about? || saved_change_to_profile_artinfo? }
 
   has_many :api_keys, dependent: :destroy
+  has_many :user_sessions, dependent: :destroy
   has_many :oauth_applications, class_name: "Doorkeeper::Application", as: :owner, dependent: :destroy
   has_one :dmail_filter
   has_one :totp, class_name: "UserTotp", dependent: :destroy
@@ -289,10 +291,20 @@ class User < ApplicationRecord
 
     def upgrade_password(pass)
       update_columns(password_hash: "", bcrypt_password_hash: User.bcrypt(pass))
+      # update_columns skips the after_update hook. The caller is logging in or
+      # resetting, so there is no current session to keep.
+      UserSession.revoke_all!(self, reason: "credential_change")
     end
 
     def invalidate_password_reset_nonces
       UserPasswordResetNonce.where(user_id: id).delete_all
+    end
+
+    # A user changing their own password keeps the session they did it from;
+    # the controller re-stamps session[:ph] for it.
+    def revoke_sessions_on_credential_change
+      except = CurrentUser.user_session if CurrentUser.id == id
+      UserSession.revoke_all!(self, reason: "credential_change", except: except)
     end
 
     def password_is_secure

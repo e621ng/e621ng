@@ -32,6 +32,11 @@ class CurrentUser
     RequestStore[:current_oauth_token] = token
   end
 
+  # The UserSession row behind a cookie login; nil for API/bearer auth.
+  def self.user_session=(user_session)
+    RequestStore[:current_user_session] = user_session
+  end
+
   def self.ip_addr=(ip_addr)
     RequestStore[:current_ip_addr] = ip_addr
   end
@@ -46,6 +51,10 @@ class CurrentUser
 
   def self.oauth_token
     RequestStore[:current_oauth_token]
+  end
+
+  def self.user_session
+    RequestStore[:current_user_session]
   end
 
   def self.ip_addr
