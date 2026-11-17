@@ -1,0 +1,58 @@
+<% if CurrentUser.user.is_member? %>
+<!-- Profile -->
+<settings-group name="profile">Profile</settings-group>
+
+<settings-entry group="profile" class="<%= @user.avatar_id.present? ? "with-buttons" : "" %>" search="update change user avatar profile image pfp crop">
+  <settings-head><%= form.label :avatar_id, "Avatar Post ID" %></settings-head>
+  <settings-body>
+    <%= form.input_field :avatar_id, as: :string, label: false %>
+    <% if @user.avatar_id.present? %>
+      <%= link_to "Crop", edit_maintenance_user_avatar_path, class: "st-button" %>
+    <% end %>
+  </settings-body>
+  <settings-hint>
+    The image with this ID will be set as your avatar.
+  </settings-hint>
+</settings-entry>
+
+<settings-entry group="profile" class="bigtext" search="user profile about me">
+  <settings-head><%= form.label :profile_about, "About Me" %></settings-head>
+  <settings-body>
+    <%= form.input_field :profile_about,
+      as: :dtext,
+      label: false,
+      rows: 8,
+      limit: Danbooru.config.user_about_max_size,
+      allow_color: true
+    %>
+  </settings-body>
+</settings-entry>
+
+<settings-entry group="profile" class="bigtext" search="user profile artist info">
+  <settings-head><%= form.label :profile_artinfo, "Artist Info" %></settings-head>
+  <settings-body>
+    <%= form.input_field :profile_artinfo,
+      as: :dtext,
+      label: false,
+      rows: 8,
+      limit: Danbooru.config.user_about_max_size,
+      allow_color: true
+    %>
+  </settings-body>
+</settings-entry>
+<% end %>
+
+
+<!-- Privacy -->
+<settings-group name="privacy">Privacy</settings-group>
+
+<settings-entry group="privacy" class="inline" search="user profile posts favorites hide disable private privacy">
+  <settings-head>Hide Favorites</settings-head>
+  <settings-body>
+    <%= form.input_field :enable_privacy_mode, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_privacy_mode, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    Prevent your favorites from being publicly visible.
+  </settings-hint>
+</settings-entry>

@@ -1,7 +1,22 @@
-<!-- Accessibility -->
+<!-- Ratings -->
+<settings-group name="ratings">Ratings</settings-group>
+
+<settings-entry group="ratings" class="inline" search="posts display show hide filter mode explicit questionable safe rated rating">
+  <settings-head><%= form.label :enable_safe_mode, "Safe mode" %></settings-head>
+  <settings-body>
+    <%= form.input_field :enable_safe_mode, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_safe_mode, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    Only show images rated safe.
+  </settings-hint>
+</settings-entry>
+
+
+<!-- Blacklist -->
 <settings-group name="blacklisting">Blacklist</settings-group>
 
-<settings-entry group="blacklisting" class="bigtext" search="posts blacklisted filtered tags blocked">
+<settings-entry group="blacklisting" class="bigtext" search="posts blacklist blacklisted filter filtered tags blocked">
   <settings-head>Blacklisted Tags</settings-head>
   <settings-body>
     <%= form.input_field :blacklisted_tags, label: false, autocomplete: "tag-query", rows: 8 %>
@@ -11,7 +26,7 @@
   </settings-hint>
 </settings-entry>
 
-<settings-entry group="blacklisting" class="inline" search="posts blacklisted filter users comments blips forum">
+<settings-entry group="blacklisting" class="inline" search="posts blacklist blacklisted filter users comments blips forum">
   <settings-head>Blacklist Users</settings-head>
   <settings-body>
     <%= form.input_field :blacklist_users, as: :boolean, class: "st-toggle" %>

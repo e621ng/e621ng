@@ -1,0 +1,40 @@
+<% if CurrentUser.user.is_member? %>
+<!-- API -->
+<settings-group name="api">API</settings-group>
+
+<settings-entry group="api" class="with-button" search="api keys key access automated scripts developer">
+  <settings-head>API Keys</settings-head>
+  <settings-body>
+    <%= link_to "Manage API Keys", api_keys_path, class: "st-button" %>
+  </settings-body>
+  <settings-hint>
+    API access for automated processes.
+  </settings-hint>
+</settings-entry>
+
+<% if Danbooru.config.enable_oauth_provider? && CurrentUser.user.can_manage_oauth_applications? %>
+<settings-entry group="api" class="with-button" search="oauth openid connect applications apps clients developer register">
+  <settings-head>OAuth Applications</settings-head>
+  <settings-body>
+    <%= link_to "Manage OAuth Applications", mine_oauth_applications_path, class: "st-button" %>
+  </settings-body>
+  <settings-hint>
+    Your applications that connect to the site.
+  </settings-hint>
+</settings-entry>
+<% end %>
+<% end %>
+
+
+<!-- Customization -->
+<settings-group name="customization">Customization</settings-group>
+
+<settings-entry group="customization" class="bigtext" search="customize custom css styles developer">
+  <settings-head>Custom CSS</settings-head>
+  <settings-body>
+    <%= form.input_field :custom_style, label: false, rows: 8 %>
+  </settings-body>
+  <settings-hint>
+    Apply <a href="https://en.wikipedia.org/wiki/CSS">CSS Styles</a> to the whole website.
+  </settings-hint>
+</settings-entry>

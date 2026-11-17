@@ -13,6 +13,6 @@
 
   <p class="totp-backup-codes-actions">
     <%= link_to "Download", "data:text/plain;charset=utf-8,#{ERB::Util.url_encode(@backup_codes.join("\n"))}", download: "#{Danbooru.config.app_name}-backup-codes.txt", class: "st-button" %>
-    <%= link_to "Done", settings_users_path, class: "st-button" %>
+    <%= link_to "Done", settings_users_path(tab: "account"), class: "st-button" %>
   </p>
 </div></div>

@@ -1,0 +1,50 @@
+<!-- DMails -->
+<settings-group name="dmails">DMails</settings-group>
+
+<settings-entry group="dmails" class="inline" search="user account dmails email e-mail notify notifications messages">
+  <settings-head><%= form.label :receive_email_notifications, label: "DMail Email Notifications" %></settings-head>
+  <settings-body>
+    <%= form.input_field :receive_email_notifications, as: :boolean, class: "st-toggle" %>
+    <%= form.label :receive_email_notifications, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    Send an email when you receive a new DMail.
+  </settings-hint>
+</settings-entry>
+
+<settings-entry group="dmails" class="inline" search="dmails messages filter banned block enable disable toggle">
+  <settings-head>Disable DMails</settings-head>
+  <settings-body>
+    <%= form.input_field :disable_user_dmails, as: :boolean, class: "st-toggle", disabled: CurrentUser.is_staff? %>
+    <%= form.label :disable_user_dmails, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    Prevent other users from sending you DMails.
+    <% if CurrentUser.is_staff? %>
+      <br />Staff members are not allowed to disable DMails.
+    <% end %>
+  </settings-hint>
+</settings-entry>
+
+<settings-entry group="dmails" search="dmails messages filter banned block words">
+  <settings-head>DMail Filters</settings-head>
+  <settings-body>
+    <%= hidden_field_tag "user[dmail_filter_attributes][id]", @user.dmail_filter.try(:id) %>
+    <%= text_field_tag "user[dmail_filter_attributes][words]", @user.dmail_filter.try(:words), id: "user_dmail_filter_attributes_words", class: "text optional", size: 40 %>
+  </settings-body>
+  <settings-hint>
+    A list of banned words (space delimited). Any dmail you receive with a banned word will automatically be deleted.
+  </settings-hint>
+</settings-entry>
+
+
+<!-- Forum -->
+<settings-group name="forum">Forum</settings-group>
+
+<settings-entry group="forum" class="inline" search="user account forum activity dot bubble toggle notify notification">
+  <settings-head><%= form.label :forum_notification_dot, label: "Forum Activity Dot" %></settings-head>
+  <settings-body>
+    <%= form.input_field :forum_notification_dot, as: :boolean, class: "st-toggle" %>
+    <%= form.label :forum_notification_dot, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+</settings-entry>
