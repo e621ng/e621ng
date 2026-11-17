@@ -22,19 +22,8 @@
   }
 
   // Fix for #2573.
-  #settings-blacklist textarea {
+  #settings-filtering textarea {
     resize: vertical;
-  }
-
-  #settings-account-buttons settings-body {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-
-    .st-button {
-      white-space: nowrap;
-      justify-content: center;
-    }
   }
 
 

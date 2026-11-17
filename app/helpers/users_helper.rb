@@ -5,17 +5,29 @@ module UsersHelper
 
   # Order matters: the first section is the default. Each key renders users/partials/edit/_<key>.
   SETTINGS_SECTIONS = [
-    SettingsSection.new("basic", "Basic"),
-    SettingsSection.new("advanced", "Advanced"),
-    SettingsSection.new("apps", "Apps"),
-    SettingsSection.new("blacklist", "Blacklist"),
+    SettingsSection.new("account", "Account"),
+    SettingsSection.new("profile", "Profile"),
+    SettingsSection.new("posts", "Posts"),
+    SettingsSection.new("filtering", "Filtering"),
+    SettingsSection.new("messages", "Messages"),
+    SettingsSection.new("interface", "Interface"),
+    SettingsSection.new("developer", "Developer"),
   ].freeze
+
+  # Keys from the previous layout, kept so that old links still land somewhere sensible.
+  LEGACY_SETTINGS_SECTIONS = {
+    "basic" => "account",
+    "advanced" => "posts",
+    "apps" => "account",
+    "blacklist" => "filtering",
+  }.freeze
 
   def settings_sections
     SETTINGS_SECTIONS
   end
 
   def active_settings_section(key)
+    key = LEGACY_SETTINGS_SECTIONS.fetch(key, key)
     SETTINGS_SECTIONS.find { |section| section.key == key } || SETTINGS_SECTIONS.first
   end
 

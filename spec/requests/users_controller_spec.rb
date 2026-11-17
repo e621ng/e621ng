@@ -271,19 +271,26 @@ RSpec.describe UsersController do
 
     it "renders every section with only the first one visible" do
       doc = settings_page
-      expect(doc.css(".settings-section").pluck("data-section")).to eq(%w[basic advanced apps blacklist])
-      expect(visible_sections(doc)).to eq(%w[basic])
+      expect(doc.css(".settings-section").pluck("data-section")).to eq(%w[account profile posts filtering messages interface developer])
+      expect(visible_sections(doc)).to eq(%w[account])
     end
 
     it "shows the section named in the tab param" do
-      doc = settings_page(tab: "advanced")
-      expect(visible_sections(doc)).to eq(%w[advanced])
-      expect(doc.at_css(".settings-nav-list a[aria-current]")["data-section"]).to eq("advanced")
-      expect(doc.at_css(".settings-nav-select option[selected]")["value"]).to eq("advanced")
+      doc = settings_page(tab: "posts")
+      expect(visible_sections(doc)).to eq(%w[posts])
+      expect(doc.at_css(".settings-nav-list a[aria-current]")["data-section"]).to eq("posts")
+      expect(doc.at_css(".settings-nav-select option[selected]")["value"]).to eq("posts")
+    end
+
+    it "maps tab keys from the previous layout to their new sections" do
+      expect(visible_sections(settings_page(tab: "basic"))).to eq(%w[account])
+      expect(visible_sections(settings_page(tab: "advanced"))).to eq(%w[posts])
+      expect(visible_sections(settings_page(tab: "apps"))).to eq(%w[account])
+      expect(visible_sections(settings_page(tab: "blacklist"))).to eq(%w[filtering])
     end
 
     it "falls back to the first section for an unknown tab" do
-      expect(visible_sections(settings_page(tab: "bogus"))).to eq(%w[basic])
+      expect(visible_sections(settings_page(tab: "bogus"))).to eq(%w[account])
     end
 
     it "prefills the search from the find param" do
@@ -293,7 +300,7 @@ RSpec.describe UsersController do
     it "keeps the navigation outside the settings form" do
       doc = settings_page
       expect(doc.at_css("form.settings-content .settings-nav")).to be_nil
-      expect(doc.css("form.simple_form.settings-content .settings-section").size).to eq(4)
+      expect(doc.css("form.simple_form.settings-content .settings-section").size).to eq(7)
     end
   end
 

@@ -1,0 +1,80 @@
+<!-- Login -->
+<settings-group name="login">Login</settings-group>
+
+<% if CurrentUser.user.is_member? %>
+<settings-entry group="login" class="with-buttons" search="update change user profile account name username">
+  <settings-head>Username</settings-head>
+  <settings-body>
+    <input type="text" value="<%= CurrentUser.user.pretty_name %>" disabled><%= link_to "Edit", new_user_name_change_request_path, class: "st-button" %>
+  </settings-body>
+</settings-entry>
+<% end %>
+
+<settings-entry group="login" class="with-buttons" search="update change user profile account email e-mail address">
+  <settings-head>Email</settings-head>
+  <settings-body>
+    <input type="text" value="<%= CurrentUser.user.email.presence || "blank" %>" disabled><%= link_to "Edit", new_maintenance_user_email_change_path, class: "st-button" %>
+  </settings-body>
+</settings-entry>
+
+<settings-entry group="login" class="with-button" search="update change user account password login">
+  <settings-head>Password</settings-head>
+  <settings-body>
+    <%= link_to "Change Password", edit_user_password_path(user_id: @user.id), class: "st-button" %>
+  </settings-body>
+</settings-entry>
+
+
+<!-- Security -->
+<settings-group name="security">Security</settings-group>
+
+<settings-entry group="security" class="with-button" search="two factor authentication 2fa totp authenticator app security code backup">
+  <% has_totp = CurrentUser.user.totp_enabled? %>
+  <settings-head>Two-Factor Authentication</settings-head>
+  <settings-body>
+    <%= link_to "Manage 2FA", has_totp ? totp_path : new_totp_path, class: "st-button" %>
+  </settings-body>
+  <settings-hint>
+    <% if has_totp %>
+      Enabled — a code from your authenticator app is required to log in.
+      <% if CurrentUser.user.totp&.backup_code_digests&.empty? %>
+        You have no backup codes left; generate new ones.
+      <% end %>
+    <% else %>
+      Require a code from an authenticator app when logging in.
+    <% end %>
+  </settings-hint>
+</settings-entry>
+
+<settings-entry group="security" class="with-button" search="active sessions logins devices browsers sign out everywhere revoke security">
+  <settings-head>Active Sessions</settings-head>
+  <settings-body>
+    <%= link_to "Manage Sessions", user_sessions_path, class: "st-button" %>
+  </settings-body>
+  <settings-hint>
+    Browsers signed in to your account; sign any of them out.
+  </settings-hint>
+</settings-entry>
+
+<% if CurrentUser.user.is_member? && Danbooru.config.enable_oauth_provider? %>
+<settings-entry group="security" class="with-button" search="oauth openid connect connected applications apps clients authorized grants tokens permissions revoke security">
+  <settings-head>Connected Applications</settings-head>
+  <settings-body>
+    <%= link_to "Manage Connected Applications", oauth_authorized_applications_path, class: "st-button" %>
+  </settings-body>
+  <settings-hint>
+    Third-party apps you have signed into.
+  </settings-hint>
+</settings-entry>
+<% end %>
+
+
+<!-- Danger zone -->
+<settings-group name="danger">Danger Zone</settings-group>
+
+<settings-entry group="danger" class="with-button" search="user account delete remove close">
+  <settings-head>Delete Account</settings-head>
+  <settings-body>
+    <%= link_to "Delete Account", maintenance_user_deletion_path, class: "st-button danger" %>
+  </settings-body>
+</settings-entry>

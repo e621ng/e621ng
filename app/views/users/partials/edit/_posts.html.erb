@@ -1,0 +1,112 @@
+<!-- Viewing -->
+<settings-group name="viewing">Viewing</settings-group>
+
+<settings-entry group="viewing" search="default images width fit horizontal vertical sample large original display show scale posts">
+  <settings-head><%= form.label :default_image_size, "Default image width" %></settings-head>
+  <settings-body>
+    <%= form.input_field :default_image_size,
+      label: false,
+      collection: [["Original", "original"], ["Fit (Horizontal)", "fit"], ["Fit (Vertical)", "fitv"], ["Sample (#{Danbooru.config.large_image_width}px)", "large"]],
+      include_blank: false
+    %>
+  </settings-body>
+  <settings-hint>
+    Show original image size, scaled to fit, scaled to fit vertically, or show resized 850 pixel sample version.
+  </settings-hint>
+</settings-entry>
+
+<settings-entry group="viewing" class="inline" search="show hide collapse expand posts descriptions">
+  <settings-head>Collapse Descriptions</settings-head>
+  <settings-body>
+    <%= form.input_field :description_collapsed_initially, as: :boolean, class: "st-toggle" %>
+    <%= form.label :description_collapsed_initially, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    Do not expand post descriptions on page load.
+  </settings-hint>
+</settings-entry>
+
+
+<!-- Search results -->
+<settings-group name="results">Search Results</settings-group>
+
+<settings-entry group="results" search="posts number page display show search results">
+  <settings-head><%= form.label :per_page, "Posts per page" %></settings-head>
+  <settings-body>
+    <%= form.input_field :per_page, label: false, as: :select, collection: (25..250).step(25), include_blank: false %>
+  </settings-body>
+</settings-entry>
+
+<settings-entry group="results" class="inline" search="show hide posts thumbnails statistics stats search results">
+  <settings-head>Show Statistics</settings-head>
+  <settings-body>
+    <%= form.input_field :show_post_statistics, as: :boolean, class: "st-toggle" %>
+    <%= form.label :show_post_statistics, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    Show post stats below posts on search pages.
+  </settings-hint>
+</settings-entry>
+
+
+<!-- Comments -->
+<settings-group name="comments">Comments</settings-group>
+
+<settings-entry group="comments" search="comments score rating upvotes downvotes display show hide threshold">
+  <settings-head><%= form.label :comment_threshold %></settings-head>
+  <settings-body>
+    <%= form.input_field :comment_threshold, label: false %>
+  </settings-body>
+  <settings-hint>
+    Comments below this score will be hidden by default.
+  </settings-hint>
+</settings-entry>
+
+<settings-entry group="comments" class="inline" search="posts comments show hide display hidden">
+  <settings-head><%= form.label :hide_comments %></settings-head>
+  <settings-body>
+    <%= form.input_field :hide_comments, as: :boolean, class: "st-toggle" %>
+    <%= form.label :hide_comments, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    Do not show the comments section on post pages.
+  </settings-hint>
+</settings-entry>
+
+<settings-entry group="comments" class="inline" search="posts comments show hide display own all your hidden">
+  <settings-head><%= form.label :show_hidden_comments, "Show #{CurrentUser.user.is_staff? ? 'all' : 'your'} hidden comments" %></settings-head>
+  <settings-body>
+    <%= form.input_field :show_hidden_comments, as: :boolean, class: "st-toggle" %>
+    <%= form.label :show_hidden_comments, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    Show <%= CurrentUser.user.is_staff? ? "all" : "your" %> hidden comments on comment pages.
+  </settings-hint>
+</settings-entry>
+
+
+<!-- Tagging & uploading -->
+<settings-group name="tagging">Tagging & Uploading</settings-group>
+
+<settings-entry group="tagging" class="bigtext" search="posts tags frequent favorite related tagging">
+  <settings-head>Frequent Tags</settings-head>
+  <settings-body>
+    <%= form.input_field :favorite_tags, label: false, autocomplete: "tag-query", rows: 5 %>
+  </settings-body>
+  <settings-hint>
+    A list of tags that you use often. Single line, maximum of 200.<br />They will appear when using the list of Related Tags.
+  </settings-hint>
+</settings-entry>
+
+<% if @user.post_upload_count >= 10 %>
+<settings-entry group="tagging" class="inline" search="show hide compact uploader upload posts">
+  <settings-head>Compact Uploader</settings-head>
+  <settings-body>
+    <%= form.input_field :enable_compact_uploader, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_compact_uploader, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    A more compact and less guided post uploader.
+  </settings-hint>
+</settings-entry>
+<% end %>

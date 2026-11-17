@@ -3,7 +3,7 @@
     <h1>Crop Avatar</h1>
 
     <% if @post.nil? %>
-      <p>You have not set an avatar post yet. <%= link_to "Set one in your settings", settings_users_path %>.</p>
+      <p>You have not set an avatar post yet. <%= link_to "Set one in your settings", settings_users_path(tab: "profile") %>.</p>
     <% else %>
       <%= form_tag(maintenance_user_avatar_path, method: :patch) do %>
         <div id="avatar-crop-widget"

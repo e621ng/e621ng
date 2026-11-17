@@ -1,0 +1,63 @@
+<!-- General -->
+<settings-group name="general">General</settings-group>
+
+<settings-entry group="general" search="user account time zone timezone dates">
+  <settings-head>Time Zone</settings-head>
+  <settings-body>
+    <%= form.input_field :time_zone,
+      label: false,
+      include_blank: false
+    %>
+  </settings-body>
+</settings-entry>
+
+<settings-entry group="general" class="with-button" search="themes colors palette fonts gestures appearance dark light">
+  <settings-head>Themes</settings-head>
+  <settings-body>
+    <%= link_to "Change Theme", theme_path, class: "st-button" %>
+  </settings-body>
+  <settings-hint>
+    Site theme, fonts and gestures. Stored in this browser only.
+  </settings-hint>
+</settings-entry>
+
+
+<!-- Input -->
+<settings-group name="input">Input</settings-group>
+
+<settings-entry group="input" class="inline" search="keyboard hotkeys shortcut navigation enable disable">
+  <settings-head>Enable Keyboard Shortcuts</settings-head>
+  <settings-body>
+    <%= form.input_field :enable_keyboard_navigation, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_keyboard_navigation, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    The full list of shortcuts is available <%= link_to "here", keyboard_shortcuts_path %>.
+  </settings-hint>
+</settings-entry>
+
+<settings-entry group="input" class="inline" search="auto complete autocomplete suggestions enable disable">
+  <settings-head>Enable Auto Complete</settings-head>
+  <settings-body>
+    <%= form.input_field :enable_auto_complete, as: :boolean, class: "st-toggle" %>
+    <%= form.label :enable_auto_complete, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    Tag and user name suggestions.
+  </settings-hint>
+</settings-entry>
+
+
+<!-- Mobile -->
+<settings-group name="mobile">Mobile / Tablet</settings-group>
+
+<settings-entry group="mobile" class="inline" search="enable disable responsive mode mobile tablet layout">
+  <settings-head>Disable Responsive Mode</settings-head>
+  <settings-body>
+    <%= form.input_field :disable_responsive_mode, as: :boolean, class: "st-toggle" %>
+    <%= form.label :disable_responsive_mode, "!", class: "st-toggle", role: "switch" %>
+  </settings-body>
+  <settings-hint>
+    Disable alternative layout for mobile and tablet.
+  </settings-hint>
+</settings-entry>
