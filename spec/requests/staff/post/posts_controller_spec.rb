@@ -33,6 +33,29 @@ RSpec.describe Staff::Post::PostsController do
       get confirm_delete_staff_post_post_path(post_record)
       expect(response).to have_http_status(:ok)
     end
+
+    context "with a DNP entry" do
+      def dnp_input_value(details)
+        dnp = create(:avoid_posting, details: details)
+        allow_any_instance_of(Post).to receive(:avoid_posting_tags).and_return([dnp]) # rubocop:disable RSpec/AnyInstance
+        allow(Danbooru.config.custom_configuration).to receive(:deletion_reasons).and_return(["Conditional DNP (%DNP_ID%)"])
+
+        sign_in_as approver
+        get confirm_delete_staff_post_post_path(post_record)
+        expect(response).to have_http_status(:ok)
+        response.parsed_body.at_css("#delreason-prebuilt input[type=text]")&.[]("value")
+      end
+
+      it "escapes the details into the reason input" do
+        details = "'><b>INJECTED</b><input value='"
+        expect(dnp_input_value(details)).to eq(details)
+        expect(response.body).not_to include("<b>INJECTED</b>")
+      end
+
+      it "does not expand gsub backreferences in the details" do
+        expect(dnp_input_value('a\\0b\\&c')).to eq('a\\0b\\&c')
+      end
+    end
   end
 
   # ---------------------------------------------------------------------------
