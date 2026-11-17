@@ -22,9 +22,9 @@ RSpec.describe "Content Security Policy" do
     expect(script_src).to match(/'nonce-[^']+'/)
   end
 
-  it "limits object-src to the static hosts" do
+  it "blocks all plugin content via object-src" do
     get furid_path
     object_src = response.headers["Content-Security-Policy"].split(";").map(&:strip).find { |directive| directive.start_with?("object-src ") }
-    expect(object_src.split).to contain_exactly("object-src", "static1.e621.net", "static1.e926.net")
+    expect(object_src.split).to contain_exactly("object-src", "'none'")
   end
 end

@@ -1,0 +1,9 @@
+@use "colors/theme";
+
+.post-show-embed-download {
+  background: theme.color("section");
+  padding: 2rem;
+  margin: 0.5rem 0;
+  border-radius: 0.25rem;
+  box-shadow: 0 0 0.5rem -0.25rem black;
+}

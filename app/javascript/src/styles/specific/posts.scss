@@ -73,7 +73,7 @@ div#c-posts {
       border: 1px solid theme.color("foreground");
     }
 
-    &.notice-no-shortcuts, &.notice-flagged, &.notice-deleted {
+    &.notice-flagged, &.notice-deleted {
       background-color: theme.color("danger-darken-10");
       border: 1px solid theme.color("foreground");
     }

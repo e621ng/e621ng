@@ -1,9 +1,0 @@
-<%# Legacy posts only; no script access or outbound navigation for whatever still plays these (Ruffle). %>
-<%= tag.object(width: post.image_width, height: post.image_height, id: "flash-content") do %>
-  <param name="movie" value="<%= post.file_url %>">
-  <param name="allowScriptAccess" value="never">
-  <param name="allowNetworking" value="internal">
-  <%= tag.embed(src: post.file_url, width: post.image_width, height: post.image_height, allowScriptAccess: "never", allowNetworking: "internal") %>
-<% end %>
-
-<p><%= link_to "Save this flash (right click and save)", post.file_url %></p>
