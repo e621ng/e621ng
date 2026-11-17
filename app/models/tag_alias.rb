@@ -133,8 +133,21 @@ class TagAlias < TagRelationship
   def self.to_aliased_with_originals(names)
     names = Array(names).map(&:to_s)
     return {} if names.empty?
-    aliases = active.where(antecedent_name: names).map { |ta| [ta.antecedent_name, ta.consequent_name] }.to_h
-    names.map { |tag| [tag, tag] }.to_h.merge(aliases)
+    preloaded = RequestStore[:preloaded_tag_aliases] || {}
+    missing = names.reject { |tag| preloaded.key?(tag) }
+    aliases = missing.empty? ? {} : active.where(antecedent_name: missing).to_h { |ta| [ta.antecedent_name, ta.consequent_name] }
+    names.index_with { |tag| preloaded.fetch(tag, tag) }.merge(aliases)
+  end
+
+  # Resolves `names` in one query up front so callers parsing many queries in the block
+  # (saved-search badges) don't look aliases up once per query. Unlisted names still hit the DB.
+  def self.with_preloaded(names)
+    previous = RequestStore[:preloaded_tag_aliases]
+    names = Array(names).map(&:to_s).uniq
+    RequestStore[:preloaded_tag_aliases] = (previous || {}).merge(names.empty? ? {} : to_aliased_with_originals(names))
+    yield
+  ensure
+    RequestStore[:preloaded_tag_aliases] = previous
   end
 
   def self.to_aliased(names)
