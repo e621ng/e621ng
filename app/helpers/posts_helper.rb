@@ -124,6 +124,14 @@ module PostsHelper
     tag.div score + favs + comments + rating, class: "desc"
   end
 
+  # Staff, flaggers, the uploader, and linked artists see the flag notice expanded by default.
+  def flag_notice_open?(post, user = CurrentUser.user)
+    return false if user.is_logged_out?
+    return true if user.is_staff? || post.uploader_id == user.id
+    return true if post.flags.any? { |flag| flag.creator_id == user.id }
+    post.linked_users.include?(user.id)
+  end
+
   private
 
   def nav_params_for(page)

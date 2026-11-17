@@ -248,6 +248,63 @@ RSpec.describe PostsController do
       end
     end
 
+    context "with a pending flag" do
+      # Members older than 3 days bypass the :REJ_NEWBIE throttle gate on post_flag creation.
+      let(:flagger) { create(:user, created_at: 4.days.ago) }
+      let(:uploader) { create(:user) }
+      let(:post) { create(:post, uploader: uploader) }
+      let(:details) { Nokogiri::HTML(response.body).at_css(".notice-flagged details.flag-notice-details") }
+
+      before { CurrentUser.scoped(flagger) { create(:post_flag, post: post) } }
+
+      it "renders the notice collapsed for anonymous visitors" do
+        get post_path(post)
+        expect(details).to be_present
+        expect(details["open"]).to be_nil
+        expect(details.at_css("summary").text).to include("This post was flagged for review")
+      end
+
+      it "still renders the flag reason inside the collapsed notice" do
+        get post_path(post)
+        expect(details.at_css("li[data-post-flag-id]").text).to include(post.flags.last.reason)
+      end
+
+      it "renders the notice collapsed for an unrelated member" do
+        sign_in_as create(:user)
+        get post_path(post)
+        expect(details["open"]).to be_nil
+      end
+
+      {
+        "staff" => -> { create(:janitor_user) },
+        "the flagger" => -> { flagger },
+        "the uploader" => -> { uploader },
+      }.each do |label, viewer|
+        it "renders the notice expanded for #{label}" do
+          sign_in_as instance_exec(&viewer)
+          get post_path(post)
+          expect(details["open"]).not_to be_nil
+        end
+      end
+
+      it "renders the notice expanded for a linked artist" do
+        linked = create(:user)
+        artist = create(:artist, linked_user_id: linked.id)
+        post.update!(tag_string: "#{post.tag_string} #{artist.name}")
+        sign_in_as linked
+        get post_path(post)
+        expect(details["open"]).not_to be_nil
+      end
+
+      it "keeps the deleted notice uncollapsed" do
+        post.delete!("test deletion")
+        get post_path(post)
+        html = Nokogiri::HTML(response.body)
+        expect(html.at_css(".notice-deleted")).to be_present
+        expect(html.at_css(".notice-deleted details")).to be_nil
+      end
+    end
+
     it "doesn't crash when pool_id is an array" do
       get post_path(post), params: { pool_id: ["49413"] }
       assert_response :success
