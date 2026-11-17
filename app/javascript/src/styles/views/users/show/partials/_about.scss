@@ -1,21 +1,25 @@
 @use "colors/theme";
 @use "base/breakpoints";
 
-tabs-menu, tabs-content {
+.profile-tabs-content {
+  display: flex;
+  flex-flow: column;
   max-width: 100rem;
 }
 
-#profile-tabs[data-has-about="false"][data-has-artinfo="false"] {
-  display: none;
-}
-
 .profile-readmore {
+  display: flex;
   flex-flow: column;
   align-items: start;
+  gap: 0.25rem;
+  padding: 0.5rem;
+  background: theme.color("section");
 
-  tab-head {
+  .profile-readmore-title {
     font-weight: bold;
     font-size: 1rem;
+    line-height: inherit;
+    margin-left: 0.25em;
   }
 
   .content {
@@ -53,8 +57,7 @@ tabs-menu, tabs-content {
 }
 
 @include breakpoints.desktop {
-  tabs-menu { display: none; }
-  tabs-content {
+  .profile-tabs-content {
     display: grid;
     grid-template-columns: 15rem 1fr;
     grid-template-rows: min-content min-content;
@@ -62,19 +65,11 @@ tabs-menu, tabs-content {
   }
 
   .profile-user-info {
-    display: grid !important;
-    grid-template-areas: unset;
     grid-row: 1 / 4;
     height: min-content;
   }
 
-  .profile-about-section {
-    display: flex !important;
-    grid-column: 2 / -1;
-  }
-
-  .profile-artinfo-section {
-    display: flex !important;
+  .profile-about-section, .profile-artinfo-section {
     grid-column: 2 / -1;
   }
 }

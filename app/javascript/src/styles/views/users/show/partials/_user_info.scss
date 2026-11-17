@@ -3,6 +3,9 @@
 
 .profile-user-info {
   display: grid;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.5rem;
   grid-template-columns: 1fr;
   grid-template-rows: repeat(auto-fit, minmax(min-content, 5rem));
   background: theme.color("section");

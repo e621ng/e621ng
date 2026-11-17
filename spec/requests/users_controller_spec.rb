@@ -48,6 +48,23 @@ RSpec.describe UsersController do
       expect(button["data-copy-text"]).to eq("copy_me_please")
     end
 
+    it "renders mobile tabs with the first profile section active" do
+      user.update_columns(profile_about: "about me", profile_artinfo: "art info")
+      get user_path(user)
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.css("#profile-tabs button[role=tab]").pluck("data-tab")).to eq(%w[about artinfo stats])
+      expect(doc.at_css("#profile-about")).to have_attribute("data-active")
+      expect(doc.at_css("#profile-artinfo")).not_to have_attribute("data-active")
+      expect(doc.at_css("#profile-stats")).not_to have_attribute("data-active")
+    end
+
+    it "shows the stats without a tab row when the profile is empty" do
+      get user_path(user)
+      doc = Nokogiri::HTML(response.body)
+      expect(doc.at_css("#profile-tabs")).to be_nil
+      expect(doc.at_css("#profile-stats")).to have_attribute("data-active")
+    end
+
     it "returns 404 for a non-existent user" do
       get user_path(id: 0)
       expect(response).to have_http_status(:not_found)

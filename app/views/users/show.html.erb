@@ -18,25 +18,18 @@
     <!-- Central panel -->
     <% has_about = @user.profile_about.present? %>
     <% has_artinfo = @user.profile_artinfo.present? %>
-    <tabs-menu
-      id="profile-tabs"
-      data-has-about="<%= has_about %>"
-      data-has-artinfo="<%= has_artinfo %>"
-    >
-      <% if has_about %>
-        <button role="tab" name="about">About</button>
-      <% end %>
-      <% if has_artinfo %>
-        <button role="tab" name="artinfo">Artist Info</button>
-      <% end %>
-      <button role="tab" name="stats">Stats</button>
-    </tabs-menu>
+    <% profile_tabs = [] %>
+    <% profile_tabs << { key: "about", label: "About", panel: "profile-about" } if has_about %>
+    <% profile_tabs << { key: "artinfo", label: "Artist Info", panel: "profile-artinfo" } if has_artinfo %>
+    <% profile_tabs << { key: "stats", label: "Stats", panel: "profile-stats" } %>
+    <% active_tab = profile_tabs.first[:key] %>
+    <%= render MobileTabsComponent.new(id: "profile-tabs", tabs: profile_tabs, active: active_tab) %>
 
-    <tabs-content for="profile-tabs">
-      <%= render "/users/partials/show/user_info", :presenter => @presenter, :user => @user %>
-      <%= render "/users/partials/show/about", presenter: @presenter, user: @user, has_about: has_about, has_artinfo: has_artinfo %>
+    <div class="profile-tabs-content">
+      <%= render "/users/partials/show/user_info", presenter: @presenter, user: @user, active: active_tab == "stats" %>
+      <%= render "/users/partials/show/about", presenter: @presenter, user: @user, has_about: has_about, has_artinfo: has_artinfo, active_tab: active_tab %>
       <%= render "/users/partials/show/post_summary", presenter: @presenter, user: @user %>
-    </tabs-content>
+    </div>
   </div>
 </div>
 

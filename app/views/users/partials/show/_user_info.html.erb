@@ -1,4 +1,4 @@
-<tab-entry tab="stats" class="profile-user-info">
+<%= tag.div(class: "profile-user-info", **MobileTabsComponent.panel_attributes(id: "profile-stats", active: active)) do %>
 
   <div class="profile-line">
     <h4><%= svg_icon(:message_square) %> Comments</h4>
@@ -144,4 +144,4 @@
       </span>
     </div>
   <% end %>
-</tab-entry>
+<% end %>
