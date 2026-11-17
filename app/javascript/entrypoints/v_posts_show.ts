@@ -13,7 +13,7 @@ import BlacklistedImage from "@/pages/posts/show/BlacklistedImage";
 import DeleteWithReasonDialog from "@/pages/posts/show/DeleteWithReasonDialog";
 import DetailedRejectionDialog from "@/pages/posts/show/DetailedRejectionDialog";
 import EditTab from "@/pages/posts/show/EditTab";
-import MobileTabs from "@/pages/posts/show/MobileTabs";
+import PostMobileLayout from "@/pages/posts/show/PostMobileLayout";
 import Navigation from "@/pages/posts/show/Navigation";
 import Note from "@/pages/posts/show/notes";
 import PostActions from "@/pages/posts/show/PostActions";
@@ -32,7 +32,7 @@ import "@/pages/post_flags/post_flags"; // We only need expandable notes from he
 
 State.onReady(() => {
   void BlacklistedImage.instance;
-  void MobileTabs.instance;
+  void PostMobileLayout.instance;
   void Note.instance;
   void PostsShowToolbar.instance;
   void TagEditor.instance;

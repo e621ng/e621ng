@@ -6,46 +6,39 @@ function stubViewport (desktop: boolean): void {
 
 function render (): void {
   document.body.innerHTML = `
-    <div class="post-display" data-tab-state="tags">
-      <button class="post-mobile-tab" data-action="tags" aria-selected="true">Tags</button>
-      <button class="post-mobile-tab" data-action="comments" aria-selected="false">Comments</button>
-      <button class="post-mobile-tab" data-action="bogus">Bogus</button>
+    <div class="post-display">
+      <div class="sidebar" id="post-show-tags" data-mobile-tab-panel data-active></div>
+      <div class="mobile-tabs tabs" id="mobile-tabs" role="tablist">
+        <button role="tab" data-tab="tags" aria-controls="post-show-tags" aria-selected="true">Tags</button>
+        <button role="tab" data-tab="comments" aria-controls="post-show-comments" aria-selected="false">Comments</button>
+      </div>
+      <div class="comments" id="post-show-comments" data-mobile-tab-panel></div>
     </div>
     <div class="go-up"><button>Up</button></div>
     <article data-comment-id="42"></article>`;
 }
 
 async function load () {
-  const MobileTabs = (await import("@/pages/posts/show/MobileTabs")).default;
+  const PostMobileLayout = (await import("@/pages/posts/show/PostMobileLayout")).default;
   const CStorage = (await import("@/utility/storage/Cookie")).default;
-  void MobileTabs.instance;
+  void PostMobileLayout.instance;
   return { CStorage };
 }
 
-const display = () => document.querySelector<HTMLElement>(".post-display");
-const tab = (action: string) => document.querySelector<HTMLButtonElement>(`.post-mobile-tab[data-action="${action}"]`);
+const commentsActive = () => document.getElementById("post-show-comments").hasAttribute("data-active");
+const tab = (key: string) => document.querySelector<HTMLButtonElement>(`button[data-tab="${key}"]`);
 
-describe("MobileTabs", () => {
+describe("PostMobileLayout", () => {
   beforeEach(() => stubViewport(true));
   afterEach(() => { window.location.hash = ""; });
 
-  it("switches tabs and remembers the choice", async () => {
+  it("remembers the chosen tab", async () => {
     render();
     const { CStorage } = await load();
 
     tab("comments").click();
-    expect(display().dataset.tabState).toBe("comments");
-    expect(tab("comments").getAttribute("aria-selected")).toBe("true");
-    expect(tab("tags").getAttribute("aria-selected")).toBe("false");
+    expect(commentsActive()).toBe(true);
     expect(CStorage.Posts.MobileTabState).toBe("comments");
-  });
-
-  it("ignores unknown tabs", async () => {
-    render();
-    await load();
-
-    tab("bogus").click();
-    expect(display().dataset.tabState).toBe("tags");
   });
 
   it("scrolls to the top from the go-up button", async () => {
@@ -58,14 +51,15 @@ describe("MobileTabs", () => {
     expect(scrollTo).toHaveBeenCalledWith({ top: 0, behavior: "smooth" });
   });
 
-  it("opens the comments tab for a comment anchor on mobile", async () => {
+  it("opens the comments tab for a comment anchor on mobile without remembering it", async () => {
     stubViewport(false);
     window.location.hash = "#comment-42";
     render();
-    await load();
+    const { CStorage } = await load();
 
-    expect(display().dataset.tabState).toBe("comments");
+    expect(commentsActive()).toBe(true);
     expect(window.matchMedia).toHaveBeenCalledWith("(min-width: 50rem)");
+    expect(CStorage.Posts.MobileTabState).toBe("tags");
   });
 
   it("leaves the tabs alone for a comment anchor on desktop", async () => {
@@ -73,6 +67,6 @@ describe("MobileTabs", () => {
     render();
     await load();
 
-    expect(display().dataset.tabState).toBe("tags");
+    expect(commentsActive()).toBe(false);
   });
 });

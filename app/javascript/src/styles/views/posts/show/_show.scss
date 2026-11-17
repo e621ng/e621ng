@@ -138,21 +138,8 @@ body.c-posts.a-show-seq {
   // 3. Tab UI
   & > .tabs {
     grid-area: tabs;
-
-    display: flex;
-    gap: 0.5rem;
     padding: 0 0.25rem;
     margin: 1rem 0.25rem 0;
-    border-bottom: 1px solid theme.color("section");
-
-    button {
-      background: unset;
-      color: theme.color("link");
-      font-size: 1rem;
-      line-height: 1rem;
-      padding: 0.5rem 1rem;
-      border-radius: 0.25rem 0.25rem 0 0;
-    }
   }
 
   // 4. Comments
@@ -219,20 +206,4 @@ body.c-posts.a-show-seq {
       width: 1rem;
     }
   }
-}
-
-// Mobile tab UI
-.post-display[data-tab-state="comments"] {
-  & > .tabs button[data-action="comments"] {
-    background: theme.color("section");
-    pointer-events: none;
-  }
-  & > .sidebar { display: none; }
-}
-.post-display[data-tab-state="tags"] {
-  & > .tabs button[data-action="tags"] {
-    background: theme.color("section");
-    pointer-events: none;
-  }
-  & > .comments { display: none; }
 }

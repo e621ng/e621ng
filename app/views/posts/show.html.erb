@@ -1,14 +1,14 @@
 <div id="c-posts"><div id="a-show">
-  <%# Cookie value set in MobileTabs.ts %>
+  <%# Cookie value set in PostMobileLayout.ts %>
   <% selected_tab = !CurrentUser.hide_comments? && cookies[:post_tab] == "comments" ? "comments" : "tags" %>
-  <div class="post-display" id="post-show-display" data-tab-state="<%= selected_tab %>">
+  <div class="post-display" id="post-show-display">
 
     <div class="search">
       <%= render "posts/partials/common/search", title: "Posts", tags: params[:q] %>
       <%= render "posts/partials/index/controls" %>
     </div>
 
-    <div class="sidebar">
+    <%= tag.div(class: "sidebar", **MobileTabsComponent.panel_attributes(id: "post-show-tags", active: selected_tab == "tags")) do %>
       <%= render partial: "application/blacklist", locals: { post_id: @post.id } %>
 
       <section id="tag-list">
@@ -40,7 +40,7 @@
       </section>
 
       <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top" aria-label="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
-    </div>
+    <% end %>
 
     <div class="content">
       <%= render "ads/leaderboard", area: :top, tag_string: @post.ad_tag_string %>
@@ -181,28 +181,16 @@
       </section>
     </div>
 
-    <div class="tabs" id="mobile-tabs" role="tablist">
-      <button
-        type="button"
-        role="tab"
-        class="post-mobile-tab"
-        data-action="tags"
-        aria-controls="post-show-display"
-        aria-selected="<%= selected_tab == "tags" %>"
-      >Tags</button>
-      <% unless CurrentUser.hide_comments? %>
-        <button
-          type="button"
-          role="tab"
-          class="post-mobile-tab"
-          data-action="comments"
-          aria-controls="post-show-display"
-          aria-selected="<%= selected_tab == "comments" %>"
-        ><%= "Comments (#{@post.comment_count})" %></button>
-      <% end %>
-    </div>
+    <% mobile_tabs = [{ key: "tags", label: "Tags", panel: "post-show-tags" }] %>
+    <% mobile_tabs << { key: "comments", label: "Comments (#{@post.comment_count})", panel: "post-show-comments" } unless CurrentUser.hide_comments? %>
+    <%= render MobileTabsComponent.new(
+      id: "mobile-tabs",
+      html_class: "tabs",
+      active: selected_tab,
+      tabs: mobile_tabs,
+    ) %>
 
-    <div class="comments">
+    <%= tag.div(class: "comments", **MobileTabsComponent.panel_attributes(id: "post-show-comments", active: selected_tab == "comments")) do %>
       <% unless CurrentUser.hide_comments? %>
         <section id="comments">
           <%= render "comments/partials/index/list", :comments => @comments, :post => @post, :show_header => false %>
@@ -212,7 +200,7 @@
           <div class="go-up"><button type="button" class="st-button kinetic" title="Scroll to top" aria-label="Scroll to top"><%= svg_icon(:corner_right_up) %></button></div>
         <% end %>
       <% end %>
-    </div>
+    <% end %>
 
     <div class="adscape">
       <%= render "ads/leaderboard", area: :bottom, tag_string: @post.ad_tag_string %>

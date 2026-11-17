@@ -1,0 +1,32 @@
+@use "colors/theme";
+@use "base/breakpoints";
+
+// See MobileTabsComponent
+.mobile-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid theme.color("section");
+
+  button {
+    background: unset;
+    color: theme.color("link");
+    font-size: 1rem;
+    line-height: 1rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem 0.25rem 0 0;
+
+    &[aria-selected="true"] {
+      background: theme.color("section");
+      pointer-events: none;
+    }
+  }
+}
+
+@include breakpoints.mobile {
+  // Must beat page layout rules that set the panel's display
+  [data-mobile-tab-panel]:not([data-active]) { display: none !important; }
+}
+
+@include breakpoints.desktop {
+  .mobile-tabs { display: none; }
+}

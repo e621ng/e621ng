@@ -1,0 +1,12 @@
+<%= tag.div(id: id, class: ["mobile-tabs", html_class], role: "tablist") do %>
+  <% tabs.each do |tab| %>
+    <%= tag.button(
+      tab.label,
+      type: "button",
+      role: "tab",
+      data: { tab: tab.key },
+      aria: { controls: tab.panel, selected: active?(tab).to_s },
+      tabindex: active?(tab) ? 0 : -1,
+    ) %>
+  <% end %>
+<% end %>
