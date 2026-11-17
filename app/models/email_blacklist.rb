@@ -4,10 +4,24 @@ class EmailBlacklist < ApplicationRecord
   UNVERIFY_COUNT_TRESHOLD = 250
   BANNED_CACHE_KEY = "banned_emails_1"
 
+  # alphanumeric and hyphens (except leading or trailing), 1-63 chars per part, at least 2 parts
+  DOMAIN_PART = /(?!-)[a-z0-9-]{1,63}(?<!-)/
+  DOMAIN_FORMAT = /\A#{DOMAIN_PART}(?:\.#{DOMAIN_PART})+\z/
+
   belongs_to_creator
 
+  before_validation :normalize_domain_attribute
+
   validates :domain, presence: true
+  validates :domain, length: { maximum: 253 }
+  validates :domain,
+            format: {
+              with: DOMAIN_FORMAT,
+              message: "must be a plain domain name like example.com (no wildcards, no @)",
+            },
+            allow_blank: true
   validates :domain, uniqueness: { case_sensitive: false, message: "already exists" }
+
   after_create :invalidate_cache
   after_create :unverify_accounts
   after_destroy :invalidate_cache
@@ -93,5 +107,11 @@ class EmailBlacklist < ApplicationRecord
     return if matching_users.count > UNVERIFY_COUNT_TRESHOLD
 
     matching_users.each(&:mark_unverified!)
+  end
+
+  private
+
+  def normalize_domain_attribute
+    self.domain = self.class.normalize_domain(domain) if domain.present?
   end
 end
