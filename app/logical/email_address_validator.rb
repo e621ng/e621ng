@@ -66,10 +66,10 @@ class EmailAddressValidator < ActiveModel::EachValidator
     return "is invalid" if local.nil? || domain.nil?
 
     local_error = validation_error_local_part(local)
-    return local_error if local_error
+    return local_error unless local_error.nil?
 
-    domain_error = validation_error_domain_part(local)
-    return domain_error if domain_error
+    domain_error = validation_error_domain_part(domain)
+    return domain_error unless domain_error.nil?
 
     nil
   end
