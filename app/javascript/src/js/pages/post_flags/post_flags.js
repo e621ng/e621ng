@@ -3,10 +3,19 @@ import Page from "@/utility/Page";
 const PostFlags = {};
 
 // Note sections are transformed into expandable containers if they exceed a certain height
-PostFlags.initExpandableNotes = function () {
-  for (const container of $(".post-flag-note")) {
+function markExpandableNotes (containers) {
+  for (const container of containers) {
     if (container.clientHeight > 72) $(container).addClass("expandable");
   }
+}
+
+PostFlags.initExpandableNotes = function () {
+  markExpandableNotes($(".post-flag-note"));
+
+  // Notes inside a collapsed flag notice have no height until it is opened
+  $(".flag-notice-details:not([open])").one("toggle", (event) => {
+    markExpandableNotes($(event.currentTarget).find(".post-flag-note"));
+  });
 
   $(".post-flag-note-header").on("click", (event) => {
     $(event.currentTarget).parents(".post-flag-note").toggleClass("expanded");

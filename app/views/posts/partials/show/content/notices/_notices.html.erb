@@ -1,25 +1,33 @@
 <% if post.is_flagged? && !post.is_deleted? && post.flags.any? %>
   <div class="notice notice-flagged">
-    <p>This post was flagged for review (<%= link_to "learn more", wiki_pages_path(title: "howto:flag") %>): </p>
+    <details class="flag-notice-details" <%= "open" if flag_notice_open?(post) %>>
+      <summary>
+        <%= svg_icon(:chevron_right) %>
+        This post was flagged for review
+        <span class="flag-notice-hint">(show details)</span>
+      </summary>
 
-    <%= render "posts/partials/show/content/notices/flag_reasons", post: post %>
+      <p>Flag details (<%= link_to "learn more", wiki_pages_path(title: "howto:flag") %>):</p>
 
-    <% if CurrentUser.can_approve_posts? %>
-      <div data-reason="<%= post.pending_flag&.reason %>">
-        <%= link_to "Delete", confirm_delete_staff_post_post_path(post, q: params[:q]), class: "button btn-neutral" %>
-         | <%= tag.a "Unflag", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "none" } %>
-        <% if post.is_approvable? %>
-           | <%= tag.a "Unflag+approve", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "approve" } %>
-        <% end %>
-        <% unless post.pending_flag&.needs_staff_reason? %>
-           | <%= tag.a "Delete with given reason", href: "#", class: "delete-with-reason-link button btn-neutral", data: { "post-id": post.id, "reason": "", "from-flag": true, "prompt": "given reason", "move-favs": post.pending_flag&.needs_parent_id?.present? } %>
-        <% end %>
-        <% if !post.parent_id.nil? && PostFlagReason.needs_parent_id?(post.pending_flag&.reason_name) %>
-           | <%= tag.a "Move flag to parent", href: "#", class: "move-flag-to-parent-link button btn-neutral", data: { "pid": post.id, "parent-id": post.parent_id, "reason-name": post.pending_flag.reason_name, "note": post.pending_flag.note } %>
-           | <%= tag.a "Compare", href: staff_post_diff_path(post_a: post.id, post_b: post.parent_id), class: "button btn-neutral" %>
-        <% end %>
-      </div>
-    <% end %>
+      <%= render "posts/partials/show/content/notices/flag_reasons", post: post %>
+
+      <% if CurrentUser.can_approve_posts? %>
+        <div data-reason="<%= post.pending_flag&.reason %>">
+          <%= link_to "Delete", confirm_delete_staff_post_post_path(post, q: params[:q]), class: "button btn-neutral" %>
+           | <%= tag.a "Unflag", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "none" } %>
+          <% if post.is_approvable? %>
+             | <%= tag.a "Unflag+approve", href: "#", class: "unflag-post-link button btn-neutral", data: { pid: post.id, type: "approve" } %>
+          <% end %>
+          <% unless post.pending_flag&.needs_staff_reason? %>
+             | <%= tag.a "Delete with given reason", href: "#", class: "delete-with-reason-link button btn-neutral", data: { "post-id": post.id, "reason": "", "from-flag": true, "prompt": "given reason", "move-favs": post.pending_flag&.needs_parent_id?.present? } %>
+          <% end %>
+          <% if !post.parent_id.nil? && PostFlagReason.needs_parent_id?(post.pending_flag&.reason_name) %>
+             | <%= tag.a "Move flag to parent", href: "#", class: "move-flag-to-parent-link button btn-neutral", data: { "pid": post.id, "parent-id": post.parent_id, "reason-name": post.pending_flag.reason_name, "note": post.pending_flag.note } %>
+             | <%= tag.a "Compare", href: staff_post_diff_path(post_a: post.id, post_b: post.parent_id), class: "button btn-neutral" %>
+          <% end %>
+        </div>
+      <% end %>
+    </details>
   </div>
 <% end %>
 

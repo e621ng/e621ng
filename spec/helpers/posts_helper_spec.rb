@@ -122,4 +122,49 @@ RSpec.describe PostsHelper do
       expect(helper.send(:nav_params_for, 2)[:params].to_h).to eq("tags" => "fox", "page" => 2)
     end
   end
+
+  describe "#flag_notice_open?" do
+    include_context "as admin"
+
+    # Members older than 3 days bypass the :REJ_NEWBIE throttle gate on post_flag creation.
+    let(:flagger) { create(:user, created_at: 4.days.ago) }
+    let(:uploader) { create(:user) }
+    let(:post) { create(:post, uploader: uploader) }
+
+    before { CurrentUser.scoped(flagger) { create(:post_flag, post: post) } }
+
+    def open_for?(user)
+      helper.flag_notice_open?(post.reload, user)
+    end
+
+    it "is open for staff" do
+      expect(open_for?(create(:janitor_user))).to be true
+    end
+
+    it "is open for the flagger" do
+      expect(open_for?(flagger)).to be true
+    end
+
+    it "is open for the uploader" do
+      expect(open_for?(uploader)).to be true
+    end
+
+    it "is open for a user linked to one of the post's artists" do
+      linked = create(:user)
+      artist = create(:artist, linked_user_id: linked.id)
+      post.update!(tag_string: "#{post.tag_string} #{artist.name}")
+      expect(open_for?(linked)).to be true
+    end
+
+    it "is closed for an unrelated member" do
+      expect(open_for?(create(:user))).to be false
+    end
+
+    it "is closed for anonymous users without looking up linked artists" do
+      post.reload
+      allow(post).to receive(:linked_users)
+      expect(helper.flag_notice_open?(post, User.anonymous)).to be false
+      expect(post).not_to have_received(:linked_users)
+    end
+  end
 end

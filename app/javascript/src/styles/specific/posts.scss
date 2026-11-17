@@ -68,14 +68,52 @@ div#c-posts {
       font-weight: bold;
     }
 
+    .flag-notice-details {
+      > summary {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        cursor: pointer;
+        list-style: none;
+
+        &::-webkit-details-marker { display: none; }
+
+        svg {
+          width: 1.25rem;
+          height: 1.25rem;
+          margin: -0.125rem;
+        }
+      }
+
+      .flag-notice-hint {
+        color: theme.color("text-muted");
+      }
+
+      &[open] {
+        > summary {
+          margin-bottom: 0.5em;
+          svg { transform: rotate(90deg); }
+        }
+
+        .flag-notice-hint { display: none; }
+      }
+    }
+
     &.notice-parent, &.notice-child, &.notice-pending, &.notice-resized {
       background-color: theme.color("section");
       border: 1px solid theme.color("foreground");
     }
 
-    &.notice-flagged, &.notice-deleted {
+    &.notice-deleted {
       background-color: theme.color("danger-darken-10");
       border: 1px solid theme.color("foreground");
+    }
+
+    &.notice-flagged {
+      background-color: theme.color("section");
+      max-width: 50rem;
+      box-sizing: border-box;
+      border-left: 0.25rem solid theme.color("danger-darken-5");
     }
 
     .delete-with-reason-link[data-move-favs="true"] {
@@ -89,7 +127,7 @@ div#c-posts {
         font-size: 0.75rem;
         bottom: -0.75rem;
         line-height: 0.75rem;
-        color: var(--color-text-muted);
+        color: theme.color("text-muted");
         right: 0;
         text-align: center;
         pointer-events: none;
@@ -103,7 +141,7 @@ div#c-posts {
     gap: 0.125rem;
 
     margin-bottom: 0.5rem;
-    background-color: theme.color('section');
+    background-color: theme.color("section");
     position: relative;
 
     p {
@@ -406,4 +444,9 @@ body[data-user-can-approve-posts="true"] .notice {
       padding: 0.25rem 0.5rem;
     }
   }
+}
+
+body[data-user-can-approve-posts="true"] div#c-posts div.notice.notice-flagged {
+  background-color: theme.color("danger-darken-10");
+  max-width: unset;
 }
