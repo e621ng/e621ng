@@ -252,6 +252,52 @@ RSpec.describe UsersController do
   end
 
   # ---------------------------------------------------------------------------
+  # GET /users/settings — section navigation
+  # ---------------------------------------------------------------------------
+
+  describe "GET /users/settings" do
+    let(:user) { create(:user) }
+
+    before { sign_in_as user }
+
+    def settings_page(**params)
+      get settings_users_path(params)
+      Nokogiri::HTML(response.body)
+    end
+
+    def visible_sections(doc)
+      doc.css(".settings-section:not([hidden])").pluck("data-section")
+    end
+
+    it "renders every section with only the first one visible" do
+      doc = settings_page
+      expect(doc.css(".settings-section").pluck("data-section")).to eq(%w[basic advanced apps blacklist])
+      expect(visible_sections(doc)).to eq(%w[basic])
+    end
+
+    it "shows the section named in the tab param" do
+      doc = settings_page(tab: "advanced")
+      expect(visible_sections(doc)).to eq(%w[advanced])
+      expect(doc.at_css(".settings-nav-list a[aria-current]")["data-section"]).to eq("advanced")
+      expect(doc.at_css(".settings-nav-select option[selected]")["value"]).to eq("advanced")
+    end
+
+    it "falls back to the first section for an unknown tab" do
+      expect(visible_sections(settings_page(tab: "bogus"))).to eq(%w[basic])
+    end
+
+    it "prefills the search from the find param" do
+      expect(settings_page(find: "privacy").at_css(".settings-nav input[name=find]")["value"]).to eq("privacy")
+    end
+
+    it "keeps the navigation outside the settings form" do
+      doc = settings_page
+      expect(doc.at_css("form.settings-content .settings-nav")).to be_nil
+      expect(doc.css("form.simple_form.settings-content .settings-section").size).to eq(4)
+    end
+  end
+
+  # ---------------------------------------------------------------------------
   # GET /users/custom_style — member_only
   # ---------------------------------------------------------------------------
 

@@ -1,144 +1,142 @@
-<% tab_name = "advanced" %>
-
 <!-- Accessibility -->
-<tab-group name="accessibility">Accessibility</tab-group>
+<settings-group name="accessibility">Accessibility</settings-group>
 
-<tab-entry tab="<%= tab_name %>" group="accessibility" class="inline" search="keyboard hotkeys shortcut navigation enable disable">
-  <tab-head>Enable Keyboard Shortcuts</tab-head>
-  <tab-body>
+<settings-entry group="accessibility" class="inline" search="keyboard hotkeys shortcut navigation enable disable">
+  <settings-head>Enable Keyboard Shortcuts</settings-head>
+  <settings-body>
     <%= form.input_field :enable_keyboard_navigation, as: :boolean, class: "st-toggle" %>
     <%= form.label :enable_keyboard_navigation, "!", class: "st-toggle", role: "switch" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     The full list of shortcuts is available <%= link_to "here", keyboard_shortcuts_path %>.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
-<tab-entry tab="<%= tab_name %>" group="accessibility" class="inline" search="auto complete autocomplete suggestions enable disable">
-  <tab-head>Enable Auto Complete</tab-head>
-  <tab-body>
+<settings-entry group="accessibility" class="inline" search="auto complete autocomplete suggestions enable disable">
+  <settings-head>Enable Auto Complete</settings-head>
+  <settings-body>
     <%= form.input_field :enable_auto_complete, as: :boolean, class: "st-toggle" %>
     <%= form.label :enable_auto_complete, "!", class: "st-toggle", role: "switch" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     Tag and user name suggestions.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
 
 <!-- Privacy & Messaging -->
-<tab-group name="privacy">Privacy & Messaging</tab-group>
+<settings-group name="privacy">Privacy & Messaging</settings-group>
 
-<tab-entry tab="<%= tab_name %>" group="privacy" class="inline" search="posts favorites hide disable private privacy">
-  <tab-head>Hide Favorites</tab-head>
-  <tab-body>
+<settings-entry group="privacy" class="inline" search="posts favorites hide disable private privacy">
+  <settings-head>Hide Favorites</settings-head>
+  <settings-body>
     <%= form.input_field :enable_privacy_mode, as: :boolean, class: "st-toggle" %>
     <%= form.label :enable_privacy_mode, "!", class: "st-toggle", role: "switch" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     Prevent your favorites from being publicly visible.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
-<tab-entry tab="<%= tab_name %>" group="privacy" class="inline" search="dmails filter banned block enable disable toggle">
-  <tab-head>Disable DMails</tab-head>
-  <tab-body>
+<settings-entry group="privacy" class="inline" search="dmails filter banned block enable disable toggle">
+  <settings-head>Disable DMails</settings-head>
+  <settings-body>
     <%= form.input_field :disable_user_dmails, as: :boolean, class: "st-toggle", disabled: CurrentUser.is_staff? %>
     <%= form.label :disable_user_dmails, "!", class: "st-toggle", role: "switch" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     Prevent other users from sending you DMails.
     <% if CurrentUser.is_staff? %>
       <br />Staff members are not allowed to disable DMails.
     <% end %>
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
-<tab-entry tab="<%= tab_name %>" group="privacy" search="dmails filter banned block">
-  <tab-head>DMail Filters</tab-head>
-  <tab-body>
+<settings-entry group="privacy" search="dmails filter banned block">
+  <settings-head>DMail Filters</settings-head>
+  <settings-body>
     <%= hidden_field_tag "user[dmail_filter_attributes][id]", @user.dmail_filter.try(:id) %>
     <%= text_field_tag "user[dmail_filter_attributes][words]", @user.dmail_filter.try(:words), id: "user_dmail_filter_attributes_words", class: "text optional", size: 40 %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     A list of banned words (space delimited). Any dmail you receive with a banned word will automatically be deleted.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
 
 <!-- Posts -->
-<tab-group name="tags">Posts & Tags</tab-group>
+<settings-group name="tags">Posts & Tags</settings-group>
 
-<tab-entry tab="<%= tab_name %>" group="tags" class="inline" search="show hide posts thumbnails statistics stats search">
-  <tab-head>Show Statistics</tab-head>
-  <tab-body>
+<settings-entry group="tags" class="inline" search="show hide posts thumbnails statistics stats search">
+  <settings-head>Show Statistics</settings-head>
+  <settings-body>
     <%= form.input_field :show_post_statistics, as: :boolean, class: "st-toggle" %>
     <%= form.label :show_post_statistics, "!", class: "st-toggle", role: "switch" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     Show post stats below posts on search pages.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
-<tab-entry tab="<%= tab_name %>" group="tags" class="inline" search="show hide collapse expand posts descriptions">
-  <tab-head>Collapse Descriptions</tab-head>
-  <tab-body>
+<settings-entry group="tags" class="inline" search="show hide collapse expand posts descriptions">
+  <settings-head>Collapse Descriptions</settings-head>
+  <settings-body>
     <%= form.input_field :description_collapsed_initially, as: :boolean, class: "st-toggle" %>
     <%= form.label :description_collapsed_initially, "!", class: "st-toggle", role: "switch" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     Do not expand post descriptions on page load.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
-<tab-entry tab="<%= tab_name %>" group="tags" class="bigtext" search="posts tags frequent favorite related">
-  <tab-head>Frequent Tags</tab-head>
-  <tab-body>
+<settings-entry group="tags" class="bigtext" search="posts tags frequent favorite related">
+  <settings-head>Frequent Tags</settings-head>
+  <settings-body>
     <%= form.input_field :favorite_tags, label: false, autocomplete: "tag-query", rows: 5 %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     A list of tags that you use often. Single line, maximum of 200.<br />They will appear when using the list of Related Tags.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
 <% if @user.post_upload_count >= 10 %>
-<tab-entry tab="<%= tab_name %>" group="tags" class="inline" search="show hide compact uploader posts">
-  <tab-head>Compact Uploader</tab-head>
-  <tab-body>
+<settings-entry group="tags" class="inline" search="show hide compact uploader posts">
+  <settings-head>Compact Uploader</settings-head>
+  <settings-body>
     <%= form.input_field :enable_compact_uploader, as: :boolean, class: "st-toggle" %>
     <%= form.label :enable_compact_uploader, "!", class: "st-toggle", role: "switch" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     A more compact and less guided post uploader.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 <% end %>
 
 
 <!-- Mobile -->
-<tab-group name="mobile">Mobile / Tablet</tab-group>
+<settings-group name="mobile">Mobile / Tablet</settings-group>
 
-<tab-entry tab="<%= tab_name %>" group="mobile" class="inline" search="enable disable responsive mode mobile tablet">
-  <tab-head>Disable Responsive Mode</tab-head>
-  <tab-body>
+<settings-entry group="mobile" class="inline" search="enable disable responsive mode mobile tablet">
+  <settings-head>Disable Responsive Mode</settings-head>
+  <settings-body>
     <%= form.input_field :disable_responsive_mode, as: :boolean, class: "st-toggle" %>
     <%= form.label :disable_responsive_mode, "!", class: "st-toggle", role: "switch" %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     Disable alternative layout for mobile and tablet.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>
 
 
 <!-- Customization -->
-<tab-group name="customization">Customization</tab-group>
+<settings-group name="customization">Customization</settings-group>
 
-<tab-entry tab="<%= tab_name %>" group="customization" class="bigtext" search="customize css styles">
-  <tab-head>Custom CSS</tab-head>
-  <tab-body>
+<settings-entry group="customization" class="bigtext" search="customize css styles">
+  <settings-head>Custom CSS</settings-head>
+  <settings-body>
     <%= form.input_field :custom_style, label: false, rows: 8 %>
-  </tab-body>
-  <tab-hint>
+  </settings-body>
+  <settings-hint>
     Apply <a href="https://en.wikipedia.org/wiki/CSS">CSS Styles</a> to the whole website.
-  </tab-hint>
-</tab-entry>
+  </settings-hint>
+</settings-entry>

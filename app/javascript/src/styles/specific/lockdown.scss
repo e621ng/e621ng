@@ -1,25 +1,27 @@
 @use "colors/theme";
 
-.settings-section {
-  background-color: theme.color("section");
-  border-radius: 0.25rem;
-  padding: 0.5em 0.75em;
-  margin-bottom: 0.5em;
+#c-staff-security #a-index {
+  .settings-section {
+    background-color: theme.color("section");
+    border-radius: 0.25rem;
+    padding: 0.5em 0.75em;
+    margin-bottom: 0.5em;
 
-  .simple_form {
-    background-color: unset !important;
-    padding: 0 !important;
+    .simple_form {
+      background-color: unset !important;
+      padding: 0 !important;
+    }
   }
-}
 
-form.lockdown-form {
-  div.input {
-    display: flex;
-    gap: 0.75em;
-    margin-bottom: 0.25em;
+  form.lockdown-form {
+    div.input {
+      display: flex;
+      gap: 0.75em;
+      margin-bottom: 0.25em;
 
-    input[type="checkbox"] {
-      order: -1;
+      input[type="checkbox"] {
+        order: -1;
+      }
     }
   }
 }
