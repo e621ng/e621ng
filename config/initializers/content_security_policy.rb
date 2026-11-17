@@ -23,8 +23,7 @@ Rails.application.configure do
     policy.connect_src :self, "rv.e621.net", "op.dragonfru.it", "static1.e621.net", "static1.e926.net", "api.freespeechcoalition.com"
     policy.connect_src(*policy.connect_src, "ws://localhost:3036", "http://localhost:3036", "http://host.docker.internal:8000") if Rails.env.development?
 
-    # Only legacy flash posts embed objects, and their files live on the static hosts.
-    policy.object_src  "static1.e621.net", "static1.e926.net"
+    policy.object_src  :none
     policy.media_src   :self, "static1.e621.net", "static1.e926.net"
     policy.frame_ancestors :none
     policy.frame_src   "https://challenges.cloudflare.com"

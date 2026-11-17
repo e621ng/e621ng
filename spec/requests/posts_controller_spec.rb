@@ -227,17 +227,24 @@ RSpec.describe PostsController do
 
     context "with a legacy flash post" do
       let(:post) { create(:post, file_ext: "swf") }
-      let(:object) { Nokogiri::HTML(response.body).at_css("object#flash-content") }
+      let(:content) { Nokogiri::HTML(response.body).at_css("#image-container") }
 
       before { get post_path(post) }
 
-      it "embeds the file with script access and networking disabled" do
-        expect(object.at_css(%(param[name="movie"]))["value"]).to eq(post.file_url)
-        expect(object.at_css(%(param[name="allowScriptAccess"]))["value"]).to eq("never")
-        expect(object.at_css(%(param[name="allowNetworking"]))["value"]).to eq("internal")
-        embed = object.at_css("embed")
-        expect(embed["allowscriptaccess"]).to eq("never")
-        expect(embed["allownetworking"]).to eq("internal")
+      it "offers a download link instead of embedding the file" do
+        expect(content.css("object, embed")).to be_empty
+        expect(content.at_css("a")["href"]).to eq(post.download_url)
+      end
+    end
+
+    context "with a deleted non-media post viewed by staff" do
+      let(:post) { create(:post, file_ext: "swf", is_deleted: true) }
+
+      it "links to the protected file URL" do
+        sign_in_as create(:admin_user)
+        get post_path(post)
+        link = Nokogiri::HTML(response.body).at_css("#image-container a")
+        expect(link["href"]).to include("/deleted/").and include(post.md5).and include("auth=")
       end
     end
 

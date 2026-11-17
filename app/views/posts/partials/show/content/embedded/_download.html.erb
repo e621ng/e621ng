@@ -1,1 +1,4 @@
-<p><%= link_to "Save this file (right click and save)", post.file_url %></p>
+<%# download_url is nil for deleted posts; staff still get the protected file URL. %>
+<div class="post-show-embed-download">
+  <%= link_to "Download this file", post.download_url || post.file_url, class: "st-button submit" %>
+</div>
