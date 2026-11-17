@@ -43,13 +43,13 @@
     display: flex;
     flex-flow: column;
     gap: 0.5rem;
-    margin-top: 0.5rem;
   }
 
   .settings-nav {
     display: flex;
     flex-flow: column;
     gap: 0.5rem;
+    margin-top: 0.5rem;
 
     input[name="find"], select {
       width: 100%;
@@ -225,4 +225,9 @@
       }
     }
   }
+}
+
+// Sticky header offset
+body[data-th-stickyheader=true] #c-users #a-edit .settings-nav {
+  top: 4.5rem;
 }
