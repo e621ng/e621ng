@@ -57,7 +57,7 @@ RSpec.describe UserDeletion do
       it "revokes every login session" do
         record = create(:user_session, user: user)
         deletion.delete!
-        expect(record.reload.revoked_reason).to eq("staff")
+        expect(record.reload.revoked_reason).to eq("deletion")
       end
 
       it "deletes outstanding password reset nonces so a pre-requested link cannot revive the account" do
@@ -212,6 +212,12 @@ RSpec.describe UserDeletion do
       subject(:deletion) { described_class.new(user, nil, admin_deletion: true) }
 
       let(:user) { create(:user) }
+
+      it "revokes the user's login sessions as a staff action" do
+        record = create(:user_session, user: user)
+        deletion.delete!
+        expect(record.reload.revoked_reason).to eq("staff")
+      end
 
       it "renames the user to user_{id}" do
         deletion.delete!
