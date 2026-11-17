@@ -1,19 +1,19 @@
 <% if has_about %>
-  <%= tag.section(class: "profile-readmore profile-about-section", **MobileTabsComponent.panel_attributes(id: "profile-about", active: active_tab == "about")) do %>
+  <section class="profile-readmore profile-about-section" <%= tag.attributes(MobileTabsComponent.panel_attributes(id: "profile-about", active: active_tab == "about")) %>>
     <h3 class="profile-readmore-title">About</h3>
     <div class="content dtext-container">
       <%= format_text(user.profile_about, allow_color: true) %>
       <button class="content-readmore">Show More</button>
     </div>
-  <% end %>
+  </section>
 <% end %>
 
 <% if has_artinfo %>
-  <%= tag.section(class: "profile-readmore profile-artinfo-section", **MobileTabsComponent.panel_attributes(id: "profile-artinfo", active: active_tab == "artinfo")) do %>
+  <section class="profile-readmore profile-artinfo-section" <%= tag.attributes(MobileTabsComponent.panel_attributes(id: "profile-artinfo", active: active_tab == "artinfo")) %>>
     <h3 class="profile-readmore-title">Artist Information</h3>
     <div class="content dtext-container">
       <%= format_text(user.profile_artinfo, allow_color: true) %>
       <button class="content-readmore">Show More</button>
     </div>
-  <% end %>
+  </section>
 <% end %>
