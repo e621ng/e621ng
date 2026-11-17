@@ -839,6 +839,10 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
       ""
     end
 
+    def mailgun_api_host
+      nil
+    end
+
     def mail_from_addr
       "E621.net <noreply@e621.net>"
     end
