@@ -35,6 +35,9 @@ class UserSession < ApplicationRecord
       last_seen_at: now,
       expires_at: now + timeout_for(remember),
       legacy_key: legacy_key,
+      # Same instant as last_seen_at, so a row counts as untouched until a later request.
+      created_at: now,
+      updated_at: now,
     )
     record.enforce_cap!
     [record, secret]

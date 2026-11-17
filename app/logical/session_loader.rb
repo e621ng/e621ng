@@ -230,6 +230,7 @@ class SessionLoader
       return
     end
     record, secret = UserSession.mint!(user, request: request, remember: true, legacy_key: key)
+    @minted_this_request = true
     SessionCreator.set_remember_session(cookies, record.id, secret)
     restore_login(user, record, secret)
   end
@@ -259,6 +260,10 @@ class SessionLoader
   # extended on the same cadence, with the same secret.
   def touch_user_session
     return if @user_session.nil?
+    # The request that adopted a legacy cookie is not activity: the row must stay
+    # untouched until the browser comes back, or every row minted by a parallel
+    # first page load would be listed, counted and kept.
+    return if @minted_this_request
     return unless Cache.redis.set("user_session_touch:#{@user_session.id}", "1", nx: true, ex: UserSession::TOUCH_INTERVAL.to_i)
 
     @user_session.touch_activity!(request)
@@ -350,6 +355,7 @@ class SessionLoader
   def adopt_legacy_session(user)
     remembered = cookies.encrypted[:remember].present?
     record, secret = UserSession.mint!(user, request: request, remember: remembered, legacy_key: self.class.legacy_session_key(session))
+    @minted_this_request = true
     session[:sid] = record.id
     session[:sk] = secret
     SessionCreator.set_remember_session(cookies, record.id, secret) if remembered

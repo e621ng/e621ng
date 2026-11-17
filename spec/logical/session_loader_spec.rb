@@ -334,6 +334,7 @@ RSpec.describe SessionLoader do
         expect { loader.load }.to change(UserSession, :count).by(1)
         expect(CurrentUser.user).to eq(user)
         record = UserSession.last
+        expect(record).not_to be_touched
         expect(request.session[:sid]).to eq(record.id)
         expect(UserSession.authenticate(request.session[:sid], request.session[:sk])).to eq(record)
         expect(record.legacy_key).to eq(described_class.legacy_session_key(request.session))
@@ -762,6 +763,7 @@ RSpec.describe SessionLoader do
         expect { loader.load }.to change(UserSession, :count).by(1)
         record = UserSession.last
         expect(CurrentUser.user_session).to eq(record)
+        expect(record).not_to be_touched
         expect(record.remember).to be true
         expect(record.legacy_key).to eq(described_class.legacy_remember_key(user.id, user.password_token))
         expect(request.session[:sid]).to eq(record.id)

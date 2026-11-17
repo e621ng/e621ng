@@ -29,6 +29,23 @@ RSpec.describe UserSession do
       expect(record.expires_at).to be_within(5.seconds).of(Time.now + described_class::REMEMBER_TIMEOUT)
     end
 
+    it "starts untouched and is pruned once the grace period passes without activity" do
+      record, = travel_to(2.hours.ago) { described_class.mint!(user, request: request, remember: false) }
+      expect(record.reload).not_to be_touched
+      expect(record.created_at).to eq(record.last_seen_at)
+      expect(user.user_sessions.listed).not_to include(record)
+
+      described_class.prune!
+      expect(described_class.exists?(record.id)).to be false
+    end
+
+    it "is kept by the prune while the grace period is running" do
+      record, = described_class.mint!(user, request: request, remember: false)
+      expect(record).not_to be_touched
+      described_class.prune!
+      expect(described_class.exists?(record.id)).to be true
+    end
+
     it "truncates and scrubs the user agent" do
       bad = instance_double(ActionDispatch::Request, remote_ip: "203.0.113.9", user_agent: "#{'a' * 2000}\xFF".b)
       record, = described_class.mint!(user, request: bad, remember: false)
