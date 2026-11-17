@@ -342,13 +342,29 @@ RSpec.describe SessionLoader do
         expect(encrypted_jar).not_to have_key(:remember_session)
       end
 
-      it "issues the new remember cookie when the old one is present, leaving the old one alone" do
-        encrypted_jar[:remember] = "old_cookie"
+      it "issues the new remember cookie when the user's own old one is present, leaving the old one alone" do
+        old_cookie = SessionCreator.remember_verifier.generate("#{user.id}:#{user.password_token}", purpose: "rbr", expires_in: 14.days)
+        encrypted_jar[:remember] = old_cookie
         loader.load
         record = UserSession.last
         expect(record.remember).to be true
         expect(encrypted_jar.dig(:remember_session, :value)).to be_present
-        expect(encrypted_jar[:remember]).to eq("old_cookie")
+        expect(encrypted_jar[:remember]).to eq(old_cookie)
+      end
+
+      it "does not upgrade the login on someone else's or a tampered old remember cookie" do
+        other = create(:user)
+        encrypted_jar[:remember] = SessionCreator.remember_verifier.generate("#{other.id}:#{other.password_token}", purpose: "rbr", expires_in: 14.days)
+        loader.load
+        expect(UserSession.last.remember).to be false
+        expect(encrypted_jar).not_to have_key(:remember_session)
+
+        encrypted_jar[:remember] = "old_cookie"
+        request.session.delete(:sid)
+        request.session.delete(:sk)
+        described_class.new(request).load
+        expect(UserSession.last.remember).to be false
+        expect(encrypted_jar).not_to have_key(:remember_session)
       end
 
       it "rejects a copy whose adopted row was revoked" do

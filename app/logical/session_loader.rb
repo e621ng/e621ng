@@ -219,10 +219,10 @@ class SessionLoader
   end
 
   def restore_legacy_remember
-    pieces = verify_remember(cookies.encrypted[:remember], purpose: "rbr").to_s.split(":")
-    return unless pieces.length == 2
-    user = User.find_by(id: pieces[0].to_i)
-    return if user.nil? || pieces[1].to_i != user.password_token
+    user_id, token = verified_legacy_remember
+    return if user_id.nil?
+    user = User.find_by(id: user_id)
+    return if user.nil? || token != user.password_token
 
     key = self.class.legacy_remember_key(user.id, user.password_token)
     if UserSession.legacy_blocked?(user, key)
@@ -253,6 +253,20 @@ class SessionLoader
     @remember_validator.verify(value, purpose: purpose)
   rescue ActiveSupport::MessageVerifier::InvalidSignature
     nil
+  end
+
+  # [user_id, password_token] from a validly signed pre-rollout remember cookie, else nil.
+  def verified_legacy_remember
+    pieces = verify_remember(cookies.encrypted[:remember], purpose: "rbr").to_s.split(":")
+    return nil unless pieces.length == 2
+    [pieces[0].to_i, pieces[1].to_i]
+  end
+
+  # A stale remember cookie from someone else who used this browser must not
+  # upgrade the adopted login to a remembered one.
+  def legacy_remember_for?(user)
+    user_id, token = verified_legacy_remember
+    user_id == user.id && token == user.password_token
   end
 
   # Activity is recorded at most once per TOUCH_INTERVAL per session; revocation
@@ -353,7 +367,7 @@ class SessionLoader
   # First request from a browser logged in before user_sessions existed. The old
   # `remember` cookie is left in place (never refreshed) for rollback safety.
   def adopt_legacy_session(user)
-    remembered = cookies.encrypted[:remember].present?
+    remembered = legacy_remember_for?(user)
     record, secret = UserSession.mint!(user, request: request, remember: remembered, legacy_key: self.class.legacy_session_key(session))
     @minted_this_request = true
     session[:sid] = record.id
