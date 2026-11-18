@@ -172,7 +172,7 @@ def populate_posts(number, search: "order:random+score:>150+-grandfathered_conte
   page = 1
 
   while total < number
-    posts = api_request("/posts.json?tags=#{search}+-young+-type:swf+randseed:#{seed}&limit=#{batch_size}&page=#{page + 1}")["posts"]
+    posts = api_request("/posts.json?v1=true&tags=#{search}+-young+-type:swf+randseed:#{seed}&limit=#{batch_size}&page=#{page + 1}")["posts"]
     if posts&.length != batch_size
       puts "  End of Content"
       break
