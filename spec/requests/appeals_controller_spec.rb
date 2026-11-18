@@ -117,6 +117,20 @@ RSpec.describe AppealsController do
       expect(response).to redirect_to(appeal_path(appeal))
       expect(flash[:alert]).to eq("This deletion has already been appealed.")
     end
+
+    it "redirects a legacy deletion-flag link to the copied deletion" do
+      deletion.update_columns(source_post_flag_id: 4242)
+      sign_in_as uploader
+      get new_appeal_path(qtype: "flag", disp_id: 4242)
+      expect(response).to redirect_to(new_appeal_path(qtype: "post_deletion", disp_id: deletion.id))
+    end
+
+    it "redirects a legacy link without a copied deletion to the index" do
+      sign_in_as uploader
+      get new_appeal_path(qtype: "flag", disp_id: 4242)
+      expect(response).to redirect_to(appeals_path)
+      expect(flash[:alert]).to eq("This deletion can't be appealed or has already been resolved.")
+    end
   end
 
   # ---------------------------------------------------------------------------

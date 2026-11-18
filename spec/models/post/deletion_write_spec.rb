@@ -38,6 +38,33 @@ RSpec.describe Post do
     end
   end
 
+  describe "#delete! on a stale copy of an already deleted post" do
+    it "fails without a second deletion, counter bump or karma penalty" do
+      stale = described_class.find(post.id)
+      post.delete!("first")
+      status = post.uploader.user_status.reload
+
+      expect(stale.delete!("second")).to be(false)
+      expect(stale.errors.full_messages).to include("Post is already deleted")
+      expect(post.post_deletions.count).to eq(1)
+      expect(status.reload).to have_attributes(post_deleted_count: status.post_deleted_count, upload_karma: status.upload_karma)
+    end
+  end
+
+  describe "#undelete! on a stale copy of an already undeleted post" do
+    it "fails without a second undeletion or karma credit" do
+      post.delete!("spam")
+      stale = described_class.find(post.id)
+      post.undelete!
+      status = post.uploader.user_status.reload
+
+      stale.undelete!
+      expect(stale.errors.full_messages).to include("Post is not deleted")
+      expect(undeleted_events(post)).to eq(1)
+      expect(status.reload).to have_attributes(post_deleted_count: status.post_deleted_count, upload_karma: status.upload_karma)
+    end
+  end
+
   describe "#undelete!" do
     before { post.delete!("spam") }
 

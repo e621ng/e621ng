@@ -34,6 +34,9 @@ class PostFlag < ApplicationRecord
   after_create :create_post_event
   after_commit :index_post
 
+  # Legacy deletion flags stay behind until their removal; post_deletions holds deletions now.
+  default_scope { where(is_deletion: false) }
+
   scope :by_users, -> { where.not(creator: User.system) }
   scope :by_system, -> { where(creator: User.system) }
   scope :in_cooldown, -> { by_users.where("created_at >= ?", COOLDOWN_PERIOD.ago) }

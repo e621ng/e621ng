@@ -134,5 +134,6 @@ RSpec.describe PostFlag do
   # -------------------------------------------------------------------------
   # Queries with no lexemes fall back to a substring match
   # -------------------------------------------------------------------------
-  it_behaves_like "tsquery fallback search", :reason_matches, :reason, factory: :deletion_post_flag
+  it_behaves_like "tsquery fallback search", :reason_matches, :reason,
+                  build: ->(text) { create(:post_flag).tap { |f| f.update_column(:reason, text) } }
 end

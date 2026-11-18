@@ -32,4 +32,21 @@ FactoryBot.define do
       is_resolved { true }
     end
   end
+
+  # A deletion flag as the old Post#delete! wrote it. The model no longer creates these,
+  # so it is inserted directly, skipping validations and callbacks.
+  factory :legacy_deletion_post_flag, class: "PostFlag" do
+    post { create(:deleted_post) }
+    creator { CurrentUser.user }
+    creator_ip_addr { "127.0.0.1" }
+    reason_name { "deletion" }
+    reason { "Test deletion reason" }
+    is_deletion { true }
+    is_resolved { false }
+
+    to_create do |flag|
+      attrs = flag.attributes.except("id").compact
+      flag.id = PostFlag.unscoped.insert!(attrs, returning: :id).first["id"]
+    end
+  end
 end

@@ -17,7 +17,7 @@ class PostDeletionsController < ApplicationController
   end
 
   def show
-    @post_deletion = PostDeletion.find(params[:id])
+    @post_deletion = PostDeletion.find(params.expect(:id))
     respond_with(@post_deletion) do |fmt|
       fmt.html { redirect_to post_deletions_path(search: { id: @post_deletion.id }) }
     end

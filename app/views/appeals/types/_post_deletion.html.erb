@@ -15,6 +15,10 @@
   <%= render partial: "application/blacklist_inline" %>
 <% else %>
   <div class="appeal-display-flag">
-    Deletion #<%= @appeal.disp_id %> has been destroyed.
+    <% if @appeal.disp_id.negative? %>
+      The post deleted by flag #<%= -@appeal.disp_id %> has been destroyed.
+    <% else %>
+      Deletion #<%= @appeal.disp_id %> has been destroyed.
+    <% end %>
   </div>
 <% end %>

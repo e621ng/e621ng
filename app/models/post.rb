@@ -1768,11 +1768,19 @@ class Post < ApplicationRecord
         reason = pending_flag.reason
       end
 
-      # Capture whether the post held a +1 upload-karma credit *before* the update below clears it.
-      was_credited = !is_pending?
-
+      was_credited = false
+      completed = false
       Post.with_timeout(30_000) do
         transaction do
+          # A concurrent deletion would otherwise only surface as a swallowed RecordNotUnique.
+          lock!
+          if is_deleted?
+            errors.add(:base, "Post is already deleted")
+            raise ActiveRecord::Rollback
+          end
+
+          # Capture whether the post held a +1 upload-karma credit *before* the update below clears it.
+          was_credited = !is_pending?
           update!(
             is_deleted: true,
             is_pending: false,
@@ -1786,8 +1794,10 @@ class Post < ApplicationRecord
           decrement_tag_post_counts
           move_files_on_delete
           delete_avatar_crops
+          completed = true
         end
       end
+      return false unless completed
 
       # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
       # We don't care if these fail per-se so they are outside the transaction.
@@ -1805,6 +1815,7 @@ class Post < ApplicationRecord
       give_favorites_to_parent if options[:move_favorites]
       give_post_sets_to_parent if options[:move_favorites]
       reject_pending_replacements
+      true
     end
 
     def reject_pending_replacements
@@ -1826,7 +1837,14 @@ class Post < ApplicationRecord
         return
       end
 
+      completed = false
       transaction do
+        lock!
+        unless is_deleted?
+          errors.add(:base, "Post is not deleted")
+          raise ActiveRecord::Rollback
+        end
+
         self.is_deleted = false
         self.is_pending = false
         self.approver_id = CurrentUser.id
@@ -1839,7 +1857,10 @@ class Post < ApplicationRecord
         else
           PostEvent.add(id, CurrentUser.user, :undeleted)
         end
+        completed = true
       end
+      return unless completed
+
       move_files_on_undelete
       User.where(avatar_id: id).pluck(:id).each { |uid| UserAvatarUrlCache.invalidate(uid) }
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")

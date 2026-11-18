@@ -165,7 +165,7 @@ module PostIndex
           SELECT pf.post_id, pf.creator_id, LOWER(pf.reason) as reason, LOWER(pf.note) as note, pf.created_at FROM
             (SELECT MAX(id) as mid, post_id
              FROM post_flags
-             WHERE post_id IN (#{post_ids}) AND is_resolved = false
+             WHERE post_id IN (#{post_ids}) AND is_resolved = false AND is_deletion = false
              GROUP BY post_id) pfi
           INNER JOIN post_flags pf ON pf.id = pfi.mid;
         SQL

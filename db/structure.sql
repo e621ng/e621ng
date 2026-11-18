@@ -1625,6 +1625,7 @@ CREATE TABLE public.post_deletions (
     creator_ip_addr inet NOT NULL,
     reason text NOT NULL,
     is_undeleted boolean DEFAULT false NOT NULL,
+    source_post_flag_id integer,
     created_at timestamp(6) without time zone NOT NULL,
     undeleted_at timestamp(6) without time zone
 );
@@ -1769,6 +1770,7 @@ CREATE TABLE public.post_flags (
     is_resolved boolean DEFAULT false NOT NULL,
     created_at timestamp without time zone NOT NULL,
     updated_at timestamp without time zone,
+    is_deletion boolean DEFAULT false NOT NULL,
     note character varying,
     reason_name character varying,
     needs_parent_id boolean DEFAULT false NOT NULL,
@@ -5595,17 +5597,17 @@ CREATE INDEX index_post_approvals_on_user_id ON public.post_approvals USING btre
 
 
 --
--- Name: index_post_deletions_active_created_at; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX index_post_deletions_active_created_at ON public.post_deletions USING btree (created_at) WHERE (is_undeleted = false);
-
-
---
 -- Name: index_post_deletions_active_unique; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX index_post_deletions_active_unique ON public.post_deletions USING btree (post_id) WHERE (is_undeleted = false);
+
+
+--
+-- Name: index_post_deletions_on_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_post_deletions_on_created_at ON public.post_deletions USING btree (created_at);
 
 
 --
@@ -5634,6 +5636,13 @@ CREATE INDEX index_post_deletions_on_post_id_and_id ON public.post_deletions USI
 --
 
 CREATE INDEX index_post_deletions_on_reason_tsvector ON public.post_deletions USING gin (to_tsvector('english'::regconfig, reason));
+
+
+--
+-- Name: index_post_deletions_on_source_post_flag_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_post_deletions_on_source_post_flag_id ON public.post_deletions USING btree (source_post_flag_id);
 
 
 --

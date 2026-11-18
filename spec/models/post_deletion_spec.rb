@@ -135,4 +135,6 @@ RSpec.describe PostDeletion do
       expect(described_class.search({ uploader_name: create(:user).name })).to be_empty
     end
   end
+
+  it_behaves_like "tsquery fallback search", :reason_matches, :reason
 end
