@@ -42,6 +42,13 @@ RSpec.describe Fixes::BackfillPostDeletions do
     expect(deletion_for(newer).is_undeleted).to be(false)
   end
 
+  it "keeps the newest flag of a deleted post active even when it was resolved" do
+    flag = create(:legacy_deletion_post_flag, is_resolved: true)
+    run!
+
+    expect(deletion_for(flag).is_undeleted).to be(false)
+  end
+
   it "copies flags of undeleted posts as undeleted and stamps the undeleter" do
     post = create(:post)
     flag = create(:legacy_deletion_post_flag, post: post, is_resolved: true, created_at: 2.days.ago)
@@ -81,7 +88,7 @@ RSpec.describe Fixes::BackfillPostDeletions do
     run!
 
     expect { run! }.not_to(change { PostDeletion.order(:id).map(&:attributes) })
-    expect { described_class.run }.to output(/Copied deletion flags: 0\n.*Marked undeleted: 0\n.*Remapped appeals: 0/m).to_stdout
+    expect { described_class.run }.to output(/Marked undeleted: 0\n.*Copied deletion flags: 0\n.*Remapped appeals: 0/m).to_stdout
   end
 
   it "copies a late flag as undeleted when the post already has an active deletion" do
@@ -103,5 +110,27 @@ RSpec.describe Fixes::BackfillPostDeletions do
     run!
 
     expect(deletion_for(flag).is_undeleted).to be(true)
+  end
+
+  it "moves the active deletion to a newer flag when the old code deleted the post again" do
+    first = create(:legacy_deletion_post_flag)
+    run!
+
+    PostFlag.unscoped.where(id: first.id).update_all(is_resolved: true)
+    second = create(:legacy_deletion_post_flag, post: first.post)
+    run!
+
+    expect(deletion_for(first).is_undeleted).to be(true)
+    expect(deletion_for(second).is_undeleted).to be(false)
+  end
+
+  it "keeps a copied deletion active when its flag is resolved but the post stays deleted" do
+    flag = create(:legacy_deletion_post_flag)
+    run!
+
+    PostFlag.unscoped.where(id: flag.id).update_all(is_resolved: true)
+    run!
+
+    expect(deletion_for(flag).is_undeleted).to be(false)
   end
 end

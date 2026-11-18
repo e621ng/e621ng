@@ -11,8 +11,8 @@ module Fixes
 
     def self.run
       ApplicationRecord.without_timeout do
-        step("Copied deletion flags", copy_sql)
         step("Marked undeleted", reconcile_sql)
+        step("Copied deletion flags", copy_sql)
         step("Stamped undeleters", undeleter_sql)
         step("Remapped appeals", appeals_sql)
         step("Orphaned appeals (post destroyed)", orphaned_appeals_sql)
@@ -24,18 +24,19 @@ module Fixes
       puts "#{label}: #{count}"
     end
 
-    # Only the newest unresolved flag of a still-deleted post becomes active, and only if
-    # the post has no active row yet (it may have been deleted again by the new code).
+    # Only the newest flag of a still-deleted post becomes active, even if resolved (the old
+    # Post#unflag! resolves deletion flags too), and only if the post has no active row yet
+    # (it may have been deleted again by the new code).
     def self.copy_sql
       <<~SQL.squish
         INSERT INTO post_deletions (post_id, deleter_id, creator_ip_addr, reason, is_undeleted, source_post_flag_id, created_at)
         SELECT f.post_id, f.creator_id, f.creator_ip_addr,
                COALESCE(NULLIF(TRIM(f.reason), ''), 'Unknown'),
-               NOT (COALESCE(f.is_newest_active, false) AND p.is_deleted
+               NOT (f.is_newest AND p.is_deleted
                     AND NOT EXISTS (SELECT 1 FROM post_deletions a WHERE a.post_id = f.post_id AND NOT a.is_undeleted)),
                f.id, f.created_at
         FROM (
-          SELECT *, id = max(id) FILTER (WHERE NOT is_resolved) OVER (PARTITION BY post_id) AS is_newest_active
+          SELECT *, id = max(id) OVER (PARTITION BY post_id) AS is_newest
           FROM post_flags WHERE is_deletion
         ) f
         JOIN posts p ON p.id = f.post_id
@@ -43,15 +44,19 @@ module Fixes
       SQL
     end
 
-    # Rows copied while active whose post has since been undeleted by the old code.
+    # Rows copied while active whose post the old code has since undeleted, or undeleted and
+    # deleted again. Runs before the copy so the newer flag can become active.
+    # A resolved flag alone doesn't count: the old Post#unflag! resolves deletion flags too.
     def self.reconcile_sql
       <<~SQL.squish
         UPDATE post_deletions pd
         SET is_undeleted = true
-        FROM post_flags f, posts p
-        WHERE f.id = pd.source_post_flag_id AND p.id = pd.post_id
+        FROM posts p
+        WHERE p.id = pd.post_id AND pd.source_post_flag_id IS NOT NULL
           AND NOT pd.is_undeleted
-          AND (f.is_resolved OR NOT p.is_deleted)
+          AND (NOT p.is_deleted
+               OR EXISTS (SELECT 1 FROM post_flags f
+                          WHERE f.post_id = pd.post_id AND f.is_deletion AND f.id > pd.source_post_flag_id))
       SQL
     end
 
