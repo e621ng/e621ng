@@ -33,6 +33,7 @@ tmp/*.jpg
 tmp/*.png
 public/data
 .overmind.sock
+db/exports/*.csv.gz
 
 # Test output
 test/reports
