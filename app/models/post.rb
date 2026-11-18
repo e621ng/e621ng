@@ -1773,14 +1773,15 @@ class Post < ApplicationRecord
       Post.with_timeout(30_000) do
         transaction do
           # A concurrent deletion would otherwise only surface as a swallowed RecordNotUnique.
-          lock!
-          if is_deleted?
+          # Locks by query, as lock! refuses records with unsaved changes.
+          deleted, pending = Post.lock.where(id: id).pick(:is_deleted, :is_pending)
+          if deleted
             errors.add(:base, "Post is already deleted")
             raise ActiveRecord::Rollback
           end
 
           # Capture whether the post held a +1 upload-karma credit *before* the update below clears it.
-          was_credited = !is_pending?
+          was_credited = !pending
           update!(
             is_deleted: true,
             is_pending: false,
@@ -1796,6 +1797,8 @@ class Post < ApplicationRecord
           delete_avatar_crops
           completed = true
         end
+      rescue ActiveRecord::RecordInvalid => e
+        errors.merge!(e.record.errors) unless e.record == self
       end
       return false unless completed
 
@@ -1838,26 +1841,29 @@ class Post < ApplicationRecord
       end
 
       completed = false
-      transaction do
-        lock!
-        unless is_deleted?
-          errors.add(:base, "Post is not deleted")
-          raise ActiveRecord::Rollback
-        end
+      begin
+        transaction do
+          unless Post.lock.where(id: id).pick(:is_deleted)
+            errors.add(:base, "Post is not deleted")
+            raise ActiveRecord::Rollback
+          end
 
-        self.is_deleted = false
-        self.is_pending = false
-        self.approver_id = CurrentUser.id
-        flags.each { |x| x.resolve! }
-        increment_tag_post_counts
-        save!
-        approvals.create(user: CurrentUser.user)
-        if (deletion = current_deletion)
-          deletion.stamp_undeleted!(CurrentUser.user)
-        else
-          PostEvent.add(id, CurrentUser.user, :undeleted)
+          self.is_deleted = false
+          self.is_pending = false
+          self.approver_id = CurrentUser.id
+          flags.each { |x| x.resolve! }
+          increment_tag_post_counts
+          save!
+          approvals.create(user: CurrentUser.user)
+          if (deletion = current_deletion)
+            deletion.stamp_undeleted!(CurrentUser.user)
+          else
+            PostEvent.add(id, CurrentUser.user, :undeleted)
+          end
+          completed = true
         end
-        completed = true
+      rescue ActiveRecord::RecordInvalid => e
+        errors.merge!(e.record.errors) unless e.record == self
       end
       return unless completed
 

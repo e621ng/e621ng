@@ -24,8 +24,6 @@ class PostPruner
             body: post.substitute_deletion_dmail_template(dmail[:body]),
           })
         end
-      rescue ActiveRecord::RecordInvalid
-        # swallow
       end
     end
   end

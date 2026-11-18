@@ -51,6 +51,42 @@ RSpec.describe Post do
     end
   end
 
+  describe "#delete! on an invalid post" do
+    it "returns false with the validation errors instead of raising" do
+      post.update_columns(rating: "x")
+      status = post.uploader.user_status.reload
+
+      expect(post.delete!("spam")).to be(false)
+      expect(post.errors[:rating]).to be_present
+      expect(described_class.find(post.id).is_deleted).to be(false)
+      expect(post.post_deletions.count).to eq(0)
+      expect(status.reload).to have_attributes(post_deleted_count: status.post_deleted_count, upload_karma: status.upload_karma)
+    end
+  end
+
+  describe "#delete! and #undelete! with unsaved changes" do
+    it "does not raise" do
+      post.description = "changed"
+      expect(post.delete!("spam")).to be(true)
+
+      post.description = "changed again"
+      expect { post.undelete! }.not_to raise_error
+      expect(post.reload.is_deleted).to be(false)
+    end
+  end
+
+  describe "#undelete! on an invalid post" do
+    it "leaves the post deleted with the validation errors instead of raising" do
+      post.delete!("spam")
+      post.update_columns(rating: "x")
+
+      expect { post.undelete! }.not_to raise_error
+      expect(post.errors[:rating]).to be_present
+      expect(described_class.find(post.id).is_deleted).to be(true)
+      expect(post.current_deletion).to be_present
+    end
+  end
+
   describe "#undelete! on a stale copy of an already undeleted post" do
     it "fails without a second undeletion or karma credit" do
       post.delete!("spam")
