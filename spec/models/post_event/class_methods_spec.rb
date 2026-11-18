@@ -53,7 +53,9 @@ RSpec.describe PostEvent do
     it "excludes mod-only actions for a regular member" do
       member  = create(:user)
       options = PostEvent.search_options_for(member)
-      expect(options).not_to include(*mod_only_actions)
+      PostEvent::MOD_ONLY_SEARCH_ACTIONS.each do |mod_only_action|
+        expect(options).not_to include(mod_only_action)
+      end
     end
 
     it "includes all non-mod-only actions for a regular member" do
