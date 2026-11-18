@@ -58,6 +58,7 @@ Metrics/BlockLength:
     - should
     - should_eventually
   Exclude:
+    - lib/tasks/**/*.rake
     - config/routes.rb
     - spec/**/*
 
@@ -97,6 +98,7 @@ Rails/InverseOf:
 Rails/Output:
   Exclude:
     - db/populate.rb
+    - db/populate/**/*.rb
     - db/seeds.rb
     - db/fixes/*.rb
   Include:

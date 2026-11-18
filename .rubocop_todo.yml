@@ -1225,7 +1225,6 @@ Rails/WhereRange:
     - 'db/fixes/126_generate_missing_replacement_info.rb'
     - 'db/fixes/129_prune_exception_logs.rb'
     - 'db/fixes/130_fix_vote_counts.rb'
-    - 'db/populate.rb'
 
 # Offense count: 1
 Security/Open:
@@ -1335,7 +1334,6 @@ Style/ComparableBetween:
   Exclude:
     - 'app/logical/parse_value.rb'
     - 'config/danbooru_default_config.rb'
-    - 'db/populate.rb'
     - 'spec/factories/user_factory.rb'
 
 # Offense count: 1

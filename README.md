@@ -56,7 +56,8 @@
     ```
     The command can be run multiple times to generate more content.  
     \
-    [Environmental variables](/db/populate.rb#L9-L22) are available to customize what kind of content is generated.
+    One kind of content can be generated on its own, e.g. `bin/populate users COUNT=10` or `docker compose run --rm rails_dev populate:comments COUNT=50`.
+    The available tasks and their environment variables are listed in [lib/tasks/populate.rake](/lib/tasks/populate.rake).
 
 Note: When gems or js packages are updated you need to execute `docker compose build` to reflect them in the container.
 

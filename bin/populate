@@ -1,3 +1,19 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-system('RAILS_ENV=development DANBOORU_DISABLE_THROTTLES=true bin/rails runner db/populate.rb', exception: true)
+# Runs the populate:* rake tasks (lib/tasks/populate.rake).
+#
+#   bin/populate                      # populate:all with defaults
+#   bin/populate users COUNT=10       # one task
+#   bin/populate users comments       # several tasks, in order
+#
+# KEY=VALUE arguments are passed through as environment variables.
+
+env, tasks = ARGV.partition { |arg| arg.include?("=") }
+tasks = ["all"] if tasks.empty?
+env = env.to_h { |pair| pair.split("=", 2) }
+env = { "RAILS_ENV" => "development", "DANBOORU_DISABLE_THROTTLES" => "true" }.merge(env)
+
+tasks.each do |task|
+  system(env, "bin/rails", "populate:#{task}", exception: true)
+end
