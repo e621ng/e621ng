@@ -13,6 +13,10 @@ module Populate
       "pending" => "is_pending", "deleted" => "is_deleted", "flagged" => "is_flagged", "any" => nil,
     }.freeze
     SEED = Exports::SCHEMA
+    NOT_LOCAL = [
+      "NOT EXISTS (SELECT 1 FROM posts p WHERE p.id = #{SEED}.posts.id)",
+      "NOT EXISTS (SELECT 1 FROM posts p WHERE p.md5 = #{SEED}.posts.md5)",
+    ].freeze
 
     attr_reader :range, :count, :query
 
@@ -28,10 +32,12 @@ module Populate
       list.concat(query.split.map { |token| condition_for(token) }.compact)
     end
 
+    # Posts already in the local database are skipped, so COUNT always means that many new posts.
+    # A local post with the same id or md5 would make the insert a no-op either way.
     def ids
-      where = conditions.empty? ? "" : " WHERE #{conditions.join(' AND ')}"
+      where = (conditions + NOT_LOCAL).join(" AND ")
       limit = count ? " LIMIT #{count}" : ""
-      Exports.with_timeout_off { connection.select_values("SELECT id FROM #{SEED}.posts#{where} ORDER BY id DESC#{limit}").map(&:to_i) }
+      Exports.with_timeout_off { connection.select_values("SELECT id FROM #{SEED}.posts WHERE #{where} ORDER BY id DESC#{limit}").map(&:to_i) }
     end
 
     # Adds the direct parents of the given posts, when the export has them. One level only.

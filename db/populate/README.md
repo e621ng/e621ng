@@ -80,7 +80,7 @@ bin/populate posts COUNT=10000 QUERY="score:>150 -rating:e -young -type:swf"
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `COUNT` | 100 | How many posts, newest first. |
+| `COUNT` | 100 | How many new posts: the newest matching posts not already in the local database. Their parents come on top. |
 | `RANGE` | none | `lo..hi`: only post ids in this range. A contiguous range gives coherent pools and parent/child chains. |
 | `QUERY` | `score:>150 -grandfathered_content -rating:e -young -type:swf` | Filter, see below. Pass `QUERY=` for none. |
 | `MEDIA` | `placeholder` | `placeholder`, `fetch` or `none`; see [Media](#media). |
