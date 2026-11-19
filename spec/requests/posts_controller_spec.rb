@@ -343,17 +343,16 @@ RSpec.describe PostsController do
         expect(banners).to eq(%w[verified2_(artist) verified1_(artist) verified0_(artist) plain2_(artist) plain1_(artist)])
       end
 
-      it "marks only the verified artists with the chexagon icon" do
+      it "marks only the artists linked to the uploader with the chexagon icon" do
+        Artist.find_by(name: "verified1_(artist)").update_columns(linked_user_id: artist_post.uploader_id)
         sign_in_as member
         get post_path(artist_post)
-        expect(links.map { |link| link.at_css("svg.chexagon").present? }).to eq([true, true, true, false, false])
+        expect(links.map { |link| link.at_css("svg.chexagon").present? }).to eq([false, true, false, false, false])
       end
 
-      it "shows unverified artists without the icon" do
-        plain_post = artist_post_with("lonely_(artist)" => 5)
+      it "shows verified artists without the icon when the uploader is not linked to them" do
         sign_in_as member
-        get post_path(plain_post)
-        expect(banners).to eq(["lonely_(artist)"])
+        get post_path(artist_post)
         expect(links.css("svg.chexagon")).to be_empty
       end
 

@@ -1,6 +1,5 @@
 <%# locals: (post:) %>
 <% tags = post.subscribable_artist_tags.first(Post::SUBSCRIBE_BANNER_LIMIT) %>
-<% verified = post.verified_artist_tags.to_set(&:name) %>
 <% subscriptions = CurrentUser.user.tag_subscriptions.where(tag_id: tags.map(&:id)).index_by(&:tag_id) %>
 <% subscriber_counts = TagSubscription.subscriber_counts(tags.map(&:id)) %>
 <div id="post-artist-subscribe">
@@ -16,8 +15,8 @@
       <div class="subscribe-banner-name">
         <%= link_to short_artist_path(tag.name), class: "tag-type-#{tag.category}" do %>
           <%= tag.name %>
-          <% if verified.include?(tag.name) %>
-            <%= svg_icon(:chexagon, class: "chexagon", title: "Verified artist") %>
+          <% if post.uploader_linked_artists.include?(tag.name) %>
+            <%= svg_icon(:chexagon, class: "chexagon", title: "Uploaded by the artist") %>
           <% end %>
         <% end %>
       </div>
