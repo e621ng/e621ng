@@ -4,4 +4,6 @@
 # tasks (lib/tasks/populate.rake) or bin/populate.
 
 require_relative "populate/base"
+require_relative "populate/exports"
+require_relative "populate/importer"
 Dir[File.join(__dir__, "populate", "*.rb")].each { |file| require file }
