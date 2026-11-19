@@ -23,7 +23,7 @@ RSpec.describe Post do
       it "blocks posts missing a required tag" do
         expect(other_post).to be_siteblocked
         expect(other_post).not_to be_visible
-        expect(other_post.safeblocked?).to be(false)
+        expect(other_post).not_to be_safeblocked
       end
 
       it "allows posts carrying every required tag" do
