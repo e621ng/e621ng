@@ -5,7 +5,7 @@ require "rails_helper"
 RSpec.describe ArtistsShortController do
   include_context "as member"
 
-  describe "GET /a/*name" do
+  describe "GET /a/:name" do
     let!(:artist) { create(:artist, name: "some_artist") }
 
     it "renders the artist page without redirecting" do
@@ -35,6 +35,41 @@ RSpec.describe ArtistsShortController do
       get short_artist_path("foo/bar")
       expect(response).to have_http_status(:ok)
       expect(response.body).to include("Artist - foo/bar")
+    end
+
+    it "still resolves a raw interior slash" do
+      create(:artist, name: "foo/bar")
+      get "/a/foo/bar"
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("Artist - foo/bar")
+    end
+
+    context "with a name starting and ending in a slash" do
+      # Legacy data: the tag name validator now rejects a leading slash, so rename behind its back.
+      let!(:slashed_artist) do
+        create(:artist, name: "delicious_legacy").tap do |artist|
+          artist.tag.update_columns(name: "/delicious/")
+          artist.update_columns(name: "/delicious/")
+        end
+      end
+
+      before { create(:tag, name: "delicious") }
+
+      it "percent-encodes the slashes in the generated path" do
+        expect(short_artist_path(slashed_artist.name)).to eq("/a/%2Fdelicious%2F")
+      end
+
+      it "renders the slashed artist rather than the inner tag" do
+        get short_artist_path(slashed_artist.name)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Artist - /delicious/")
+        expect(response.body).not_to include("Artist - delicious<")
+      end
+
+      it "declares the encoded short URL as canonical" do
+        get short_artist_path(slashed_artist.name)
+        expect(response.body).to match(%r{<link rel="canonical" href="https://[^/"]+/a/%2Fdelicious%2F">})
+      end
     end
 
     it "treats a trailing .json as part of the name" do
