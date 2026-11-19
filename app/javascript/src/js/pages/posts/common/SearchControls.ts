@@ -1,4 +1,5 @@
 import Offclick, { OffclickEntry } from "@/utility/Offclick";
+import Early from "@/utility/storage/early_settings.json";
 import LStorage from "@/utility/storage/Local";
 
 /** The fullscreen toggle, advanced search and layout settings menus above the posts gallery. */
@@ -38,7 +39,7 @@ export default class SearchControls {
 
     function setFullscreenIcon () {
       $toggleBtn.toggleClass("active", fullscreen);
-      $("body").attr("data-st-fullscreen", fullscreen + "");
+      $("body").attr("data-" + Early.Posts.Fullscreen.attr, fullscreen + "");
     }
 
     setFullscreenIcon();
@@ -109,13 +110,13 @@ export default class SearchControls {
       .prop("checked", LStorage.Posts.Contain)
       .on("change", (event: JQuery.ChangeEvent<HTMLInputElement>) => {
         LStorage.Posts.Contain = event.target.checked;
-        $("body").attr("data-st-contain", event.target.checked);
+        $("body").attr("data-" + Early.Posts.Contain.attr, event.target.checked);
       });
 
     $("input[type='radio'][name='ssc-card-size']")
       .on("change", (event: JQuery.ChangeEvent<HTMLInputElement>) => {
         LStorage.Posts.Size = event.target.value;
-        $("body").attr("data-st-size", event.target.value);
+        $("body").attr("data-" + Early.Posts.Size.attr, event.target.value);
       });
     $("input[type='radio'][name='ssc-card-size'][value='" + LStorage.Posts.Size + "']")
       .prop("checked", true);
@@ -149,14 +150,14 @@ export default class SearchControls {
       .prop("checked", LStorage.Posts.CornerRibbons)
       .on("change", (event: JQuery.ChangeEvent<HTMLInputElement>) => {
         LStorage.Posts.CornerRibbons = event.target.checked;
-        $("body").attr("data-st-cornerribbons", event.target.checked);
+        $("body").attr("data-" + Early.Posts.CornerRibbons.attr, event.target.checked);
       });
 
     $("#ssc-sticky-searchbar")
       .prop("checked", LStorage.Posts.StickySearch)
       .on("change", (event: JQuery.ChangeEvent<HTMLInputElement>) => {
         LStorage.Posts.StickySearch = event.target.checked;
-        $("body").attr("data-st-stickysearch", event.target.checked);
+        $("body").attr("data-" + Early.Posts.StickySearch.attr, event.target.checked);
       });
   }
 }

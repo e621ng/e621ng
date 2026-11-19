@@ -1,4 +1,5 @@
 import Logger from "../Logger";
+import Early from "./early_settings.json";
 import LocalStorageProvider from "./providers/LocalStorage";
 import StorageInitializer from "./utilities/Initializer";
 import { StorageConfig, StorageObject } from "./utilities/Types";
@@ -56,16 +57,16 @@ class LStorage extends StorageObject {
   };
 
   // Site themes and other visual options
-  // NOTE: these are HARD-CODED in theme_include.html.erb. Any changes must be reflected there as well.
+  // Settings applied to <body> before first paint live in early_settings.json
   Theme = {
-    Main: "hexagon" as "bloodlust" | "hexagon" | "hotdog" | "pony" | "serpent",
-    Extra: "hexagon" as "aurora" | "autumn" | "fennec" | "hexagon" | "none" | "scales" | "space" | "spring" | "stars" | "winter",
-    Palette: "default" as "default" | "deut" | "trit",
-    Font: "Verdana" as "Verdana" | "Lato" | "Lexend" | "Monospace" | "OpenDyslexic" | "OpenSans" | "ComicSans" | "Papyrus",
-    Navbar: "top" as "top" | "bottom" | "none",
+    Main: Early.Theme.Main.default as "bloodlust" | "hexagon" | "hotdog" | "pony" | "serpent",
+    Extra: Early.Theme.Extra.default as "aurora" | "autumn" | "fennec" | "hexagon" | "none" | "scales" | "space" | "spring" | "stars" | "winter",
+    Palette: Early.Theme.Palette.default as "default" | "deut" | "trit",
+    Font: Early.Theme.Font.default as "Verdana" | "Lato" | "Lexend" | "Monospace" | "OpenDyslexic" | "OpenSans" | "ComicSans" | "Papyrus",
+    Navbar: Early.Theme.Navbar.default as "top" | "bottom" | "none",
     Gestures: false,
-    StickyHeader: false,
-    Logo: "pride", // Too many to list
+    StickyHeader: Early.Theme.StickyHeader.default,
+    Logo: Early.Theme.Logo.default, // Too many to list
   };
 
   // Values relevant to the posts pages
@@ -73,12 +74,12 @@ class LStorage extends StorageObject {
     ShowPostChildren: false,
     Set: 0,
     WikiExcerpt: 1 as 0 | 1 | 2,
-    Fullscreen: false,
-    CornerRibbons: true,
-    StickySearch: false,
+    Fullscreen: Early.Posts.Fullscreen.default,
+    CornerRibbons: Early.Posts.CornerRibbons.default,
+    StickySearch: Early.Posts.StickySearch.default,
     SkipVariants: false, // True to stop limiting videos to 1080p in Original mode
-    Contain: false,
-    Size: "m" as "s" | "m" | "l",
+    Contain: Early.Posts.Contain.default,
+    Size: Early.Posts.Size.default as "s" | "m" | "l",
     Notes: true,
     HoverText: "long" as "short" | "long" | "none",
     TagPreview: true,
@@ -269,26 +270,26 @@ const StorageKeys: StorageConfig<LStorage> = {
   },
 
   "Theme": {
-    Main: "theme",
-    Extra: "theme-extra",
-    Palette: "theme-palette",
-    Font: "theme-font",
-    Navbar: "theme-nav",
+    Main: Early.Theme.Main.key,
+    Extra: Early.Theme.Extra.key,
+    Palette: Early.Theme.Palette.key,
+    Font: Early.Theme.Font.key,
+    Navbar: Early.Theme.Navbar.key,
     Gestures: "emg",
-    StickyHeader: "theme-sheader",
-    Logo: "theme-logo",
+    StickyHeader: Early.Theme.StickyHeader.key,
+    Logo: Early.Theme.Logo.key,
   },
 
   "Posts": {
     ShowPostChildren: "show-relationship-previews", // legacy
     Set: "set", // legacy
     WikiExcerpt: "e6.posts.wiki",
-    Fullscreen: "e6.posts.fusk",
-    CornerRibbons: "e6.posts.cribbons",
-    StickySearch: "e6.posts.ssearch",
+    Fullscreen: Early.Posts.Fullscreen.key,
+    CornerRibbons: Early.Posts.CornerRibbons.key,
+    StickySearch: Early.Posts.StickySearch.key,
     SkipVariants: "e6.posts.scvideos",
-    Contain: "e6.posts.contain",
-    Size: "e6.posts.size",
+    Contain: Early.Posts.Contain.key,
+    Size: Early.Posts.Size.key,
     Notes: "e6.posts.notes",
     HoverText: "e6.posts.hovertext",
     TagPreview: "e6.posts.tagpreview",

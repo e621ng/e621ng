@@ -1,0 +1,52 @@
+{
+  "Theme": {
+    "Main": {
+      "key": "theme",
+      "default": "hexagon",
+      "attr": "th-main",
+      "skipOnStaticHome": true
+    },
+    "Extra": {
+      "key": "theme-extra",
+      "default": "hexagon",
+      "attr": "th-extra",
+      "skipOnStaticHome": true
+    },
+    "Palette": {
+      "key": "theme-palette",
+      "default": "default",
+      "attr": "th-palette"
+    },
+    "Font": { "key": "theme-font", "default": "Verdana", "attr": "th-font" },
+    "Navbar": { "key": "theme-nav", "default": "top", "attr": "th-nav" },
+    "StickyHeader": {
+      "key": "theme-sheader",
+      "default": false,
+      "attr": "th-stickyheader"
+    },
+    "Logo": { "key": "theme-logo", "default": "pride", "attr": "th-logo" }
+  },
+  "Posts": {
+    "Fullscreen": {
+      "key": "e6.posts.fusk",
+      "default": false,
+      "attr": "st-fullscreen"
+    },
+    "CornerRibbons": {
+      "key": "e6.posts.cribbons",
+      "default": true,
+      "attr": "st-cornerribbons"
+    },
+    "StickySearch": {
+      "key": "e6.posts.ssearch",
+      "default": false,
+      "attr": "st-stickysearch"
+    },
+    "Contain": {
+      "key": "e6.posts.contain",
+      "default": false,
+      "attr": "st-contain"
+    },
+    "Size": { "key": "e6.posts.size", "default": "m", "attr": "st-size" }
+  }
+}

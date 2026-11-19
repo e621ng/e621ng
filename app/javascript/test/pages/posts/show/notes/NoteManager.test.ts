@@ -15,6 +15,8 @@ const SECOND_NOTE = { id: 8, x: 0, y: 0, width: 100, height: 100, body: "second"
 describe("NoteManager", () => {
   beforeEach(() => {
     dialog.open.mockReset();
+    // Handlers from earlier tests' module instances outlive vi.resetModules()
+    $(window).off(".e6.note");
     window.location.hash = "";
   });
 
