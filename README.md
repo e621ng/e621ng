@@ -59,9 +59,11 @@
     One kind of content can be generated on its own, e.g. `bin/populate users COUNT=10` or `docker compose run --rm rails_dev populate:comments COUNT=50`.
     The available tasks and their environment variables are listed in [lib/tasks/populate.rake](/lib/tasks/populate.rake).
     \
-    Tags, wiki pages, artists and bulk update requests can be imported from the site's [database exports](https://e621.net/db_export/) instead of generated:
-    download the `.csv.gz` files into `db/exports/`, then run `bin/populate exports:load tags wiki artists burs`.
+    Posts, tags, wiki pages, artists and bulk update requests can be imported from the site's [database exports](https://e621.net/db_export/) instead of generated:
+    download the `.csv.gz` files into `db/exports/`, then run `bin/populate exports:load tags wiki artists burs` and `bin/populate posts COUNT=10000 QUERY="score:>150 -rating:e"`.
     The first run copies the exports into a `seed` schema in the development database; later runs reuse it.
+    Imported posts get flat-colour placeholder files at their real dimensions (`MEDIA=none` skips them); `bin/populate posts SOURCE=api` still fetches real files through the upload pipeline.
+    Run `populate:posts` and `populate:media` inside the `e621` container (`docker exec -it e621ng-e621-1 bin/populate posts ...`): the `rails_dev` service does not mount the post data volume, so files written there are not served.
 
 Note: When gems or js packages are updated you need to execute `docker compose build` to reflect them in the container.
 

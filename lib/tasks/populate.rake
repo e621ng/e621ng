@@ -28,11 +28,6 @@ namespace :populate do
   def populate_count_tasks
     {
       users: [:Users, 10, -> { { password: ENV.fetch("PASSWORD", Populate::DEFAULT_PASSWORD) } }],
-      posts: [:ApiPosts, 100, -> {
-        source = ENV.fetch("SOURCE", "api")
-        raise ArgumentError, "SOURCE=#{source} is not available yet; only SOURCE=api" unless source == "api"
-        { search: ENV.fetch("SEARCH", Populate::ApiPosts::DEFAULT_SEARCH) }
-      },],
       comments: [:Comments, 100, -> { {} }],
       favorites: [:Favorites, 100, -> { {} }],
       forums: [:Forums, 100, -> { {} }],
@@ -70,6 +65,49 @@ namespace :populate do
       tables = ENV["TABLES"].present? ? ENV["TABLES"].split(",").map(&:strip) : Populate::Exports::DEFAULT_TABLES
       Populate::Exports.load!(tables: tables, dir: populate_exports_dir, force: ENV["FORCE"].to_s.truthy?)
     end
+  end
+
+  def populate_post_options
+    {
+      count: populate_int("COUNT", 100),
+      range: ENV["RANGE"].presence,
+      query: ENV.fetch("QUERY", "score:>150 -grandfathered_content -rating:e -young -type:swf"),
+      media: ENV.fetch("MEDIA", "placeholder"),
+      threads: populate_int("MEDIA_THREADS", Etc.nprocessors.clamp(2, 16)),
+      reindex: ENV.fetch("REINDEX", "true").truthy?,
+      dir: populate_exports_dir,
+    }
+  end
+
+  desc "Import posts from the exports (COUNT, RANGE, QUERY, MEDIA=placeholder|none, MEDIA_THREADS, REINDEX) or the live API (SOURCE=api, SEARCH)"
+  task posts: :environment do
+    populate_prepare
+    if ENV.fetch("SOURCE", "export") == "api"
+      Populate::ApiPosts.new(count: populate_int("COUNT", 100), search: ENV.fetch("SEARCH", Populate::ApiPosts::DEFAULT_SEARCH), **populate_common).call
+    else
+      Populate::Posts.new(**populate_post_options).call
+    end
+  end
+
+  desc "Write placeholder media for imported posts that have none (COUNT, FORCE, MEDIA_THREADS)"
+  task media: :environment do
+    populate_prepare
+    storage = Danbooru.config.storage_manager
+    scope = Post.where.not(file_ext: "swf").order(id: :desc).limit(populate_int("COUNT", 1000))
+    ids = scope.filter_map { |post| post.id if ENV["FORCE"].to_s.truthy? || !File.exist?(storage.post_file_path(post, :original)) }
+    Populate::Media::Placeholder.new(post_ids: ids, threads: populate_int("MEDIA_THREADS", Etc.nprocessors.clamp(2, 16)), force: ENV["FORCE"].to_s.truthy?).call
+  end
+
+  desc "Bulk-index posts and post versions into OpenSearch (FROM, TO)"
+  task reindex: :environment do
+    populate_prepare
+    bounds = { from: ENV["FROM"].presence&.to_i, to: ENV["TO"].presence&.to_i }.compact
+    puts "* Indexing posts"
+    Post.document_store.import(**bounds)
+    puts "* Indexing post versions"
+    PostVersion.document_store.import(**bounds)
+    Post.document_store.refresh_index!
+    PostVersion.document_store.refresh_index!
   end
 
   # Export-backed importers: whole tables, production ids, no media involved.
@@ -111,9 +149,16 @@ namespace :populate do
 
     puts "Populating the Database"
     users = Populate::Users.new(count: counts["USERS"], password: password, **common).call
-    posts = Populate::ApiPosts.new(count: counts["POSTS"], users: users, **common).call
+    if ENV.fetch("SOURCE", "export") == "api"
+      posts = Populate::ApiPosts.new(count: counts["POSTS"], users: users, **common).call
+      Populate::ApiPosts.new(count: counts["FURIDS"], search: "furid_(e621)", **common).call
+    else
+      post_options = populate_post_options
+      Populate::Posts.new(**post_options, count: counts["POSTS"]).call
+      Populate::Posts.new(**post_options, count: counts["FURIDS"], query: "furid_(e621)").call
+      posts = Post.order(id: :desc).limit(counts["POSTS"]).to_a
+    end
     Populate::Avatars.new(users: users, posts: posts).call
-    Populate::ApiPosts.new(count: counts["FURIDS"], search: "furid_(e621)", **common).call
 
     comments = Populate::Comments.new(count: counts["COMMENTS"], users: users, **common).call
     Populate::Favorites.new(count: counts["FAVORITES"], users: users, **common).call

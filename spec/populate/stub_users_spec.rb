@@ -16,7 +16,8 @@ RSpec.describe Populate::StubUsers do
     expect(stub.name).to eq("user_900001")
     expect(stub.user_status).to be_present
     expect(User.authenticate(stub.name, Populate::DEFAULT_PASSWORD)).to eq(stub)
-    expect(ActiveRecord::Base.connection.select_value("SELECT nextval('users_id_seq')").to_i).to eq(900_002)
+    # Sequences are not rolled back between examples, so only the lower bound is stable.
+    expect(ActiveRecord::Base.connection.select_value("SELECT nextval('users_id_seq')").to_i).to be > 900_001
   end
 
   it "does nothing for an empty list" do
