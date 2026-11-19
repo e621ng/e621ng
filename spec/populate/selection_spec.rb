@@ -42,6 +42,7 @@ RSpec.describe Populate::Selection, :populate_exports do
       deleted = create(:deleted_post, tag_string: "wolf", rating: "e")
       write_export("posts", dir)
       Populate::Exports.load!(tables: %w[posts], dir: dir)
+      Post.delete_all # nothing imported yet
 
       expect(described_class.new.ids).to eq([deleted.id, child.id, parent.id])
       expect(described_class.new(count: 1).ids).to eq([deleted.id])
@@ -51,6 +52,21 @@ RSpec.describe Populate::Selection, :populate_exports do
       expect(described_class.new(query: "-rating:e").ids).to eq([child.id, parent.id])
       expect(described_class.new(range: child.id..deleted.id).ids).to eq([deleted.id, child.id])
       expect(described_class.new.with_parents([child.id])).to eq([child.id, parent.id])
+    end
+
+    it "skips posts that are already in the local database" do
+      create(:post) # same id and md5 locally
+      clash = create(:post)
+      moved = create(:post)
+      fresh = create(:post)
+      write_export("posts", dir)
+      Populate::Exports.load!(tables: %w[posts], dir: dir)
+      fresh.delete
+      clash.update_columns(md5: Digest::MD5.hexdigest("local")) # same id, other file
+      moved.update_columns(id: fresh.id + 1000) # same file, other id
+
+      expect(described_class.new.ids).to eq([fresh.id])
+      expect(described_class.new(count: 1).ids).to eq([fresh.id])
     end
   end
 end
