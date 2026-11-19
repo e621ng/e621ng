@@ -1,10 +1,10 @@
-<%= javascript_tag nonce: true do -%>
+<%= javascript_tag nonce: true, data: { settings: early_settings_manifest } do -%>
 (function() {
   try {
     // Leave main/extra themes unset on the static homepage so the default is used.
     const isStaticHome = <%= controller_name == "static" && action_name == "home" ? "true" : "false" %>;
     // Keys and defaults: app/javascript/src/js/utility/storage/early_settings.json
-    const settings = <%= raw early_settings_manifest.to_json %>;
+    const settings = JSON.parse(document.currentScript.dataset.settings);
 
     const b = document.body;
     for (const entry of settings) {

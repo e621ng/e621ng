@@ -17,12 +17,12 @@ RSpec.describe ThemeHelper do
   end
 
   describe "layouts/_theme_include" do
-    it "embeds the manifest in the inline script" do
+    it "embeds the manifest on the inline script" do
       allow(view).to receive_messages(controller_name: "posts", action_name: "index")
       render partial: "layouts/theme_include"
 
-      expect(rendered).to include('"attr":"th-nav"')
-      expect(rendered).to include('"key":"theme-nav"')
+      settings = Nokogiri::HTML5.fragment(rendered).at_css("script")["data-settings"]
+      expect(JSON.parse(settings)).to eq(helper.early_settings_manifest)
       expect(rendered).to include("const isStaticHome = false;")
     end
 
