@@ -1,5 +1,6 @@
 import Page from "@/utility/Page";
 import CStorage from "@/utility/storage/Cookie";
+import Early from "@/utility/storage/early_settings.json";
 import LStorage from "@/utility/storage/Local";
 
 const Theme = {};
@@ -13,18 +14,15 @@ Theme.Values = {
 for (const [label, settings] of Object.entries(Theme.Values)) {
   for (const one of settings) {
     Object.defineProperty(Theme, one, {
-      get () { return LStorage.Theme[one]; },
+      get () { return LStorage[label][one]; },
       set (value) {
-        // This has the unintended side effect of setting
-        // attribute values that don't exist on the body.
         LStorage[label][one] = value;
-        // If we're on the static homepage, don't apply the main or extra theme
-        // attributes; leave those unset so the default (hexagon) is used.
-        if ($("body").is(".c-static.a-home") && (one === "Main" || one === "Extra")) return;
 
-        // Homepage fallback to hexagon is handled in `app/views/layouts/_theme_include.html.erb`;
-        // just write the attribute normally for other pages/keys.
-        $("body").attr("data-th-" + one.toLowerCase(), value);
+        // Only settings in the manifest are mirrored onto <body>
+        const entry = Early[label]?.[one];
+        if (!entry) return;
+        if (entry.skipOnStaticHome && $("body").is(".c-static.a-home")) return;
+        $("body").attr("data-" + entry.attr, value);
       },
     });
   }

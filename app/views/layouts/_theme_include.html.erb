@@ -1,36 +1,20 @@
 <%= javascript_tag nonce: true do -%>
 (function() {
   try {
-    // Server-side flag: true when rendering the static homepage. Used to avoid
-    // applying main/extra theme attributes there so the page uses the default.
+    // Leave main/extra themes unset on the static homepage so the default is used.
     const isStaticHome = <%= controller_name == "static" && action_name == "home" ? "true" : "false" %>;
-    const values = {
-      // Theme
-      "th-main": localStorage.getItem("theme") || "hexagon",
-      "th-extra": localStorage.getItem("theme-extra") || "hexagon",
-      "th-stickyheader": localStorage.getItem("theme-sheader") || false,
-      "th-palette": localStorage.getItem("theme-palette") || "default",
-      "th-font": localStorage.getItem("theme-font") || "Verdana",
-      "th-nav": localStorage.getItem("theme-nav") || "top",
-      "th-logo": localStorage.getItem("theme-logo") || "pride",
+    // Keys and defaults: app/javascript/src/js/utility/storage/early_settings.json
+    const settings = <%= raw early_settings_manifest.to_json %>;
 
-      // Settings
-      "st-fullscreen": localStorage.getItem("e6.posts.fusk") || false,
-      "st-cornerribbons": localStorage.getItem("e6.posts.cribbons") || true,
-      "st-stickysearch": localStorage.getItem("e6.posts.ssearch") || false,
-      "st-contain": localStorage.getItem("e6.posts.contain") || false,
-      "st-size": localStorage.getItem("e6.posts.size") || "m",
-    };
+    const b = document.body;
+    for (const entry of settings) {
+      if (isStaticHome && entry.skipOnStaticHome) continue;
 
-    if (values["th-extra"] === "spring" && Math.random() < 0.1)
-      values["th-extra"] = "fennec";
+      let value = localStorage.getItem(entry.key) ?? String(entry.default);
+      if (entry.attr === "th-extra" && value === "spring" && Math.random() < 0.1)
+        value = "fennec";
 
-    var b = document.body;
-    for (const [name, value] of Object.entries(values)) {
-      // If we're on the static homepage, don't apply the main or extra theme
-      // attributes; leave those unset so the default (hexagon) is used.
-      if (isStaticHome && (name === 'th-main' || name === 'th-extra')) continue;
-      b.setAttribute("data-" + name, value);
+      b.setAttribute("data-" + entry.attr, value);
     }
   } catch(e) {}
 })();
