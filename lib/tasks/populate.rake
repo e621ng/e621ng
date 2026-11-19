@@ -59,6 +59,28 @@ namespace :populate do
     end
   end
 
+  def populate_exports_dir
+    ENV.fetch("EXPORTS_DIR", Populate::Exports.default_dir)
+  end
+
+  namespace :exports do
+    desc "Load db/exports/*.csv.gz into the seed schema (TABLES, EXPORTS_DIR, FORCE)"
+    task load: :environment do
+      populate_prepare
+      tables = ENV["TABLES"].present? ? ENV["TABLES"].split(",").map(&:strip) : Populate::Exports::DEFAULT_TABLES
+      Populate::Exports.load!(tables: tables, dir: populate_exports_dir, force: ENV["FORCE"].to_s.truthy?)
+    end
+  end
+
+  # Export-backed importers: whole tables, production ids, no media involved.
+  { tags: :Tags, wiki: :WikiPages, artists: :Artists, burs: :BulkUpdateRequests }.each do |name, generator|
+    desc "Import #{name} from the exports (EXPORTS_DIR)"
+    task name => :environment do
+      populate_prepare
+      Populate.const_get(generator).new(dir: populate_exports_dir).call
+    end
+  end
+
   desc "Assign random post avatars to users without one"
   task avatars: :environment do
     populate_prepare

@@ -40,6 +40,8 @@ module Danbooru
     # config.autoload_lib(ignore: %w(assets tasks))
 
     config.active_record.schema_format = :sql
+    # Keeps the development `seed` schema (db/populate/exports.rb) out of db/structure.sql.
+    ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = ["--exclude-schema=seed"]
     config.log_tags = [->(_req) { "PID:#{Process.pid}" }]
     config.action_controller.action_on_unpermitted_parameters = :raise
     config.force_ssl = true
