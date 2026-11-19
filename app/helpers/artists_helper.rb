@@ -2,6 +2,8 @@
 
 module ArtistsHelper
   def link_to_artist(name, hide_new_notice: false)
+    return "" if name.blank?
+
     artist = Artist.find_by(name: name)
 
     if artist
@@ -15,7 +17,7 @@ module ArtistsHelper
   end
 
   def link_to_artists(names, hide_new_notice: false)
-    names.map do |name|
+    names.compact_blank.map do |name|
       link_to_artist(name.downcase, hide_new_notice: hide_new_notice)
     end.join(", ").html_safe
   end

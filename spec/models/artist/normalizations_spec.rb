@@ -47,6 +47,12 @@ RSpec.describe Artist do
       expect(artist.other_names.count("same_name")).to eq(1)
     end
 
+    it "drops blank other names" do
+      artist = build(:artist, other_names: ["valid", "", "   "])
+      artist.valid?
+      expect(artist.other_names).to eq(["valid"])
+    end
+
     it "removes the artist's own name from other_names" do
       artist = build(:artist, name: "self_artist", other_names: %w[self_artist other_alias])
       artist.valid?
