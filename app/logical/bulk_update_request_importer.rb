@@ -144,6 +144,9 @@ class BulkUpdateRequestImporter
 
       when :nuke_tag
         errors << "Only admins can nuke tags" unless user.is_admin?
+        # Same hazard as aliasing it away: the tag-locked site would be emptied
+        sites = CurrentSite.profiles_requiring(token[1])
+        errors << "Cannot nuke #{token[1]}: required tag of #{sites.map(&:id).join(', ')}" if sites.any?
         existing = Tag.find_by(name: token[1]).present?
         token[3] = existing
         token

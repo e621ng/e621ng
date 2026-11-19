@@ -1546,13 +1546,15 @@ class Post < ApplicationRecord
 
   module CountMethods
     # NOTE: Currently does not properly handle grouped searches.
-    def fast_count(tags = "", enable_safe_mode: CurrentUser.safe_mode?)
+    def fast_count(tags = "", enable_safe_mode: CurrentUser.safe_mode?, required_tags: CurrentSite.required_tags)
       tags = tags.to_s
       # This is technically not redundant, as pre-adding ` rating:s` to the query is necessary to
       # ensure the correct value exists in the cache. Adding ` -status:deleted` is redundant, as that
       # is an inherent property of the search itself, and is already properly resolved by
       # `ElasticPostQueryBuilder` - and by extension, `Post.tag_match`.
       tags += " rating:s" if enable_safe_mode
+      # Same reasoning for a tag-locked site: the tags become part of the cache key.
+      tags += " #{required_tags.join(' ')}" if required_tags.any?
 
       # tags = TagQuery.normalize_search(tags, normalize_tags: true, flatten: true) # This removes any duplicates of `rating:s` on the same search level. # Uncomment to enable searches
       tags = TagQuery.normalize(tags) # This removes any duplicates of `rating:s`.
@@ -1564,7 +1566,7 @@ class Post < ApplicationRecord
         # this reduces a redundant call to `CurrentUser.safe_mode?` & a redundant search term in the
         # request sent to OpenSearch.
         # count = Post.tag_match(tags, enable_safe_mode: false).count_only # Uncomment to enable searches
-        count = Post.tag_match(tags, enable_safe_mode: false, can_have_groups: false).count_only
+        count = Post.tag_match(tags, enable_safe_mode: false, required_tags: [], can_have_groups: false).count_only
         expiry = count.seconds.clamp(3.minutes, 20.hours).to_i
         Cache.write(cache_key, count, expires_in: expiry)
       end
@@ -2082,7 +2084,7 @@ class Post < ApplicationRecord
     end
 
     def tag_match_system(query, free_tags_count: 0)
-      tag_match(query, free_tags_count: free_tags_count, enable_safe_mode: false, always_show_deleted: true)
+      tag_match(query, free_tags_count: free_tags_count, enable_safe_mode: false, required_tags: [], always_show_deleted: true)
     end
 
     # Uses OpenSearch to find and return matching `Post`s.
@@ -2092,6 +2094,7 @@ class Post < ApplicationRecord
     # * `free_tags_count` [`0`]: How many tags of the maximum allowed per query are outside of `query`?
     # * `enable_safe_mode` [`CurrentUser.safe_mode?`]: Override any preexisting `rating`'s and
     # restrict results to safe posts?
+    # * `required_tags` [`CurrentSite.required_tags`]: Tags every result must have (tag-locked site).
     # * `always_show_deleted` [`false`]
     # * `can_have_groups` [`true`]
     def tag_match( # rubocop:disable Metrics/ParameterLists
@@ -2099,6 +2102,7 @@ class Post < ApplicationRecord
       resolve_aliases: true,
       free_tags_count: 0,
       enable_safe_mode: CurrentUser.safe_mode?,
+      required_tags: CurrentSite.required_tags,
       always_show_deleted: false,
       can_have_groups: true
     )
@@ -2107,6 +2111,7 @@ class Post < ApplicationRecord
         resolve_aliases: resolve_aliases,
         free_tags_count: free_tags_count,
         enable_safe_mode: enable_safe_mode,
+        required_tags: required_tags,
         always_show_deleted: always_show_deleted,
         can_have_groups: can_have_groups,
       ).search
@@ -2315,6 +2320,11 @@ class Post < ApplicationRecord
     CurrentUser.safe_mode? && (rating != "s" || has_tag?(*Danbooru.config.safeblocked_tags))
   end
 
+  # Outside a tag-locked site's scope (doc 38 §10): every required tag must be present.
+  def siteblocked?
+    CurrentSite.tag_locked? && (CurrentSite.required_tags - tag_array).any?
+  end
+
   def deleteblocked?
     !Danbooru.config.can_user_see_post?(CurrentUser.user, self)
   end
@@ -2326,6 +2336,7 @@ class Post < ApplicationRecord
   def visible?
     return false if loginblocked?
     return false if safeblocked?
+    return false if siteblocked?
     return false if deleteblocked?
     return true
   end

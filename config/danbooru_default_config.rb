@@ -47,6 +47,12 @@ module Danbooru
     #       safe_mode: true,
     #       overrides: { app_name: "e926", hostname: "e926.net", ... },
     #     },
+    #     "mlp" => {
+    #       hosts: %w[mlp.example],
+    #       safe_mode: false,
+    #       required_tags: %w[my_little_pony], # posts are locked to these tags
+    #       overrides: { ... },
+    #     },
     #   }
     # Override keys are limited to EnvironmentConfiguration::SITE_SCOPED.
     def site_profiles
@@ -1152,6 +1158,9 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
     # Never add a secret here: secrets are shared by every site.
     SITE_SCOPED = Set[:app_name, :hostname, :domain, :description, :ads_config, :storage_base_url, :analytics_client_id].freeze
     SITE_ID_FORMAT = /\A[a-z0-9_-]+\z/
+    # A normalized tag name: no metatag shape, no leading -/~, no wildcards or whitespace.
+    # Tag model rules can't be used here (validate! runs at boot).
+    REQUIRED_TAG_FORMAT = /\A[^\s*,#%:~-][^\s*,#%:]*\z/
 
     def custom_configuration
       @custom_configuration ||= CustomConfiguration.new
@@ -1236,6 +1245,11 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
 
         unless [true, false].include?(profile[:safe_mode])
           raise ValidationError, "site_profiles: #{id} safe_mode must be true or false"
+        end
+
+        required_tags = profile.fetch(:required_tags, [])
+        unless required_tags.is_a?(Array) && required_tags.all? { |t| t.is_a?(String) && t == t.downcase && t.match?(REQUIRED_TAG_FORMAT) }
+          raise ValidationError, "site_profiles: #{id} required_tags must be an array of normalized tag names"
         end
 
         overrides = profile.fetch(:overrides, {})

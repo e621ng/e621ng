@@ -29,6 +29,19 @@ RSpec.describe RecommendedQueryBuilder do
     RecommendedQueryBuilder.new(post, mode: mode)
   end
 
+  describe "tag-locked site" do
+    include_context "with tag-locked site profile"
+
+    it "requires the site's tags" do
+      builder = CurrentSite.with("mlp") { build_for(make_post) }
+      expect(builder.must).to include({ term: { tags: "my_little_pony" } })
+    end
+
+    it "adds nothing on the primary site" do
+      expect(build_for(make_post).must).not_to include({ term: { tags: "my_little_pony" } })
+    end
+  end
+
   describe "exclusion query" do
     let(:post) { make_post(id: 99) }
     let(:builder) { build_for(post) }

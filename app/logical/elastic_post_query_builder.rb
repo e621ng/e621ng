@@ -13,6 +13,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     resolve_aliases: true,
     free_tags_count: 0,
     enable_safe_mode: CurrentUser.safe_mode?,
+    required_tags: CurrentSite.required_tags,
     always_show_deleted: false,
     **kwargs
   )
@@ -31,6 +32,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     @resolve_aliases = resolve_aliases
     @free_tags_count = free_tags_count
     @enable_safe_mode = enable_safe_mode
+    @required_tags = required_tags
     @always_show_deleted = always_show_deleted
     @always_show_deleted ||= !query.hide_deleted_posts?(at_any_level: true) if GLOBAL_DELETED_FILTER && @depth <= 0
     @error_on_depth_exceeded = kwargs.fetch(:error_on_depth_exceeded, ERROR_ON_DEPTH_EXCEEDED)
@@ -68,7 +70,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     raise TagQuery::DepthExceededError if (@depth + 1) >= TagQuery::DEPTH_LIMIT && @error_on_depth_exceeded
     return if (@depth + 1) >= TagQuery::DEPTH_LIMIT || groups.blank? || (groups[:must].blank? && groups[:must_not].blank? && groups[:should].blank?)
     asd_cache = @always_show_deleted
-    cb = ->(x) do
+    cb = ->(x) do # rubocop:disable Metrics/BlockLength
       # If we aren't using a global filter and we haven't already disabled `-status:deleted`
       # auto-insertion, then downstream queries need to be either pre-parsed or analyzed with
       # `should_hide_deleted?` to determine if parents should hide deleted for their children.
@@ -89,6 +91,7 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
         resolve_aliases: @resolve_aliases,
         free_tags_count: @downstream_free_tags_count,
         enable_safe_mode: @enable_safe_mode,
+        required_tags: @required_tags,
         always_show_deleted: GLOBAL_DELETED_FILTER ? true : asd_cache,
         error_on_depth_exceeded: @error_on_depth_exceeded,
         depth: @depth + 1,
@@ -157,6 +160,8 @@ class ElasticPostQueryBuilder < ElasticQueryBuilder
     if @enable_safe_mode
       must.push({ term: { rating: "s" } })
     end
+    # Tag-locked site (doc 38 §10): one term per tag, so every tag is required
+    must.concat(@required_tags.map { |tag| { term: { tags: tag } } })
 
     add_array_range_relation(:post_id, :id)
     add_array_range_relation(:mpixels, :mpixels)

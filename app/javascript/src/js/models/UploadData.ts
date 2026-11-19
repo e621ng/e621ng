@@ -46,6 +46,7 @@ class UploadData {
   /* ============================== */
 
   public readonly safeSite: boolean;
+  public readonly requiredTags: string[];
   public readonly compactMode: boolean;
   public readonly verifiedArtistTags: string[];
   public readonly uploadTags: UploadTag[];
@@ -58,6 +59,7 @@ class UploadData {
     const obj = _get() || {};
 
     this.safeSite = obj["safe_site"] || false;
+    this.requiredTags = obj["required_tags"] || [];
     this.compactMode = obj["compact_mode"] || false;
     this.verifiedArtistTags = obj["verified_artist_tags"] || [];
     this.uploadTags = obj["upload_tags"] || [];

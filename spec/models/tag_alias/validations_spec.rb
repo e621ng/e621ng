@@ -5,6 +5,36 @@ require "rails_helper"
 RSpec.describe TagAlias do
   include_context "as admin"
 
+  describe "required tags of tag-locked sites" do
+    include_context "with tag-locked site profile"
+
+    it "cannot be aliased away" do
+      record = build(:tag_alias, antecedent_name: "my_little_pony", consequent_name: "pony")
+      expect(record).not_to be_valid
+      expect(record.errors[:antecedent_name].join).to include("required tag of mlp")
+    end
+
+    it "can be aliased to" do
+      record = build(:tag_alias, antecedent_name: "mlp", consequent_name: "my_little_pony")
+      expect(record).to be_valid
+    end
+
+    it "is enforced on BUR alias lines" do
+      errors, = BulkUpdateRequestImporter.new("alias my_little_pony -> pony", nil).validate!(CurrentUser.user)
+      expect(errors.join).to include("required tag of mlp")
+    end
+
+    it "is enforced on BUR nuke lines" do
+      errors, = BulkUpdateRequestImporter.new("nuke tag my_little_pony", nil).validate!(CurrentUser.user)
+      expect(errors).to eq(["Cannot nuke my_little_pony: required tag of mlp"])
+    end
+  end
+
+  it "allows aliasing any tag when no site requires it" do
+    record = build(:tag_alias, antecedent_name: "my_little_pony", consequent_name: "pony")
+    expect(record).to be_valid
+  end
+
   # ---------------------------------------------------------------------------
   # antecedent_name uniqueness (among duplicate_relevant records)
   # ---------------------------------------------------------------------------

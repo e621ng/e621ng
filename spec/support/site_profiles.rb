@@ -33,3 +33,27 @@ RSpec.shared_context "with e926 site profile" do
     allow(Danbooru.config.custom_configuration).to receive(:site_profiles).and_return({ "e926" => e926_profile })
   end
 end
+
+# A stubbed tag-locked profile (doc 38 §10): posts are restricted to `my_little_pony`.
+# Composable with the e926 context; both profiles are served when both are included.
+RSpec.shared_context "with tag-locked site profile" do
+  let(:mlp_profile) do
+    {
+      hosts: %w[mlp.example www.mlp.example],
+      safe_mode: false,
+      required_tags: %w[my_little_pony],
+      overrides: {
+        app_name: "mlp",
+        hostname: "mlp.example",
+        domain: "mlp.example",
+      },
+    }
+  end
+
+  before do
+    profiles = {}
+    profiles["e926"] = e926_profile if respond_to?(:e926_profile)
+    profiles["mlp"] = mlp_profile
+    allow(Danbooru.config.custom_configuration).to receive(:site_profiles).and_return(profiles)
+  end
+end

@@ -497,6 +497,8 @@
 
     fillField(parentID, 'parent');
     fillField(description, 'description');
+    // Tag-locked site: prefill its required tags before the URL import, which dedups against them.
+    if (UploadData.requiredTags.length) importTags(UploadData.requiredTags.join(" "), "other");
     fillTags();
     fillRating();
     if (params.has('sources')) {

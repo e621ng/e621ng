@@ -80,4 +80,28 @@ RSpec.describe Middleware::SiteResolver do
       expect(seen).to eq(id: "e621", safe: false, user_safe: false)
     end
   end
+
+  context "with a tag-locked profile" do
+    include_context "with e926 site profile"
+    include_context "with tag-locked site profile"
+
+    it "locks the header site's tags without safe mode" do
+      app = ->(_env) { [200, {}, [[CurrentSite.id, CurrentSite.required_tags, CurrentSite.safe_mode?].inspect]] }
+      _, _, body = described_class.new(app).call(Rack::MockRequest.env_for("/", "HTTP_X_E6_SITE" => "mlp", "HTTP_HOST" => "e621.net"))
+      expect(body.join).to eq(["mlp", %w[my_little_pony], false].inspect)
+    end
+
+    it "falls back to the Host" do
+      app = ->(_env) { [200, {}, [CurrentSite.required_tags.inspect]] }
+      _, _, body = described_class.new(app).call(Rack::MockRequest.env_for("/", "HTTP_HOST" => "www.mlp.example"))
+      expect(body.join).to eq(%w[my_little_pony].inspect)
+    end
+
+    it "takes the lock from the header site alone when the header and Host disagree" do
+      # Unlike safe mode, the tags are not combined: the header names the site being served
+      app = ->(_env) { [200, {}, [[CurrentSite.id, CurrentSite.required_tags, CurrentSite.safe_mode?].inspect]] }
+      _, _, body = described_class.new(app).call(Rack::MockRequest.env_for("/", "HTTP_X_E6_SITE" => "e926", "HTTP_HOST" => "mlp.example"))
+      expect(body.join).to eq(["e926", [], true].inspect)
+    end
+  end
 end

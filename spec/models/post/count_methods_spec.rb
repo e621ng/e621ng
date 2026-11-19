@@ -35,6 +35,26 @@ RSpec.describe Post do
         expect(count).to be_a(Integer)
       end
 
+      context "on a tag-locked site" do
+        include_context "with tag-locked site profile"
+
+        it "puts the required tags in the cache key and not in the search clause" do
+          key = "pfc:#{TagQuery.normalize('my_little_pony some_tag')}"
+          Cache.delete(key)
+          allow(Cache).to receive(:fetch).and_call_original
+          allow(Post).to receive(:tag_match).and_call_original
+          CurrentSite.with("mlp") { Post.fast_count("some_tag") }
+          expect(Cache).to have_received(:fetch).with(key)
+          expect(Post).to have_received(:tag_match).with(TagQuery.normalize("my_little_pony some_tag"), hash_including(enable_safe_mode: false, required_tags: []))
+        end
+
+        it "counts globally when asked" do
+          allow(Cache).to receive(:fetch).and_call_original
+          CurrentSite.with("mlp") { Post.fast_count("some_tag", required_tags: []) }
+          expect(Cache).to have_received(:fetch).with("pfc:some_tag")
+        end
+      end
+
       it "returns 0 when the tag query raises TagQuery::CountExceededError" do
         allow(Post).to receive(:tag_match).and_raise(TagQuery::CountExceededError)
         expect(Post.fast_count("some_tag")).to eq(0)

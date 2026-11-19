@@ -48,6 +48,10 @@ module PostSets
       @safe_posts ||= posts.select { |p| p.safeblocked? && !p.deleteblocked? }
     end
 
+    def site_blocked_posts
+      @site_blocked_posts ||= posts.select { |p| p.siteblocked? && !p.safeblocked? && !p.deleteblocked? }
+    end
+
     def api_posts
       result = posts
       fill_children(result)

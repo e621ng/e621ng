@@ -48,8 +48,10 @@ Doorkeeper::OpenidConnect.configure do
       next nil unless resource_owner.avatar_id
 
       safe_mode = CurrentSite.safe_mode? || resource_owner.enable_safe_mode?
-      avatar_post = Post.find_by(id: resource_owner.avatar_id) if safe_mode || !resource_owner.has_cropped_avatar?
+      tag_locked = CurrentSite.tag_locked?
+      avatar_post = Post.find_by(id: resource_owner.avatar_id) if safe_mode || tag_locked || !resource_owner.has_cropped_avatar?
       next nil if safe_mode && avatar_post&.rating != "s"
+      next nil if tag_locked && (avatar_post.nil? || avatar_post.siteblocked?)
 
       if resource_owner.has_cropped_avatar?
         url = Danbooru.config.storage_manager.avatar_url(resource_owner.id, "jpg")
