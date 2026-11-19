@@ -5,7 +5,7 @@
 # gem/npm layers.
 
 # Compiles the gem bundle (native extensions need build-base and the -dev libs).
-FROM ruby:3.4.12-alpine3.24 AS ruby-builder
+FROM ruby:3.4.13-alpine3.24 AS ruby-builder
 
 RUN apk --no-cache add build-base cmake git glib-dev postgresql16-dev gcompat ragel yaml-dev zlib-dev libffi-dev
 
@@ -30,7 +30,7 @@ RUN npm ci
 # compose bind-mounts the working tree over /app, so this image only provides
 # the runtime (ruby, node, gems, node_modules) plus dev conveniences.
 
-FROM ruby:3.4.12-alpine3.24 AS development
+FROM ruby:3.4.13-alpine3.24 AS development
 
 # Prod runs PostgreSQL 15, which Alpine 3.24 no longer packages. Stay on 16:
 # pg_dump 17+ writes `SET transaction_timeout` into structure.sql, which 15 rejects.
@@ -111,7 +111,7 @@ RUN RAILS_ENV=production \
 # The shipped image. Starts from a fresh base rather than development so none
 # of the build toolchain carries over; pulls gems from ruby-builder and the
 # compiled app from asset-builder.
-FROM ruby:3.4.12-alpine3.24 AS production
+FROM ruby:3.4.13-alpine3.24 AS production
 
 # Runtime dependencies only: no node, no build toolchain, no sudo, no git
 # (all gems come from rubygems; GitHelper reads DANBOORU_IMAGE_TAG instead).
