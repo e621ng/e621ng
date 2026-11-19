@@ -139,9 +139,9 @@ module Populate
     end
 
     # Moves the id sequence past the highest imported id so local inserts do not collide.
-    def bump_sequence!(table)
+    def bump_sequence!(table, column: "id")
       quoted = connection.quote_table_name(table)
-      connection.execute("SELECT setval(pg_get_serial_sequence('#{table}', 'id'), (SELECT COALESCE(MAX(id), 0) + 1 FROM #{quoted}), false)")
+      connection.execute("SELECT setval(pg_get_serial_sequence('#{table}', '#{column}'), (SELECT COALESCE(MAX(#{column}), 0) + 1 FROM #{quoted}), false)")
     end
   end
 end
