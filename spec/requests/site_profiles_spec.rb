@@ -13,7 +13,7 @@ RSpec.describe "Site profiles" do
     let(:safe_mode_in_search) { [] }
 
     before do
-      allow(Post).to receive(:tag_match) do |*|
+      allow(Post).to receive(:tag_match) do |*, **|
         safe_mode_in_search << CurrentUser.safe_mode?
         Post.all
       end
@@ -118,6 +118,75 @@ RSpec.describe "Site profiles" do
       user = create(:user, email: "someone@example.com")
       mail = Maintenance::User::LoginReminderMailer.notice(user).message
       expect(mail.body.encoded).not_to include("e926.net")
+    end
+  end
+
+  describe "tag-locked site" do
+    include_context "with tag-locked site profile"
+
+    let(:mlp) { { "X-E6-Site" => "mlp" } }
+    let!(:pony_post) { CurrentUser.scoped(create(:user)) { create(:post, tag_string: "my_little_pony twilight_sparkle") } }
+    let!(:other_post) { CurrentUser.scoped(create(:user)) { create(:post, tag_string: "dragon solo") } }
+    let(:required_tags_in_search) { [] }
+
+    before do
+      allow(Post).to receive(:tag_match) do |*, **kwargs|
+        required_tags_in_search << kwargs.fetch(:required_tags, CurrentSite.required_tags)
+        Post.all
+      end
+    end
+
+    def file_url_for(post, headers = {})
+      get posts_path(format: :json), headers: headers
+      response.parsed_body.find { |p| p["id"] == post.id }.dig("files", "original", "url")
+    end
+
+    it "requires the site's tags in searches" do
+      get posts_path(format: :json), headers: mlp
+      expect(required_tags_in_search).not_to be_empty
+      expect(required_tags_in_search).to all(eq(%w[my_little_pony]))
+    end
+
+    it "requires nothing on the primary site" do
+      get posts_path(format: :json)
+      expect(required_tags_in_search).to all(eq([]))
+    end
+
+    it "hides files of posts outside the scope" do
+      expect(file_url_for(other_post, mlp)).to be_nil
+      expect(file_url_for(pony_post, mlp)).to be_present
+    end
+
+    it "hides files when only the Host names the site" do
+      host! "mlp.example"
+      expect(file_url_for(other_post)).to be_nil
+    end
+
+    it "shows every file on the primary site" do
+      expect(file_url_for(other_post)).to be_present
+    end
+
+    it "does not force safe mode" do
+      explicit = CurrentUser.scoped(create(:user)) { create(:post, tag_string: "my_little_pony", rating: "e") }
+      expect(file_url_for(explicit, mlp)).to be_present
+    end
+
+    it "explains a hidden post on its page" do
+      get post_path(other_post), headers: mlp
+      expect(response.body).to include("outside the scope of mlp")
+      expect(response.body).to include("https://#{Danbooru.config.primary_value(:hostname)}/posts/#{other_post.id}")
+    end
+
+    it "leaves e926 alone" do
+      get posts_path(format: :json), headers: { "X-E6-Site" => "e926" }
+      expect(required_tags_in_search).to all(eq([]))
+    end
+
+    it "prefills the uploader with the required tags" do
+      sign_in_as(create(:user))
+      get new_upload_path, headers: mlp
+      payload = JSON.parse(Base64.strict_decode64(response.body[/id="upload-data"[^>]*>([^<]+)</, 1]))
+      expect(payload["required_tags"]).to eq(%w[my_little_pony])
     end
   end
 end

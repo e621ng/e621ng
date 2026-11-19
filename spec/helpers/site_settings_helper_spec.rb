@@ -14,6 +14,20 @@ RSpec.describe SiteSettingsHelper do
     CurrentUser.ip_addr = "127.0.0.1"
   end
 
+  describe "#upload_data_base64" do
+    include_context "with tag-locked site profile"
+
+    it "sends no required tags on the primary site" do
+      expect(decode(helper.upload_data_base64)["required_tags"]).to eq([])
+    end
+
+    it "sends the site's required tags" do
+      payload = CurrentSite.with("mlp") { decode(helper.upload_data_base64) }
+      expect(payload["required_tags"]).to eq(%w[my_little_pony])
+      expect(payload["safe_site"]).to be(false)
+    end
+  end
+
   describe "#site_settings_base64" do
     subject(:settings) { decode(helper.site_settings_base64) }
 

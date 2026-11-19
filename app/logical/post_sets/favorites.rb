@@ -21,7 +21,9 @@ module PostSets
     end
 
     def posts
-      @post_count ||= ::Post.tag_match("fav:#{@user.name} status:any").count_only
+      # The listing below is unfiltered SQL, so the count must be too: a site- or
+      # safe-mode-filtered count would strand favorites past the last reachable page.
+      @post_count ||= ::Post.tag_match("fav:#{@user.name} status:any", enable_safe_mode: false, required_tags: []).count_only
       @posts ||= begin
         favs = ::Favorite.for_user(@user.id)
                          .includes(post: :uploader)
@@ -46,6 +48,10 @@ module PostSets
 
     def safe_posts
       @safe_posts ||= posts.select { |p| p.safeblocked? && !p.deleteblocked? }
+    end
+
+    def site_blocked_posts
+      @site_blocked_posts ||= posts.select { |p| p.siteblocked? && !p.safeblocked? && !p.deleteblocked? }
     end
 
     def api_posts

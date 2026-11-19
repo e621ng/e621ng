@@ -29,6 +29,22 @@ RSpec.describe PostRecommendationsController do
       expect(body["post_data"]).to be_an(Array)
     end
 
+    it "keys the cache without a site segment on the primary site" do
+      allow(Cache).to receive(:fetch).and_call_original
+      get artist_similar_path(post, format: :json)
+      expect(Cache).to have_received(:fetch).with(/\Apost_recs2:artist:#{post.id}:6:e:/, anything)
+    end
+
+    context "on a tag-locked site" do
+      include_context "with tag-locked site profile"
+
+      it "keys the cache on the site" do
+        allow(Cache).to receive(:fetch).and_call_original
+        get artist_similar_path(post, format: :json), headers: { "X-E6-Site" => "mlp" }
+        expect(Cache).to have_received(:fetch).with(/\Apost_recs2:artist:#{post.id}:6:mlp:e:/, anything)
+      end
+    end
+
     it "does not include the order key in the response" do
       get artist_similar_path(post, format: :json)
       expect(response.parsed_body).not_to have_key("order")

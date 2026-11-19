@@ -7,6 +7,7 @@ class TagAlias < TagRelationship
   validates :antecedent_name, uniqueness: { conditions: -> { duplicate_relevant } }, unless: :is_deleted?
   validates :antecedent_name, tag_name: { disable_secondary_validations: true, disable_ascii_check: true }, if: :antecedent_name_changed?
   validate :absence_of_transitive_relation, unless: :is_deleted?
+  validate :antecedent_is_not_site_required, if: :antecedent_name_changed?
 
   module ApprovalMethods
     def approve!(update_topic: true, approver: CurrentUser.user)
@@ -433,6 +434,13 @@ class TagAlias < TagRelationship
     if TagAlias.active.exists?(antecedent_name: consequent_name)
       errors.add(:base, "A tag alias for #{consequent_name} already exists")
     end
+  end
+
+  # Aliasing away a tag-locked site's required tag would empty that site (doc 38 §10).
+  def antecedent_is_not_site_required
+    sites = CurrentSite.profiles_requiring(antecedent_name)
+    return if sites.empty?
+    errors.add(:antecedent_name, "'#{antecedent_name}' is a required tag of #{sites.map(&:id).join(', ')} and cannot be aliased away")
   end
 
   def move_aliases_and_implications

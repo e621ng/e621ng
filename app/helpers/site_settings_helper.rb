@@ -26,6 +26,7 @@ module SiteSettingsHelper
       {
         # Request-scoped (domain/session), not a user attribute.
         safe_site: CurrentUser.safe_mode?,
+        required_tags: CurrentSite.required_tags,
         compact_mode: user.compact_uploader?,
         verified_artist_tags: user.artists.pluck(:name),
         upload_tags: user.presenter.favorite_tags_with_types,

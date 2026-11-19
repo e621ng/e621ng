@@ -27,6 +27,7 @@ export interface MountUploaderOptions {
   // UploadData (#upload-data)
   compactMode?: boolean; // normalMode = !compactMode
   safeSite?: boolean; // hides the e/q rating buttons
+  requiredTags?: string[]; // prefilled into Other Tags (tag-locked site)
   uploadTags?: UploadTag[];
   recentTags?: UploadTag[];
   verifiedArtistTags?: string[];
@@ -63,6 +64,7 @@ export async function mountUploader (opts: MountUploaderOptions = {}): Promise<M
   });
   setSiteData("upload-data", {
     safe_site: !!opts.safeSite,
+    required_tags: opts.requiredTags ?? [],
     compact_mode: !!opts.compactMode,
     verified_artist_tags: opts.verifiedArtistTags ?? [],
     upload_tags: opts.uploadTags ?? [],

@@ -13,6 +13,7 @@ describe("UploadData", () => {
     const data = await freshUploadData();
 
     expect(data.safeSite).toBe(false);
+    expect(data.requiredTags).toEqual([]);
     expect(data.compactMode).toBe(false);
     expect(data.verifiedArtistTags).toEqual([]);
     expect(data.uploadTags).toEqual([]);
@@ -38,6 +39,7 @@ describe("UploadData", () => {
   it("maps a full snake_case payload into the exposed camelCase structure", async () => {
     setSiteData("upload-data", {
       safe_site: true,
+      required_tags: ["my_little_pony"],
       compact_mode: true,
       verified_artist_tags: ["artist_a", "artist_b"],
       upload_tags: [{ name: "fav_tag", count: 42, category_id: 0 }],
@@ -46,6 +48,7 @@ describe("UploadData", () => {
     const data = await freshUploadData();
 
     expect(data.safeSite).toBe(true);
+    expect(data.requiredTags).toEqual(["my_little_pony"]);
     expect(data.compactMode).toBe(true);
     expect(data.verifiedArtistTags).toEqual(["artist_a", "artist_b"]);
     expect(data.uploadTags).toEqual([{ name: "fav_tag", count: 42, category_id: 0 }]);

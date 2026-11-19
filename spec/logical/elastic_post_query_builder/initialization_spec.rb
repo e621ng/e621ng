@@ -70,6 +70,12 @@ RSpec.describe ElasticPostQueryBuilder do
       expect(builder.instance_variable_get(:@enable_safe_mode)).to be(true)
     end
 
+    it "reads required_tags from CurrentSite by default" do
+      allow(CurrentSite).to receive(:required_tags).and_return(%w[my_little_pony])
+      builder = build_query("")
+      expect(builder.instance_variable_get(:@required_tags)).to eq(%w[my_little_pony])
+    end
+
     it "accepts an explicit enable_safe_mode: true override" do
       builder = build_query("", enable_safe_mode: true)
       expect(builder.instance_variable_get(:@enable_safe_mode)).to be(true)

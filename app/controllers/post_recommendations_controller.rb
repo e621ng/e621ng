@@ -24,7 +24,8 @@ class PostRecommendationsController < ApplicationController
       mode,
       @original_post.id,
       params[:limit],
-      CurrentUser.safe_mode? ? "s" : "e",
+      # Site key first so primary-site keys stay unchanged (doc 38 §10)
+      *[CurrentSite.cache_key, CurrentUser.safe_mode? ? "s" : "e"].compact,
       Digest::SHA1.hexdigest("#{@original_post.tag_string}:#{@original_post.pool_ids.sort.join(',')}")[0, 8],
     ]
 

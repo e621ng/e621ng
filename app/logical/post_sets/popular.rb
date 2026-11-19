@@ -26,6 +26,7 @@ module PostSets
                   .includes(:uploader)
                   .order("score desc")
         q = q.where(rating: "s") if CurrentUser.safe_mode?
+        q = q.sql_raw_tag_match(CurrentSite.required_tags) if CurrentSite.tag_locked?
         q.paginate_posts(1)
       end
     end

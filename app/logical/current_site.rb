@@ -4,15 +4,20 @@
 # One deployment serves the primary site plus any `Danbooru.config.site_profiles`.
 # Resolved per request by Middleware::SiteResolver; jobs use `with`.
 class CurrentSite
-  Profile = Data.define(:id, :hosts, :safe_mode, :overrides) do
+  Profile = Data.define(:id, :hosts, :safe_mode, :required_tags, :overrides) do
     def primary?
       id == Danbooru.config.primary_site
+    end
+
+    # A site whose posts are locked to a tag set (doc 38 §10).
+    def tag_locked?
+      required_tags.any?
     end
   end
 
   class << self
     def primary
-      Profile.new(id: Danbooru.config.primary_site, hosts: [].freeze, safe_mode: false, overrides: {}.freeze)
+      Profile.new(id: Danbooru.config.primary_site, hosts: [].freeze, safe_mode: false, required_tags: [].freeze, overrides: {}.freeze)
     end
 
     # Parsed on demand, not memoized: the config can be stubbed in specs.
@@ -22,6 +27,7 @@ class CurrentSite
           id: id,
           hosts: profile[:hosts].map(&:downcase).freeze,
           safe_mode: profile[:safe_mode] == true,
+          required_tags: Array(profile[:required_tags]).map(&:to_s).freeze,
           overrides: deep_freeze(profile.fetch(:overrides, {}).deep_dup),
         )
       end
@@ -44,6 +50,11 @@ class CurrentSite
 
     def for_host(host)
       profiles.find { |profile| profile.hosts.include?(host) }
+    end
+
+    # Sites that would be emptied if the tag were aliased away or nuked.
+    def profiles_requiring(tag)
+      profiles.select { |profile| profile.required_tags.include?(tag) }
     end
 
     # Returns [profile, safe_mode], or :unknown for a header naming no site.
@@ -73,7 +84,7 @@ class CurrentSite
       RequestStore[:current_site] || primary
     end
 
-    delegate :id, :primary?, to: :current
+    delegate :id, :primary?, :required_tags, :tag_locked?, to: :current
 
     # nil on the primary site, so existing cache keys stay unchanged.
     def cache_key

@@ -70,5 +70,41 @@ RSpec.describe CurrentSite do
         expect { described_class.with("bogus") { nil } }.to raise_error(ArgumentError, /Unknown site/)
       end
     end
+
+    it "requires no tags" do
+      expect(described_class.required_tags).to eq([])
+      expect(described_class).not_to be_tag_locked
+      expect(described_class.find("e926").required_tags).to eq([])
+      expect(described_class.profiles_requiring("my_little_pony")).to eq([])
+    end
+  end
+
+  context "with a tag-locked profile" do
+    include_context "with e926 site profile"
+    include_context "with tag-locked site profile"
+
+    it "serves both profiles" do
+      expect(described_class.ids).to eq(%w[e621 e926 mlp])
+    end
+
+    it "exposes the frozen required tags of the site" do
+      profile = described_class.find("mlp")
+      expect(profile.required_tags).to eq(%w[my_little_pony])
+      expect(profile.required_tags).to be_frozen
+      expect(profile).to be_tag_locked
+      expect(profile.safe_mode).to be(false)
+    end
+
+    it "finds the sites requiring a tag" do
+      expect(described_class.profiles_requiring("my_little_pony").map(&:id)).to eq(%w[mlp])
+      expect(described_class.profiles_requiring("pony")).to eq([])
+    end
+
+    it "applies the lock inside .with and restores it" do
+      inside = described_class.with("mlp") { [described_class.required_tags, described_class.tag_locked?, described_class.safe_mode?] }
+      expect(inside).to eq([%w[my_little_pony], true, false])
+      expect(described_class.required_tags).to eq([])
+      expect(described_class).not_to be_tag_locked
+    end
   end
 end

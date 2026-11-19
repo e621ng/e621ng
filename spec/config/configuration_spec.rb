@@ -169,6 +169,24 @@ RSpec.describe Danbooru::EnvironmentConfiguration do
         expect_invalid(profile_with(safe_mode: "yes"), /safe_mode must be true or false/)
       end
 
+      it "accepts a tag-locked profile" do
+        allow(Danbooru.config.custom_configuration).to receive(:site_profiles).and_return(
+          { "mlp" => { hosts: %w[mlp.example], safe_mode: false, required_tags: %w[my_little_pony friendship_is_magic] } },
+        )
+        expect { Danbooru.config.validate! }.not_to raise_error
+      end
+
+      it "rejects malformed required_tags" do
+        message = /required_tags must be an array of normalized tag names/
+        expect_invalid(profile_with(required_tags: "my_little_pony"), message)
+        expect_invalid(profile_with(required_tags: ["My_Little_Pony"]), message)
+        expect_invalid(profile_with(required_tags: ["rating:s"]), message)
+        expect_invalid(profile_with(required_tags: ["-pony"]), message)
+        expect_invalid(profile_with(required_tags: ["pony*"]), message)
+        expect_invalid(profile_with(required_tags: ["my little pony"]), message)
+        expect_invalid(profile_with(required_tags: [""]), message)
+      end
+
       it "rejects overrides outside SITE_SCOPED" do
         expect_invalid(profile_with(overrides: { remember_key: "x" }), /cannot override remember_key/)
       end

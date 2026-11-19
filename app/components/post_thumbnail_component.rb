@@ -32,7 +32,7 @@ class PostThumbnailComponent < ViewComponent::Base
   def render?
     return false if @post.nil?
     return false if hidden_deleted_post?
-    return false if @post.loginblocked? || @post.safeblocked?
+    return false if @post.loginblocked? || @post.safeblocked? || @post.siteblocked?
     true
   end
 
