@@ -22,9 +22,15 @@ module Populate
       [/\A(id|.*_id)\z/, "bigint"],
       [/_at\z/, "timestamp"],
       [/\A(is_.*|.*_changed|processed)\z/, "boolean"],
-      [/\A(.*_count|score|.*_score|.*_votes|version|change_seq|image_width|image_height|file_size|category|sequence_number)\z/, "integer"],
+      [/\Achange_seq\z/, "bigint"],
+      [/\A(.*_count|score|.*_score|.*_votes|version|image_width|image_height|file_size|category|sequence_number)\z/, "integer"],
       [/\Aduration\z/, "double precision"],
     ].freeze
+
+    # Where the name-based guess is wrong for one table.
+    COLUMN_OVERRIDES = {
+      "pools" => { "category" => "text" },
+    }.freeze
 
     module_function
 
@@ -36,12 +42,17 @@ module Populate
       File.join(dir, "#{table}.csv.gz")
     end
 
-    def column_type(name)
-      COLUMN_TYPES.find { |pattern, _| pattern.match?(name) }&.last || "text"
+    def column_type(name, table = nil)
+      COLUMN_OVERRIDES.dig(table, name) || COLUMN_TYPES.find { |pattern, _| pattern.match?(name) }&.last || "text"
     end
 
     def connection
       ActiveRecord::Base.connection
+    end
+
+    # Loaded already, or loadable from the given exports directory.
+    def available?(table, dir: default_dir)
+      loaded?(table) || File.exist?(file_for(table, dir))
     end
 
     def loaded?(table)
@@ -82,7 +93,7 @@ module Populate
       columns = CSV.parse_line(Zlib::GzipReader.open(path, &:gets).to_s.strip)
       raise ArgumentError, "#{path} has no header" if columns.blank?
 
-      definitions = columns.map { |name| [name, column_type(name)] }
+      definitions = columns.map { |name| [name, column_type(name, table)] }
       puts "* #{table}: loading #{ActiveSupport::NumberHelper.number_to_human_size(stat.size)} from #{path}"
       puts "  columns: #{definitions.map { |name, type| "#{name} #{type}" }.join(', ')}"
 
@@ -99,6 +110,9 @@ module Populate
           next unless columns.include?(column)
           connection.execute("CREATE INDEX ON #{target} (#{connection.quote_column_name(column)})")
         end
+        # Autovacuum may not get to a fresh table for a long time; without statistics the planner
+        # scans all 47M post_versions rows instead of using the post_id index.
+        connection.execute("ANALYZE #{target}")
       end
 
       rows = connection.select_value("SELECT COUNT(*) FROM #{target}").to_i

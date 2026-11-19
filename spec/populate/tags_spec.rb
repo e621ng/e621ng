@@ -40,7 +40,18 @@ RSpec.describe Populate::Tags, :populate_exports do
     expect { expect(described_class.new(dir: dir).call).to eq(tags: 0, aliases: 0, implications: 0) }.to output.to_stdout
   end
 
-  it "refuses fix_counts until posts can be imported" do
-    expect { described_class.new(fix_counts: true).call }.to raise_error(ArgumentError, /step 3/)
+  it "recounts tags from undeleted local posts with fix_counts" do
+    create(:post, tag_string: "dragon scalie")
+    create(:post, tag_string: "dragon")
+    create(:deleted_post, tag_string: "dragon wolf")
+    unused = create(:tag, name: "unused_tag")
+    Tag.update_all(post_count: 999)
+
+    expect { described_class.fix_counts! }.to output(/counts changed/).to_stdout
+
+    expect(Tag.find_by!(name: "dragon").post_count).to eq(2)
+    expect(Tag.find_by!(name: "scalie").post_count).to eq(1)
+    expect(Tag.find_by!(name: "wolf").post_count).to eq(0)
+    expect(unused.reload.post_count).to eq(0)
   end
 end

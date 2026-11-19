@@ -15,6 +15,10 @@ module Populate
       Exports.ensure_loaded!(*tables, dir: exports_dir)
     end
 
+    def available?(table)
+      Exports.available?(table, dir: exports_dir)
+    end
+
     def connection
       ActiveRecord::Base.connection
     end

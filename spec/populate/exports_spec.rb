@@ -55,4 +55,15 @@ RSpec.describe Populate::Exports, :populate_exports do
 
     expect(ActiveRecord::Base.connection.select_value("SELECT nextval('tags_id_seq')").to_i).to eq(tag.id + 1)
   end
+
+  it "knows whether a table can be loaded" do
+    ActiveRecord::Base.connection.execute("DROP TABLE IF EXISTS seed.pools")
+    expect(described_class.available?("pools", dir: dir)).to be(false)
+
+    create(:pool)
+    write_export("pools", dir)
+    expect(described_class.available?("pools", dir: dir)).to be(true)
+    expect { described_class.load!(tables: %w[pools], dir: dir, force: true) }.to output(/1 rows in/).to_stdout
+    expect(described_class.available?("pools", dir: Dir.mktmpdir)).to be(true) # loaded beats missing file
+  end
 end

@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 module Populate
-  # Imports posts from the exports with their production ids, a synthetic first version,
-  # stub uploaders with real counts, placeholder media and an OpenSearch bulk index. Doc 44 step 3.
+  # Imports posts from the exports with their production ids, a synthetic first version (replaced by
+  # real history when that export is loaded), stub uploaders with real counts, their pools and
+  # replacements, media, and an OpenSearch bulk index. Doc 44 steps 3-4.
   class Posts < Importer
     TAG_CATEGORY_COLUMNS = TagCategory::CANONICAL_MAPPING.to_h { |name, id| [id, "tag_count_#{name.downcase}"] }.freeze
 
@@ -32,10 +33,12 @@ module Populate
 
       bump_sequences!("posts", "post_versions")
 
-      media = time("media") { generate_media(ids) } unless options.fetch(:media, :placeholder).to_s == "none"
-      time("reindex") { reindex(ids) } if options.fetch(:reindex, true)
+      related = time("relations") { import_relations(ids) }
+      touched = related.delete(:reindex)
+      media = time("media") { generate_media(ids) } unless media_tier == "none"
+      time("reindex") { Reindex.call(ids + touched) } if options.fetch(:reindex, true)
 
-      { selected: ids.size, inserted: inserted.size, versions: versions, media: media }
+      { selected: ids.size, inserted: inserted.size, versions: versions, media: media, **related }
     end
 
     private
@@ -123,17 +126,30 @@ module Populate
       SQL
     end
 
-    def generate_media(ids)
-      Media::Placeholder.new(post_ids: ids, threads: options.fetch(:threads, Etc.nprocessors.clamp(2, 16))).call
+    def media_tier
+      options.fetch(:media, "placeholder").to_s
     end
 
-    def reindex(ids)
-      log "* Indexing #{ids.size} posts and their versions"
-      condition = "id = ANY(#{literal(ids)})"
-      Post.document_store.import(query: condition)
-      PostVersion.document_store.import(query: "post_id = ANY(#{literal(ids)})")
-      Post.document_store.refresh_index!
-      PostVersion.document_store.refresh_index!
+    # Pools, replacements and (when the export is loaded) real history of the selected posts.
+    def import_relations(ids)
+      pools = PostPools.new(post_ids: ids, min_overlap: options.fetch(:pool_min, 3), dir: exports_dir).call
+      replacements = PostReplacements.new(post_ids: ids, media: media_tier != "none", dir: exports_dir).call
+      history = PostVersions.new(post_ids: ids, dir: exports_dir).call
+      {
+        pools: pools[:pools], replacements: replacements[:replacements], real_versions: history[:versions],
+        reindex: pools[:posts] + history[:posts],
+      }
+    end
+
+    def generate_media(ids)
+      case media_tier
+      when "fetch"
+        Media::Fetch.new(post_ids: ids, threads: options.fetch(:fetch_threads, 8), originals: options.fetch(:originals, false)).call
+      when "placeholder"
+        Media::Placeholder.new(post_ids: ids, threads: options.fetch(:threads, Etc.nprocessors.clamp(2, 16))).call
+      else
+        raise ArgumentError, "MEDIA must be placeholder, fetch or none (got #{media_tier})"
+      end
     end
   end
 end

@@ -18,7 +18,6 @@ module Populate
       SOURCE_MAX = 256
       BATCH_SIZE = 500
       JOB_SIZE = 64 # files per vipsthumbnail process, so large groups still spread across the pool
-      SEED = Exports::SCHEMA
       # Encoder settings favour speed: a flat colour looks the same at any quality.
       JPEG_SUFFIX = "[Q=90,strip]"
       WEBP_SUFFIX = "[Q=75,effort=0]"
@@ -35,8 +34,7 @@ module Populate
         threads = options.fetch(:threads, Etc.nprocessors.clamp(2, 16))
         force = options.fetch(:force, false)
 
-        ensure_table
-        ids = force ? post_ids : post_ids - recorded(post_ids)
+        ids = force ? post_ids : post_ids - Ledger.recorded(post_ids)
         log "* Placeholder media for #{ids.size} posts (#{threads} threads)"
         return { generated: 0, failed: 0 } if ids.empty?
 
@@ -50,7 +48,7 @@ module Populate
           results = process_batch(posts, threads)
           failures = results.select { |_, error| error }
           failures.first(5).each { |post_id, error| log "    post ##{post_id}: #{error}" }
-          record(results.filter_map { |post_id, error| post_id if error.nil? })
+          Ledger.record(results.filter_map { |post_id, error| post_id if error.nil? }, "placeholder")
 
           generated += results.size - failures.size
           failed += failures.size
@@ -59,6 +57,32 @@ module Populate
         end
 
         { generated: generated, failed: failed }
+      end
+
+      # A flat original for one post, without previews (used when the previews came from elsewhere).
+      def write_original(post)
+        return if post.is_flash?
+
+        storage = Danbooru.config.storage_manager
+        file = build_file(post.md5, post.file_ext, post.image_width, post.image_height)
+        storage.store(file, storage.post_file_path(post, :original))
+      ensure
+        file&.close!
+      end
+
+      # A flat file and thumbnail for an imported replacement; static1 only serves those with a signature.
+      def write_replacement(replacement)
+        return if replacement.file_ext == "swf"
+
+        storage = Danbooru.config.storage_manager
+        file = build_file(replacement.md5, replacement.file_ext, replacement.image_width, replacement.image_height)
+        storage.store(file, storage.replacement_path(replacement, replacement.file_ext, :original))
+        file.close!
+        thumb = build_file(replacement.md5, "png", replacement.image_width, replacement.image_height) # thumbnails are always stills
+        storage.store(thumb, storage.replacement_path(replacement, replacement.file_ext, :preview))
+      ensure
+        file&.close!
+        thumb&.close!
       end
 
       private
@@ -72,7 +96,7 @@ module Populate
         Dir.mktmpdir("placeholder") do |dir|
           results.merge!(process_images(images, dir, threads))
         end
-        process_each(videos, threads) { |post| generate_video(post) }.each { |post, error| results[post.id] = error }
+        WorkerPool.each(videos, threads) { |post| generate_video(post) }.each { |post, error| results[post.id] = error }
         results.to_a
       end
 
@@ -82,7 +106,7 @@ module Populate
         storage = Danbooru.config.storage_manager
         sources = {}
 
-        written = process_each(posts, threads) do |post|
+        written = WorkerPool.each(posts, threads) do |post|
           path = File.join(dir, "#{post.md5}.png")
           width, height = source_size(post)
           File.open(path, "wb") { |file| FlatPng.write(file, width: width, height: height, rgb: FlatPng.colour_for(post.md5)) }
@@ -101,7 +125,7 @@ module Populate
           end
         end
 
-        outcomes = process_each(jobs, threads) do |variant, ext, size, crop, group|
+        outcomes = WorkerPool.each(jobs, threads) do |variant, ext, size, crop, group|
           out_dir = File.join(dir, [variant, ext, size, ("crop" if crop)].compact.join("_"))
           FileUtils.mkdir_p(out_dir)
           thumbnail_all(group.map { |post| sources[post] }, out_dir, ext, size, crop)
@@ -139,7 +163,7 @@ module Populate
 
       def generate_video(post)
         storage = Danbooru.config.storage_manager
-        file = video_original(post)
+        file = build_file(post.md5, post.file_ext, post.image_width, post.image_height)
         begin
           storage.store(file, storage.post_file_path(post, :original))
         ensure
@@ -148,14 +172,17 @@ module Populate
         ImageSampler.generate_post_images(post)
       end
 
-      # A one-second flat clip in the post's container; the poster frame comes out of ImageSampler as usual.
-      def video_original(post)
-        width, height = source_size(post)
+      # A flat PNG for images, or a one-second flat clip in the right container for videos.
+      def build_file(md5, file_ext, width, height)
+        width, height = source_size_for(width, height)
+        rgb = FlatPng.colour_for(md5)
+        return flat_png(width, height, rgb) unless FileMethods::VIDEO_FILE_TYPES.include?(file_ext)
+
         width -= width % 2
         height -= height % 2
-        file = Tempfile.new(["placeholder", ".#{post.file_ext}"], binmode: true)
-        codec = post.file_ext == "webm" ? %w[-c:v libvpx -b:v 200k] : %w[-c:v libx264 -pix_fmt yuv420p -preset ultrafast]
-        colour = "0x#{FlatPng.colour_for(post.md5).map { |c| c.to_s(16).rjust(2, '0') }.join}"
+        file = Tempfile.new(["placeholder", ".#{file_ext}"], binmode: true)
+        codec = file_ext == "webm" ? %w[-c:v libvpx -b:v 200k] : %w[-c:v libx264 -pix_fmt yuv420p -preset ultrafast]
+        colour = "0x#{rgb.map { |c| c.to_s(16).rjust(2, '0') }.join}"
         _stdout, stderr, status = ExternalCommand.run(
           Danbooru.config.ffmpeg_path, "-y", "-f", "lavfi", "-i", "color=c=#{colour}:s=#{width}x#{height}:d=1:r=10",
           *codec, "-threads", "1", file.path, timeout: 60
@@ -166,59 +193,22 @@ module Populate
         file
       end
 
-      # Runs the block over the items on a small thread pool; returns [[item, error_or_nil], ...].
-      def process_each(items, threads)
-        queue = Queue.new
-        items.each { |item| queue << item }
-        queue.close
-        results = Queue.new
-
-        workers = Array.new([threads, 1].max) do
-          Thread.new do
-            Rails.application.executor.wrap do
-              while (item = queue.pop)
-                begin
-                  yield(*item)
-                  results << [item, nil]
-                rescue StandardError => e
-                  results << [item, "#{e.class}: #{e.message}"]
-                end
-              end
-            end
-          end
-        end
-        workers.each(&:join)
-
-        out = []
-        out << results.pop until results.empty?
-        out
+      def flat_png(width, height, rgb)
+        file = Tempfile.new(["placeholder", ".png"], binmode: true)
+        FlatPng.write(file, width: width, height: height, rgb: rgb)
+        file.rewind
+        file
       end
 
       def source_size(post)
-        width = [post.image_width.to_i, 1].max
-        height = [post.image_height.to_i, 1].max
+        source_size_for(post.image_width, post.image_height)
+      end
+
+      def source_size_for(width, height)
+        width = [width.to_i, 1].max
+        height = [height.to_i, 1].max
         scale = [SOURCE_MAX.to_f / [width, height].max, 1.0].min
         [[(width * scale).round, 2].max, [(height * scale).round, 2].max]
-      end
-
-      def ensure_table
-        connection.execute("CREATE SCHEMA IF NOT EXISTS #{SEED}")
-        connection.execute("CREATE TABLE IF NOT EXISTS #{SEED}.media (post_id bigint PRIMARY KEY, tier text NOT NULL, created_at timestamp NOT NULL)")
-      end
-
-      def recorded(post_ids)
-        connection.select_values("SELECT post_id FROM #{SEED}.media WHERE post_id = ANY(#{Selection.array_literal(post_ids)})").map(&:to_i)
-      end
-
-      def record(post_ids)
-        return if post_ids.empty?
-        now = connection.quote(Time.current.utc)
-        values = post_ids.map { |id| "(#{id}, 'placeholder', #{now})" }.join(",")
-        connection.execute("INSERT INTO #{SEED}.media (post_id, tier, created_at) VALUES #{values} ON CONFLICT (post_id) DO UPDATE SET tier = EXCLUDED.tier, created_at = EXCLUDED.created_at")
-      end
-
-      def connection
-        ActiveRecord::Base.connection
       end
 
       class Error < StandardError; end

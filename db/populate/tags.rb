@@ -3,9 +3,27 @@
 module Populate
   # Imports every tag, alias and implication from the exports. post_count keeps the production value.
   class Tags < Importer
-    def call
-      raise ArgumentError, "FIX_COUNTS needs imported posts; not available until doc 44 step 3" if options[:fix_counts]
+    # Sets every tag's post_count to its number of undeleted local posts, as Tag#fix_post_count
+    # would one tag at a time. Tags without local posts drop to zero.
+    def self.fix_counts!
+      puts "* Recounting tags from local posts"
+      changed = Exports.with_timeout_off do
+        ActiveRecord::Base.connection.execute(<<~SQL.squish).cmd_tuples
+          WITH counts AS (
+            SELECT name, COUNT(*) AS total
+            FROM (SELECT unnest(string_to_array(tag_string, ' ')) AS name FROM posts WHERE NOT is_deleted) x
+            GROUP BY name
+          )
+          UPDATE tags SET post_count = COALESCE(counts.total, 0)
+          FROM tags t LEFT JOIN counts ON counts.name = t.name
+          WHERE tags.id = t.id AND tags.post_count IS DISTINCT FROM COALESCE(counts.total, 0)
+        SQL
+      end
+      puts "  #{changed} counts changed"
+      changed
+    end
 
+    def call
       ensure_loaded!("tags", "tag_aliases", "tag_implications")
       log "* Importing tags"
 
@@ -44,7 +62,8 @@ module Populate
       log "  implications: #{implications} inserted"
 
       bump_sequences!("tags", "tag_aliases", "tag_implications")
-      Cache.clear # cached implication descendants
+      self.class.fix_counts! if options[:fix_counts]
+      Cache.clear # cached implication descendants and tag lookups
       { tags: tags, aliases: aliases, implications: implications }
     end
   end

@@ -33,7 +33,6 @@ namespace :populate do
       forums: [:Forums, 100, -> { {} }],
       post_votes: [:PostVotes, 100, -> { {} }],
       comment_votes: [:CommentVotes, 100, -> { {} }],
-      pools: [:Pools, 100, -> { {} }],
       dmails: [:Dmails, 10, -> { {} }],
     }
   end
@@ -41,7 +40,7 @@ namespace :populate do
   def populate_all_defaults
     {
       "USERS" => 10, "POSTS" => 100, "COMMENTS" => 100, "FAVORITES" => 100, "FORUMS" => 100,
-      "POSTVOTES" => 100, "COMVOTES" => 100, "POOLS" => 100, "FURIDS" => 0, "DM" => 0,
+      "POSTVOTES" => 100, "COMVOTES" => 100, "FURIDS" => 0, "DM" => 0,
       "TRENDS" => 7, "TRENDS_HOURS" => 48,
     }
   end
@@ -74,12 +73,15 @@ namespace :populate do
       query: ENV.fetch("QUERY", "score:>150 -grandfathered_content -rating:e -young -type:swf"),
       media: ENV.fetch("MEDIA", "placeholder"),
       threads: populate_int("MEDIA_THREADS", Etc.nprocessors.clamp(2, 16)),
+      fetch_threads: populate_int("FETCH_THREADS", 8),
+      originals: ENV["ORIGINALS"].to_s.truthy?,
+      pool_min: populate_int("POOL_MIN", 3),
       reindex: ENV.fetch("REINDEX", "true").truthy?,
       dir: populate_exports_dir,
     }
   end
 
-  desc "Import posts from the exports (COUNT, RANGE, QUERY, MEDIA=placeholder|none, MEDIA_THREADS, REINDEX) or the live API (SOURCE=api, SEARCH)"
+  desc "Import posts from the exports (COUNT, RANGE, QUERY, MEDIA=placeholder|fetch|none, MEDIA_THREADS, FETCH_THREADS, ORIGINALS, POOL_MIN, REINDEX) or the live API (SOURCE=api, SEARCH)"
   task posts: :environment do
     populate_prepare
     if ENV.fetch("SOURCE", "export") == "api"
@@ -89,13 +91,43 @@ namespace :populate do
     end
   end
 
-  desc "Write placeholder media for imported posts that have none (COUNT, FORCE, MEDIA_THREADS)"
+  desc "Write media for posts: TIER=placeholder (posts without an original) or TIER=fetch (imported posts not yet fetched); COUNT, FORCE"
   task media: :environment do
     populate_prepare
-    storage = Danbooru.config.storage_manager
-    scope = Post.where.not(file_ext: "swf").order(id: :desc).limit(populate_int("COUNT", 1000))
-    ids = scope.filter_map { |post| post.id if ENV["FORCE"].to_s.truthy? || !File.exist?(storage.post_file_path(post, :original)) }
-    Populate::Media::Placeholder.new(post_ids: ids, threads: populate_int("MEDIA_THREADS", Etc.nprocessors.clamp(2, 16)), force: ENV["FORCE"].to_s.truthy?).call
+    count = populate_int("COUNT", 1000)
+    force = ENV["FORCE"].to_s.truthy?
+    if ENV.fetch("TIER", "placeholder") == "fetch"
+      Populate::Media::Ledger.ensure!
+      pending = force ? "" : " AND NOT EXISTS (SELECT 1 FROM #{Populate::Media::Ledger::TABLE} m WHERE m.post_id = p.id AND m.tier = 'fetch')"
+      ids = ActiveRecord::Base.connection.select_values("#{Populate::ImportedPosts.sql}#{pending} ORDER BY p.id DESC LIMIT #{count}")
+      Populate::Media::Fetch.new(post_ids: ids, threads: populate_int("FETCH_THREADS", 8), originals: ENV["ORIGINALS"].to_s.truthy?, force: force).call
+    else
+      storage = Danbooru.config.storage_manager
+      scope = Post.where.not(file_ext: "swf").order(id: :desc).limit(count)
+      ids = scope.filter_map { |post| post.id if force || !File.exist?(storage.post_file_path(post, :original)) }
+      Populate::Media::Placeholder.new(post_ids: ids, threads: populate_int("MEDIA_THREADS", Etc.nprocessors.clamp(2, 16)), force: force).call
+    end
+  end
+
+  # The relations of posts already imported, e.g. posts imported before these existed.
+  desc "Import the pools of imported posts (POOL_MIN, default 3)"
+  task pools: :environment do
+    populate_prepare
+    result = Populate::PostPools.new(min_overlap: populate_int("POOL_MIN", 3), dir: populate_exports_dir).call
+    Populate::Reindex.call(result[:posts], versions: false)
+  end
+
+  desc "Import the real edit history of imported posts (loads the ~10 GB post_versions export first)"
+  task versions: :environment do
+    populate_prepare
+    result = Populate::PostVersions.new(load: true, dir: populate_exports_dir).call
+    Populate::Reindex.call(result[:posts])
+  end
+
+  desc "Import the replacements of imported posts (MEDIA=none skips their placeholder files)"
+  task replacements: :environment do
+    populate_prepare
+    Populate::PostReplacements.new(media: ENV.fetch("MEDIA", "placeholder") != "none", dir: populate_exports_dir).call
   end
 
   desc "Bulk-index posts and post versions into OpenSearch (FROM, TO)"
@@ -110,8 +142,14 @@ namespace :populate do
     PostVersion.document_store.refresh_index!
   end
 
+  desc "Import tags, aliases and implications from the exports (FIX_COUNTS=1 recounts from local posts)"
+  task tags: :environment do
+    populate_prepare
+    Populate::Tags.new(dir: populate_exports_dir, fix_counts: ENV["FIX_COUNTS"].to_s.truthy?).call
+  end
+
   # Export-backed importers: whole tables, production ids, no media involved.
-  { tags: :Tags, wiki: :WikiPages, artists: :Artists, burs: :BulkUpdateRequests }.each do |name, generator|
+  { wiki: :WikiPages, artists: :Artists, burs: :BulkUpdateRequests }.each do |name, generator|
     desc "Import #{name} from the exports (EXPORTS_DIR)"
     task name => :environment do
       populate_prepare
@@ -149,7 +187,12 @@ namespace :populate do
 
     puts "Populating the Database"
     users = Populate::Users.new(count: counts["USERS"], password: password, **common).call
-    if ENV.fetch("SOURCE", "export") == "api"
+    source = ENV.fetch("SOURCE", "export")
+    if source == "export" && !Populate::Exports.available?("posts", dir: populate_exports_dir)
+      puts "No posts export in #{populate_exports_dir}: importing posts through the live API instead (see db/populate/README.md)"
+      source = "api"
+    end
+    if source == "api"
       posts = Populate::ApiPosts.new(count: counts["POSTS"], users: users, **common).call
       Populate::ApiPosts.new(count: counts["FURIDS"], search: "furid_(e621)", **common).call
     else
@@ -165,7 +208,6 @@ namespace :populate do
     Populate::Forums.new(count: counts["FORUMS"], users: users, **common).call
     Populate::PostVotes.new(count: counts["POSTVOTES"], users: users, posts: posts, **common).call
     Populate::CommentVotes.new(count: counts["COMVOTES"], users: users, comments: comments, **common).call
-    Populate::Pools.new(count: counts["POOLS"], posts: posts, **common).call
     Populate::Dmails.new(count: counts["DM"], **common).call
 
     Populate::SearchTrends.new(days: counts["TRENDS"], hours: counts["TRENDS_HOURS"]).call
