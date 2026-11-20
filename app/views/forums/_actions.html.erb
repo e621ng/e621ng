@@ -1,9 +1,0 @@
-<div class="forum-actions">
-  <%= link_to "All recent topics", forum_topics_path, class: "st-button chip" %>
-  <% if CurrentUser.is_member? %>
-    <%= link_to "Request alias", new_tag_alias_request_path, class: "st-button chip" %>
-    <%= link_to "Request implication", new_tag_implication_request_path, class: "st-button chip" %>
-    <%= link_to "Request BUR", new_bulk_update_request_path, class: "st-button chip" %>
-    <%= button_to "Mark all as read", mark_all_as_read_forum_topics_path, class: "st-button chip", form: { data: { confirm: "Are you sure that you want to mark all forum topics as read?" } } %>
-  <% end %>
-</div>

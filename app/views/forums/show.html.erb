@@ -5,9 +5,12 @@
         <p class="forum-breadcrumb"><%= link_to "Forum", forums_path %> ›</p>
       </div>
       <div class="forum-heading-tools">
-        <% if CurrentUser.is_member? && @category.can_create? %>
-          <%= link_to new_forum_topic_path(forum_topic: { category_id: @category.id }), class: "st-button submit forum-new-topic" do %>
-            <%= svg_icon(:plus, width: 16, height: 16) %> New topic
+        <% if CurrentUser.is_member? %>
+          <%= button_to "Mark all as read", mark_all_as_read_forum_topics_path, class: "st-button kinetic", form: { data: { confirm: "Are you sure that you want to mark all forum topics as read?" } } %>
+          <% if @category.can_create? %>
+            <%= link_to new_forum_topic_path(forum_topic: { category_id: @category.id }), class: "st-button kinetic submit forum-new-topic" do %>
+              <%= svg_icon(:plus, width: 16, height: 16) %> New topic
+            <% end %>
           <% end %>
         <% end %>
       </div>

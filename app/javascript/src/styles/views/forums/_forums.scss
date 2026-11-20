@@ -30,8 +30,7 @@ body.c-forums {
     align-items: center;
     gap: 0.5rem;
 
-    form { flex: 1 1 auto; min-width: 0; }
-    input[type="text"] { width: 100%; box-sizing: border-box; }
+    .st-button { font-size: initial; }
   }
 
   .forum-new-topic {
@@ -49,10 +48,19 @@ body.c-forums {
     white-space: nowrap;
   }
 
+  .forum-actions-inline {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 0.5rem;
+  }
+
   .forum-category {
     background: theme.color("section");
     border-radius: 0.25rem;
     overflow: hidden;
+    box-shadow: 0 0 0.5rem -0.25rem black;
   }
 
   .forum-category-header {
