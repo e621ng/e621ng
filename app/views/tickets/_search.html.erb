@@ -17,15 +17,6 @@
       ["Post complaint", "post"],
       ["Replacement complaint", "replacement"]
   ], include_blank: "Any" %>
-  <%= f.input :status, as: :grouped_select, collection: {
-    "Pending" => [
-      %w[Pending pending],
-      ["Pending + Unclaimed", "pending_unclaimed"],
-      ["Pending + Claimed", "pending_claimed"],
-      ["Under investigation", "partial"],
-    ],
-    "Handled" => [
-      %w[Investigated approved],
-    ],
-  }.to_a, group_label_method: :first, group_method: :last, include_blank: "Any" %>
+  <%= f.input :status, as: :grouped_select, collection: ticket_status_search_options,
+    group_label_method: :first, group_method: :last, include_blank: "Any" %>
 <% end %>

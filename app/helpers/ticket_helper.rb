@@ -12,6 +12,20 @@ module TicketHelper
     end
   end
 
+  def ticket_status_search_options
+    {
+      "Pending" => [
+        %w[Pending pending],
+        ["Pending + Unclaimed", "pending_unclaimed"],
+        ["Pending + Claimed", "pending_claimed"],
+        ["Under investigation", "partial"],
+      ],
+      "Handled" => [
+        %w[Investigated approved],
+      ],
+    }.to_a
+  end
+
   def generate_content_warnings(message)
     warnings = []
     if message.creator&.is_restricted? && message.creator&.recent_ban&.expires_at.nil?
