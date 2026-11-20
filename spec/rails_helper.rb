@@ -60,10 +60,11 @@ RSpec.configure do |config|
     UploadUrlRule.clear_cache
   end
 
-  # The resolved site (doc 38) lives in RequestStore; only requests clear it.
+  # The resolved site (doc 38) and safe mode live in RequestStore; only requests clear them.
   config.after do
     RequestStore.delete(:current_site)
     RequestStore.delete(:site_safe_mode)
+    CurrentUser.safe_mode = nil
   end
 
   config.include ActiveSupport::Testing::TimeHelpers
