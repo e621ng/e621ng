@@ -26,7 +26,7 @@ RSpec.describe ArtistsController do
     it "redirects to the short URL by id" do
       get artist_path(artist)
       expect(response).to have_http_status(:moved_permanently)
-      expect(response).to redirect_to(short_artist_path(artist.name))
+      expect(response).to redirect_to(short_artist_path(artist.name, redirect: "no"))
     end
 
     it "redirects to the short URL by name" do
@@ -152,7 +152,7 @@ RSpec.describe ArtistsController do
 
       artist = Artist.named(attributes[:name])
       expect(artist).not_to be_nil
-      expect(response).to redirect_to(short_artist_path(artist.name))
+      expect(response).to redirect_to(short_artist_path(artist.name, redirect: "no"))
     end
   end
 
@@ -182,7 +182,7 @@ RSpec.describe ArtistsController do
         wiki_page = artist.wiki_page
         expect(artist.notes).to eq("rex")
         expect(wiki_page.updated_at).not_to eq(old_timestamp)
-        assert_redirected_to(short_artist_path(artist.name))
+        assert_redirected_to(short_artist_path(artist.name, redirect: "no"))
       end
 
       it "sets the wiki page timestamp to the time of the update" do
@@ -196,7 +196,7 @@ RSpec.describe ArtistsController do
         wiki_page = artist.wiki_page
         expect(artist.notes).to eq("rex")
         expect(wiki_page.updated_at).to be_within(1.second).of(frozen_at)
-        expect(response).to redirect_to(short_artist_path(artist.name))
+        expect(response).to redirect_to(short_artist_path(artist.name, redirect: "no"))
       end
 
       it "not touch the updater_id and updated_at fields when nothing is changed" do
@@ -223,7 +223,7 @@ RSpec.describe ArtistsController do
           wiki_page.reload
           expect(wiki_page.title).to eq("bbb")
           expect(wiki_page.body).to eq("more testing")
-          expect(response).to redirect_to(short_artist_path("bbb"))
+          expect(response).to redirect_to(short_artist_path("bbb", redirect: "no"))
         end
       end
     end
@@ -249,7 +249,7 @@ RSpec.describe ArtistsController do
       sign_in_as user
       put revert_artist_path(artist.id), params: { version_id: version.id }
       expect(artist.reload.name).to eq("artist1")
-      assert_redirected_to(short_artist_path(artist.name))
+      assert_redirected_to(short_artist_path(artist.name, redirect: "no"))
     end
 
     it "not allow reverting to a previous version of another artist" do
@@ -258,7 +258,7 @@ RSpec.describe ArtistsController do
       put artist_path(artist.id), params: { version_id: artist2.versions.first.id }
       artist.reload
       expect(artist2.name).not_to eq(artist.name)
-      assert_redirected_to(short_artist_path(artist.name))
+      assert_redirected_to(short_artist_path(artist.name, redirect: "no"))
     end
   end
 

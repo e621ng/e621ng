@@ -32,8 +32,12 @@ class ArtistsController < ApplicationController
   def show
     respond_to do |format|
       format.html do
-        name = params[:id] =~ /\A\d+\z/ ? Artist.find(params[:id]).name : params[:id]
-        redirect_to(short_artist_path(name), status: 301)
+        # An id names one specific entry, so it never follows aliases.
+        if params[:id] =~ /\A\d+\z/
+          redirect_to(short_artist_path(Artist.find(params[:id]).name, redirect: "no"), status: 301)
+        else
+          redirect_to(short_artist_path(params[:id]), status: 301)
+        end
       end
       format.json do
         load_artist
@@ -54,14 +58,14 @@ class ArtistsController < ApplicationController
 
   def create
     @artist = Artist.create(artist_params)
-    respond_with(@artist, location: -> { short_artist_path(@artist.name) })
+    respond_with(@artist, location: -> { short_artist_path(@artist.name, redirect: "no") })
   end
 
   def update
     ensure_can_edit(CurrentUser.user)
     @artist.update(artist_params)
     flash[:notice] = @artist.valid? ? "Artist updated" : @artist.errors.full_messages.join("; ")
-    respond_with(@artist, location: -> { short_artist_path(@artist.name) })
+    respond_with(@artist, location: -> { short_artist_path(@artist.name, redirect: "no") })
   end
 
   def destroy
@@ -78,7 +82,7 @@ class ArtistsController < ApplicationController
     ensure_can_edit(CurrentUser.user)
     @version = @artist.versions.find(params[:version_id])
     @artist.revert_to!(@version)
-    respond_with(@artist, location: -> { short_artist_path(@artist.name) })
+    respond_with(@artist, location: -> { short_artist_path(@artist.name, redirect: "no") })
   end
 
   def show_or_new

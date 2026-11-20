@@ -1,0 +1,28 @@
+<% leftover_names = @leftover_artists.map(&:name) %>
+<% if @redirected_from %>
+  <p class="hint">
+    Redirected from
+    <% if leftover_names.include?(@redirected_from) %>
+      <%= link_to @redirected_from, short_artist_path(@redirected_from, redirect: "no") %>.
+    <% else %>
+      <%= @redirected_from %>.
+    <% end %>
+  </p>
+<% end %>
+<% if leftover_names.any? %>
+  <p class="hint">
+    Artist entries still exist under aliased names:
+    <%= safe_join(leftover_names.map { |name| link_to(name, short_artist_path(name, redirect: "no")) }, ", ") %>.
+    They should be merged into this one.
+  </p>
+<% end %>
+<% if @left_behind_alias %>
+  <p class="hint">
+    This artist entry was left behind when <%= @left_behind_alias.antecedent_name %> was aliased to
+    <%= link_to @left_behind_alias.consequent_name, short_artist_path(@left_behind_alias.consequent_name) %>.
+    It should be merged into that entry.
+  </p>
+  <% content_for(:html_header) do %>
+    <meta name="robots" content="noindex" />
+  <% end %>
+<% end %>
