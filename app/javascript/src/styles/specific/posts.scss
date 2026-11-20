@@ -374,17 +374,31 @@ div#c-post-versions, div#c-artist-versions {
 }
 
 div#c-popular {
-  a.desc {
-    font-weight: bold;
-    margin: 0 0.5em;
-  }
 
   #popular-nav-links {
-    text-align: center;
-  }
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0.5rem;
 
-  .period {
-    margin: 0 4.75em;
+    span.period {
+      display: flex;
+      box-shadow: 0 0 0.5rem -0.25rem black;
+
+      a.popular-prev { border-radius: 0.25rem 0 0 0.25rem; }
+      a.popular-next { border-radius: 0 0.25rem 0.25rem 0; }
+      a.popular-desc {
+        font-weight: bold;
+        border-radius: 0;
+        min-width: 5rem;
+      }
+    }
+
+    @include breakpoints.desktop {
+      flex-direction: row;
+    }
   }
 }
 

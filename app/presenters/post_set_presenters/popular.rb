@@ -63,22 +63,28 @@ module PostSetPresenters
     def nav_links_for_scale(template, scale)
       template.tag.span(class: "period") do
         prev_link = template.link_to(
-          "«prev",
+          "« prev",
           template.popular_index_path(
             date: prev_date_for_scale(scale),
             scale: scale,
           ),
+          class: "st-button popular-prev",
           id: link_rel_for_scale?(template, scale) ? "paginator-prev" : nil,
           rel: link_rel_for_scale?(template, scale) ? "prev" : nil,
           data: { hotkey: link_rel_for_scale?(template, scale) ? "prev" : nil },
         )
-        scale_link = template.link_to(scale.capitalize, template.popular_index_path(date: date, scale: scale), class: "desc")
+        scale_link = template.link_to(
+          scale.capitalize,
+          template.popular_index_path(date: date, scale: scale),
+          class: "st-button popular-desc"
+        )
         next_link = template.link_to(
-          "next»",
+          "next »",
           template.popular_index_path(
             date: next_date_for_scale(scale),
             scale: scale,
           ),
+          class: "st-button popular-next",
           id: link_rel_for_scale?(template, scale) ? "paginator-next" : nil,
           rel: link_rel_for_scale?(template, scale) ? "next" : nil,
           data: { hotkey: link_rel_for_scale?(template, scale) ? "next" : nil },
