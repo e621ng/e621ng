@@ -20,6 +20,11 @@
     (<span class="selectable"><%= number_to_human_size(post.file_size) %></span>)
   </div>
 
+  <% if (ratio = post.aspect_ratio) %>
+    <div class="post-sidebar-label">Ratio</div>
+    <div class="post-sidebar-value"><%= link_to(ratio, posts_path(tags: "ratio:#{ratio}"), class: "selectable", rel: "nofollow") %></div>
+  <% end %>
+
   <div class="post-sidebar-label">Type</div>
   <div class="post-sidebar-value selectable"><%= post.file_ext.upcase %></div>
 

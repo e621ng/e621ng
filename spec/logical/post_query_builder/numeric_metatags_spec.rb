@@ -105,6 +105,13 @@ RSpec.describe PostQueryBuilder do
         expect(result).to include(wide)
         expect(result).not_to include(square)
       end
+
+      it "matches exact ratios instead of 2dp approximations" do
+        wide = create(:post)
+        wide.update_columns(image_width: 1920, image_height: 1080)
+        expect(run("ratio:16:9")).to include(wide)
+        expect(run("ratio:1.78")).not_to include(wide)
+      end
     end
 
     describe "filesize:" do

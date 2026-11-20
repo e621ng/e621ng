@@ -106,9 +106,9 @@ RSpec.describe PostIndex do
       end
 
       context "aspect_ratio" do
-        it "computes aspect_ratio as image_width / image_height rounded to 2dp" do
+        it "computes aspect_ratio as image_width / image_height rounded to 7dp" do
           post = create(:post, image_width: 1920, image_height: 1080)
-          expect(post.as_indexed_json[:aspect_ratio]).to eq((1920.0 / 1080).round(2))
+          expect(post.as_indexed_json[:aspect_ratio]).to eq(1.7777778)
         end
 
         it "returns 1.0 for a square image" do

@@ -340,7 +340,7 @@ module PostIndex
       width:                    image_width,
       height:                   image_height,
       mpixels:                  image_width && image_height ? (image_width.to_f * image_height / 1_000_000).round(2) : 0.0,
-      aspect_ratio:             image_width && image_height ? (image_width.to_f / [image_height, 1].max).round(2) : 1.0,
+      aspect_ratio:             image_width && image_height ? (image_width.to_f / [image_height, 1].max).round(7) : 1.0,
       duration:                 duration,
 
       tags:                     tag_string.split,

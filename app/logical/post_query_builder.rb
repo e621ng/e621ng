@@ -84,7 +84,7 @@ class PostQueryBuilder
 
     relation = add_array_range_relation(relation, q[:post_id], "posts.id")
     relation = add_array_range_relation(relation, q[:mpixels], "posts.image_width * posts.image_height / 1000000.0")
-    relation = add_array_range_relation(relation, q[:ratio], "ROUND(1.0 * posts.image_width / GREATEST(1, posts.image_height), 2)")
+    relation = add_array_range_relation(relation, q[:ratio], "ROUND(1.0 * posts.image_width / GREATEST(1, posts.image_height), 7)")
     relation = add_array_range_relation(relation, q[:width], "posts.image_width")
     relation = add_array_range_relation(relation, q[:height], "posts.image_height")
     relation = add_array_range_relation(relation, q[:score], "posts.score")

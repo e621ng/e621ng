@@ -161,6 +161,24 @@ RSpec.describe Post do
       end
     end
 
+    describe "ratio tags" do
+      it "removes bare ratios and adds a warning" do
+        post = create(:post)
+        post.tag_string = "#{post.tag_string} 16:9 1.5:1"
+        post.valid?
+        expect(post.tag_string.split).not_to include("16:9", "1.5:1")
+        expect(post.warnings[:base].join).to match(/Aspect ratios cannot be added as tags: 16:9, 1.5:1/)
+      end
+
+      it "still allows removing an existing ratio tag" do
+        post = create(:post)
+        post.update_columns(tag_string: "#{post.tag_string} 16:9")
+        post.reload.update!(tag_string_diff: "-16:9")
+        expect(post.reload.tag_array).not_to include("16:9")
+        expect(post.warnings[:base].join).not_to match(/Aspect ratios/)
+      end
+    end
+
     describe "pre-metatag processing" do
       describe "rating: metatag" do
         it "changes the post rating when 'rating:q' is in the tag_string" do

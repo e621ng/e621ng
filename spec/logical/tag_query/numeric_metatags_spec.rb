@@ -136,10 +136,36 @@ RSpec.describe TagQuery, type: :model do
 
     it "parses a colon-separated ratio (16:9)" do
       tq = TagQuery.new("ratio:16:9")
-      # 16/9 ≈ 1.78
-      value = tq[:ratio].first
-      expect(value.first).to eq(:eq)
-      expect(value[1]).to be_within(0.01).of(1.78)
+      expect(tq[:ratio].first).to eq([:eq, 1.7777778])
+    end
+
+    it "keeps decimal ratio values to 7dp" do
+      expect(TagQuery.new("ratio:1.234567890123")[:ratio].first).to eq([:eq, 1.2345679])
+    end
+  end
+
+  describe "bare ratio tags" do
+    it "searches 16:9 as ratio:16:9" do
+      tq = TagQuery.new("16:9", resolve_aliases: false)
+      expect(tq[:ratio]).to eq([[:eq, 1.7777778]])
+      expect(tq[:tags][:must]).to be_empty
+    end
+
+    it "keeps the - and ~ prefixes" do
+      tq = TagQuery.new("-4:3 ~1.5:1", resolve_aliases: false)
+      expect(tq[:ratio_must_not]).to eq([[:eq, 1.3333333]])
+      expect(tq[:ratio_should]).to eq([[:eq, 1.5]])
+    end
+
+    it "rewrites ratios inside groups" do
+      tq = TagQuery.new("tag_c ( 16:9 tag_a )", resolve_aliases: false, process_groups: true)
+      expect(tq[:groups][:must].first[:ratio]).to eq([[:eq, 1.7777778]])
+    end
+
+    it "leaves other tags with colons alone" do
+      tq = TagQuery.new(":3 16:9_ratio", resolve_aliases: false)
+      expect(tq[:ratio]).to be_nil
+      expect(tq[:tags][:must]).to contain_exactly(":3", "16:9_ratio")
     end
   end
 

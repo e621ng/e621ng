@@ -61,6 +61,9 @@ class TagQuery
 
   COUNT_METATAGS = %w[comment_count].freeze
 
+  # Bare ratios like `16:9` are searched as `ratio:16:9`, and can't be added to posts.
+  RATIO_TAG_REGEX = /\A\d+(?:\.\d+)?:\d+(?:\.\d+)?\z/
+
   # Tags with parsed values of `true` or `false`. See `TagQuery#parse_boolean` for details.
   BOOLEAN_METATAGS = %w[
     hassource hasdescription isparent ischild hasparent haschild haschildren inpool pending_replacements artverified
@@ -1634,6 +1637,11 @@ class TagQuery
 
     if filetype
       add_to_query(type, :filetype, filetype)
+      return true
+    end
+
+    if RATIO_TAG_REGEX.match?(tag)
+      add_to_query(type, :ratio, ParseValue.range(tag, :ratio))
       return true
     end
     nil
