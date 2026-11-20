@@ -61,6 +61,7 @@ module PostSetPresenters
     end
 
     def nav_links_for_scale(template, scale)
+      # rubocop:disable-next Metrics/BlockLength
       template.tag.span(class: "period") do
         prev_link = template.link_to(
           "« prev",
@@ -76,7 +77,7 @@ module PostSetPresenters
         scale_link = template.link_to(
           scale.capitalize,
           template.popular_index_path(date: date, scale: scale),
-          class: "st-button popular-desc"
+          class: "st-button popular-desc",
         )
         next_link = template.link_to(
           "next »",
