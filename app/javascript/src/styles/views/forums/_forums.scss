@@ -17,15 +17,15 @@ body.c-forums {
     justify-content: space-between;
     gap: 1rem;
 
-    h1 { margin: 0; }
-    p { margin: 0.25rem 0 0; color: theme.color("text-muted"); }
+    h1 {
+      margin: 0;
+      line-height: 2rem;
+    }
   }
 
   .forum-heading-text { flex: 1 1 18rem; min-width: 0; }
 
   .forum-heading-tools {
-    flex: 1 1 20rem;
-    max-width: 32rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -49,26 +49,9 @@ body.c-forums {
     white-space: nowrap;
   }
 
-  .forum-chip-form { display: contents; }
-
-  .forum-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.35rem 0.85rem;
-    border-radius: 1rem;
-    border: 1px solid theme.color("section-lighten-10");
-    background: transparent;
-    color: theme.color("link");
-    font: inherit;
-    font-size: 0.9em;
-    cursor: pointer;
-
-    &:hover { background: theme.color("section"); }
-  }
-
   .forum-category {
     background: theme.color("section");
-    border-radius: 0.5rem;
+    border-radius: 0.25rem;
     overflow: hidden;
   }
 

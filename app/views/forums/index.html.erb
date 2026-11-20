@@ -3,10 +3,8 @@
     <div class="forum-heading">
       <div class="forum-heading-text">
         <h1>Forum</h1>
-        <p>Latest activity in each category. Open a category to see every topic.</p>
       </div>
       <div class="forum-heading-tools">
-        <%= render "forum_posts/quick_search" %>
         <% if CurrentUser.is_member? %>
           <%= link_to new_forum_topic_path, class: "st-button submit forum-new-topic" do %>
             <%= svg_icon(:plus, width: 16, height: 16) %> New topic

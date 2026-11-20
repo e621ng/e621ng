@@ -163,6 +163,16 @@
     cursor: not-allowed;
   }
 }
+.st-button.chip {
+  background: transparent;
+  border: 2px solid theme.color("section-lighten-5");
+  font-size: 0.85rem;
+  &:hover,
+  &:active {
+    border-color: theme.color("section-lighten-10");
+    background: theme.color("section-lighten-10");
+  }
+}
 
 
 // Link fixes
