@@ -1796,6 +1796,7 @@ class TagQuery
 
   def pull_wildcard_tags(tag)
     Tag.name_matches(tag)
+       .where("post_count > 0") # Empty tags can't match, but alias antecedents would resolve to their consequent
        .limit(Danbooru.config.tag_query_limit) # .limit(tag_query_limit)
        .order("post_count DESC", "name ASC")
        .pluck(:name)

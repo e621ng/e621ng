@@ -103,6 +103,32 @@ RSpec.describe TagQuery, type: :model do
         tq = TagQuery.new("zzz_no_match_xyz*", resolve_aliases: false)
         expect(tq[:tags][:should]).to include("~~not_found~~")
       end
+
+      it "skips tags with no posts" do
+        create(:tag, name: "wolf_tail", post_count: 0)
+        tq = TagQuery.new("wolf*", resolve_aliases: false)
+        expect(tq[:tags][:should]).to include("wolf_girl", "wolf_ears")
+        expect(tq[:tags][:should]).not_to include("wolf_tail")
+      end
+
+      it "stores the ~~not_found~~ sentinel when all matching tags are empty" do
+        create(:tag, name: "empty_tag_a", post_count: 0)
+        tq = TagQuery.new("empty_tag_*", resolve_aliases: false)
+        expect(tq[:tags][:should]).to eq(["~~not_found~~"])
+      end
+
+      it "does not resolve empty alias antecedents into their consequents" do
+        create(:tag, name: "christmas", post_count: 100)
+        create(:tag, name: "christmas_2024", post_count: 0)
+        create(:tag, name: "pride_2024", post_count: 5)
+        create(:active_tag_alias, antecedent_name: "christmas_2024", consequent_name: "christmas")
+
+        tq = TagQuery.new("*_2024")
+        expect(tq[:tags][:should]).to eq(["pride_2024"])
+
+        tq = TagQuery.new("-*_2024")
+        expect(tq[:tags][:must_not]).to eq(["pride_2024"])
+      end
     end
 
     describe "alias resolution" do
