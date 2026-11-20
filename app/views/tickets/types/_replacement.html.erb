@@ -1,0 +1,9 @@
+<% if @ticket.content %>
+  <div id="c-post-replacements">
+    <div class="replacement-embedded">
+      <%= render(PostReplacementCardComponent.new(post_replacement: @ticket.content, expanded: true, actions: false)) %>
+    </div>
+  </div>
+<% else %>
+  <div class="ticket-display-section"><span class="text-error">Replacement has been deleted</span></div>
+<% end %>

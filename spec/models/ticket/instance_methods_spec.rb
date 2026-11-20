@@ -6,36 +6,86 @@ RSpec.describe Ticket do
   include_context "as member"
 
   # -------------------------------------------------------------------------
-  # #open_duplicates
+  # #open_from_same_user
   # -------------------------------------------------------------------------
-  describe "#open_duplicates" do
-    it "returns other pending tickets for the same qtype and disp_id" do
-      accused = create(:user)
-      ticket_a = create(:ticket, accused_user: accused)
-      ticket_b = create(:ticket, accused_user: accused)
+  describe "#open_from_same_user" do
+    let(:moderator) { create(:moderator_user) }
+    let(:janitor)   { create(:janitor_user) }
 
-      expect(ticket_a.open_duplicates).to include(ticket_b)
+    it "returns the creator's other pending and partial tickets" do
+      ticket = create(:ticket)
+      pending = create(:ticket)
+      partial = create(:ticket)
+      partial.update_columns(status: "partial")
+
+      expect(ticket.open_from_same_user(moderator)).to contain_exactly(pending, partial)
     end
 
     it "excludes the ticket itself" do
       ticket = create(:ticket)
-      expect(ticket.open_duplicates).not_to include(ticket)
+      expect(ticket.open_from_same_user(moderator)).not_to include(ticket)
     end
 
-    it "excludes approved tickets for the same content" do
-      accused = create(:user)
-      ticket_a = create(:ticket, accused_user: accused)
-      approved = create(:ticket, accused_user: accused)
+    it "excludes approved tickets" do
+      ticket = create(:ticket)
+      approved = create(:ticket)
       approved.update_columns(status: "approved")
 
-      expect(ticket_a.open_duplicates).not_to include(approved)
+      expect(ticket.open_from_same_user(moderator)).not_to include(approved)
     end
 
-    it "excludes pending tickets for different content" do
-      ticket_a = create(:ticket)
-      ticket_b = create(:ticket, accused_user: create(:user))
+    it "excludes tickets from other creators" do
+      ticket = create(:ticket)
+      other = CurrentUser.scoped(create(:user)) { create(:ticket) }
 
-      expect(ticket_a.open_duplicates).not_to include(ticket_b)
+      expect(ticket.open_from_same_user(moderator)).not_to include(other)
+    end
+
+    it "excludes tickets the viewer cannot see" do
+      ticket = create(:ticket, :pool_type)
+      user_ticket = create(:ticket)
+      pool_ticket = create(:ticket, :pool_type)
+
+      expect(ticket.open_from_same_user(janitor)).to contain_exactly(pool_ticket)
+      expect(ticket.open_from_same_user(moderator)).to contain_exactly(user_ticket, pool_ticket)
+    end
+  end
+
+  # -------------------------------------------------------------------------
+  # #all_for_same_content
+  # -------------------------------------------------------------------------
+  describe "#all_for_same_content" do
+    let(:moderator) { create(:moderator_user) }
+    let(:janitor)   { create(:janitor_user) }
+
+    it "returns other tickets for the same content regardless of status or creator" do
+      accused = create(:user)
+      ticket = create(:ticket, accused_user: accused)
+      approved = create(:ticket, accused_user: accused)
+      approved.update_columns(status: "approved")
+      other_creator = CurrentUser.scoped(create(:user)) { create(:ticket, accused_user: accused) }
+
+      expect(ticket.all_for_same_content(moderator)).to contain_exactly(approved, other_creator)
+    end
+
+    it "excludes the ticket itself" do
+      ticket = create(:ticket)
+      expect(ticket.all_for_same_content(moderator)).not_to include(ticket)
+    end
+
+    it "excludes tickets for different content" do
+      ticket = create(:ticket)
+      other = create(:ticket, accused_user: create(:user))
+
+      expect(ticket.all_for_same_content(moderator)).not_to include(other)
+    end
+
+    it "excludes tickets the viewer cannot see" do
+      accused = create(:user)
+      ticket = create(:ticket, accused_user: accused)
+      CurrentUser.scoped(create(:user)) { create(:ticket, accused_user: accused) }
+
+      expect(ticket.all_for_same_content(janitor)).to be_empty
     end
   end
 

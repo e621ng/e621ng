@@ -1,6 +1,14 @@
-<% if @ticket.content %>
-    <tr>
-      <td><span class='title'>Reported Wiki Page</span></td>
-      <td><%= link_to(@ticket.content.title, wiki_page_path(id: @ticket.content.id)) %></td>
-    </tr>
+<% if (wiki_page = @ticket.content) %>
+  <div class="ticket-display-section ticket-display-content-header">
+    <%= link_to wiki_page.pretty_title, wiki_page_path(id: wiki_page.id) %>,
+    <%= render "tickets/partials/content_age", content: wiki_page %>
+    <% if wiki_page.is_deleted? %><span class="ticket-display-marker">deleted</span><% end %>
+  </div>
+  <% if !wiki_page.is_deleted? || CurrentUser.is_staff? %>
+    <div class="ticket-display-section ticket-display-content-body dtext-container">
+      <%= format_text(wiki_page.body) %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="ticket-display-section"><span class="text-error">Wiki page has been deleted</span></div>
 <% end %>

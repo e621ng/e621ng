@@ -1,22 +1,129 @@
+@use "colors/palette";
 @use "colors/theme";
 
-#c-tickets #a-show {
-  .ticket-block {
-    background-color: theme.color("section");
-    margin: 0.5rem 0;
-    border-radius: 0.25rem;
-    padding: 0.5rem;
-    width: 100%;
-    box-sizing: border-box;
+#a-show {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+}
 
-    &.unmargined {
-      margin-top: 0;
+$avatar_size: 3rem;
+$info_border: 0.25rem;
+
+.ticket-display {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  max-width: 50rem;
+
+  &-section {
+    background: theme.color("section");
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+  }
+}
+
+.ticket-display-content {
+  display: flex;
+  flex-flow: column;
+  gap: 0.125rem;
+
+  &-header {
+    .ticket-display-marker {
+      margin-left: 0.25rem;
+      padding: 0 0.25rem;
+      border-radius: 0.25rem;
+      background: palette.color("background-red");
+      font-size: 0.875em;
     }
   }
 
-  .ticket-reason {
-    font-weight: bold;
-    display: block;
-    margin: 0.5rem 0.25rem -0.25rem;
+  &-body {
+    max-height: 30rem;
+    overflow-y: auto;
   }
+
+}
+
+.ticket-display-post {
+  width: max-content;
+  --thumb-image-size: 256px;
+}
+
+.ticket-display-user {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  &-avatar { --thumb-image-size: #{$avatar_size}; }
+
+  &-info {
+    display: flex;
+    flex-flow: column;
+    gap: 0.25rem;
+  }
+}
+
+.ticket-display-report {
+  display: grid;
+  grid-template-columns: min-content auto;
+  grid-template-areas: "tdr-avatar tdr-creator"
+                       "tdr-avatar tdr-reason";
+  gap: 0.125rem 0.25rem;
+  max-width: 50rem;
+
+  &-avatar {
+    grid-area: tdr-avatar;
+    --thumb-image-size: #{$avatar_size};
+  }
+
+  &-creator {
+    grid-area: tdr-creator;
+    .ticket-display-report-ip { float: right; }
+  }
+
+  &-reason {
+    grid-area: tdr-reason;
+    position: relative;
+    box-sizing: border-box;
+    overflow: visible;
+  }
+
+  &-reason-label {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    background: palette.color("background-red");
+    font-weight: bold;
+  }
+}
+
+.ticket-display-others {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  border-left: $info_border solid theme.color("dtext-code");
+  margin-left: $avatar_size + $info_border;
+}
+
+.ticket-display-info {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  margin-left: $avatar_size + $info_border;
+
+  border-left: $info_border solid theme.color("dtext-quote");
+}
+
+.ticket-display-claim {
+  padding-bottom: 0.25rem; // Account for kinetic button
+  margin-left: $avatar_size + $info_border;
+}
+
+.ticket-display-avatar-placeholder {
+  width: $avatar_size;
+  height: $avatar_size;
+  background: theme.color("section");
+  border-radius: 0.25rem;
 }
