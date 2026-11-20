@@ -3,12 +3,17 @@
 <% elsif post.loginblocked? %>
   <p>You must be logged in to view this image. <%= link_to "(learn more)", help_page_path(id: "global_blacklist") %></p>
 <% elsif post.safeblocked? -%>
-  <p>This image is unavailable in safe mode (<%= Danbooru.config.app_name %>). Go
-    to <%= link_to("e621", "https://e621.net/posts/#{post.id}") %> or disable safe mode to view
-    (<%= link_to("learn more", help_page_path(id: "user_settings")) -%>).</p>
+  <p>
+    This image is unavailable in safe mode (<%= Danbooru.config.app_name %>). Go to
+    <%= link_to(Danbooru.config.primary_value(:app_name), "https://#{Danbooru.config.primary_value(:hostname)}/posts/#{post.id}") %>
+    or disable safe mode to view.
+  </p>
 <% elsif post.siteblocked? -%>
-  <p>This image is outside the scope of <%= Danbooru.config.app_name %>. Go
-    to <%= link_to(Danbooru.config.primary_value(:app_name), "https://#{Danbooru.config.primary_value(:hostname)}/posts/#{post.id}") %> to view.</p>
+  <p>
+    This image is outside the scope of <%= Danbooru.config.app_name %>. Go to
+    <%= link_to(Danbooru.config.primary_value(:app_name), "https://#{Danbooru.config.primary_value(:hostname)}/posts/#{post.id}") %>
+    to view.
+  </p>
 <% elsif post.is_video? -%>
   <%= render("posts/partials/show/content/embedded/video", post: post) -%>
 <% elsif !post.is_image? -%>
