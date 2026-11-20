@@ -30,7 +30,7 @@ arguments it runs `populate:all`.
    bin/populate posts COUNT=10000 QUERY="score:>150 -rating:e -young"
    ```
 
-3. Optionally add fake activity on top: `bin/populate comments favorites forums`.
+3. Optionally add fake activity on top: `bin/populate comments favorites forums tickets`.
 
 Without the exports, `bin/populate` still works: `populate:all` notices the
 missing posts export and imports its posts through the live API and the upload
@@ -48,9 +48,10 @@ pipeline instead, which takes a few seconds per post.
 | `media` | Media for posts that lack it. | `TIER=placeholder\|fetch`, `COUNT` (1000), `FORCE=1`, `FETCH_THREADS`, `MEDIA_THREADS`, `ORIGINALS=1` |
 | `reindex` | Bulk-indexes posts and post versions into OpenSearch. | `FROM`, `TO` (post ids) |
 | `users`, `comments`, `favorites`, `forums`, `post_votes`, `comment_votes`, `dmails` | Faker data. | `COUNT`, `DISTRIBUTION`; `PASSWORD` for users |
+| `tickets` | Tickets against random local content of every type that has any, about half of them claimed or handled by a moderator. | `COUNT` (50), `DISTRIBUTION`, `TYPES` (comma list of `blip`, `comment`, `dmail`, `forum`, `pool`, `post`, `replacement`, `set`, `user`, `wiki`) |
 | `avatars` | Gives users without an avatar a random post. | `COUNT` |
 | `trends` | Search trend rows. | `DAYS`, `HOURS`, `TAGS` |
-| `all` | Users, posts, avatars, Faker activity and trends in one go. | `USERS`, `POSTS`, `COMMENTS`, `FAVORITES`, `FORUMS`, `POSTVOTES`, `COMVOTES`, `FURIDS`, `DM`, `TRENDS`, `TRENDS_HOURS`, `SOURCE=api` |
+| `all` | Users, posts, avatars, Faker activity and trends in one go. | `USERS`, `POSTS`, `COMMENTS`, `FAVORITES`, `FORUMS`, `POSTVOTES`, `COMVOTES`, `FURIDS`, `DM`, `TICKETS`, `TRENDS`, `TRENDS_HOURS`, `SOURCE=api` |
 
 Every importer is idempotent: running it again inserts nothing new.
 
