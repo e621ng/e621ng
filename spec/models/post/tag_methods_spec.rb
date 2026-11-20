@@ -463,6 +463,27 @@ RSpec.describe Post do
           expect(post.has_sample?).to be false
         end
       end
+
+      describe "playtime tags" do
+        %w[gif png webp].each do |ext|
+          it "adds long_playtime to an animated #{ext} of 30 seconds or more" do
+            post = create(:post, file_ext: ext, is_animated: true, duration: 45)
+            expect(post.tag_array).to include("long_playtime")
+            expect(post.tag_array).not_to include("short_playtime")
+          end
+
+          it "adds short_playtime to an animated #{ext} under 30 seconds" do
+            post = create(:post, file_ext: ext, is_animated: true, duration: 5)
+            expect(post.tag_array).to include("short_playtime")
+            expect(post.tag_array).not_to include("long_playtime")
+          end
+        end
+
+        it "does not add playtime tags to a static png with a duration" do
+          post = create(:post, file_ext: "png", is_animated: false, duration: 5)
+          expect(post.tag_array).not_to include("short_playtime", "long_playtime")
+        end
+      end
     end
 
     describe "apply_casesensitive_metatags" do

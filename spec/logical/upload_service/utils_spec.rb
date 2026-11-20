@@ -194,6 +194,17 @@ RSpec.describe UploadService::Utils do
         expect(upload.duration).to be > 0
       end
 
+      %w[png webp].each do |ext|
+        it "records animation and duration for animated.#{ext}" do
+          file = fixture_tempfile("animated", ext)
+          described_class.process_file(upload, file)
+          expect(upload.is_animated).to be true
+          expect(upload.duration).to be_within(0.01).of(2.0)
+        ensure
+          file.close!
+        end
+      end
+
       it "adds animated_gif and animated tags for animated.gif" do
         file = fixture_tempfile("animated", "gif")
         described_class.process_file(upload, file)

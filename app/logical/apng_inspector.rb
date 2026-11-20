@@ -58,4 +58,54 @@ class ApngInspector
 
     false
   end
+
+  # Total playback time in seconds of one loop, summed from the fcTL frame delays,
+  # or nil if the file isn't a multi-frame APNG or is cut off before IEND.
+  # Seeks past image data without reading it.
+  def self.duration(file_path, chunk_limit: 100_000)
+    File.open(file_path, "rb") do |file| # rubocop:disable Metrics/BlockLength
+      return nil unless file.read(8) == PNG_MAGIC_NUMBER
+
+      header = +""
+      animated = false
+      ended = false
+      frames = 0
+      total = 0r
+
+      chunk_limit.times do
+        break unless file.read(8, header) && header.bytesize == 8
+
+        len = header.unpack1("N")
+        name = header[4, 4]
+        return nil if name =~ /[^A-Za-z]/
+
+        case name
+        when "acTL"
+          return nil unless len == 8
+          data = file.read(8)
+          return nil unless data&.bytesize == 8
+          animated = data.unpack1("N") > 1
+          file.seek(4, IO::SEEK_CUR)
+        when "fcTL"
+          return nil unless len == 26
+          data = file.read(26)
+          return nil unless data&.bytesize == 26
+          delay_num, delay_den = data[20, 4].unpack("nn")
+          # A zero denominator means hundredths of a second.
+          total += Rational(delay_num, delay_den == 0 ? 100 : delay_den)
+          frames += 1
+          file.seek(4, IO::SEEK_CUR)
+        when "IEND"
+          ended = true
+          break
+        else
+          file.seek(len + 4, IO::SEEK_CUR)
+        end
+      end
+
+      ended && animated && frames > 0 ? total.to_f : nil
+    end
+  rescue SystemCallError, IOError
+    nil
+  end
 end

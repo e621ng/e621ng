@@ -94,34 +94,8 @@ module FileMethods
     VipsCommand.animated_gif?(file_path)
   end
 
-  # Returns true if the WebP file is animated, false otherwise.
-  # Fast-ish approach: scans the file header for animation markers (ANIM/ANMF).
-  # See: https://developers.google.com/speed/webp/docs/riff_container#extended
   def is_animated_webp?(file_path)
-    return false unless is_webp?
-
-    File.open(file_path, "rb") do |f|
-      header = f.read(12)
-      # Expect: 'RIFF' <size:LE32> 'WEBP'
-      return false unless header && header.bytesize == 12
-      return false unless header[0, 4] == "RIFF" && header[8, 4] == "WEBP"
-
-      # Iterate over chunks: <FourCC:4><Size:LE32><Payload...> (padded to even length)
-      loop do
-        chunk_header = f.read(8)
-        break false unless chunk_header && chunk_header.bytesize == 8
-
-        # ANIM = animation header, ANMF = animation frame
-        return true if %w[ANIM ANMF].include?(chunk_header[0, 4])
-
-        # Skip payload (+ padding byte if size is odd)
-        chunk_size = chunk_header[4, 4].unpack1("V") # Little-endian uint32
-        skip = chunk_size + (chunk_size.odd? ? 1 : 0)
-        f.seek(skip, IO::SEEK_CUR)
-      end
-    end
-  rescue StandardError => _e
-    false
+    is_webp? && WebpInspector.is_animated?(file_path)
   end
 
   def file_header_to_file_ext(file_path)
@@ -165,12 +139,15 @@ module FileMethods
     @video ||= VideoProbe.new(file_path, file_ext)
   end
 
-  # Pass a precomputed +animated+ (e.g. from #is_animated_file?) to avoid a
-  # redundant GIF frame probe when the caller already knows the answer.
+  # Playback time in seconds for videos and animated images, nil for anything static.
+  # Pass a precomputed +animated+ (e.g. from #is_animated_file?) to skip the animation probe.
   def video_duration(file_path, animated: nil)
-    animated = is_animated_gif?(file_path) if animated.nil?
-    return nil unless is_video? || (is_gif? && animated)
-    video(file_path).duration
+    return video(file_path).duration if is_video?
+    animated = is_animated_file?(file_path) if animated.nil?
+    return nil unless animated
+    return video(file_path).duration if is_gif?
+    return ApngInspector.duration(file_path) if is_png?
+    WebpInspector.duration(file_path) if is_webp?
   end
 
   def is_corrupt_gif?(file_path)
