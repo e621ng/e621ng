@@ -34,13 +34,14 @@ namespace :populate do
       post_votes: [:PostVotes, 100, -> { {} }],
       comment_votes: [:CommentVotes, 100, -> { {} }],
       dmails: [:Dmails, 10, -> { {} }],
+      tickets: [:Tickets, 50, -> { { types: ENV.fetch("TYPES", "").split(",").map(&:strip) } }],
     }
   end
 
   def populate_all_defaults
     {
       "USERS" => 10, "POSTS" => 100, "COMMENTS" => 100, "FAVORITES" => 100, "FORUMS" => 100,
-      "POSTVOTES" => 100, "COMVOTES" => 100, "FURIDS" => 0, "DM" => 0,
+      "POSTVOTES" => 100, "COMVOTES" => 100, "FURIDS" => 0, "DM" => 0, "TICKETS" => 0,
       "TRENDS" => 7, "TRENDS_HOURS" => 48,
     }
   end
@@ -209,6 +210,7 @@ namespace :populate do
     Populate::PostVotes.new(count: counts["POSTVOTES"], users: users, posts: posts, **common).call
     Populate::CommentVotes.new(count: counts["COMVOTES"], users: users, comments: comments, **common).call
     Populate::Dmails.new(count: counts["DM"], **common).call
+    Populate::Tickets.new(count: counts["TICKETS"], **common).call
 
     Populate::SearchTrends.new(days: counts["TRENDS"], hours: counts["TRENDS_HOURS"]).call
   end
