@@ -69,6 +69,17 @@ RSpec.describe ForumsController do
       assert_select "section[data-category-id='#{category.id}'] .forum-category-empty", count: 0
     end
 
+    it "only shows stickied topics when landing_topic_count is 0" do
+      category.update!(landing_topic_count: 0)
+      make_topic(category, title: "Pinned thread", sticky: true)
+      make_topic(category, title: "Regular thread")
+
+      get forums_path
+
+      assert_select "section[data-category-id='#{category.id}'] .forum-topic-item.pinned", count: 1
+      assert_select "section[data-category-id='#{category.id}'] .forum-topic-item:not(.pinned)", count: 0
+    end
+
     it "omits categories the user cannot view" do
       staff_category = create(:forum_category, can_view: UserLevel::ADMIN)
       sign_in_as user
