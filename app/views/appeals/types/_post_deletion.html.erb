@@ -1,0 +1,24 @@
+<% if @appeal.content.present? && @appeal.content.post.present? %>
+  <% @deletion = @appeal.content %>
+  <div class="appeal-display-flag">
+    <div class="appeal-display-section appeal-display-flag-info">
+      [DELETION]
+      <%= format_text(@deletion.reason || "Unknown reason", inline: true) %>
+      - <%= link_to_user(@deletion.deleter) %>
+      - <%= time_ago_in_words_tagged(@deletion.created_at) %>
+    </div>
+  </div>
+
+  <div class="appeal-display-section appeal-display-flag-post">
+    <%= render(PostThumbnailComponent.new(post: @deletion.post, stats: true, show_deleted: true)) %>
+  </div>
+  <%= render partial: "application/blacklist_inline" %>
+<% else %>
+  <div class="appeal-display-flag">
+    <% if @appeal.disp_id < 0 %>
+      The post deleted by flag #<%= -@appeal.disp_id %> has been destroyed.
+    <% else %>
+      Deletion #<%= @appeal.disp_id %> has been destroyed.
+    <% end %>
+  </div>
+<% end %>

@@ -1,0 +1,72 @@
+<div id="c-post-deletions">
+  <div id="a-index">
+    <h1>Deletions</h1>
+    <%= render "search" %>
+    <%= render partial: "application/blacklist_inline" %>
+    <table class="striped">
+      <thead>
+        <tr>
+          <th width="1%">Post</th>
+          <th>Reason</th>
+          <th width="15%">Uploaded</th>
+          <th width="12%">Deleted</th>
+          <th width="15%">Undeleted</th>
+          <th width="15%">Deleter</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% @post_deletions.each do |post_deletion| %>
+          <tr
+            class="deletion-undeleted-<%= post_deletion.is_undeleted? %>"
+            id="post-deletion-<%= post_deletion.id %>"
+            data-post-deletion-id="<%= post_deletion.id %>"
+            data-post-id="<%= post_deletion.post_id %>"
+          >
+            <td>
+              <%= render(PostThumbnailComponent.new(post: post_deletion.post, stats: true, show_deleted: true)) %>
+            </td>
+            <td>
+              <div class="dtext-container">
+                <%= format_text post_deletion.reason %>
+              </div>
+            </td>
+            <td>
+              <%= compact_time post_deletion.post.created_at %>
+              <br> by <%= link_to_user post_deletion.post.uploader %>
+              <%= link_to "»", post_deletions_path(search: @search_params.except(:uploader_id).merge(uploader_name: post_deletion.post.uploader.name)) %>
+            </td>
+            <td>
+              <%= compact_time post_deletion.created_at %>
+            </td>
+            <td>
+              <% if post_deletion.is_undeleted? %>
+                <%= post_deletion.undeleted_at.present? ? compact_time(post_deletion.undeleted_at) : tag.em("unknown") %>
+                <% if post_deletion.undeleter.present? %>
+                  <br> by <%= link_to_user post_deletion.undeleter %>
+                <% end %>
+              <% else %>
+                <em>no</em>
+              <% end %>
+              <%= link_to "»", post_deletions_path(search: @search_params.merge(is_undeleted: post_deletion.is_undeleted?)) %>
+            </td>
+            <td>
+              <%= link_to_user post_deletion.deleter %>
+              <%= link_to "»", post_deletions_path(search: @search_params.except(:deleter_id).merge(deleter_name: post_deletion.deleter.name)) %>
+              <% if CurrentUser.user.is_admin? %>
+                <br> (<%= link_to_ip post_deletion.creator_ip_addr %>)
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <%= render PaginatorComponent.new(records: @post_deletions) %>
+  </div>
+</div>
+
+<%= render "secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Deletions
+<% end %>

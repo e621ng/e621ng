@@ -1,0 +1,9 @@
+<% content_for(:secondary_links) do %>
+  <%= subnav_link_to "Listing", post_deletions_path %>
+  <%= subnav_link_to "Flags", post_flags_path(search: { post_id: params.dig(:search, :post_id) }) %>
+  <%= subnav_link_to "Events", post_events_path(search: { post_id: params.dig(:search, :post_id) }) %>
+  <% if @latest.present? %>
+    <li class="divider"></li>
+    <%= subnav_link_to "Latest", @latest %>
+  <% end %>
+<% end %>

@@ -1,50 +1,69 @@
 <%# locals: (post:) -%>
+<% staff = CurrentUser.user.is_staff? %>
 <ul>
-  <% post.flags.includes(:creator).order(id: :desc).each do |flag| %>
-    <li data-post-flag-id="<%= flag.id %>">
-      <%= flag.is_deletion ? "[DELETION]" : "[FLAG]" %>
-      <%= format_text(flag.reason, inline: true) unless flag.reason.empty? %>
+  <% post.post_deletions.includes(:deleter).order(id: :desc).each do |deletion| %>
+    <% next unless staff || !deletion.is_undeleted? %>
+    <li data-post-deletion-id="<%= deletion.id %>">
+      [DELETION]
+      <%= format_text(deletion.reason, inline: true) unless deletion.reason.empty? %>
 
-      <% if CurrentUser.can_view_flagger_on_post?(flag) %>
-        - <%= link_to_user(flag.creator) %>
-        <% if flag.creator_id == post.uploader_id && !flag.is_deletion %>
-          <%= svg_icon(:octagon_alert, class: "text-inline", title: "Flag created by the current uploader") %>
-        <% end %>
-        <% if CurrentUser.user.is_admin? %>
-          (<%= link_to_ip(flag.creator_ip_addr) %>)
-        <% end %>
+      - <%= link_to_user(deletion.deleter) %>
+      <% if CurrentUser.user.is_admin? %>
+        (<%= link_to_ip(deletion.creator_ip_addr) %>)
       <% end %>
 
-      - <%= time_ago_in_words_tagged(flag.created_at) %>
+      - <%= time_ago_in_words_tagged(deletion.created_at) %>
 
-      <% if flag.is_resolved? %>
-        <span class="resolved">RESOLVED</span>
+      <% if deletion.is_undeleted? %>
+        <span class="resolved">UNDELETED</span>
       <% end %>
 
-      <% if flag.note.present? && flag.can_see_note? %>
-        <div class="post-flag-note">
-          <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
-          <div class="dtext-container post-flag-note-body">
-            <% if CurrentUser.user.is_janitor? %>
-              <%= link_to svg_icon(:trash), clear_note_post_flag_path(flag), method: :post, data: { confirm: "Are you sure you want to clear this note?" }, class: "post-flag-clear-note-link" %>
-            <% end %>
-            <%= format_text flag.note %>
-          </div>
-        </div>
-      <% end %>
-
-      <% if flag.can_appeal?(CurrentUser.user) %>
+      <% if deletion.can_appeal?(CurrentUser.user) %>
         <div class="post-flag-appeal">
-          <%= link_to "Appeal Deletion", new_appeal_path(qtype: "flag", disp_id: flag.id), class: "st-button" %>
+          <%= link_to "Appeal Deletion", new_appeal_path(qtype: "post_deletion", disp_id: deletion.id), class: "st-button" %>
         </div>
-      <% elsif (existing_appeal = flag.user_appeal(CurrentUser.user)).present? %>
+      <% elsif (existing_appeal = deletion.user_appeal(CurrentUser.user)).present? %>
         <div class="post-flag-appeal">
           <%= link_to "View Appeal", appeal_path(existing_appeal), class: "st-button" %>
         </div>
       <% end %>
     </li>
-    <% if post.is_deleted? && flag.is_deletion && !CurrentUser.user.is_staff? %>
-      <% break %>
+  <% end %>
+
+  <% unless post.is_deleted? && !staff %>
+    <% post.flags.includes(:creator).order(id: :desc).each do |flag| %>
+      <li data-post-flag-id="<%= flag.id %>">
+        [FLAG]
+        <%= format_text(flag.reason, inline: true) unless flag.reason.empty? %>
+
+        <% if CurrentUser.can_view_flagger_on_post?(flag) %>
+          - <%= link_to_user(flag.creator) %>
+          <% if flag.creator_id == post.uploader_id %>
+            <%= svg_icon(:octagon_alert, class: "text-inline", title: "Flag created by the current uploader") %>
+          <% end %>
+          <% if CurrentUser.user.is_admin? %>
+            (<%= link_to_ip(flag.creator_ip_addr) %>)
+          <% end %>
+        <% end %>
+
+        - <%= time_ago_in_words_tagged(flag.created_at) %>
+
+        <% if flag.is_resolved? %>
+          <span class="resolved">RESOLVED</span>
+        <% end %>
+
+        <% if flag.note.present? && flag.can_see_note? %>
+          <div class="post-flag-note">
+            <div class="post-flag-note-header"><%= svg_icon(:chevron_right) %> Notes</div>
+            <div class="dtext-container post-flag-note-body">
+              <% if CurrentUser.user.is_janitor? %>
+                <%= link_to svg_icon(:trash), clear_note_post_flag_path(flag), method: :post, data: { confirm: "Are you sure you want to clear this note?" }, class: "post-flag-clear-note-link" %>
+              <% end %>
+              <%= format_text flag.note %>
+            </div>
+          </div>
+        <% end %>
+      </li>
     <% end %>
   <% end %>
 </ul>

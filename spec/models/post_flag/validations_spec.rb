@@ -62,14 +62,6 @@ RSpec.describe PostFlag do
       expect(second).not_to be_valid(:create)
       expect(second.errors[:post]).to be_present
     end
-
-    it "skips throttle and cooldown checks for deletion flags" do
-      member = create(:user)
-      member.no_flagging = true
-      flag = build(:deletion_post_flag, post: post, creator: member)
-      flag.valid?(:create)
-      expect(flag.errors[:creator]).to be_empty
-    end
   end
 
   # -------------------------------------------------------------------------
@@ -127,12 +119,6 @@ RSpec.describe PostFlag do
         expect(flag).not_to be_valid(:create)
         expect(flag.errors[:post]).to include("is already flagged")
       end
-    end
-
-    it "allows deletion flags on an already-flagged post" do
-      flag = build(:deletion_post_flag, post: post.reload)
-      flag.valid?(:create)
-      expect(flag.errors[:post]).not_to include("is already flagged")
     end
 
     it "allows flagging again after the post has been unflagged" do

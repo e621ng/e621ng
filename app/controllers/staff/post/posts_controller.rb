@@ -50,7 +50,17 @@ module Staff
             end
             return
           end
-          @post.delete!(params[:reason])
+          unless @post.delete!(params[:reason])
+            message = @post.errors.full_messages.join("; ")
+            respond_to do |format|
+              format.html do
+                flash[:notice] = message
+                redirect_to(post_path(@post, q: params[:q].presence))
+              end
+              format.json { render json: { reason: message }, status: 422 }
+            end
+            return
+          end
 
           # Transfer data to parent
           if @post.parent_id.present?

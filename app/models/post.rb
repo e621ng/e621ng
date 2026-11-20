@@ -76,6 +76,7 @@ class Post < ApplicationRecord
   belongs_to :parent, class_name: "Post", optional: true
   has_one :upload, dependent: :destroy
   has_many :flags, :class_name => "PostFlag", :dependent => :destroy
+  has_many :post_deletions
   has_many :votes, :class_name => "PostVote", :dependent => :destroy
   has_many :notes, :dependent => :destroy
   has_many :comments, -> { accessible.order("comments.is_sticky DESC, comments.id") }, dependent: :destroy
@@ -1752,6 +1753,11 @@ class Post < ApplicationRecord
         return false
       end
 
+      if is_deleted?
+        self.errors.add(:base, "Post is already deleted")
+        return false
+      end
+
       if reason.blank?
         if pending_flag.blank?
           errors.add(:base, "Cannot delete with given reason when no active flag exists.")
@@ -1764,29 +1770,39 @@ class Post < ApplicationRecord
         reason = pending_flag.reason
       end
 
-      # Capture whether the post held a +1 upload-karma credit *before* the update below clears it.
-      was_credited = !is_pending?
-
-      force_flag = options.fetch(:force, false)
+      was_credited = false
+      completed = false
       Post.with_timeout(30_000) do
         transaction do
-          flag = flags.create(reason: reason, reason_name: 'deletion', is_resolved: false, is_deletion: true, force_flag: force_flag)
-
-          if flag.errors.any?
-            raise PostFlag::Error.new(flag.errors.full_messages.join("; "))
+          # A concurrent deletion would otherwise only surface as a swallowed RecordNotUnique.
+          # Locks by query, as lock! refuses records with unsaved changes.
+          deleted, pending = Post.lock.where(id: id).pick(:is_deleted, :is_pending)
+          if deleted
+            errors.add(:base, "Post is already deleted")
+            raise ActiveRecord::Rollback
           end
 
-          update(
+          # Capture whether the post held a +1 upload-karma credit *before* the update below clears it.
+          was_credited = !pending
+          update!(
             is_deleted: true,
             is_pending: false,
             is_flagged: false
           )
+          post_deletions.create!(
+            deleter_id: CurrentUser.id,
+            creator_ip_addr: CurrentUser.ip_addr,
+            reason: reason,
+          )
           decrement_tag_post_counts
           move_files_on_delete
           delete_avatar_crops
-          PostEvent.add(id, CurrentUser.user, :deleted, { reason: reason })
+          completed = true
         end
+      rescue ActiveRecord::RecordInvalid => e
+        errors.merge!(e.record.errors) unless e.record == self
       end
+      return false unless completed
 
       # XXX This must happen *after* the `is_deleted` flag is set to true (issue #3419).
       # We don't care if these fail per-se so they are outside the transaction.
@@ -1804,6 +1820,7 @@ class Post < ApplicationRecord
       give_favorites_to_parent if options[:move_favorites]
       give_post_sets_to_parent if options[:move_favorites]
       reject_pending_replacements
+      true
     end
 
     def reject_pending_replacements
@@ -1825,16 +1842,33 @@ class Post < ApplicationRecord
         return
       end
 
-      transaction do
-        self.is_deleted = false
-        self.is_pending = false
-        self.approver_id = CurrentUser.id
-        flags.each { |x| x.resolve! }
-        increment_tag_post_counts
-        save
-        approvals.create(user: CurrentUser.user)
-        PostEvent.add(id, CurrentUser.user, :undeleted)
+      completed = false
+      begin
+        transaction do
+          unless Post.lock.where(id: id).pick(:is_deleted)
+            errors.add(:base, "Post is not deleted")
+            raise ActiveRecord::Rollback
+          end
+
+          self.is_deleted = false
+          self.is_pending = false
+          self.approver_id = CurrentUser.id
+          flags.each { |x| x.resolve! }
+          increment_tag_post_counts
+          save!
+          approvals.create(user: CurrentUser.user)
+          if (deletion = current_deletion)
+            deletion.stamp_undeleted!(CurrentUser.user)
+          else
+            PostEvent.add(id, CurrentUser.user, :undeleted)
+          end
+          completed = true
+        end
+      rescue ActiveRecord::RecordInvalid => e
+        errors.merge!(e.record.errors) unless e.record == self
       end
+      return unless completed
+
       move_files_on_undelete
       User.where(avatar_id: id).pluck(:id).each { |uid| UserAvatarUrlCache.invalidate(uid) }
       UserStatus.for_user(uploader_id).update_all("post_deleted_count = post_deleted_count - 1")
@@ -1849,12 +1883,13 @@ class Post < ApplicationRecord
       end
     end
 
-    def deletion_flag
-      flags.unresolved.where(is_deletion: true).order(id: :desc).first
+    def pending_flag
+      flags.unresolved.order(id: :desc).first
     end
 
-    def pending_flag
-      flags.unresolved.where(is_deletion: false).order(id: :desc).first
+    def current_deletion
+      return post_deletions.detect { |deletion| !deletion.is_undeleted? } if post_deletions.loaded?
+      PostDeletion.current_for(self)
     end
 
     def substitute_deletion_dmail_template(text, reason = nil)
@@ -1862,8 +1897,8 @@ class Post < ApplicationRecord
       if reason
         text = text.gsub("%REASON%", reason)
       end
-      if (flag_id = deletion_flag&.id)
-        text = text.gsub("%FLAG_ID%", flag_id.to_s)
+      if (deletion_id = current_deletion&.id)
+        text = text.gsub("%DELETION_ID%", deletion_id.to_s)
       end
       text.gsub("%POST_ID%", id.to_s)
           .gsub("%STAFF_NAME%", CurrentUser.name)
@@ -1872,7 +1907,7 @@ class Post < ApplicationRecord
     end
 
     def deleted_by_takedown?
-      is_deleted? && deletion_flag&.reason.to_s.start_with?("takedown #")
+      is_deleted? && current_deletion&.reason.to_s.start_with?("takedown #")
     end
   end
 

@@ -53,12 +53,6 @@ RSpec.describe PostFlagsController do
       expect(ids).to include(post_flag.id)
     end
 
-    it "filters by type=flag (excludes deletion flags)" do
-      post_flag
-      get post_flags_path(search: { type: "flag" }, format: :json)
-      expect(response.parsed_body).to all(include("type" => "flag"))
-    end
-
     it "accepts the note search param as a janitor without error" do
       sign_in_as janitor
       get post_flags_path(search: { note: "anything" })

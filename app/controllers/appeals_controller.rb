@@ -22,6 +22,13 @@ class AppealsController < ApplicationController
   end
 
   def new
+    # Deletion DMails sent before post_deletions existed link to the deletion flag.
+    if params[:qtype] == "flag"
+      deletion = PostDeletion.find_by(source_post_flag_id: params[:disp_id].to_i)
+      return redirect_to(new_appeal_path(qtype: "post_deletion", disp_id: deletion.id)) if deletion
+      return redirect_to(appeals_path, alert: "This deletion can't be appealed or has already been resolved.")
+    end
+
     @appeal = Appeal.new(qtype: params[:qtype], disp_id: params[:disp_id])
 
     if (existing_appeal = @appeal.find_duplicate_for(CurrentUser.user)).present?
