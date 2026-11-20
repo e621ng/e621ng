@@ -6,9 +6,9 @@
       <%= tag.span(class: "forum-topic-item-marker", title: ("Unread" if unread?)) %>
     <% end %>
     <div class="forum-topic-item-title">
+      <%= link_to topic.title, forum_topic_path(topic), class: "forum-topic-item-link" %>
       <% if topic.is_locked? %><span class="forum-topic-badge">Locked</span><% end %>
       <% if topic.is_hidden? %><span class="forum-topic-badge">Hidden</span><% end %>
-      <%= link_to topic.title, forum_topic_path(topic), class: "forum-topic-item-link" %>
       <% if topic.last_page > 1 %>
         <%= link_to "page #{topic.last_page}", forum_topic_path(topic, page: topic.last_page), class: "forum-topic-item-last-page" %>
       <% end %>
