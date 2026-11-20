@@ -29,6 +29,7 @@
   height: 0.5rem;
   border-radius: 50%;
   transform: translateY(-0.1rem);
+  margin: 0.125rem;
 
   .unread > .forum-topic-item-main > & { background: theme.color("warning"); }
 }
@@ -80,7 +81,18 @@
 
 // Stickies: tinted, pin marker, single-line titles on mobile.
 .forum-topic-item.pinned {
-  background: theme.color("section-darken-5");
+  background: linear-gradient(
+      135deg,
+      transparent 0%,
+      theme.color("section") 100px,
+      theme.color("section") 100%
+    ), repeating-linear-gradient(
+      -55deg,
+      theme.color("section"),
+      theme.color("section") 10px,
+      theme.color("section-darken-5") 10px,
+      theme.color("section-darken-5") 20px
+    );
 
   .forum-topic-item-pin {
     flex: none;

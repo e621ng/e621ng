@@ -59,14 +59,14 @@ body.c-forums {
     display: flex;
     align-items: center;
     gap: 0.85rem;
-    padding: 1rem 1.1rem;
+    padding: 0.5rem;
     background: theme.color("section-lighten-5");
   }
 
   .forum-category-accent {
     flex: none;
     align-self: stretch;
-    width: 0.6rem;
+    width: 0.5rem;
     min-height: 1.75rem;
     border-radius: 0.25rem;
     background: var(--forum-accent, #{theme.color("text-muted")});
