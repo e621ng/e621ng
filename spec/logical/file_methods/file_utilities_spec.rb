@@ -147,6 +147,26 @@ RSpec.describe FileMethods, type: :model do
       end
     end
 
+    { "png" => "animated.png", "webp" => "animated.webp" }.each do |file_ext, fixture_name|
+      context "with an animated #{file_ext.upcase}" do
+        it "returns the summed frame delays" do
+          upload = build(:upload, file_ext: file_ext)
+          path = file_fixture(fixture_name).to_s
+          expect(upload.video_duration(path)).to be_within(0.01).of(2.0)
+        end
+      end
+    end
+
+    { "png" => "sample.png", "webp" => "sample.webp" }.each do |file_ext, fixture_name|
+      context "with a static #{file_ext.upcase}" do
+        it "returns nil" do
+          upload = build(:upload, file_ext: file_ext)
+          path = file_fixture(fixture_name).to_s
+          expect(upload.video_duration(path)).to be_nil
+        end
+      end
+    end
+
     context "with a static image" do
       it "returns nil" do
         upload = build(:upload, file_ext: "jpg")

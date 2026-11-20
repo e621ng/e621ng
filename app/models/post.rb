@@ -873,8 +873,9 @@ class Post < ApplicationRecord
       tags << "animated_png" if is_png? && is_animated?
       tags << "animated_webp" if is_webp? && is_animated?
 
-      tags << "long_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration >= 30
-      tags << "short_playtime" if duration.present? && (is_video? || tags.include?("animated_gif")) && duration < 30
+      playable = duration.present? && (is_video? || tags.intersect?(%w[animated_gif animated_png animated_webp]))
+      tags << "long_playtime" if playable && duration >= 30
+      tags << "short_playtime" if playable && duration < 30
 
       tags
     end
