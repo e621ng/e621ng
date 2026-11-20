@@ -23,11 +23,11 @@ class RateLimiter
 
   # Check-then-count in one call, for sites where every attempt counts.
   # Returns true if the caller should reject the request; otherwise records
-  # the hit and returns false.
-  def self.throttle!(key, limit:, period:, lockout: nil)
+  # the hit and returns false. +amount+ weights attempts that cost more.
+  def self.throttle!(key, limit:, period:, lockout: nil, amount: 1)
     limiter = new(key, limit: limit, period: period, lockout: lockout)
     return true if limiter.throttled?
-    limiter.hit!
+    limiter.hit!(amount)
     false
   end
 
@@ -45,10 +45,10 @@ class RateLimiter
   end
 
   # Returns the count within the current window. Exactly one concurrent hit
-  # observes count == limit, so the lockout is written once per window.
-  def hit!
-    count = Cache.increment(@key, expires_in: period).to_i
-    Cache.write(lockout_key, true, expires_in: lockout) if lockout && count == limit
+  # crosses the limit, so the lockout is written once per window.
+  def hit!(amount = 1)
+    count = Cache.increment(@key, amount, expires_in: period).to_i
+    Cache.write(lockout_key, true, expires_in: lockout) if lockout && count >= limit && count - amount < limit
     count
   end
 

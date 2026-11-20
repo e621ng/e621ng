@@ -7,6 +7,18 @@ class RelatedTagCalculator
     convert_hash_to_array(calculate_from_sample(tags, Danbooru.config.post_sample_size, category_constraint))
   end
 
+  # The sample is random anyway, so an hour-old answer is as good as a fresh one.
+  # Empty results aren't cached: a timed-out sample also comes back empty.
+  def self.cached_sample_to_array(tags, category_constraint)
+    key = "rtc:#{category_constraint.to_i}:#{tags}"
+    cached = Cache.fetch(key)
+    return cached if cached
+
+    result = calculate_from_sample_to_array(tags, category_constraint)
+    Cache.write(key, result, expires_in: 1.hour) if result.present?
+    result
+  end
+
   def self.calculate_from_posts_to_array(posts)
     convert_hash_to_array(calculate_from_posts(posts))
   end

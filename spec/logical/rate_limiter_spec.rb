@@ -21,6 +21,11 @@ RSpec.describe RateLimiter do
       expect(limiter.hit!).to eq(2)
     end
 
+    it "adds a weighted amount" do
+      expect(limiter.hit!(2)).to eq(2)
+      expect(limiter.hit!(5)).to eq(7)
+    end
+
     it "does not extend the window (fixed window, not rolling)" do
       limiter.hit!
       travel 50.seconds
@@ -66,6 +71,12 @@ RSpec.describe RateLimiter do
       expect(limiter).not_to be_throttled
     end
 
+    it "starts when a weighted hit jumps past the limit" do
+      limiter.hit!(5)
+      travel 61.seconds
+      expect(limiter).to be_throttled
+    end
+
     it "is not extended by hits made during the lockout" do
       2.times { limiter.hit! }
       travel 5.minutes
@@ -86,6 +97,12 @@ RSpec.describe RateLimiter do
       3.times { described_class.throttle!("spec", limit: 2, period: 1.minute) }
       travel 61.seconds
       expect(described_class.throttle!("spec", limit: 2, period: 1.minute)).to be(false)
+    end
+
+    it "weights attempts by amount" do
+      expect(described_class.throttle!("spec", limit: 10, period: 1.minute, amount: 6)).to be(false)
+      expect(described_class.throttle!("spec", limit: 10, period: 1.minute, amount: 6)).to be(false)
+      expect(described_class.throttle!("spec", limit: 10, period: 1.minute, amount: 1)).to be(true)
     end
   end
 
