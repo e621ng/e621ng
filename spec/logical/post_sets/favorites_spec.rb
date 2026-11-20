@@ -10,7 +10,6 @@ RSpec.describe PostSets::Favorites do
   let!(:other_post) { create(:post, tag_string: "dragon solo", rating: "e") }
 
   before do
-    CurrentUser.safe_mode = false # not reset between examples
     FavoriteManager.add!(user: user, post: other_post)
     FavoriteManager.add!(user: user, post: pony_post)
     # The count comes from OpenSearch; the listing is SQL
