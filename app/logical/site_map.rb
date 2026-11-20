@@ -230,7 +230,8 @@ module SiteMap
 
   # --- Forum ---
   group :forum, "Forum"
-  page :forum, :forum_topics, "Listing"
+  page :forum, :forums, "Index"
+  page :forum, :forum_topics, "All topics"
   page :forum, :forum_categories, "Categories", level: UserLevel::ADMIN
   page :forum, :help_page, "Help", params: { id: "forum" }
 

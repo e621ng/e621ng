@@ -123,6 +123,24 @@ class ForumTopic < ApplicationRecord
       q
     end
 
+    # Latest non-sticky topics per category, each capped at its own landing_topic_count.
+    # One query regardless of the number of categories (doc 46).
+    def latest_per_category(category_ids, user)
+      return none if category_ids.blank?
+
+      inner = unscoped.where("forum_topics.category_id = c.id")
+                      .where(is_sticky: false)
+                      .order(last_bumped_at: :desc)
+      # Must match the hidden-topic rule in .visible
+      inner = inner.where("forum_topics.is_hidden = FALSE OR forum_topics.creator_id = ?", user.id) unless user.is_staff?
+
+      # Rails' #limit only takes integers; the per-row limit has to be spliced in.
+      unscoped.from("forum_categories c CROSS JOIN LATERAL (#{inner.to_sql} LIMIT c.landing_topic_count) forum_topics")
+              .where("c.id IN (?)", category_ids)
+              .where("c.landing_topic_count > 0")
+              .order(Arel.sql("c.cat_order, forum_topics.last_bumped_at DESC"))
+    end
+
     def sticky_first
       order(is_sticky: :desc, last_bumped_at: :desc)
     end

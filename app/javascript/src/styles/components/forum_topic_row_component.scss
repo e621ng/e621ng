@@ -1,0 +1,98 @@
+@use "colors/theme";
+@use "base/breakpoints";
+
+// Topic rows on /forums, rendered by ForumTopicRowComponent.
+// Title and meta blocks sit side by side on wide screens and wrap on narrow ones.
+
+.forum-topic-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid theme.color("foreground");
+
+  &[data-topic-is-hidden="true"] { opacity: 0.6; }
+}
+
+.forum-topic-item-main {
+  flex: 999 1 20rem;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.forum-topic-item-marker {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  transform: translateY(-0.1rem);
+
+  .unread > .forum-topic-item-main > & { background: theme.color("warning"); }
+}
+
+.forum-topic-item-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.forum-topic-item-link {
+  color: theme.color("text");
+  .unread & { font-weight: bold; }
+}
+
+.forum-topic-item-last-page {
+  margin-left: 0.25rem;
+  font-size: 0.85em;
+  color: theme.color("link-last-page");
+}
+
+.forum-topic-badge {
+  display: inline-block;
+  margin-right: 0.5rem;
+  padding: 0 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.8em;
+  background: theme.color("section-lighten-10");
+  color: theme.color("text-muted");
+}
+
+.forum-topic-item-meta {
+  flex: 1 1 14rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-left: 1.1rem;
+  font-size: 0.85em;
+  color: theme.color("text-muted");
+}
+
+.forum-topic-item-replies {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.forum-topic-item-activity { white-space: nowrap; }
+
+// Stickies: tinted, pin marker, single-line titles on mobile.
+.forum-topic-item.pinned {
+  background: theme.color("section-darken-5");
+
+  .forum-topic-item-pin {
+    flex: none;
+    align-self: center;
+    color: theme.color("warning");
+  }
+
+  @include breakpoints.mobile {
+    .forum-topic-item-title {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+}

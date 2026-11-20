@@ -895,7 +895,9 @@ CREATE TABLE public.forum_categories (
     cat_order integer,
     can_view integer DEFAULT 20 NOT NULL,
     can_create integer DEFAULT 20 NOT NULL,
-    can_reply integer DEFAULT 20 NOT NULL
+    can_reply integer DEFAULT 20 NOT NULL,
+    color character varying,
+    landing_topic_count integer DEFAULT 5 NOT NULL
 );
 
 
@@ -5251,6 +5253,13 @@ CREATE INDEX index_forum_topic_visits_on_user_id ON public.forum_topic_visits US
 
 
 --
+-- Name: index_forum_topics_on_category_sticky_bumped; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_forum_topics_on_category_sticky_bumped ON public.forum_topics USING btree (category_id, is_sticky, last_bumped_at);
+
+
+--
 -- Name: index_forum_topics_on_creator_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -6820,6 +6829,8 @@ ALTER TABLE ONLY public.oauth_access_tokens
 SET search_path TO "$user", public;
 
 INSERT INTO "schema_migrations" (version) VALUES
+('20261120180646'),
+('20261120180642'),
 ('20261117142430'),
 ('20261115234800'),
 ('20261112141709'),

@@ -217,9 +217,6 @@ module ApplicationHelper
     when "blips"
       /^\/blips/
 
-    when "forum_posts"
-      /^\/forum_topics/
-
     when "comments"
       /^\/comments/
 
@@ -244,8 +241,8 @@ module ApplicationHelper
     when "wiki_pages", "wiki_page_versions"
       /^\/wiki_pages/
 
-    when "forum_topics", "forum_posts"
-      /^\/forum_topics/
+    when "forums", "forum_topics", "forum_posts"
+      /^\/forum(s|_topics)/
 
     when "help"
       /^\/help/

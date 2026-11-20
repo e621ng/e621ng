@@ -1,0 +1,39 @@
+<div id="c-forums">
+  <div id="a-index">
+    <div class="forum-heading">
+      <div class="forum-heading-text">
+        <h1>Forum</h1>
+        <p>Latest activity in each category. Open a category to see every topic.</p>
+      </div>
+      <div class="forum-heading-tools">
+        <%= render "forum_posts/quick_search" %>
+        <% if CurrentUser.is_member? %>
+          <%= link_to new_forum_topic_path, class: "st-button submit forum-new-topic" do %>
+            <%= svg_icon(:plus, width: 16, height: 16) %> New topic
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <%= render "actions" %>
+
+    <% @categories.each do |category| %>
+      <% stickies = @stickies.fetch(category.id, []) %>
+      <% topics = @topics.fetch(category.id, []) %>
+      <section class="forum-category" data-category-id="<%= category.id %>">
+        <%= render "category_header", category: category, link: true %>
+        <%= render ForumTopicRowComponent.with_collection(stickies, pinned: true) %>
+        <%= render ForumTopicRowComponent.with_collection(topics) %>
+        <% if category.landing_topic_count > 0 && stickies.empty? && topics.empty? %>
+          <p class="forum-category-empty">No topics yet.</p>
+        <% end %>
+      </section>
+    <% end %>
+  </div>
+</div>
+
+<%= render "forum_topics/secondary_links" %>
+
+<% content_for(:page_title) do %>
+  Forum
+<% end %>

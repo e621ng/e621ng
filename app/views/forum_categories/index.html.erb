@@ -9,6 +9,8 @@
         <%= f.input :can_reply, collection: @user_levels, include_blank: false %>
         <%= f.input :can_view, collection: @user_levels, include_blank: false %>
         <%= f.input :cat_order, label: "Order" %>
+        <%= f.input :color, label: "Accent color", hint: "Hex color like #1f4f8f, shown on the forum index. Blank for the theme default." %>
+        <%= f.input :landing_topic_count, label: "Topics on forum index", hint: "0–25. 0 shows only the category header." %>
         <%= f.button :submit, "Create" %>
       <% end %>
     </div>
@@ -23,6 +25,8 @@
           <%= f.input :can_reply, collection: @user_levels, selected: fp.can_reply %>
           <%= f.input :can_view, collection: @user_levels, selected: fp.can_view %>
           <%= f.input :cat_order, label: "Order" %>
+          <%= f.input :color, label: "Accent color", hint: "Hex color like #1f4f8f, shown on the forum index. Blank for the theme default." %>
+          <%= f.input :landing_topic_count, label: "Topics on forum index", hint: "0–25. 0 shows only the category header." %>
           <%= f.button :submit, "Update" %>
         <% end %>
       </div>

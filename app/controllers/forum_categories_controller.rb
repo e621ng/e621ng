@@ -48,6 +48,6 @@ class ForumCategoriesController < ApplicationController
   private
 
   def category_params
-    params.require(:forum_category).permit([:name, :description, :can_create, :can_reply, :can_view, :cat_order])
+    params.require(:forum_category).permit([:name, :description, :can_create, :can_reply, :can_view, :cat_order, :color, :landing_topic_count])
   end
 end

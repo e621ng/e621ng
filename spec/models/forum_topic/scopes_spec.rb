@@ -124,4 +124,82 @@ RSpec.describe ForumTopic do
       expect(ids.index(newer_sticky.id)).to be < ids.index(older_sticky.id)
     end
   end
+
+  # -------------------------------------------------------------------------
+  # .latest_per_category
+  # -------------------------------------------------------------------------
+  describe ".latest_per_category" do
+    let(:busy)  { create(:forum_category, landing_topic_count: 3) }
+    let(:quiet) { create(:forum_category, landing_topic_count: 1) }
+
+    def bumped_topic(category, hours_ago, **attrs)
+      topic = make_topic(category_id: category.id)
+      topic.update_columns(last_bumped_at: hours_ago.hours.ago, **attrs)
+      topic
+    end
+
+    it "returns each category's newest topics, up to its own landing_topic_count" do
+      busy_topics = [1, 2, 3, 4].map { |h| bumped_topic(busy, h) }
+      quiet_topics = [1, 2].map { |h| bumped_topic(quiet, h) }
+
+      result = described_class.latest_per_category([busy.id, quiet.id], member).group_by(&:category_id)
+
+      expect(result[busy.id].map(&:id)).to eq(busy_topics.first(3).map(&:id))
+      expect(result[quiet.id].map(&:id)).to eq([quiet_topics.first.id])
+    end
+
+    it "excludes stickies" do
+      sticky = bumped_topic(busy, 1, is_sticky: true)
+      normal = bumped_topic(busy, 2)
+
+      expect(described_class.latest_per_category([busy.id], member)).to eq([normal])
+      expect(described_class.latest_per_category([busy.id], member)).not_to include(sticky)
+    end
+
+    it "skips categories with a landing_topic_count of 0" do
+      busy.update_columns(landing_topic_count: 0)
+      bumped_topic(busy, 1)
+
+      expect(described_class.latest_per_category([busy.id], member)).to be_empty
+    end
+
+    it "only covers the given categories" do
+      bumped_topic(busy, 1)
+      topic = bumped_topic(quiet, 1)
+
+      expect(described_class.latest_per_category([quiet.id], member)).to eq([topic])
+    end
+
+    it "returns nothing for no categories" do
+      expect(described_class.latest_per_category([], member)).to be_empty
+    end
+
+    it "orders by category order, then newest first" do
+      busy.update_columns(cat_order: 2)
+      quiet.update_columns(cat_order: 1)
+      busy_topic = bumped_topic(busy, 1)
+      quiet_topic = bumped_topic(quiet, 2)
+
+      expect(described_class.latest_per_category([busy.id, quiet.id], member)).to eq([quiet_topic, busy_topic])
+    end
+
+    describe "hidden topics" do
+      let!(:hidden) { bumped_topic(busy, 1, is_hidden: true, creator_id: other.id) }
+
+      it "are excluded for other members, matching .visible" do
+        expect(described_class.latest_per_category([busy.id], member)).not_to include(hidden)
+        expect(described_class.visible(member)).not_to include(hidden)
+      end
+
+      it "are included for their creator, matching .visible" do
+        expect(described_class.latest_per_category([busy.id], other)).to include(hidden)
+        expect(described_class.visible(other)).to include(hidden)
+      end
+
+      it "are included for staff, matching .visible" do
+        expect(described_class.latest_per_category([busy.id], moderator)).to include(hidden)
+        expect(described_class.visible(moderator)).to include(hidden)
+      end
+    end
+  end
 end

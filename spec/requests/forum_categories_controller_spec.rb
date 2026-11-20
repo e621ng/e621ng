@@ -111,6 +111,11 @@ RSpec.describe ForumCategoriesController do
         expect(flash[:notice]).to eq("Category updated")
       end
 
+      it "updates the landing page settings" do
+        patch forum_category_path(category), params: { forum_category: { color: "#1f4f8f", landing_topic_count: 12 } }
+        expect(category.reload).to have_attributes(color: "#1f4f8f", landing_topic_count: 12)
+      end
+
       it "logs a forum_category_update ModAction" do
         patch forum_category_path(category), params: update_params
         expect(ModAction.last.action).to eq("forum_category_update")
