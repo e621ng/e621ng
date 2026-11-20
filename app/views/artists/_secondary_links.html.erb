@@ -11,7 +11,7 @@
   <% if @artist && !@artist.new_record? %>
     <li class="divider"></li>
     <%= subnav_link_to "Posts (#{@artist.tag.try(:post_count).to_i})", posts_path(tags: @artist.name) %>
-    <%= subnav_link_to "Show", short_artist_path(@artist.name) %>
+    <%= subnav_link_to "Show", short_artist_path(@artist.name, redirect: "no") %>
     <% if @artist.editable_by?(CurrentUser.user) %>
       <%= subnav_link_to "Edit", edit_artist_path(@artist), data: { hotkey: "edit" } %>
     <% end %>

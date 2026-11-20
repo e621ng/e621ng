@@ -12,9 +12,9 @@
         <% @artists.each do |artist| %>
           <%= tag.tr(id: "artist-#{artist.id}") do %>
             <td>
-              <%= link_to h(artist.name), short_artist_path(artist.name) %>
+              <%= link_to h(artist.name), short_artist_path(artist.name, redirect: "no") %>
               <% if !artist.group_name.blank? %>
-                (group: <%= link_to(artist.group_name, short_artist_path(artist.name)) %>)
+                (group: <%= link_to(artist.group_name, short_artist_path(artist.name, redirect: "no")) %>)
               <% end %>
             </td>
             <td><%= artist.other_names_string %></td>

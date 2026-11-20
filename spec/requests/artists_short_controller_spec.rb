@@ -121,18 +121,61 @@ RSpec.describe ArtistsShortController do
 
       it "redirects the antecedent to the consequent" do
         get short_artist_path("old_name")
-        expect(response).to redirect_to(short_artist_path(artist.name))
+        expect(response).to redirect_to(short_artist_path(artist.name, from: "old_name"))
       end
 
       it "redirects even when an antecedent artist still exists" do
         create(:artist, name: "old_name")
         get short_artist_path("old_name")
-        expect(response).to redirect_to(short_artist_path(artist.name))
+        expect(response).to redirect_to(short_artist_path(artist.name, from: "old_name"))
       end
 
       it "redirects non-normalized antecedents straight to the consequent" do
         get short_artist_path("Old Name")
-        expect(response).to redirect_to(short_artist_path(artist.name))
+        expect(response).to redirect_to(short_artist_path(artist.name, from: "old_name"))
+      end
+
+      it "notes where the visitor was redirected from" do
+        get short_artist_path(artist.name, from: "old_name")
+        expect(response.body).to include("Redirected from")
+      end
+
+      it "ignores a from param that is not aliased here" do
+        get short_artist_path(artist.name, from: "unrelated")
+        expect(response.body).not_to include("Redirected from")
+      end
+
+      it "does not list leftover entries when there are none" do
+        get short_artist_path(artist.name)
+        expect(response.body).not_to include("Artist entries still exist")
+      end
+
+      context "with a leftover antecedent artist" do
+        before { create(:artist, name: "old_name") }
+
+        it "renders the leftover with redirect=no" do
+          get short_artist_path("old_name", redirect: "no")
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("Artist - old_name")
+          expect(response.body).to include("This artist entry was left behind")
+          expect(response.body).to include('content="noindex"')
+        end
+
+        it "keeps redirect=no when normalizing the name" do
+          get short_artist_path("Old Name", redirect: "no")
+          expect(response).to redirect_to(short_artist_path("old_name", redirect: "no"))
+        end
+
+        it "lists the leftover on the consequent's page" do
+          get short_artist_path(artist.name)
+          expect(response.body).to include("Artist entries still exist")
+          expect(response.body).to include(short_artist_path("old_name", redirect: "no"))
+        end
+      end
+
+      it "still redirects with redirect=no when no antecedent artist exists" do
+        get short_artist_path("old_name", redirect: "no")
+        expect(response).to redirect_to(short_artist_path(artist.name, from: "old_name"))
       end
     end
 
