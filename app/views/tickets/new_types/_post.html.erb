@@ -1,9 +1,9 @@
-<h2>Post Report</h2>
+<h3 class="ticket-new-title">You are reporting the following post:</h3>
 <% @post = @ticket.content %>
 
 <div class="report-card">
   <div class="report-card-left">
-    <%= render(PostThumbnailComponent.new(post: @post, stats: true, show_deleted: true, no_blacklist: true)) %>
+    <%= render "tickets/partials/reported_content" %>
   </div>
   <div class="report-card-right">
     <p>

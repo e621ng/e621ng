@@ -2,123 +2,147 @@
 @use "colors/theme";
 @use "base/breakpoints";
 
-#c-tickets #a-new {
-  h2 {
-    margin-bottom: 1rem;
+.ticket-new-form {
+  background: none;
+
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  max-width: 50rem;
+
+  #ticket_submit {
+    width: min-content;
   }
+}
+
+.ticket-new-content {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+}
+
+.ticket-new-title {
+  margin: 0;
+}
+
+.ticket-new-reason {
+  background: theme.color("section");
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+
+  div.input { margin-bottom: 0; }
+}
+
+.ticket-new-note {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.ticket-new-badge-title {
+  line-height: 1.25rem;
+  b {
+    background: palette.color("background-red");
+    border-radius: 0.25rem;
+    padding: 0.125rem 0.25rem;
+  }
+}
+
+.ticket-new-duplicate,
+.ticket-new-warning {
+  display: flex;
+  flex-flow: column;
+  gap: 0.5rem;
+  background: theme.color("section");
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+
+  ul {
+    list-style: disc;
+    margin-left: 1.2em;
+  }
+}
+
+.ticket-new-warning-alert {
+  flex-flow: row;
+  align-items: center;
+
+  svg {
+    flex-shrink: 0;
+    color: palette.color("text-red");
+  }
+}
 
 
-  // Generic
-  .section {
-    max-width: 80em;
+// Error messages
+.ticket-new-errors {
+  display: flex;
+  flex-flow: column;
+  gap: 0.125rem;
+
+  span {
+    background-color: palette.color("background-red");
+    color: palette.color("text-white");
+    padding: 0.25rem;
+
+    &:first-child { border-radius: 0.25rem 0.25rem 0 0; }
+    &:last-child { border-radius: 0 0 0.25rem 0.25rem; }
   }
-  
-  form.simple_form {
-    background-color: transparent;
+}
+
+
+// Post reports
+.report-card {
+  display: flex;
+  flex-flow: column;
+  gap: 1rem;
+
+  @include breakpoints.desktop {
+    flex-flow: row;
+  }
+}
+
+.report-reason {
+  display: flex;
+  flex-flow: column;
+  gap: 0.125rem;
+
+  label {
+    font-weight: unset;
+    white-space: unset;
+    display: flex;
+    background-color: theme.color("section");
+    padding: 0.5rem;
+    gap: 0.5rem;
+    cursor: pointer;
+
+    &:first-child { border-radius: 0.25rem 0.25rem 0 0; }
+    &:last-child { border-radius: 0 0 0.25rem 0.25rem; }
+    &:hover { background-color: theme.color("section-lighten-10"); }
+    &.selected { background-color: theme.color("section-lighten-5"); }
   }
 
-  .ticket-warning {
+  input[type="radio"] {
     display: block;
-    background: theme.color("section-lighten-5");
-    border-radius: 0.25rem;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-  
-    ul {
-      list-style: disc;
-      margin: 0.5em 1.2em;
-    }
+    margin: 0.5rem;
   }
-
-  .ticket-extra-warning {
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-
-    background: theme.color("section-lighten-5");
-    border-radius: 0.25rem;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    margin-top: 1rem;
-
-    svg { color: palette.color("text-red"); }
-  }
-
-  
-  // Error messages
-  .report-errors {
+  &-description {
     display: flex;
     flex-flow: column;
-    gap: 0.125rem;
-    margin-bottom: 1rem;
-
-    span {
-      background-color: palette.color("background-red");
-      color: palette.color("text-white");
-      padding: 0.25rem;
-
-      &:first-child { border-radius: 0.25rem 0.25rem 0 0; }
-      &:last-child { border-radius: 0 0 0.25rem 0.25rem; }
-    }
   }
+}
 
+// Redirects to other pages
+.report-unusual {
+  background: theme.color("section");
+  border-radius: 0.25rem;
+  padding: 1rem;
 
-  // Post reports
-  .report-card {
+  .report-unusual-buttons {
     display: flex;
-    flex-flow: column;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 0.5rem;
 
-    @include breakpoints.desktop {
-      flex-flow: row;
-    }
-  }
-
-  .report-reason {
-    display: flex;
-    flex-flow: column;
-    gap: 0.125rem;
-    margin-bottom: 1rem;
-
-    label {
-      font-weight: unset;
-      white-space: unset;
-      display: flex;
-      background-color: theme.color("section");
-      padding: 0.5rem;
-      gap: 0.5rem;
-      cursor: pointer;
-
-      &:first-child { border-radius: 0.25rem 0.25rem 0 0; }
-      &:last-child { border-radius: 0 0 0.25rem 0.25rem; }
-      &:hover { background-color: theme.color("section-lighten-10"); }
-      &.selected { background-color: theme.color("section-lighten-5"); }
-    }
-
-    input[type="radio"] {
-      display: block;
-      margin: 0.5rem;
-    }
-    &-description {
-      display: flex;
-      flex-flow: column;
-    }
-  }
-
-  // Redirects to other pages
-  .report-unusual {
-    background: theme.color("section");
-    border-radius: 0.25rem;
-    padding: 1rem;
-
-    .report-unusual-buttons {
-      display: flex;
-      gap: 0.5rem;
-
-      a {
-        min-width: 6rem;
-      }
+    a {
+      min-width: 6rem;
     }
   }
 }

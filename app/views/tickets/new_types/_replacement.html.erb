@@ -1,6 +1,2 @@
-<div id="c-post-replacements">
-You are reporting the following replacement: 
-  <div class="replacement-embedded">
-    <%= render(PostReplacementCardComponent.new(post_replacement: @ticket.content, expanded: true, actions: false)) %>
-  </div>
-</div>
+<h3 class="ticket-new-title">You are reporting the following replacement:</h3>
+<%= render "tickets/partials/reported_content" %>

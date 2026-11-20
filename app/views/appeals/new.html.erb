@@ -24,7 +24,7 @@
         <%= f.hidden_field :qtype %>
 
         <% if @appeal.errors.any? %>
-          <div class="section report-errors">
+          <div class="section appeal-errors">
             <% @appeal.errors.full_messages.each do |error| %>
               <span><%= error %></span>
             <% end %>
@@ -32,7 +32,7 @@
         <% end %>
 
         <div class="section appeal-reason" id="report-reason-input">
-          <span class="ticket-warning">
+          <span class="appeal-note">
             <strong>Note:</strong> Abuse of this system will lead to disciplinary action
           </span>
 

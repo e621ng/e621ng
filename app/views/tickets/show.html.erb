@@ -5,9 +5,7 @@
       <h3><%= @ticket.type_title %> Ticket</h3>
     </div>
 
-    <div class="ticket-display-content ticket-display-content-<%= @ticket.qtype %>">
-      <%= render partial: "tickets/types/#{@ticket.qtype}" %>
-    </div>
+    <%= render "tickets/partials/reported_content" %>
 
     <div class="ticket-display-report">
       <div class="ticket-display-report-avatar">

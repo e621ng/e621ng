@@ -1,7 +1,7 @@
 <div id="c-tickets">
   <div id="a-new">
 
-    <%= custom_form_for(@ticket) do |f| %>
+    <%= custom_form_for(@ticket, html: { class: "ticket-new-form" }) do |f| %>
       <% @found_item = true %>
       <% if @ticket.qtype.nil? %>
         <% @found_item = false %>
@@ -17,7 +17,7 @@
         </div>
       <% else %>
         <% if @ticket.content %>
-          <div class="section">
+          <div class="ticket-new-content">
             <%= render partial: "tickets/new_types/#{@ticket.qtype}" %>
           </div>
         <% else %>
@@ -31,26 +31,26 @@
         <%= f.hidden_field :qtype %>
 
         <% if @ticket.errors.any? %>
-          <div class="section report-errors">
+          <div class="section ticket-new-errors">
             <% @ticket.errors.full_messages.each do |error| %>
               <span><%= error %></span>
             <% end %>
           </div>
         <% end %>
 
-        <div class="section" id="report-reason-input">
-          <span class="ticket-warning">
+        <div class="section ticket-new-reason" id="report-reason-input">
+          <span class="ticket-new-note">
             <strong>Note:</strong> Abuse of this system will lead to disciplinary action
           </span>
 
           <%= f.input :reason, as: :dtext, limit: Danbooru.config.ticket_max_size %>
-
         </div>
 
         <% if @existing_similar.present? %>
-          <div class="section ticket-warning">
-            <h4>Attention:</h4>
-            <p>You have multiple similar tickets pending.</p>
+          <div class="section ticket-new-duplicate">
+            <div class="ticket-new-badge-title">
+              <b>Attention</b> You have multiple similar tickets pending.
+            </div>
             <ul>
               <% @existing_similar.each do |ticket| %>
                 <li><%= link_to truncate(strip_tags(format_text(ticket.reason)), length: 100), ticket_path(ticket) %></li>
@@ -68,7 +68,7 @@
   </div>
 </div>
 
-<% render partial: "secondary_links" %>
+<%= render partial: "secondary_links" %>
 
 <% content_for(:page_title) do %>
   New Ticket

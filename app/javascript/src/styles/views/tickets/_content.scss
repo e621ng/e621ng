@@ -1,0 +1,52 @@
+@use "colors/palette";
+@use "colors/theme";
+
+// Reported content, rendered by types/* on both the show and new pages
+
+$avatar_size: 3rem;
+
+.ticket-display-section {
+  background: theme.color("section");
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.ticket-display-content {
+  display: flex;
+  flex-flow: column;
+  gap: 0.125rem;
+
+  &-header {
+    .ticket-display-marker {
+      margin-left: 0.25rem;
+      padding: 0 0.25rem;
+      border-radius: 0.25rem;
+      background: palette.color("background-red");
+      font-size: 0.875em;
+    }
+  }
+
+  &-body {
+    max-height: 30rem;
+    overflow-y: auto;
+  }
+}
+
+.ticket-display-post {
+  width: max-content;
+  --thumb-image-size: 256px;
+}
+
+.ticket-display-user {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  &-avatar { --thumb-image-size: #{$avatar_size}; }
+
+  &-info {
+    display: flex;
+    flex-flow: column;
+    gap: 0.25rem;
+  }
+}

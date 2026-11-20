@@ -1,8 +1,2 @@
-<% @wiki = @ticket.content %>
-<h4>You are reporting the following wiki page:</h4>
-<div class="page"><%= link_to(@wiki.pretty_title, @wiki) %></div>
-<span class="date"><%= time_ago_in_words_tagged(@wiki.created_at) %></span>
-<br><br>
-<div class="dtext-container">
-  <%= format_text(@wiki.body) %>
-</div>
+<h3 class="ticket-new-title">You are reporting the following wiki page:</h3>
+<%= render "tickets/partials/reported_content" %>

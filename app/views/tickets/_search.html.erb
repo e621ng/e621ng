@@ -17,11 +17,15 @@
       ["Post complaint", "post"],
       ["Replacement complaint", "replacement"]
   ], include_blank: "Any" %>
-  <%= f.input :status, collection: [
+  <%= f.input :status, as: :grouped_select, collection: {
+    "Pending" => [
+      %w[Pending pending],
       ["Pending + Unclaimed", "pending_unclaimed"],
       ["Pending + Claimed", "pending_claimed"],
-      ["Approved/investigated", "approved"],
       ["Under investigation", "partial"],
-      ["Pending", "pending"],
-  ], include_blank: "Any" %>
+    ],
+    "Handled" => [
+      %w[Investigated approved],
+    ],
+  }.to_a, group_label_method: :first, group_method: :last, include_blank: "Any" %>
 <% end %>

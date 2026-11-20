@@ -1,16 +1,10 @@
-<% @comment = @ticket.content %>
-<h2>You are <u>reporting</u> the following comment:</h2>
-<div class="author"><%= link_to_user @comment.creator %></div>
-<span class="date"><%= time_ago_in_words_tagged(@comment.created_at) %></span>
-<br><br>
-<div class="dtext-container">
-  <%= format_text(@comment.body) %>
-</div>
-<div class="ticket-extra-warning">
+<h3 class="ticket-new-title">You are <u>reporting</u> the following comment:</h3>
+<%= render "tickets/partials/reported_content" %>
+<div class="ticket-new-warning ticket-new-warning-alert">
   <%= svg_icon(:octagon_alert, width: 24, height: 24) %>
   <span>
-  This form is to <strong>report</strong> a comment.<br />
-  If you're looking to <i>reply</i> to a comment, you've selected the wrong option!
+    This form is to <strong>report</strong> a comment.<br />
+    If you're looking to <i>reply</i> to a comment, you've selected the wrong option!
   </span>
 </div>
-<%= render "tickets/partials/create_notice", message: @comment %>
+<%= render "tickets/partials/create_notice", message: @ticket.content %>
