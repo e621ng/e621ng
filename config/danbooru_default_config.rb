@@ -1022,6 +1022,10 @@ You can see a list of your deleted posts \"here\":[/deleted_posts?user_id=%UPLOA
             desktop: { zone: nil },
             mobile: { zone: nil },
           },
+          popular: {
+            desktop: { zone: nil },
+            mobile: { zone: nil },
+          },
         },
       }
     end
