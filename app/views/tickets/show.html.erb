@@ -1,151 +1,169 @@
-<div id="c-tickets">
-  <div id="a-show">
-    <div class='section'>
+<div id="c-tickets"><div id="a-show">
+
+  <div class="ticket-display">
+    <div class="section ticket-display-header">
       <h3><%= @ticket.type_title %> Ticket</h3>
-
-      <table>
-        <%# Reporter %>
-        <tr>
-          <td><span class='title'>Requested by</span></td>
-          <td>
-            <%= link_to_user @ticket.creator %>
-            (<%= link_to "Pending Tickets", tickets_path(search: { creator_id: @ticket.creator.id, status: "pending" }) %>)
-          </td>
-        </tr>
-
-        <%# IP Address %>
-        <% if CurrentUser.is_admin? %>
-          <tr>
-            <td><span class='title'>IP</span></td>
-            <td><%= link_to_ip(@ticket.creator_ip_addr) %></td>
-          </tr>
-        <% end %>
-
-        <%# Accused %>
-        <% if @ticket.accused.present? %>
-          <tr>
-            <td><span class="title">Accused</span></td>
-            <td>
-              <%= link_to_user @ticket.accused %>
-              <% if CurrentUser.user.is_staff? && (pending_accused_count = Ticket.active.for_accused(@ticket.accused.id).count) >= 2 %>
-                (<%= link_to "#{pending_accused_count} Pending", tickets_path(search: { accused_id: @ticket.accused.id, status: "pending" }) %>)
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
-
-        <%# Timestamps %>
-        <tr>
-          <td><span class="title">Created</span></td>
-          <td style="cursor:help;"><%= time_ago_in_words_tagged(@ticket.created_at) %></td>
-        </tr>
-        <tr>
-          <td><span class="title">Updated</span></td>
-          <td style="cursor:help;"><%= time_ago_in_words_tagged(@ticket.updated_at) %></td>
-        </tr>
-
-        <%# Claimed / Handled %>
-        <% if @ticket.response.present? %>
-          <tr>
-            <td><span class='title'>Handled by</span></td>
-            <% if @ticket.handler.present? %>
-              <td><%= link_to_user @ticket.handler %></td>
-            <% else %>
-              <td>Unknown</td>
-            <% end %>
-          </tr>
-        <% elsif CurrentUser.is_staff? %>
-          <tr>
-            <td><span class="title">Claimed by</span></td>
-            <td id="claimed_by">
-              <%= link_to_user @ticket.claimant if @ticket.claimant.present? %>
-              <% if @ticket.can_claim?(CurrentUser.user) %>
-                <% if @ticket.claimant.nil? %>
-                  <%= link_to 'Claim', claim_ticket_path(@ticket), method: :post %>
-                <% elsif @ticket.claimant.id == CurrentUser.id %>
-                  | <%= link_to "Unclaim", unclaim_ticket_path(@ticket), method: :post %>
-                <% end %>
-              <% end %>
-            </td>
-          </tr>
-        <% end %>
-
-        <tr>
-          <td><span class='title'>Status</span></td>
-          <td class="<%= @ticket.status %>-ticket"><%= pretty_ticket_status(@ticket) %></td>
-        </tr>
-
-        <% if CurrentUser.is_staff? %>
-          <% open_duplicates = @ticket.open_duplicates.to_a %>
-          <% if open_duplicates.any? %>
-            <tr>
-              <td><span class="title">Open Duplicates</span></td>
-              <td>
-                <ul>
-                  <% open_duplicates.each do |dup| %>
-                    <li><%= link_to("Ticket #{dup.id} - #{dup.subject}", ticket_path(dup.id)) %></li>
-                  <% end %>
-                </ul>
-              </td>
-            </tr>
-          <% end %>
-        <% end %>
-
-        <%= render partial: "tickets/types/#{@ticket.qtype}" %>
-
-        <tr>
-          <td><span class='title'>Reason</span></td>
-          <td>
-            <% if @ticket.qtype == "post" && @ticket.post_report_reason.present? %>
-              <span class="ticket-reason"><%= @ticket.post_report_reason.reason %></span>
-            <% end %>
-            <div class="dtext-container ticket-block">
-              <%= format_text(@ticket.reason) %>
-            </div>
-          </td>
-        </tr>
-
-        <% if @ticket.response.present? %>
-          <tr>
-            <td><span class='title'>Response</span></td>
-            <td>
-              <div class="dtext-container ticket-block unmargined">
-                <%= format_text(@ticket.response) %>
-              </div>
-            </td>
-          </tr>
-        <% end %>
-      </table>
     </div>
 
-    <% if CurrentUser.is_staff? && @ticket.can_handle? %>
-      <div class="section">
-        <%= custom_form_for(@ticket) do |f| %>
-          <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @ticket.status || "approved" %>
-          <% if @ticket.warnable? %>
-            <%= f.input :record_type, label: "Mark the #{@ticket.content.model_name.singular.humanize(capitalize: false)} as having received", collection: @ticket.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
+    <div class="ticket-display-content ticket-display-content-<%= @ticket.qtype %>">
+      <%= render partial: "tickets/types/#{@ticket.qtype}" %>
+    </div>
+
+    <div class="ticket-display-report">
+      <div class="ticket-display-report-avatar">
+        <% if @ticket.creator.present? %>
+          <%= render AvatarComponent.new(user: @ticket.creator) %>
+        <% else %>
+          <div class="ticket-display-avatar-placeholder"></div>
+        <% end %>
+      </div>
+
+      <div class="ticket-display-report-creator">
+        <%= @ticket.creator.present? ? link_to_user(@ticket.creator) : "a user" %>
+        reported
+        <%= time_ago_in_words_tagged(@ticket.created_at) %>
+
+        <% if CurrentUser.is_admin? %>
+          <div class="ticket-display-report-ip">
+            <%= link_to_ip(@ticket.creator_ip_addr) %>
+          </div>
+        <% end %>
+      </div>
+
+      <div class="ticket-display-section ticket-display-report-reason dtext-container">
+        <% if @ticket.qtype == "post" && @ticket.post_report_reason.present? %>
+          <div class="ticket-display-report-reason-label"><%= @ticket.post_report_reason.reason %></div>
+        <% end %>
+        <%= format_text(@ticket.reason) %>
+      </div>
+    </div>
+
+    <% if CurrentUser.user.is_staff? %>
+      <% open_from_same_user = @ticket.open_from_same_user %>
+      <% if open_from_same_user.any? %>
+        <div class="ticket-display-section ticket-display-others">
+          <b><%= link_to_user(@ticket.creator) %>'s other open tickets:</b>
+          <ul>
+            <% open_from_same_user.each do |other| %>
+              <li>
+                <%= link_to "#{other.id}: #{other.subject}", ticket_path(other.id) %>
+                <% if other.status != "pending" %>
+                  (<%= pretty_ticket_status(other) %>)
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <% all_for_same_content = @ticket.all_for_same_content %>
+      <% if all_for_same_content.any? %>
+        <div class="ticket-display-section ticket-display-others">
+          <b>Other tickets for this <%= @ticket.type_title.downcase %>:</b>
+          <ul>
+            <% all_for_same_content.each do |other| %>
+              <li>
+                <%= link_to "#{other.id}: #{other.subject}", ticket_path(other.id) %>
+                <% if other.creator_id != @ticket.creator_id %>
+                  by <%= link_to_user(other.creator) %>
+                <% end %>
+                <% if other.status != "pending" %>
+                  (<%= pretty_ticket_status(other) %>)
+                <% end %>
+              </li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+    <% end %>
+
+    <div class="ticket-display-section ticket-display-info">
+      <div class="ticket-display-info-entry">
+        <b>Status:</b>
+        <span class="<%= @ticket.status %>-ticket"><%= pretty_ticket_status(@ticket) %></span>
+      </div>
+
+      <% if @ticket.accused.present? %>
+        <div class="ticket-display-info-entry">
+          <b>Accused:</b>
+          <%= link_to_user @ticket.accused %>
+          <% if CurrentUser.user.is_staff? && (pending_accused_count = Ticket.active.for_accused(@ticket.accused.id).count) >= 2 %>
+            (<%= link_to "#{pending_accused_count} Pending", tickets_path(search: { accused_id: @ticket.accused.id, status: "pending" }) %>)
           <% end %>
-          <% unless @ticket.pending? %>
-            <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
-          <% end %>
-          <table>
-            <tr>
-              <td><%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size, allow_color: false %></td>
-            </tr>
-          </table>
-          <%= tag.input name: "force_claim", type: "hidden", value: params[:force_claim] %>
-          <%= f.button :submit, "Submit" %>
+        </div>
+      <% end %>
+
+      <% if CurrentUser.user.is_staff? && !@ticket.approved? %>
+        <div class="ticket-display-info-entry">
+          <b>Claimed By:</b>
+          <span>
+            <% if @ticket.claimant.present? %>
+              <%= link_to_user @ticket.claimant %>
+            <% else %>
+              none
+            <% end %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+
+    <% if CurrentUser.user.is_staff? && @ticket.can_claim?(CurrentUser.user) && !@ticket.approved? %>
+      <div class="ticket-display-claim">
+        <% if @ticket.claimant.nil? %>
+          <%= link_to "Claim", claim_ticket_path(@ticket), method: :post, class: "st-button kinetic" %>
+        <% elsif @ticket.claimant.id == CurrentUser.id %>
+          <%= link_to "Unclaim", unclaim_ticket_path(@ticket), method: :post, class: "st-button kinetic" %>
         <% end %>
       </div>
     <% end %>
+
+    <% if @ticket.response.present? %>
+      <% handler = @ticket.handler || @ticket.claimant %>
+      <div class="ticket-display-report">
+        <div class="ticket-display-report-avatar">
+          <% if handler.present? %>
+            <%= render AvatarComponent.new(user: handler) %>
+          <% else %>
+            <div class="ticket-display-avatar-placeholder"></div>
+          <% end %>
+        </div>
+
+        <div class="ticket-display-report-creator">
+          <%= handler.present? ? link_to_user(handler) : "a staff member" %>
+          responded
+          <%= time_ago_in_words_tagged(@ticket.updated_at) %>
+        </div>
+
+        <div class="ticket-display-section ticket-display-report-reason dtext-container">
+          <%= format_text(@ticket.response) %>
+        </div>
+      </div>
+    <% end %>
   </div>
-</div>
+
+  <% if CurrentUser.is_staff? && @ticket.can_handle? %>
+    <%= custom_form_for(@ticket, html: { class: "ticket-display-response" }) do |f| %>
+      <%= f.input :status, collection: [["Investigated", "approved"], ["Under Investigation", "partial"]], selected: @ticket.status || "approved" %>
+      <% if @ticket.warnable? %>
+        <%= f.input :record_type, label: "Mark the #{@ticket.content.model_name.singular.humanize(capitalize: false)} as having received", collection: @ticket.content.class.warning_types.to_h { |k, v| ["A #{k}", v] }, include_blank: "Nothing" %>
+      <% end %>
+      <% unless @ticket.pending? %>
+        <%= f.input :send_update_dmail, label: "Send update DMail", as: :boolean, hint: "A DMail is always sent if the status is changed" %>
+      <% end %>
+
+      <%= f.input :response, as: :dtext, limit: Danbooru.config.dmail_max_size, allow_color: false %>
+
+      <%= tag.input name: "force_claim", type: "hidden", value: params[:force_claim] %>
+      <%= f.button :submit, "Submit" %>
+    <% end %>
+  <% end %>
+</div></div>
 
 <% content_for(:title) do %>
   <%= @ticket.type_title %>
 <% end %>
 
-<% render partial: 'secondary_links' %>
+<%= render partial: "secondary_links" %>
 
 <% content_for(:page_title) do %>
   <%= @ticket.type_title %> Ticket

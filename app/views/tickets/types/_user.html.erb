@@ -1,7 +1,16 @@
-<tr>
-  <td><span class='title'>Reported User</span></td>
-  <td>
-    <%= link_to_user(@ticket.content) %>
-    <%= render(UserFeedbackComponent.new(user: @ticket.content, style: :inline)) if CurrentUser.is_staff? %>
-  </td>
-</tr>
+<% if (user = @ticket.content) %>
+  <div class="ticket-display-section ticket-display-user">
+    <div class="ticket-display-user-avatar"><%= render AvatarComponent.new(user: user) %></div>
+    <div class="ticket-display-user-info">
+      <div>
+        <%= link_to_user(user) %>,
+        joined <%= time_ago_in_words_tagged(user.created_at) %>
+      </div>
+      <% if CurrentUser.is_staff? %>
+        <%= render(UserFeedbackComponent.new(user: user, style: :inline)) %>
+      <% end %>
+    </div>
+  </div>
+<% else %>
+  <div class="ticket-display-section"><span class="text-error">User does not exist</span></div>
+<% end %>

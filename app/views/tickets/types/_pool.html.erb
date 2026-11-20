@@ -1,6 +1,15 @@
-<% if @ticket.content %>
-    <tr>
-      <td><span class='title'>Reported Pool</span></td>
-      <td><%= link_to(@ticket.content.name, pool_path(@ticket.content)) %></td>
-    </tr>
+<% if (pool = @ticket.content) %>
+  <div class="ticket-display-section ticket-display-content-header">
+    <%= link_to pool.pretty_name, pool_path(pool) %>
+    by <%= link_to_user pool.creator %>,
+    <%= pluralize(pool.post_count, "post") %>,
+    <%= render "tickets/partials/content_age", content: pool %>
+  </div>
+  <% if pool.description.present? %>
+    <div class="ticket-display-section ticket-display-content-body dtext-container">
+      <%= format_text(pool.description) %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="ticket-display-section"><span class="text-error">Pool has been deleted</span></div>
 <% end %>

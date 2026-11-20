@@ -1,10 +1,16 @@
-<% @dmail = @ticket.content %>
-<tr>
-  <td><span class='title'>Reported Message</span></td>
-  <td>
-    <%= link_to "Message", dmail_path(@dmail) %>
-    sent from <%= link_to_user @dmail.from %> to
-    <%= link_to_user @dmail.to %>
-  </td>
-</tr>
-<%= render partial: "tickets/partials/content_age", locals: { ticket: @ticket, content: "DMail" } %>
+<% if (dmail = @ticket.content) %>
+  <div class="ticket-display-section ticket-display-content-header">
+    <%= link_to dmail.title, dmail_path(dmail) %>
+    from <%= link_to_user dmail.from %>
+    to <%= link_to_user dmail.to %>,
+    <%= render "tickets/partials/content_age", content: dmail %>
+    <% if dmail.is_deleted? %><span class="ticket-display-marker">deleted</span><% end %>
+  </div>
+  <% if dmail.visible_to?(CurrentUser.user) %>
+    <div class="ticket-display-section ticket-display-content-body dtext-container">
+      <%= format_text(dmail.body) %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="ticket-display-section"><span class="text-error">Message has been deleted</span></div>
+<% end %>

@@ -21,9 +21,6 @@ RSpec.describe TicketsController do
     "replacement" => [:replacement_type, :post_replacement, -> { create(:post_replacement) }],
   }
 
-  # Users are never destroyed and dmails are only soft-deleted.
-  can_go_missing = qtypes.keys - %w[user dmail]
-
   let(:reporter) { create(:user) }
   let(:admin)    { create(:admin_user) }
 
@@ -69,15 +66,26 @@ RSpec.describe TicketsController do
         expect(response).to have_http_status(:ok)
       end
 
-      if can_go_missing.include?(qtype)
-        it "renders show for an admin when the content is gone" do
-          # Same view state as destroyed content, without FK constraints or destroy callbacks
-          ticket.update_columns(disp_id: 0)
-          sign_in_as admin
-          get ticket_path(ticket)
-          expect(response).to have_http_status(:ok)
-        end
+      it "renders show for an admin when the content is gone" do
+        # Same view state as destroyed content, without FK constraints or destroy callbacks
+        ticket.update_columns(disp_id: 0)
+        sign_in_as admin
+        get ticket_path(ticket)
+        expect(response).to have_http_status(:ok)
       end
     end
+  end
+
+  it "renders the related ticket lists for an admin" do
+    accused = create(:user)
+    ticket = CurrentUser.scoped(reporter) { create(:ticket, accused_user: accused) }
+    CurrentUser.scoped(reporter) { create(:ticket, :pool_type) }
+    duplicate = CurrentUser.scoped(create(:user)) { create(:ticket, accused_user: accused) }
+    duplicate.update_columns(status: "approved")
+
+    sign_in_as admin
+    get ticket_path(ticket)
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include("other open tickets", "Other tickets for this user")
   end
 end

@@ -1,15 +1,16 @@
-<% if @ticket.content %>
-  <tr>
-    <td><span class="title">Reported Comment</span></td>
-    <td>
-      <%= link_to("Comment by #{@ticket.content.creator_name}", comment_path(@ticket.content)) %> on
-      <%= link_to("post ##{@ticket.content.post_id}", post_path(@ticket.content.post_id)) %>
-    </td>
-  </tr>
-  <%= render partial: "tickets/partials/content_age", locals: { ticket: @ticket, content: "Comment" } %>
+<% if (comment = @ticket.content) %>
+  <div class="ticket-display-section ticket-display-content-header">
+    <%= link_to "Comment ##{comment.id}", comment_path(comment) %>
+    on <%= link_to "post ##{comment.post_id}", post_path(comment.post_id) %>
+    by <%= link_to_user comment.creator %>,
+    <%= render "tickets/partials/content_age", content: comment %>
+    <% if comment.is_hidden? %><span class="ticket-display-marker">hidden</span><% end %>
+  </div>
+  <% if comment.is_accessible?(CurrentUser.user, bypass_user_settings: true) %>
+    <div class="ticket-display-section ticket-display-content-body dtext-container">
+      <%= format_text(comment.body) %>
+    </div>
+  <% end %>
 <% else %>
-  <tr>
-    <td><span class="title">Reported Comment</span></td>
-    <td><span class="text-error">Comment has been deleted</span></td>
-  </tr>
+  <div class="ticket-display-section"><span class="text-error">Comment has been deleted</span></div>
 <% end %>

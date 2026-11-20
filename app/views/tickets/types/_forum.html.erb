@@ -1,14 +1,16 @@
-<% if @ticket.content %>
-  <tr>
-    <td><span class="title">Reported Forum Post</span></td>
-    <td>
-      <%= link_to("Post by #{@ticket.content.creator.name} in '#{@ticket.content.topic.title}'", forum_post_path(@ticket.content)) %>
-    </td>
-  </tr>
-  <%= render partial: "tickets/partials/content_age", locals: { ticket: @ticket, content: "Forum Post" } %>
+<% if (forum_post = @ticket.content) %>
+  <div class="ticket-display-section ticket-display-content-header">
+    <%= link_to "Forum post ##{forum_post.id}", forum_post_path(forum_post) %>
+    in <%= link_to forum_post.topic.title, forum_topic_path(forum_post.topic) %>
+    by <%= link_to_user forum_post.creator %>,
+    <%= render "tickets/partials/content_age", content: forum_post %>
+    <% if forum_post.is_hidden? %><span class="ticket-display-marker">hidden</span><% end %>
+  </div>
+  <% if forum_post.can_access?(CurrentUser.user) %>
+    <div class="ticket-display-section ticket-display-content-body dtext-container">
+      <%= format_text(forum_post.body) %>
+    </div>
+  <% end %>
 <% else %>
-  <tr>
-    <td><span class="title">Reported Forum Post</span></td>
-    <td><span class="text-error">Forum post has been deleted</span></td>
-  </tr>
+  <div class="ticket-display-section"><span class="text-error">Forum post has been deleted</span></div>
 <% end %>

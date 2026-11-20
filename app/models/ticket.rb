@@ -405,12 +405,14 @@ class Ticket < ApplicationRecord
     end
   end
 
-  def open_duplicates
-    Ticket.where(
-      qtype: qtype,
-      disp_id: disp_id,
-      status: "pending",
-    ).where.not(id: id)
+  def open_from_same_user(user = CurrentUser.user)
+    Ticket.visible(user).active.for_creator(creator_id).where.not(id: id)
+          .order(id: :desc).select { |t| t.can_view?(user) }
+  end
+
+  def all_for_same_content(user = CurrentUser.user)
+    Ticket.visible(user).includes(:creator).where(qtype: qtype, disp_id: disp_id)
+          .where.not(id: id).order(id: :desc).select { |t| t.can_view?(user) }
   end
 
   def warnable?

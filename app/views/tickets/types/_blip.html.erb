@@ -1,14 +1,15 @@
-<% if @ticket.content %>
-  <tr>
-    <td><span class="title">Reported Blip</span></td>
-    <td>
-      <%= link_to "Blip by #{@ticket.content.creator_name}", blip_path(@ticket.content) %>
-    </td>
-  </tr>
-  <%= render partial: "tickets/partials/content_age", locals: { ticket: @ticket, content: "Blip" } %>
+<% if (blip = @ticket.content) %>
+  <div class="ticket-display-section ticket-display-content-header">
+    <%= link_to "Blip ##{blip.id}", blip_path(blip) %>
+    by <%= link_to_user blip.creator %>,
+    <%= render "tickets/partials/content_age", content: blip %>
+    <% if blip.is_deleted? %><span class="ticket-display-marker">deleted</span><% end %>
+  </div>
+  <% if blip.can_access?(CurrentUser.user) %>
+    <div class="ticket-display-section ticket-display-content-body dtext-container">
+      <%= format_text(blip.body) %>
+    </div>
+  <% end %>
 <% else %>
-  <tr>
-    <td><span class="title">Reported Blip</span></td>
-    <td><span class="text-error">Blip has been deleted</span></td>
-  </tr>
+  <div class="ticket-display-section"><span class="text-error">Blip has been deleted</span></div>
 <% end %>

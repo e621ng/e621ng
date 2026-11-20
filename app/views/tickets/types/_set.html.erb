@@ -1,6 +1,15 @@
-<% if @ticket.content %>
-    <tr>
-      <td><span class='title'>Reported Set</span></td>
-      <td><%= link_to(@ticket.content.name, post_set_path(@ticket.content)) %></td>
-    </tr>
+<% if (post_set = @ticket.content) %>
+  <div class="ticket-display-section ticket-display-content-header">
+    <%= link_to post_set.name, post_set_path(post_set) %>
+    by <%= link_to_user post_set.creator %>,
+    <%= pluralize(post_set.post_count, "post") %>,
+    <%= render "tickets/partials/content_age", content: post_set %>
+  </div>
+  <% if post_set.description.present? && post_set.can_view?(CurrentUser.user) %>
+    <div class="ticket-display-section ticket-display-content-body dtext-container">
+      <%= format_text(post_set.description) %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="ticket-display-section"><span class="text-error">Set has been deleted</span></div>
 <% end %>

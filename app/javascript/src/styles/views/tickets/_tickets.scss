@@ -1,13 +1,16 @@
 @use "colors/palette";
 
-@import "new/new";
-@import "show/show";
+body.c-tickets {
+  // A failed create re-renders the new template
+  &.a-new, &.a-create { @import "new/new"; }
+  &.a-show { @import "show/show"; }
+}
 
 .approved-ticket {
   color: palette.color("text-green");
   font-weight: bold;
 }
-.partial-ticket { 
+.partial-ticket {
   color: palette.color("text-yellow");
   font-weight: bold;
 }
