@@ -45,7 +45,7 @@ class BulkRelatedTagQuery
 
   def related_tags_by_category
     @related_tags_by_category ||= @query.each_with_object({}) do |tag_name, hash|
-      related = RelatedTagCalculator.calculate_from_sample_to_array(tag_name, category_id)
+      related = RelatedTagCalculator.cached_sample_to_array(tag_name, category_id)
       categories = Tag.categories_for(related.map(&:first))
 
       hash[tag_name] = related.map do |name, count|

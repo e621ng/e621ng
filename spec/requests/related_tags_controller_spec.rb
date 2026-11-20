@@ -166,4 +166,74 @@ RSpec.describe RelatedTagsController do
       end
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # Throttling (E6SEC-804)
+  # ---------------------------------------------------------------------------
+
+  describe "throttling" do
+    let(:throttle_key) { "related_tags:#{user.id}" }
+
+    before { sign_in_as user }
+
+    context "when under the limit" do
+      before { allow(RateLimiter).to receive(:throttle!).and_return(false) }
+
+      it "charges one per looked-up tag on bulk, capped at 25" do
+        query = (1..30).map { |i| "tag_#{i}" }.join(" ")
+        post related_tag_bulk_path(format: :json), params: { query: query }
+
+        expect(response).to have_http_status(:ok)
+        expect(RateLimiter).to have_received(:throttle!).with(throttle_key, limit: 300, period: 1.minute, amount: 25)
+      end
+
+      it "charges a GET bulk request too" do
+        get related_tag_bulk_path(format: :json), params: { query: "tag_a tag_b" }
+
+        expect(RateLimiter).to have_received(:throttle!).with(throttle_key, limit: 300, period: 1.minute, amount: 2)
+      end
+
+      it "charges one for show" do
+        get related_tag_path(format: :json), params: { search: { query: "tag_a" } }
+
+        expect(RateLimiter).to have_received(:throttle!).with(throttle_key, limit: 300, period: 1.minute, amount: 1)
+      end
+    end
+
+    context "when over the limit" do
+      before do
+        allow(RateLimiter).to receive(:throttle!).and_return(true)
+        allow(RelatedTagCalculator).to receive(:calculate_from_sample_to_array)
+      end
+
+      it "returns 429 for POST bulk without sampling" do
+        post related_tag_bulk_path(format: :json), params: { query: "tag_a", category_id: 0 }
+
+        expect(response).to have_http_status(:too_many_requests)
+        expect(RelatedTagCalculator).not_to have_received(:calculate_from_sample_to_array)
+      end
+
+      it "returns 429 for GET bulk without sampling" do
+        get related_tag_bulk_path(format: :json), params: { query: "tag_a", category_id: 0 }
+
+        expect(response).to have_http_status(:too_many_requests)
+        expect(RelatedTagCalculator).not_to have_received(:calculate_from_sample_to_array)
+      end
+
+      it "returns 429 for show without sampling" do
+        get related_tag_path(format: :json), params: { search: { query: "tag_a", category_id: 0 } }
+
+        expect(response).to have_http_status(:too_many_requests)
+        expect(RelatedTagCalculator).not_to have_received(:calculate_from_sample_to_array)
+      end
+
+      it "does not enqueue related-tag updates" do
+        create(:tag, name: "stale_tag")
+
+        expect do
+          post related_tag_bulk_path(format: :json), params: { query: "stale_tag" }
+        end.not_to enqueue_sidekiq_job(TagUpdateRelatedJob)
+      end
+    end
+  end
 end
