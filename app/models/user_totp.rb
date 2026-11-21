@@ -55,15 +55,22 @@ class UserTotp < ApplicationRecord
   # for TOTP replay prevention, the digest for backup codes).
   def verify_code!(input)
     code = input.to_s.gsub(/[\s-]/, "").downcase
-    if code.match?(/\A\d{6}\z/)
-      # rotp returns the matched step's Unix timestamp; after: rejects that step and
-      # everything before it, so an accepted code can never be replayed.
-      timestamp = totp.verify(code, drift_behind: DRIFT, drift_ahead: DRIFT, after: last_used_step)
-      return nil unless timestamp
-      update_columns(last_used_step: timestamp, updated_at: Time.now)
-      :totp
-    else
-      consume_backup_code(code)
+    # Serialize verification on the row: both branches read-then-write (last_used_step for
+    # TOTP, the digest list for backup codes), so without a lock two concurrent requests can
+    # both pass the check on the same stale state before either writes, letting one code be
+    # accepted more than once (E6SEC-522). with_lock reloads inside the transaction, so the
+    # second request sees the already-consumed state.
+    with_lock do
+      if code.match?(/\A\d{6}\z/)
+        # rotp returns the matched step's Unix timestamp; after: rejects that step and
+        # everything before it, so an accepted code can never be replayed.
+        timestamp = totp.verify(code, drift_behind: DRIFT, drift_ahead: DRIFT, after: last_used_step)
+        return nil unless timestamp
+        update_columns(last_used_step: timestamp, updated_at: Time.now)
+        :totp
+      else
+        consume_backup_code(code)
+      end
     end
   end
 
