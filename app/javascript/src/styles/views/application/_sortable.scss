@@ -1,83 +1,141 @@
 @use "colors/theme";
 
-ul.sortable {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, var(--thumb-image-size, 150px));
-  gap: 0.5rem;
+// Pool ordering grid. Layout and card sizing come entirely from section.posts-container,
+// so the grid follows the same Small / Medium / Large sizes and breakpoints as /posts.
+#c-pool-orders section.posts-container.sortable {
+  // Each card sits in a wrapper (for the move handle), so the wrapper takes the card's
+  // place in the grid track. The placeholder shares the same footprint so swapping one
+  // for the other never shifts the box.
+  .sortable-thumbnail,
+  .sortable-placeholder {
+    width: 100%;
+    max-width: var(--thumb-image-max);
+    justify-self: center;
+    box-sizing: border-box;
+  }
 
-  li.sortable-thumbnail {
+  .sortable-thumbnail {
     position: relative;
-    width: var(--thumb-image-size, 150px);
-    height: calc(var(--thumb-image-size, 150px) + 1.5rem);
-    overflow: hidden;
 
     &.dragging {
       display: none;
       pointer-events: none;
     }
-
-    article.thumbnail {
-      a.thm-link { border-radius: 0 0 0.25rem 0.25rem; }
-      img {
-        width: var(--thumb-image-size, 150px);
-        height: var(--thumb-image-size, 150px);
-        object-fit: cover;
-      }
-      .desc { display: none; }
-    }
   }
 
-  .sortable-placeholder {
-    width: var(--thumb-image-size, 150px);
-    height: calc(var(--thumb-image-size, 150px) + 1.5rem);
-    box-sizing: border-box;
-
-    background: rgba(0, 124, 186, 0.1);
-    border: 2px dashed #007cba;
-    border-radius: 0.25rem;
-    pointer-events: auto;
-  }
+  // The flagged/pending ribbon shares the corner with the move handle and isn't useful
+  // while ordering; the parent/child ribbon on the left stays.
+  article.thumbnail .ribbon.right { display: none; }
 }
 
-// Ghost clone appended to <body> while dragging — sized via inline styles by JS
+.sortable-placeholder {
+  background: rgba(0, 124, 186, 0.1);
+  border: 2px dashed #007cba;
+  border-radius: 0.25rem;
+  pointer-events: auto;
+}
+
+// Ghost clone appended to <body> while dragging, sized via inline styles by JS.
+// It lives outside the posts container, so the cloned card is stretched to fill it.
 .sortable-ghost {
   list-style: none;
   overflow: hidden;
   opacity: 0.85;
   cursor: grabbing;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  border-radius: 0.25rem;
 
   article.thumbnail {
-    a { cursor: grabbing; }
-    img {
+    width: 100%;
+
+    a.thm-link, .thm-desc {
       width: 100%;
-      height: 100%;
-      object-fit: cover;
+      max-width: none;
     }
-    .desc { display: none; }
+
+    a { cursor: grabbing; }
+  }
+
+  // A pool-order ghost is a clone of the reorder card, so it keeps the card's wrapper class
+  // but sits outside #c-pool-orders; keep the flagged/pending ribbon hidden on it as well.
+  &.sortable-thumbnail article.thumbnail .ribbon.right { display: none; }
+}
+
+// Stand-in for a post the viewer can't see (safe mode / login blocked). It still has to be
+// reorderable, so it takes a card-sized square derived from the grid slot itself.
+.sortable-thumbnail .sortable-hidden-post {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  padding: 0.25rem;
+
+  font-size: 0.75rem;
+  text-align: center;
+  overflow-wrap: anywhere;
+  color: theme.color("text");
+  background: theme.color("section");
+  border-radius: 0.25rem;
+}
+
+// Move handle: a small pill floating over the top-right of the card.
+// Only the handle starts a drag, so the card keeps its normal tap, click and long-press.
+.sortable-thumbnail,
+.sortable-ghost {
+  .sortable-handle {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    z-index: 6; // Above the thumbnail badges
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    box-sizing: border-box;
+
+    color: theme.color("text");
+    background: theme.color("section");
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+    opacity: 0.9;
+
+    cursor: grab;
+    touch-action: none; // required for pointermove to fire on touch instead of scrolling
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+
+    // Extends the touch target to ~36px without enlarging the visible pill
+    &::before {
+      content: "";
+      position: absolute;
+      inset: -4px;
+    }
+
+    svg { pointer-events: none; }
+
+    &:active {
+      cursor: grabbing;
+      background: theme.color("section-lighten-5");
+    }
   }
 }
 
-.sortable-ghost, .sortable-thumbnail {
-  .sortable-handle {
-    display: flex;
-    justify-content: center;
-    height: 1.5rem;
-    line-height: 1.5rem;
-    font-size: 1rem;
-    border-radius: 0 0 0.25rem 0.25rem;
+.sortable-ghost .sortable-handle {
+  cursor: grabbing;
+  background: theme.color("section-lighten-5");
+}
 
-    background: theme.color("section-lighten-5");
-    cursor: grab;
-    touch-action: none; // required for pointermove to fire on touch instead of scrolling
+@media (hover: hover) {
+  .sortable-thumbnail .sortable-handle {
+    transition: opacity 0.15s ease;
+  }
 
-    // Six-dot grip icon
-    &::before {
-      content: ":::";
-      display: block;
-      color: theme.color("text-muted");
-    }
-
-    &:active { cursor: grabbing; }
+  .sortable-thumbnail:hover .sortable-handle {
+    opacity: 1;
   }
 }
