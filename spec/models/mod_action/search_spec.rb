@@ -153,5 +153,86 @@ RSpec.describe ModAction do
         expect(ids.index(newer.id)).to be < ids.index(older.id)
       end
     end
+
+    # -------------------------------------------------------------------------
+    # value-key authorization (E6SEC-501): search must not become an oracle for
+    # value keys the viewer cannot read on the row
+    # -------------------------------------------------------------------------
+    describe "value-key authorization" do
+      let(:member) { create(:user) }
+      let(:moderator) { create(:moderator_user) }
+
+      def search_as(user, params)
+        CurrentUser.scoped(user, "127.0.0.1") { ModAction.search(params.with_indifferent_access) }
+      end
+
+      context "ticket_update (moderator-gated)" do
+        let!(:match_row) { make_action(:ticket_update, { ticket_id: 7, status: "approved", response: "secret handler reply" }) }
+        let!(:other_row) { make_action(:ticket_update, { ticket_id: 8, status: "partial", response: "different reply" }) }
+
+        it "ignores a hidden value-key filter for a non-moderator (no oracle)" do
+          # response is not viewable to a member, so the filter is dropped and reveals nothing
+          expect(search_as(member, { action: "ticket_update", response: "*secret*" })).to include(match_row, other_row)
+        end
+
+        it "still applies a visible value-key filter (ticket_id) for a non-moderator" do
+          result = search_as(member, { action: "ticket_update", ticket_id: "7" })
+          expect(result).to include(match_row)
+          expect(result).not_to include(other_row)
+        end
+
+        it "lets a moderator filter on the otherwise-hidden response" do
+          result = search_as(moderator, { action: "ticket_update", response: "*secret*" })
+          expect(result).to include(match_row)
+          expect(result).not_to include(other_row)
+        end
+      end
+
+      context "ip_ban (admin-only values)" do
+        let!(:match_row) { make_action(:ip_ban_create, { ip_addr: "1.2.3.4", reason: "spam ring" }) }
+        let!(:other_row) { make_action(:ip_ban_create, { ip_addr: "5.6.7.8", reason: "unrelated" }) }
+
+        it "ignores the reason filter for non-admin staff" do
+          expect(search_as(moderator, { action: "ip_ban_create", reason: "*spam*" })).to include(match_row, other_row)
+        end
+
+        it "lets an admin filter on the reason" do
+          # the surrounding context runs as admin
+          result = ModAction.search({ action: "ip_ban_create", reason: "*spam*" }.with_indifferent_access)
+          expect(result).to include(match_row)
+          expect(result).not_to include(other_row)
+        end
+      end
+
+      context "upload_whitelist (hidden flag only for non-admins)" do
+        let!(:hidden_row) { make_action(:upload_whitelist_create, { domain: "evil.com", path: "/", note: "known badness", hidden: true }) }
+        let!(:shown_row) { make_action(:upload_whitelist_create, { domain: "ok.com", path: "/", note: "fine", hidden: false }) }
+
+        it "ignores the note filter for a non-admin" do
+          expect(search_as(member, { action: "upload_whitelist_create", note: "*badness*" })).to include(hidden_row, shown_row)
+        end
+
+        it "still allows a non-admin to filter on the hidden flag" do
+          result = search_as(member, { action: "upload_whitelist_create", hidden: "true" })
+          expect(result).to include(hidden_row)
+          expect(result).not_to include(shown_row)
+        end
+      end
+
+      context "appeal_update (staff-gated)" do
+        let!(:match_row) { make_action(:appeal_update, { appeal_id: 5, status: "approved", response: "appeal secret" }) }
+        let!(:other_row) { make_action(:appeal_update, { appeal_id: 6, status: "denied", response: "unrelated" }) }
+
+        it "ignores the response filter for a member" do
+          expect(search_as(member, { action: "appeal_update", response: "*secret*" })).to include(match_row, other_row)
+        end
+
+        it "lets staff filter on the response" do
+          result = search_as(moderator, { action: "appeal_update", response: "*secret*" })
+          expect(result).to include(match_row)
+          expect(result).not_to include(other_row)
+        end
+      end
+    end
   end
 end
