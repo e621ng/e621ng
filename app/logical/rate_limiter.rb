@@ -21,14 +21,25 @@
 class RateLimiter
   attr_reader :limit, :period, :lockout
 
-  # Check-then-count in one call, for sites where every attempt counts.
-  # Returns true if the caller should reject the request; otherwise records
-  # the hit and returns false. +amount+ weights attempts that cost more.
+  # Count-then-check in one atomic step, for sites where every attempt counts.
+  # Admission is decided from the increment's own returned count, not a separate
+  # read: a request is allowed only if the window was still under the limit
+  # *before* this attempt. That closes the concurrent stale-read overshoot — two
+  # callers can no longer both read an under-limit count and both be admitted —
+  # but it is NOT a strict unit cap. It preserves the prior semantics, where an
+  # attempt that finds any remaining budget is admitted in full, so a weighted
+  # attempt can still carry the running total past +limit+ by up to amount-1
+  # (e.g. two amount:6 attempts under limit:10 both pass, reaching 12). Returns
+  # true if the caller should reject the request. +amount+ weights attempts that
+  # cost more. A rejected attempt still counts (the increment is what makes the
+  # decision atomic); the window is unchanged and still expires +period+ after
+  # the first hit.
   def self.throttle!(key, limit:, period:, lockout: nil, amount: 1)
     limiter = new(key, limit: limit, period: period, lockout: lockout)
-    return true if limiter.throttled?
-    limiter.hit!(amount)
-    false
+    return true if limiter.locked_out?
+    # hit! returns the post-increment count; count - amount is this attempt's
+    # pre-count, so admission can't be fooled by a stale concurrent read.
+    limiter.hit!(amount) - amount >= limit
   end
 
   def initialize(key, limit:, period:, lockout: nil)
@@ -40,8 +51,13 @@ class RateLimiter
 
   # Read-only: never increments, never trips or extends a lockout.
   def throttled?
-    return true if lockout && Cache.fetch(lockout_key)
+    return true if locked_out?
     Cache.fetch(@key, raw: true).to_i >= limit
+  end
+
+  # Read-only: true while a tripped lockout is still in effect.
+  def locked_out?
+    lockout.present? && Cache.fetch(lockout_key).present?
   end
 
   # Returns the count within the current window. Exactly one concurrent hit
