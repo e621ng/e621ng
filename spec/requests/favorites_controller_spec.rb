@@ -227,4 +227,31 @@ RSpec.describe FavoritesController do
       end
     end
   end
+
+  # ---------------------------------------------------------------------------
+  # Rate limiting (E6SEC-517): favourites skip api_check, so they need their own cap
+  # ---------------------------------------------------------------------------
+
+  describe "rate limiting" do
+    before { sign_in_as member }
+
+    it "counts a favourite create against the per-user limit" do
+      allow(RateLimiter).to receive(:throttle!).and_return(false)
+      post favorites_path(format: :json), params: { post_id: post_record.id }
+      expect(RateLimiter).to have_received(:throttle!).with("favorites:#{member.id}", limit: 60, period: 1.minute)
+    end
+
+    it "returns 429 when create is throttled" do
+      allow(RateLimiter).to receive(:throttle!).and_return(true)
+      post favorites_path(format: :json), params: { post_id: post_record.id }
+      expect(response).to have_http_status(:too_many_requests)
+    end
+
+    it "returns 429 when destroy is throttled" do
+      FavoriteManager.add!(user: member, post: post_record)
+      allow(RateLimiter).to receive(:throttle!).and_return(true)
+      delete favorite_path(post_record.id, format: :json)
+      expect(response).to have_http_status(:too_many_requests)
+    end
+  end
 end
