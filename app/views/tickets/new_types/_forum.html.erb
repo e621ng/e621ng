@@ -1,10 +1,3 @@
-<% @forum = @ticket.content %>
-<h4>You are reporting the following forum post:</h4>
-<div class='author'><%= link_to_user(@forum.creator) %></div>
-<span class="date"><%= time_ago_in_words_tagged(@forum.created_at) %></span>
-<br><br>
-<div class="dtext-container">
-  <%= format_text(@forum.body) %>
-</div>
-
-<%= render "tickets/partials/create_notice", message: @forum %>
+<h3 class="ticket-new-title">You are reporting the following forum post:</h3>
+<%= render "tickets/partials/reported_content" %>
+<%= render "tickets/partials/create_notice", message: @ticket.content %>

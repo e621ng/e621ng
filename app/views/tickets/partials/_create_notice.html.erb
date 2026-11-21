@@ -1,15 +1,15 @@
 <% warnings = generate_content_warnings(message) %>
 <% if warnings.any? %>
-  <span class="ticket-warning">
-  <h4>Note:</h4>
+  <div class="ticket-new-warning">
+    <div class="ticket-new-badge-title"><b>Note</b></div>
     <ul>
       <% warnings.each do |line| %>
         <li><%= line %></li>
       <% end %>
     </ul>
-    <div class="warning-notice">
+    <div>
       <strong>Are you sure that you still wish to report this message?</strong><br />
       Keep in mind that extreme or illegal content should still be reported, so that it can be properly removed.
     </div>
-  </span>
+  </div>
 <% end %>

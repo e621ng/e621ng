@@ -1,8 +1,2 @@
-<% @dmail = @ticket.content %>
-<h4>You are reporting the following private message:</h4>
-<div class='author'><%= link_to_user @dmail.from %></div>
-<span class="date"><%= time_ago_in_words_tagged(@dmail.created_at) %></span>
-<br><br>
-<div class="dtext-container">
-  <%= format_text(@dmail.body) %>
-</div>
+<h3 class="ticket-new-title">You are reporting the following private message:</h3>
+<%= render "tickets/partials/reported_content" %>

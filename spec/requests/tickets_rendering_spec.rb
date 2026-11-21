@@ -40,6 +40,15 @@ RSpec.describe TicketsController do
         expect(response).to have_http_status(:ok)
       end
 
+      it "re-renders new after a failed create" do
+        sign_in_as reporter
+        params = { qtype: qtype, disp_id: content.id, reason: "" }
+        params[:report_reason] = create(:post_report_reason).reason if qtype == "post"
+        expect { post tickets_path, params: { ticket: params } }.not_to change(Ticket, :count)
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("ticket-new-errors")
+      end
+
       it "renders show for the reporter" do
         sign_in_as reporter
         get ticket_path(ticket)
