@@ -29,9 +29,14 @@ RSpec.describe Post do
         expect(post.has_preview?).to be true
       end
 
-      it "returns false for a non-image, non-video file type" do
+      it "returns false for a flash post without has_flash_preview" do
         post = build(:post, file_ext: "swf", image_width: 640, image_height: 480)
         expect(post.has_preview?).to be false
+      end
+
+      it "returns true for a flash post with has_flash_preview" do
+        post = build(:post, file_ext: "swf", image_width: 640, image_height: 480, has_flash_preview: true)
+        expect(post.has_preview?).to be true
       end
 
       it "returns false for a 1x1 image (likely corrupt)" do
