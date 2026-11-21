@@ -147,6 +147,37 @@ RSpec.describe Pool do
       small_index = result.index(pool_small)
       expect(large_index).to be < small_index
     end
+
+    it "orders by name descending when order is 'name_desc'" do
+      result = Pool.search(order: "name_desc").to_a
+      names = result.map(&:name)
+      expect(names).to eq(names.sort.reverse)
+    end
+
+    it "orders by post_count ascending when order is 'post_count_asc'" do
+      posts = create_list(:post, 4)
+      pool_small = make_pool(name: "order_small_pool", post_ids: [posts[0].id])
+      pool_large = make_pool(name: "order_large_pool", post_ids: posts[1..3].map(&:id))
+
+      result = Pool.search(order: "post_count_asc").to_a
+      expect(result.index(pool_small)).to be < result.index(pool_large)
+    end
+
+    describe "by updated_at" do
+      before do
+        series_pool.update_columns(updated_at: 3.days.ago)
+        collection_pool.update_columns(updated_at: 1.day.ago)
+        other_pool.update_columns(updated_at: 2.days.ago)
+      end
+
+      it "orders by updated_at descending when order is 'updated_at'" do
+        expect(Pool.search(order: "updated_at").to_a).to eq([collection_pool, other_pool, series_pool])
+      end
+
+      it "orders by updated_at ascending when order is 'updated_at_asc'" do
+        expect(Pool.search(order: "updated_at_asc").to_a).to eq([series_pool, other_pool, collection_pool])
+      end
+    end
   end
 
   # -------------------------------------------------------------------------

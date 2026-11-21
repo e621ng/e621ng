@@ -4,12 +4,15 @@ module FormSearchHelper
   # needed for filled_form_fields to know which fields to look for in the params
   DEFAULT_SEARCH_FIELDS = %i[id created_at updated_at].freeze
 
-  def form_search(path:, always_display: false, hideable: request.path.split("/")[2] != "search", method: :get, exclude_default_fields: %i[], &)
+  # ignore_for_display lists fields whose value alone does not open the form, such as an order the page also
+  # lets you pick outside of it.
+  def form_search(path:, always_display: false, hideable: request.path.split("/")[2] != "search", method: :get, exclude_default_fields: %i[], ignore_for_display: %i[], &) # rubocop:disable Metrics/ParameterLists
     # NOTE: dedicated search routes like /comments/search should always show
     exclude_default_fields = Array(exclude_default_fields).map(&:to_sym)
     search_params = params[:search] || {}
 
-    show_on_load = filled_form_fields(search_params, exclude_default_fields: exclude_default_fields, &).any? || always_display || !hideable
+    filled_fields = filled_form_fields(search_params, exclude_default_fields: exclude_default_fields, &) - Array(ignore_for_display).map(&:to_sym)
+    show_on_load = filled_fields.any? || always_display || !hideable
     form = simple_form_for(:search, {
       method: method,
       url: path,

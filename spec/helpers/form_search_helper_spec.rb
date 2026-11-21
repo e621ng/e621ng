@@ -131,6 +131,37 @@ RSpec.describe FormSearchHelper do
       end
     end
 
+    context "when the only filled field is in ignore_for_display" do
+      before do
+        allow(helper).to receive(:params).and_return(
+          ActionController::Parameters.new(search: { order: "name" }),
+        )
+      end
+
+      it "renders #searchform with display:none" do
+        form = render_form(ignore_for_display: [:order]) { |f| f.input(:order) }
+        expect(form.at_css("#searchform")["style"]).to include("display:none")
+      end
+
+      it "renders #searchform without display:none when ignore_for_display is not given" do
+        form = render_form { |f| f.input(:order) }
+        expect(form.at_css("#searchform")["style"].to_s).not_to include("display:none")
+      end
+    end
+
+    context "when another filled field sits next to one in ignore_for_display" do
+      before do
+        allow(helper).to receive(:params).and_return(
+          ActionController::Parameters.new(search: { order: "name", name: "foo" }),
+        )
+      end
+
+      it "renders #searchform without display:none" do
+        form = render_form(ignore_for_display: [:order]) { |f| f.input(:order) + f.input(:name) }
+        expect(form.at_css("#searchform")["style"].to_s).not_to include("display:none")
+      end
+    end
+
     context "default field rendering" do
       include_context "as admin"
 

@@ -1,8 +1,8 @@
-<%= form_search(path: request.path) do |f| %>
+<%= form_search(path: request.path, ignore_for_display: local_assigns.fetch(:ignore_for_display, [])) do |f| %>
   <%= f.input :name_matches, label: "Name", autocomplete: "pool" %>
   <%= f.input :description_matches, label: "Description" %>
   <%= f.user :creator %>
   <%= f.input :is_active, label: "Status", collection: [["Active", "true"], ["Inactive", "false"]], :include_blank => true %>
   <%= f.input :category, label: "Category", collection: [["Series", "series"], ["Collection", "collection"]], :include_blank => true %>
-  <%= f.input :order, label: "Order", collection: [["Last updated", "updated_at"], ["Name", "name"], ["Recently created", "created_at"], ["Post count", "post_count"]], :include_blank => true %>
+  <%= f.input :order, label: "Order", collection: [["Updated", "updated_at"], ["Updated (asc)", "updated_at_asc"], ["Created", "id_desc"], ["Created (asc)", "id_asc"], ["Posts", "post_count"], ["Posts (asc)", "post_count_asc"], ["Name", "name_desc"], ["Name (asc)", "name"]], :include_blank => true %>
 <% end %>

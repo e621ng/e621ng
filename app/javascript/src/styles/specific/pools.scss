@@ -1,4 +1,32 @@
 div#c-pools {
+  // The pool columns of the index list (common/index_list.scss).
+  div#a-index {
+    .pool-list-item {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "name name    posts"
+        "id   updated updated";
+
+      .pl-name { overflow-wrap: anywhere; }
+      .pl-posts, .pl-updated { justify-self: end; }
+    }
+
+    .pl-id { grid-area: id; }
+    .pl-name { grid-area: name; min-width: 0; }
+    .pl-posts { grid-area: posts; }
+    .pl-updated { grid-area: updated; }
+
+    @include window-larger-than(50rem) {
+      .index-list-header, .pool-list-item {
+        grid-template-columns: 4.5rem minmax(0, 1fr) 5rem 9rem;
+        grid-template-areas: "id name posts updated";
+      }
+
+      .pl-id, .pl-posts { justify-self: end; }
+      .index-list-header .pl-updated, .pool-list-item .pl-updated { justify-self: start; }
+    }
+  }
+
   div#a-show {
     #blacklist-box {
       display: inline;
