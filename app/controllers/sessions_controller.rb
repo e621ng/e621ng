@@ -34,6 +34,8 @@ class SessionsController < ApplicationController
     when :totp_required
       account_limiter&.reset!
       DanbooruLogger.add_attributes("user.login" => "totp_challenge")
+      # Don't carry an error from an abandoned challenge into a new one.
+      session.delete(:totp_error)
       respond_to do |fmt|
         fmt.html { redirect_to(totp_session_path) }
         fmt.json { render(json: { error: "Two-factor authentication required. Log in through the website, or use an API key for scripts.", code: "totp_required", url: totp_session_path }, status: 401) }
@@ -51,7 +53,13 @@ class SessionsController < ApplicationController
 
   def totp
     @user = session_creator.challenge_user
-    redirect_to(new_session_path, notice: "Your login attempt has expired. Please log in again.") if @user.nil?
+    if @user.nil?
+      session.delete(:totp_error)
+      redirect_to(new_session_path, notice: "Your login attempt has expired. Please log in again.")
+      return
+    end
+    # Flash would also render this as a toast; keep the error inline only.
+    @totp_error = session.delete(:totp_error)
   end
 
   def verify_totp
@@ -103,9 +111,8 @@ class SessionsController < ApplicationController
       DanbooruLogger.add_attributes("user.login" => "totp_fail")
       respond_to do |fmt|
         fmt.html do
-          @user = user
-          flash.now[:notice] = "Verification code was incorrect."
-          render(:totp)
+          session[:totp_error] = "Verification code was incorrect."
+          redirect_to(totp_session_path)
         end
         fmt.json { render(json: { error: "Verification code was incorrect." }, status: 401) }
       end
