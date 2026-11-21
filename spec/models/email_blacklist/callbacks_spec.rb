@@ -14,17 +14,17 @@ RSpec.describe EmailBlacklist do
   # after_destroy :invalidate_cache
   # ---------------------------------------------------------------------------
   describe "cache invalidation" do
-    it "clears the banned_emails cache after create" do
+    it "clears the banned emails cache after create" do
       allow(Cache).to receive(:delete)
       create(:email_blacklist)
-      expect(Cache).to have_received(:delete).with("banned_emails").at_least(:once)
+      expect(Cache).to have_received(:delete).with(EmailBlacklist::BANNED_CACHE_KEY).at_least(:once)
     end
 
-    it "clears the banned_emails cache after destroy" do
+    it "clears the banned mails cache after destroy" do
       entry = create(:email_blacklist)
       allow(Cache).to receive(:delete)
       entry.destroy!
-      expect(Cache).to have_received(:delete).with("banned_emails").at_least(:once)
+      expect(Cache).to have_received(:delete).with(EmailBlacklist::BANNED_CACHE_KEY).at_least(:once)
     end
   end
 

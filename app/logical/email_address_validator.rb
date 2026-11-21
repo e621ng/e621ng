@@ -65,9 +65,17 @@ class EmailAddressValidator < ActiveModel::EachValidator
     local, domain = address.split("@", 2)
     return "is invalid" if local.nil? || domain.nil?
 
-    # ===== Validating Local Parts ===== #
+    local_error = validation_error_local_part(local)
+    return local_error unless local_error.nil?
 
-    # Local-part validations
+    domain_error = validation_error_domain_part(domain)
+    return domain_error unless domain_error.nil?
+
+    nil
+  end
+
+  # Local-part validations
+  def self.validation_error_local_part(local)
     if local.start_with?(".") || local.end_with?(".")
       return "cannot have dots at the beginning or end of the local part"
     end
@@ -76,12 +84,15 @@ class EmailAddressValidator < ActiveModel::EachValidator
 
     return "local part is too long (maximum 64 characters)" if local.length > 64
 
-    # ===== Validating Domain Parts ===== #
+    nil
+  end
 
+  # Domain-part validations
+  def self.validation_error_domain_part(domain, bare_tld: false)
     return "domain is too long (maximum 253 characters)" if domain.length > 253
 
-    # Reject IP literals and require at least one dot (standard domain format)
-    if domain.start_with?("[") || domain.exclude?(".")
+    # Reject IP literals and require at least one dot (standard domain format), except for bare TLD mode
+    if domain.start_with?("[") || (!bare_tld && domain.exclude?("."))
       return "must use a standard domain format"
     end
 
