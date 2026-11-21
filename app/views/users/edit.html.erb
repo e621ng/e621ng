@@ -1,10 +1,11 @@
 <% active_section = active_settings_section(params[:tab]) %>
 <div id="c-users"><div id="a-edit">
-  <h1>Settings</h1>
-
   <div class="settings-layout">
-    <nav class="settings-nav" aria-label="Settings sections">
-      <input type="search" name="find" value="<%= params[:find] %>" placeholder="Search Settings" aria-label="Search settings">
+    <div class="settings-sidebar"><nav class="settings-nav" aria-label="Settings sections">
+      <section class="settings-nav-search">
+        <h1><label for="settings-find">Settings</label></h1>
+        <input type="search" id="settings-find" name="find" value="<%= params[:find] %>" placeholder="Search settings">
+      </section>
 
       <ul class="settings-nav-list">
         <% settings_sections.each do |section| %>
@@ -18,7 +19,7 @@
         </select>
         <noscript><button type="submit" class="st-button">Go</button></noscript>
       </form>
-    </nav>
+    </nav></div>
 
     <%= custom_form_for @user, html: { class: "settings-content" } do |form| %>
       <% settings_sections.each do |section| %>
