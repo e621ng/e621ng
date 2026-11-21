@@ -3,8 +3,15 @@
 class FavoritesController < ApplicationController
   include JsonResponseHelper
 
+  # Favourites skip api_check so a high-frequency UI action doesn't spend the shared API
+  # token bucket. That left create/destroy with no rate limit at all, so a session-riding
+  # script could add or wipe a user's entire favourites set (up to 80k) unthrottled
+  # (E6SEC-517). Apply a dedicated per-user cap instead. Tune if bulk-favouriting needs more.
+  FAVORITES_PER_MINUTE = 60
+
   before_action :member_only, except: [:index]
   before_action :ensure_lockdown_disabled, except: %i[index]
+  before_action :throttle_favorites, only: %i[create destroy]
   respond_to :json
   respond_to :html, only: [:index]
   skip_before_action :api_check
@@ -67,6 +74,10 @@ class FavoritesController < ApplicationController
   end
 
   private
+
+  def throttle_favorites
+    raise APIThrottled if RateLimiter.throttle!("favorites:#{CurrentUser.id}", limit: FAVORITES_PER_MINUTE, period: 1.minute)
+  end
 
   def ensure_lockdown_disabled
     render_expected_error(403, "Favorites are disabled") if Security::Lockdown.favorites_disabled? && !CurrentUser.is_staff?
