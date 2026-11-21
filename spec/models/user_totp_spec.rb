@@ -71,6 +71,26 @@ RSpec.describe UserTotp do
         expect(user_totp.verify_code!("0000-0000-0000-0000")).to be_nil
         expect(user_totp.reload.backup_code_digests.size).to eq(10)
       end
+
+      # E6SEC-522: two concurrent requests each load the record, both still holding the code
+      # in their in-memory digest list. The second must not be able to reuse the code from its
+      # stale copy — verify_code! reloads under a row lock, so it sees the consumed state.
+      it "does not reuse a backup code from a stale in-memory copy" do
+        first_request = UserTotp.find(user_totp.id)
+        stale_request = UserTotp.find(user_totp.id)
+
+        expect(first_request.verify_code!(backup_codes.first)).to eq(:backup_code)
+        # stale_request still holds all 10 digests in memory (its read preceded the consume)
+        expect(stale_request.backup_code_digests.size).to eq(10)
+        # The protection must be a row lock, not merely a reload: under true concurrency a
+        # bare reload would let both requests read the code as present. Assert the lock so
+        # replacing with_lock with reload cannot leave this regression green.
+        allow(stale_request).to receive(:with_lock).and_call_original
+        # verify_code! reloads under that lock, so the already-used code can't be reused
+        expect(stale_request.verify_code!(backup_codes.first)).to be_nil
+        expect(user_totp.reload.backup_code_digests.size).to eq(9)
+        expect(stale_request).to have_received(:with_lock)
+      end
     end
   end
 
