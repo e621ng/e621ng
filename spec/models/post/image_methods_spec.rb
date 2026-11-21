@@ -23,6 +23,20 @@ RSpec.describe Post do
       end
     end
 
+    describe "#aspect_ratio" do
+      it "reduces the dimensions" do
+        expect(build(:post, image_width: 1920, image_height: 1080).aspect_ratio).to eq("16:9")
+        expect(build(:post, image_width: 1080, image_height: 1920).aspect_ratio).to eq("9:16")
+        expect(build(:post, image_width: 500, image_height: 500).aspect_ratio).to eq("1:1")
+        expect(build(:post, image_width: 1919, image_height: 1080).aspect_ratio).to eq("1919:1080")
+      end
+
+      it "returns nil without usable dimensions" do
+        expect(build(:post, image_width: nil, image_height: 480).aspect_ratio).to be_nil
+        expect(build(:post, image_width: 0, image_height: 480).aspect_ratio).to be_nil
+      end
+    end
+
     describe "#has_preview?" do
       it "returns true for an image with dimensions larger than 1x1" do
         post = build(:post, file_ext: "jpg", image_width: 640, image_height: 480)

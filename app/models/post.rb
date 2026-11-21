@@ -347,6 +347,13 @@ class Post < ApplicationRecord
       @has_dimensions ||= image_width.present? && image_height.present?
     end
 
+    # Reduced width:height, e.g. "16:9" for 1920x1080
+    def aspect_ratio
+      return nil unless has_dimensions? && image_width > 0 && image_height > 0
+      gcd = image_width.gcd(image_height)
+      "#{image_width / gcd}:#{image_height / gcd}"
+    end
+
     ### Preview ###
     def has_preview?
       return false unless is_image? || is_video?
@@ -748,6 +755,7 @@ class Post < ApplicationRecord
       normalized_tags = TagQuery.scan(tag_string)
       normalized_tags = apply_casesensitive_metatags(normalized_tags)
       normalized_tags = normalized_tags.map {|tag| tag.downcase}
+      normalized_tags = remove_ratio_tags(normalized_tags)
       normalized_tags = filter_metatags(normalized_tags)
       normalized_tags = remove_negated_tags(normalized_tags)
       normalized_tags = remove_dnp_tags(normalized_tags)
@@ -816,6 +824,12 @@ class Post < ApplicationRecord
         end
         tag.errors.size > 0
       end
+      tags
+    end
+
+    def remove_ratio_tags(tags)
+      rejected, tags = tags.partition { |tag| TagQuery::RATIO_TAG_REGEX.match?(tag) }
+      warnings.add(:base, "Aspect ratios cannot be added as tags: #{rejected.join(', ')}") if rejected.any?
       tags
     end
 

@@ -199,6 +199,14 @@ RSpec.describe PostsController do
       expect(response).to have_http_status(:ok)
     end
 
+    it "shows the reduced aspect ratio linked to a ratio search" do
+      post.update_columns(image_width: 1920, image_height: 1080)
+      get post_path(post)
+      link = Nokogiri::HTML(response.body).at_css(".post-sidebar-grid a[href*='ratio']")
+      expect(link.text).to eq("16:9")
+      expect(link["href"]).to eq(posts_path(tags: "ratio:16:9"))
+    end
+
     it "returns a JSON body containing the post id" do
       get post_path(post, format: :json)
       expect(response).to have_http_status(:ok)

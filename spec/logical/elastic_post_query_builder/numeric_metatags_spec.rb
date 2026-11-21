@@ -48,6 +48,10 @@ RSpec.describe ElasticPostQueryBuilder do
       it "adds a range clause for ratio:>1" do
         expect(build_query("ratio:>1").must).to include({ range: { aspect_ratio: { gt: 1.0 } } })
       end
+
+      it "adds a term clause for ratio:16:9 at 7dp" do
+        expect(build_query("ratio:16:9").must).to include({ term: { aspect_ratio: 1.7777778 } })
+      end
     end
 
     describe "width" do
