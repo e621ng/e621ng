@@ -93,10 +93,28 @@ RSpec.describe RateLimiter do
       expect(described_class.throttle!("spec", limit: 2, period: 1.minute)).to be(true)
     end
 
-    it "does not count rejected attempts" do
+    it "allows again once the window expires" do
       3.times { described_class.throttle!("spec", limit: 2, period: 1.minute) }
       travel 61.seconds
       expect(described_class.throttle!("spec", limit: 2, period: 1.minute)).to be(false)
+    end
+
+    it "decides admission from the atomic increment, so every attempt counts" do
+      # Two admitted, two rejected; all four increment, so a concurrent caller can
+      # never read a stale under-limit count and slip past the cap.
+      2.times { expect(described_class.throttle!("spec", limit: 2, period: 1.minute)).to be(false) }
+      2.times { expect(described_class.throttle!("spec", limit: 2, period: 1.minute)).to be(true) }
+      expect(Cache.fetch("throttle:spec", raw: true).to_i).to eq(4)
+    end
+
+    it "admits solely on the increment result and never reads the counter separately" do
+      # The increment reports an over-limit count. A check-then-increment implementation
+      # would instead consult the counter (a stale read under concurrency) and wrongly
+      # admit, so forbidding that read makes restoring the race fail this test.
+      allow(Cache).to receive(:increment).and_return(3)
+      allow(Cache).to receive(:fetch)
+      expect(described_class.throttle!("spec", limit: 2, period: 1.minute)).to be(true)
+      expect(Cache).not_to have_received(:fetch)
     end
 
     it "weights attempts by amount" do
