@@ -401,10 +401,10 @@ RSpec.describe ForumTopicsController do
 
   # mark_all_as_read_forum_topics POST /forum_topics/mark_all_as_read(.:format) forum_topics#mark_all_as_read
   describe "mark_all_as_read action" do
-    it "redirects to the index with a notice" do
+    it "redirects to the forum index with a notice" do
       sign_in_as user
       post mark_all_as_read_forum_topics_path
-      expect(response).to redirect_to(forum_topics_path)
+      expect(response).to redirect_to(forums_path)
       expect(flash[:notice]).to eq("All topics marked as read")
     end
 

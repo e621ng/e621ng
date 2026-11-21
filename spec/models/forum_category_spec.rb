@@ -13,6 +13,32 @@ RSpec.describe ForumCategory do
       expect(duplicate).not_to be_valid
       expect(duplicate.errors[:name]).to include("has already been taken")
     end
+
+    it "accepts a hex color and normalizes it" do
+      category = create(:forum_category, color: " #1F4F8F ")
+      expect(category.color).to eq("#1f4f8f")
+    end
+
+    it "stores a blank color as nil" do
+      expect(create(:forum_category, color: "").color).to be_nil
+    end
+
+    it "rejects colors that are not six-digit hex" do
+      %w[red #fff #1f4f8g 1f4f8f].each do |color|
+        expect(build(:forum_category, color: color)).not_to be_valid, color
+      end
+    end
+
+    it "defaults landing_topic_count to 5" do
+      expect(ForumCategory.new.landing_topic_count).to eq(5)
+    end
+
+    it "limits landing_topic_count to 0..25" do
+      expect(build(:forum_category, landing_topic_count: 0)).to be_valid
+      expect(build(:forum_category, landing_topic_count: 25)).to be_valid
+      expect(build(:forum_category, landing_topic_count: -1)).not_to be_valid
+      expect(build(:forum_category, landing_topic_count: 26)).not_to be_valid
+    end
   end
 
   describe "methods" do

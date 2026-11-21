@@ -156,6 +156,9 @@
   &:hover, &:active {
     background: theme.color("tag-artist-alt");
   }
+  &.kinetic {
+    --kinetic-shadow-color: #{palette.color("background-gold-d30")};
+  }
 
   &[disabled] {
     background: palette.color("background-grey");

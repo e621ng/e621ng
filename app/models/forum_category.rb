@@ -3,6 +3,10 @@
 class ForumCategory < ApplicationRecord
   has_many :forum_topics, -> { order(id: :desc) }, foreign_key: :category
   validates :name, uniqueness: { case_sensitive: false }
+  validates :color, format: { with: /\A#\h{6}\z/, message: "must be a hex color like #1f4f8f" }, allow_nil: true
+  validates :landing_topic_count, numericality: { only_integer: true, in: 0..25 }
+
+  normalizes :color, with: ->(color) { color.strip.downcase.presence }
 
   after_destroy :reassign_topics
 

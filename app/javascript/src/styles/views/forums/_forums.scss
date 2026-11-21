@@ -1,0 +1,109 @@
+@use "colors/theme";
+
+// Forum landing and category pages (doc 46). Topic rows: components/forum_topic_row_component.
+
+body.c-forums {
+  #a-index, #a-show {
+    max-width: 75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .forum-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+
+    h1 {
+      margin: 0;
+      line-height: 2rem;
+    }
+  }
+
+  .forum-heading-text { flex: 1 1 18rem; min-width: 0; }
+
+  .forum-heading-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .st-button { font-size: initial; }
+  }
+
+  .forum-new-topic {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+  }
+
+  .forum-actions-inline {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding: 0.5rem;
+  }
+
+  .forum-category {
+    background: theme.color("section");
+    border-radius: 0.25rem;
+    overflow: hidden;
+    box-shadow: 0 0 0.5rem -0.25rem black;
+  }
+
+  .forum-category-header {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.5rem;
+    background: theme.color("section-lighten-5");
+  }
+
+  .forum-category-accent {
+    flex: none;
+    align-self: stretch;
+    width: 0.5rem;
+    min-height: 1.75rem;
+    border-radius: 0.25rem;
+    background: var(--forum-accent, #{theme.color("text-muted")});
+  }
+
+  .forum-category-text { flex: 1 1 auto; min-width: 0; }
+
+  .forum-category-name {
+    margin: 0;
+    font-size: 1.15rem;
+
+    a { color: theme.color("text"); }
+  }
+
+  .forum-category-description {
+    margin-top: 0.15rem;
+    font-size: 0.85em;
+    color: theme.color("text-muted");
+  }
+
+  .forum-category-view-all {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: 0.85em;
+    white-space: nowrap;
+  }
+
+  .forum-category-empty {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid theme.color("foreground");
+    color: theme.color("text-muted");
+    font-style: italic;
+  }
+
+  .forum-breadcrumb { margin: 0; }
+}

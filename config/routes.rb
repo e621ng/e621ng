@@ -283,6 +283,7 @@ Rails.application.routes.draw do
     resource :visit, controller: "forum_topic_visits"
   end
   resources :forum_categories
+  resources :forums, only: %i[index show]
   resources :help_pages, controller: "help", path: "help" do
     collection do
       get :list
@@ -579,8 +580,8 @@ Rails.application.routes.draw do
   get "/favorite" => redirect { |_params, req| "/favorites?page=#{req.params[:page]}" }
   get "/favorite/index" => redirect { |_params, req| "/favorites?page=#{req.params[:page]}" }
 
-  get "/forum" => redirect { |_params, req| "/forum_topics?page=#{req.params[:page]}" }
-  get "/forum/index" => redirect { |_params, req| "/forum_topics?page=#{req.params[:page]}" }
+  get "/forum" => redirect("/forums")
+  get "/forum/index" => redirect("/forums")
   get "/forum/show/:id" => redirect { |_params, req| "/forum_posts/#{req.params[:id]}?page=#{req.params[:page]}" }
   get "/forum/search" => redirect("/forum_posts/search")
 

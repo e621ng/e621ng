@@ -1,0 +1,18 @@
+<%# category; link: whether to link to the category page; heading: :h1 or :h2 %>
+<%# Not a single <a>: DText descriptions may contain links of their own. %>
+<%= tag.div(class: "forum-category-header", style: ("--forum-accent: #{category.color}" if category.color.present?)) do %>
+  <span class="forum-category-accent"></span>
+  <div class="forum-category-text">
+    <%= content_tag(local_assigns.fetch(:heading, :h2), class: "forum-category-name") do %>
+      <%= link ? link_to(category.name, forum_path(category)) : category.name %>
+    <% end %>
+    <% if category.description.present? %>
+      <div class="forum-category-description"><%= format_text(category.description, inline: true) %></div>
+    <% end %>
+  </div>
+  <% if link %>
+    <%= link_to forum_path(category), class: "forum-category-view-all" do %>
+      View all <%= svg_icon(:chevron_right, width: 16, height: 16) %>
+    <% end %>
+  <% end %>
+<% end %>

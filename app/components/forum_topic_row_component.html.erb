@@ -1,0 +1,26 @@
+<div class="<%= row_classes %>" data-topic-id="<%= topic.id %>" data-topic-is-hidden="<%= topic.is_hidden? %>">
+  <div class="forum-topic-item-main">
+    <% if pinned %>
+      <%= svg_icon(:pin, class: "forum-topic-item-pin", width: 14, height: 14, title: "Pinned") %>
+    <% else %>
+      <%= tag.span(class: "forum-topic-item-marker", title: ("Unread" if unread?)) %>
+    <% end %>
+    <div class="forum-topic-item-title">
+      <%= link_to topic.title, forum_topic_path(topic), class: "forum-topic-item-link" %>
+      <% if topic.is_locked? %><span class="forum-topic-badge">Locked</span><% end %>
+      <% if topic.is_hidden? %><span class="forum-topic-badge">Hidden</span><% end %>
+      <% if topic.last_page > 1 %>
+        <%= link_to "page #{topic.last_page}", forum_topic_path(topic, page: topic.last_page), class: "forum-topic-item-last-page" %>
+      <% end %>
+    </div>
+  </div>
+  <div class="forum-topic-item-meta">
+    <span class="forum-topic-item-replies" title="Replies">
+      <%= svg_icon(:message_square, width: 14, height: 14) %>
+      <%= number_with_delimiter(reply_count) %>
+    </span>
+    <span class="forum-topic-item-activity">
+      <%= helpers.link_to_user(topic.updater) %> · <%= helpers.time_ago_in_words_tagged(topic.updated_at, compact: true) %>
+    </span>
+  </div>
+</div>
