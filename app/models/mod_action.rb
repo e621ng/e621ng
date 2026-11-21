@@ -194,6 +194,29 @@ class ModAction < ApplicationRecord
       end
     end
 
+    # The jsonb value keys +user+ is allowed to filter on for +action+. Mirrors the
+    # per-level stripping in #values so that search never exposes a value the viewer
+    # cannot already read on the row (E6SEC-501). Where #values narrows per row (e.g.
+    # upload_whitelist hides "note" once an entry is hidden), search cannot see the row,
+    # so it exposes only the always-public keys.
+    def searchable_value_keys(action, user)
+      keys = KnownActions[action.to_sym]&.keys&.map(&:to_s) || []
+      return keys if user.is_admin?
+
+      case action.to_sym
+      when :ip_ban_create, :ip_ban_delete
+        []
+      when :upload_whitelist_create, :upload_whitelist_update, :upload_whitelist_delete
+        keys & %w[hidden]
+      when :ticket_update
+        user.is_moderator? ? keys : keys & %w[ticket_id]
+      when :appeal_update
+        user.is_staff? ? keys : keys & %w[appeal_id]
+      else
+        keys
+      end
+    end
+
     def search(params)
       params ||= {}
       q = super
@@ -202,9 +225,15 @@ class ModAction < ApplicationRecord
 
       if params[:action].present? && KnownActions.key?(params[:action].to_sym)
         field_types = KnownActions[params[:action].to_sym]
-        valid_params = params.slice(*field_types.keys.map(&:to_s))
+        # Only allow filtering on value keys the viewer can actually see. Without this, the
+        # jsonb filters act as an oracle: a non-staff user who cannot read a ticket_update
+        # response (or a hidden ip_ban reason) could still recover it character by character
+        # with a wildcard search (E6SEC-501). Kept in lockstep with #values.
+        searchable = searchable_value_keys(params[:action], CurrentUser.user)
+        valid_params = params.slice(*(field_types.keys.map(&:to_s) & searchable))
 
         field_types.each do |key, type|
+          next unless searchable.include?(key.to_s)
           next if valid_params[key.to_s].blank?
 
           case type
