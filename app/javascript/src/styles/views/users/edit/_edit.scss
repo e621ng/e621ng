@@ -6,9 +6,8 @@
   // Rows and groups set their own display, which would otherwise override [hidden]
   [hidden] { display: none !important; }
 
+  // Background and padding come from .settings-content
   form.simple_form {
-    background: unset;
-    padding: unset;
     margin: unset;
 
     input[type="text"], input[type="number"], textarea, select {
@@ -27,26 +26,57 @@
   }
 
 
-  // Layout
+  // Layout, mirroring the posts#index sidebar
   .settings-layout {
-    display: flex;
-    flex-flow: column;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-areas:
+      "sidebar"
+      "content";
+    grid-template-columns: 1fr;
+    grid-template-rows: min-content 1fr;
+
+    flex: 1; // See the page shell below
+  }
+
+  // Spans the full height, so the separator reaches the bottom; the nav inside it is what sticks
+  .settings-sidebar {
+    grid-area: sidebar;
+
+    padding: 0.5rem 0.75rem;
+    box-shadow: inset 0px -0.25rem 0.25rem -0.25rem theme.color("background");
   }
 
   .settings-nav {
     display: flex;
     flex-flow: column;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+    gap: 1em;
 
-    input[name="find"], select {
+    h1 {
+      font-size: 1.16667em;
+      line-height: 1.5rem;
+    }
+
+    // Match the posts searchbox
+    input[name="find"] {
+      width: 100%;
+      box-sizing: border-box;
+      border: unset;
+      border-radius: 0.25rem;
+      padding: 0.5rem;
+      font-family: inherit;
+      font-size: 1rem;
+      line-height: 1rem;
+      height: 2rem; // Inputs ignore line-height below the font's natural height; posts uses a textarea
+    }
+
+    // Match the posts mode menu
+    select {
       width: 100%;
       box-sizing: border-box;
       border-radius: 0.25rem;
-      font-size: 1rem;
-      line-height: 1rem;
-      padding: 0.25rem;
+      padding: 0.5em;
+      font-family: inherit;
+      font-size: 1.05em;
     }
   }
 
@@ -76,9 +106,20 @@
   }
 
   .settings-content {
+    grid-area: content;
+
     display: flex;
     flex-flow: column;
-    max-width: 50rem;
+
+    // Imported from #page, same as the posts#index content area
+    padding: 0.5rem 0.25rem theme.get("content-padding-bottom");
+    background-color: theme.color("foreground");
+    background-image: theme.image("foreground");
+    background-position: theme.image("foreground-position");
+    background-repeat: theme.image("foreground-repeat");
+    background-size: theme.image("foreground-size");
+
+    & > * { max-width: 50rem; }
   }
 
   .settings-section {
@@ -191,15 +232,25 @@
 
   @include breakpoints.desktop {
     .settings-layout {
-      display: grid;
-      grid-template-columns: 12rem minmax(0, 50rem);
-      gap: 1rem;
-      align-items: start;
+      grid-template-areas: "sidebar content";
+      grid-template-columns: 16rem minmax(0, 1fr);
+      grid-template-rows: 1fr;
     }
 
+    .settings-sidebar {
+      box-shadow: inset -0.25rem 0px 0.25rem -0.25rem theme.color("background");
+      padding: 0.25rem 0.75rem 0.5rem 0.5rem;
+    }
+
+    // Unlike posts#index, the navigation stays in view while scrolling
     .settings-nav {
       position: sticky;
-      top: 0.5rem;
+      top: 0.25rem;
+    }
+
+    .settings-content {
+      border-radius: 0 0.25rem 0.25rem 0;
+      padding: 0.5rem 0.75rem theme.get("content-padding-bottom");
     }
 
     .settings-nav-list { display: flex; }
@@ -216,7 +267,28 @@
   }
 }
 
+// Page shell, copied from posts#index: the theme's foreground is projected
+// onto the content area, leaving the sidebar on a flat background.
+body.c-users.a-settings,
+body.c-users.a-edit {
+  #page {
+    background: theme.color("foreground");
+    padding: 0;
+  }
+
+  // Makes the content area take up the full height of the page
+  #page, #c-users, #a-edit {
+    display: flex;
+    flex-flow: column;
+    flex: 1;
+  }
+
+  #page #news { margin: 0; }
+}
+
 // Sticky header offset
 body[data-th-stickyheader=true] #c-users #a-edit .settings-nav {
-  top: 4.5rem;
+  @include breakpoints.desktop {
+    top: 4.25rem;
+  }
 }
