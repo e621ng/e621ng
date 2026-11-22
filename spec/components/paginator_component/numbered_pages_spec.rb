@@ -121,6 +121,30 @@ RSpec.describe PaginatorComponent, type: :component do
       end
     end
 
+    describe "single-page gaps" do
+      it "shows page 2 instead of a leading spacer that would only hide it (4 of 9)" do
+        expect(page_numbers(component(current_page: 4, total_pages: 9))).to eq([1, 2, 3, 4, 5, 0, 9])
+      end
+
+      it "shows the page before last instead of a trailing spacer that would only hide it (6 of 9)" do
+        expect(page_numbers(component(current_page: 6, total_pages: 9))).to eq([1, 0, 4, 5, 6, 7, 8, 9])
+      end
+
+      it "fills single-page gaps on both sides (5 of 8)" do
+        c = component(current_page: 5, total_pages: 8)
+        expect(page_numbers(c)).to eq([1, 2, 3, 4, 5, 6, 7, 8])
+        expect(spacer_count(c)).to eq(0)
+      end
+
+      it "fills the gap on the last page (8 of 8)" do
+        expect(page_numbers(component(current_page: 8, total_pages: 8))).to eq([1, 2, 3, 4, 5, 6, 7, 8])
+      end
+
+      it "keeps the spacer when the gap is two or more pages (5 of 20)" do
+        expect(page_numbers(component(current_page: 5, total_pages: 20))).to eq([1, 0, 4, 5, 6, 0, 20])
+      end
+    end
+
     describe "small set — 2 pages, page 1" do
       subject(:c) { component(mode: :numbered, current_page: 1, total_pages: 2) }
 
