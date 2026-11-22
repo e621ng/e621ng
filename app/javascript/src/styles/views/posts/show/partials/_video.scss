@@ -270,6 +270,7 @@
     flex-direction: column;
     align-items: center;
     color: var(--color-text);
+    overflow: hidden;
 
     & > * {
       width: 100%;
@@ -298,13 +299,13 @@
         content: attr(data-rate);
         background-color: palette.color("background-gold-d10");
         color: black;
-        border-radius: 50%;
-        font-size: .5rem;
+        line-height: 1;
+        border-radius: .2rem;
+        font-size: .75rem;
         font-weight: 700;
         bottom: 0;
         right: 0;
-        width: 1rem;
-        text-align: center;
+        padding: .15rem;
       }
 
       // just dont show the label if its already set to one
