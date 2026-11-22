@@ -77,11 +77,23 @@ class PaginatorComponent < ViewComponent::Base
     left -= right - last_page + 3 if right >= last_page - 3
 
     visible_pages = (left..right).select { |p| p > 1 && p < last_page }
-    result.push([0, "spacer"]) if visible_pages.first && visible_pages.first > 2
+
+    # A spacer that would only hide a single page shows that page instead
+    if visible_pages.first == 3
+      result.push([2, ""])
+    elsif visible_pages.first && visible_pages.first > 3
+      result.push([0, "spacer"])
+    end
+
     visible_pages.each do |page|
       result.push([page, ""])
     end
-    result.push([0, "spacer"]) if visible_pages.last && visible_pages.last < last_page - 1
+
+    if visible_pages.last == last_page - 2
+      result.push([last_page - 1, ""])
+    elsif visible_pages.last && visible_pages.last < last_page - 2
+      result.push([0, "spacer"])
+    end
 
     result.push([last_page, "last"]) unless last_page <= 1
     result
