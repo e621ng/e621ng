@@ -7,7 +7,7 @@ const Theme = {};
 
 Theme.Values = {
   "Theme": ["Main", "Extra", "Palette", "Font", "StickyHeader", "Navbar", "Gestures", "Logo"],
-  "Posts": ["WikiExcerpt", "StickySearch", "AutocompleteCache", "VideoPlayer"],
+  "Posts": ["WikiExcerpt", "StickySearch", "AutocompleteCache", "VideoPlayer", "VideoAutoPlay"],
   "Site": ["Events", "TimeSwitch"],
 };
 
