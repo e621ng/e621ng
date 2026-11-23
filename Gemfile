@@ -9,7 +9,7 @@ gem "dotenv", "3.2.0", require: "dotenv/load"
 
 ### Framework
 gem "rails", "8.1.4.1"
-gem "bootsnap", "1.26.1"
+gem "bootsnap", "1.26.2"
 gem "rack-cors", "3.0.0"
 gem "rails-settings-cached", "2.10.0"
 gem "request_store", "1.7.0"
@@ -21,7 +21,7 @@ gem "stringio", "3.2.0"
 gem "csv", "3.3.7"
 
 ### Data stores
-gem "dalli", "3.2.15" # Held on 3.2.x: 5.x needs memcached 1.6+ and 4.x+ crashes Ruby < 3.3.8 (bug #21195)
+gem "dalli", "3.2.17" # Held on 3.2.x: 5.x needs memcached 1.6+ and 4.x+ crashes Ruby < 3.3.8 (bug #21195)
 gem "opensearch-ruby", "3.4.0"
 gem "pg", "1.7.0"
 gem "redis", "6.0.0"
@@ -76,12 +76,12 @@ gem "faraday-retry", "2.4.0"
 gem "datadog", "2.49.0", require: "datadog/auto_instrument"
 
 group :production do
-  gem "pitchfork", "0.18.2"
+  gem "pitchfork", "0.18.4"
 end
 
 group :development, :test do
   gem "listen", "3.10.1"
-  gem "puma", "8.0.3"
+  gem "puma", "8.1.2"
 
   ### Testing
   gem "factory_bot_rails", "6.5.1", require: false
@@ -89,7 +89,7 @@ group :development, :test do
   gem "rspec-rails", "8.1.0", require: false
   gem "rspec-sidekiq", "5.3.0", require: false
   gem "simplecov", "1.3.2", require: false
-  gem "webmock", "3.34.0", require: false
+  gem "webmock", "3.36.0", require: false
 
   # Used by both tests and db/populate.rb
   gem "faker", "3.8.0", require: false
@@ -100,7 +100,7 @@ group :development do
   gem "bundler-audit", "0.9.3", require: false
 
   ### Linting
-  gem "rubocop", "1.92.2", require: false
+  gem "rubocop", "1.92.3", require: false
   gem "rubocop-erb", "0.8.2", require: false
   gem "rubocop-rails", "2.38.0", require: false
   gem "rubocop-rspec", "3.10.2", require: false
