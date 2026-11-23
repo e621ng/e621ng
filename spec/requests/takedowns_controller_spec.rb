@@ -67,6 +67,20 @@ RSpec.describe TakedownsController do
       expect(response).to have_http_status(:ok)
     end
 
+    it "returns the takedown as JSON" do
+      get takedown_path(takedown, format: :json)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to be_a(Hash)
+      expect(response.parsed_body).to include("id" => takedown.id, "status" => "pending")
+    end
+
+    it "returns the takedown as JSON when the vericode matches" do
+      get takedown_path(takedown, code: takedown.vericode, format: :json)
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to be_a(Hash)
+      expect(response.parsed_body).to include("id" => takedown.id)
+    end
+
     it "renders the post editor rows and row template for an admin" do
       td = create(:takedown_with_post, source: "http://example.com")
       post_id = td.post_array.first
