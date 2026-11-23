@@ -42,12 +42,12 @@ class VideoPlayer {
     this.storeSettings();
   };
 
-  public play() {
-    return this.videoElement.play()
+  public play () {
+    return this.videoElement.play();
   }
 
-  public pause() {
-    this.videoElement.pause()
+  public pause () {
+    this.videoElement.pause();
   }
 
   public storeSettings () {
