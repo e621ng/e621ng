@@ -13,7 +13,7 @@ class TakedownsController < ApplicationController
   def show
     @takedown = Takedown.find(params[:id])
     @show_instructions = (CurrentUser.ip_addr == @takedown.creator_ip_addr) || (@takedown.vericode == params[:code])
-    respond_with(@takedown, @show_instructions)
+    respond_with(@takedown)
   end
 
   def new
