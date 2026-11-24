@@ -135,6 +135,84 @@ RSpec.describe TransferFavoritesJob do
       end
     end
 
+    context "when clearing the in-progress flag fails" do
+      let(:user_a) { create(:user) }
+
+      before do
+        add_favorite(child_post, user_a)
+        allow(Rails.logger).to receive(:warn)
+        allow(Rails.logger).to receive(:error)
+      end
+
+      context "because the child post was destroyed mid-transfer" do
+        before do
+          allow(PostEvent).to receive(:add).and_wrap_original do |original, *args|
+            original.call(*args)
+            Post.where(id: child_post.id).delete_all
+          end
+        end
+
+        it "still clears the flag on the parent" do
+          perform
+          expect(parent_post.reload.favorites_transfer_in_progress).to be false
+        end
+
+        it "still moves the favorite" do
+          perform
+          expect(Favorite.where(post_id: parent_post.id, user_id: user_a.id)).to exist
+        end
+
+        it "logs a warning" do
+          perform
+          expect(Rails.logger).to have_received(:warn).with(/Post or parent was deleted during transfer/)
+        end
+      end
+
+      context "because reloading the posts raises" do
+        before do
+          allow_any_instance_of(Post).to receive(:reload).and_raise(StandardError, "connection lost") # rubocop:disable RSpec/AnyInstance
+        end
+
+        it "falls back to clearing the flags with a direct update" do
+          perform
+          expect(Post.find(child_post.id).favorites_transfer_in_progress).to be false
+          expect(Post.find(parent_post.id).favorites_transfer_in_progress).to be false
+        end
+
+        it "logs the failure" do
+          perform
+          expect(Rails.logger).to have_received(:error).with(/Failed to cleanup transfer flags: connection lost/)
+        end
+
+        it "does not raise when the fallback fails too" do
+          allow(Post).to receive(:where).and_call_original
+          allow(Post).to receive(:where).with(id: child_post.id).and_raise(StandardError, "still down")
+          expect { perform }.not_to raise_error
+          expect(Rails.logger).to have_received(:error).with(/Final cleanup attempt failed: still down/)
+        end
+      end
+
+      context "because the child post was destroyed and the fallback fails too" do
+        before do
+          destroyed = false
+          allow(PostEvent).to receive(:add).and_wrap_original do |original, *args|
+            original.call(*args)
+            next if destroyed
+
+            destroyed = true
+            Post.where(id: child_post.id).delete_all
+            allow(Post).to receive(:where).and_call_original
+            allow(Post).to receive(:where).with(id: child_post.id).and_raise(StandardError, "still down")
+          end
+        end
+
+        it "does not raise" do
+          expect { perform }.not_to raise_error
+          expect(Rails.logger).to have_received(:error).with(/Failed to cleanup flags after deletion: still down/)
+        end
+      end
+    end
+
     # cleanup_orphaned_child_favorites is a race-condition safety net: the main delete_all
     # removes all child favorites before this method runs, so the only way it can find records
     # is if a new favorite was inserted concurrently. We call the private method directly to

@@ -536,6 +536,17 @@ RSpec.describe UsersController do
       end
     end
 
+    context "when changing the password with a wrong old password" do
+      before { sign_in_as user }
+
+      it "reports the error and keeps the existing password" do
+        patch user_path(user), params: { user: { old_password: "not_the_password", password: "hexerade1234", password_confirmation: "hexerade1234" } }
+        expect(response).to redirect_to(settings_users_path)
+        expect(flash[:notice]).to include("Old password is incorrect")
+        expect(user.reload.bcrypt_password == "hexerade").to be true
+      end
+    end
+
     # The update action always loads User.find(CurrentUser.id), ignoring the URL's :id.
     # Any authenticated user therefore updates their own profile, not another user's.
     context "as a different member navigating to another user's update path" do

@@ -96,6 +96,63 @@ RSpec.describe User do
       expect(member.can_upload_with_reason).to eq(:REJ_UPLOAD_LIMIT)
     end
 
+    it "returns :REJ_UPLOAD_DISABLED when uploading is disabled for the user" do
+      member = create(:user, no_uploading: true)
+      expect(member.can_upload_with_reason).to eq(:REJ_UPLOAD_DISABLED)
+    end
+
+    it "returns :REJ_UPLOAD_DISABLED even for an approver" do
+      approver = create(:approver_user, no_uploading: true)
+      expect(approver.can_upload_with_reason).to eq(:REJ_UPLOAD_DISABLED)
+    end
+
+    context "when the hourly limit is used up" do
+      before { allow(Danbooru.config.custom_configuration).to receive(:hourly_upload_limit).and_return(1) }
+
+      it "returns :REJ_UPLOAD_HOURLY" do
+        member = create(:user, created_at: 2.weeks.ago)
+        create(:post, uploader: member)
+        expect(User.find(member.id).can_upload_with_reason).to eq(:REJ_UPLOAD_HOURLY)
+      end
+
+      it "returns :REJ_UPLOAD_HOURLY even for an approver" do
+        approver = create(:approver_user)
+        create(:post, uploader: approver)
+        expect(User.find(approver.id).can_upload_with_reason).to eq(:REJ_UPLOAD_HOURLY)
+      end
+
+      it "is ignored when throttles are disabled" do
+        allow(Danbooru.config.custom_configuration).to receive(:disable_throttles?).and_return(true)
+        member = create(:user, created_at: 2.weeks.ago)
+        create(:post, uploader: member)
+        expect(User.find(member.id).can_upload_with_reason).to be true
+      end
+    end
+
+    it "returns :REJ_UPLOAD_NEWBIE for an account younger than a week" do
+      member = create(:user, created_at: 6.days.ago)
+      expect(member.can_upload_with_reason).to eq(:REJ_UPLOAD_NEWBIE)
+    end
+
+    it "allows an account older than a week" do
+      member = create(:user, created_at: 8.days.ago)
+      expect(member.can_upload_with_reason).to be true
+    end
+
+    context "when the post edit limit is used up" do
+      it "returns :REJ_UPLOAD_EDIT for a member" do
+        member = create(:user, created_at: 2.weeks.ago)
+        allow(member).to receive(:post_edit_limit).and_return(0)
+        expect(member.can_upload_with_reason).to eq(:REJ_UPLOAD_EDIT)
+      end
+
+      it "does not apply to a privileged user" do
+        privileged = create(:privileged_user, created_at: 2.weeks.ago)
+        allow(privileged).to receive(:post_edit_limit).and_return(0)
+        expect(privileged.can_upload_with_reason).to be true
+      end
+    end
+
     it "allows a manual grantee to bypass the queue with zero slots" do
       member = create(:user, can_upload_free: true)
       member.user_status.update_columns(post_replacement_rejected_count: 100)

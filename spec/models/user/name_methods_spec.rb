@@ -197,5 +197,53 @@ RSpec.describe User do
         expect(Cache.fetch("uni:#{User.normalize_name(user.name)}")).to eq(user.id)
       end
     end
+
+    # -------------------------------------------------------------------------
+    # #name_error
+    # -------------------------------------------------------------------------
+    describe "#name_error" do
+      def name_error(name)
+        User.new(name: name).name_error
+      end
+
+      it "is nil for a valid name" do
+        expect(name_error("Valid_name-1")).to be_nil
+      end
+
+      it "rejects a name that is too short or too long" do
+        expect(name_error("a")).to eq("must be 2 to 20 characters long")
+        expect(name_error("a" * 21)).to eq("must be 2 to 20 characters long")
+      end
+
+      it "accepts the length boundaries" do
+        expect(name_error("ab")).to be_nil
+        expect(name_error("a" * 20)).to be_nil
+      end
+
+      it "rejects characters outside the allowed set" do
+        expect(name_error("bad name")).to eq("must contain only alphanumeric characters, hyphens, apostrophes, tildes and underscores")
+        expect(name_error("bad@name")).to eq("must contain only alphanumeric characters, hyphens, apostrophes, tildes and underscores")
+      end
+
+      it "rejects a leading special character" do
+        %w[_name -name ~name 'name].each do |name|
+          expect(name_error(name)).to eq("must not begin with a special character")
+        end
+      end
+
+      it "rejects consecutive special characters" do
+        %w[na__me na--me na~~me na''me].each do |name|
+          expect(name_error(name)).to eq("must not contain consecutive special characters")
+        end
+      end
+
+      it "rejects a trailing underscore" do
+        expect(name_error("name_")).to eq("cannot begin or end with an underscore")
+      end
+
+      it "rejects a name made only of digits" do
+        expect(name_error("12345")).to eq("cannot consist of numbers only")
+      end
+    end
   end
 end

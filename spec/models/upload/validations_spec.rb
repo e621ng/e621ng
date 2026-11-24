@@ -88,6 +88,79 @@ RSpec.describe Upload do
         expect(md5_errors(upload)).to be_empty
       end
 
+      it "skips the check when there is no md5" do
+        create(:post)
+        expect(md5_errors(build(:upload, md5: nil))).to be_empty
+      end
+
+      context "when the file was previously destroyed" do
+        let(:uploader) { create(:user) }
+        let(:upload)   { build(:upload, md5: md5, uploader: uploader) }
+
+        it "rejects the upload" do
+          create(:destroyed_post, md5: md5)
+          upload.send(:md5_is_unique)
+          expect(upload.errors[:base]).to include("That image had been deleted from our site, and cannot be re-uploaded")
+        end
+
+        it "files a ticket against the uploader" do
+          destroyed = create(:destroyed_post, md5: md5)
+          expect { upload.send(:md5_is_unique) }.to change(Ticket, :count).by(1)
+          expect(Ticket.last).to have_attributes(qtype: "user", disp_id: uploader.id, creator_id: User.system.id)
+          expect(Ticket.last.reason).to include("previously destroyed post ##{destroyed.post_id}")
+        end
+
+        it "files no ticket when notifications are off for the destroyed post" do
+          create(:destroyed_post, md5: md5, notify: false)
+          expect { upload.send(:md5_is_unique) }.not_to change(Ticket, :count)
+          expect(upload.errors[:base]).to be_present
+        end
+
+        it "takes precedence over an existing post with the same md5" do
+          create(:destroyed_post, md5: md5)
+          create(:post, md5: md5)
+          expect(md5_errors(upload)).to be_empty
+          expect(upload.errors[:base]).to be_present
+        end
+      end
+
+      context "when a pending replacement has the same md5" do
+        let!(:pending) { create(:post_replacement, md5: md5) }
+
+        it "rejects the upload, naming the post being replaced" do
+          expect(md5_errors(build(:upload, md5: md5))).to include("duplicate of pending replacement on post ##{pending.post_id}")
+        end
+
+        it "lists every pending replacement" do
+          other = create(:post_replacement, md5: md5)
+          expect(md5_errors(build(:upload, md5: md5))).to contain_exactly(
+            "duplicate of pending replacement on post ##{pending.post_id}",
+            "duplicate of pending replacement on post ##{other.post_id}",
+          )
+        end
+
+        it "ignores the replacement the upload was promoted from" do
+          expect(md5_errors(build(:upload, md5: md5, replacement_id: pending.id))).to be_empty
+        end
+
+        it "ignores replacements that are no longer pending" do
+          pending.update_columns(status: "rejected")
+          expect(md5_errors(build(:upload, md5: md5))).to be_empty
+        end
+      end
+
+      context "when replacing a post" do
+        it "allows the md5 of the post being replaced" do
+          post = create(:post, md5: md5)
+          expect(md5_errors(build(:upload, md5: md5, replaced_post: post))).to be_empty
+        end
+
+        it "rejects the md5 of a different post" do
+          post = create(:post, md5: md5)
+          expect(md5_errors(build(:upload, md5: md5, replaced_post: create(:post)))).to include("duplicate: #{post.id}")
+        end
+      end
+
       it "reports an existing post" do
         post = create(:post, md5: md5)
         expect(md5_errors(build(:upload, md5: md5))).to include("duplicate: #{post.id}")
