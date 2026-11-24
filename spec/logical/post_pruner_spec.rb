@@ -151,11 +151,22 @@ RSpec.describe PostPruner do
     end
 
     describe "status-locked post" do
-      let!(:post) { create(:pending_post, is_status_locked: true, created_at: (window + 1.day).ago) }
+      let(:template) { { body: "pruned" } }
+      let!(:post)    { create(:pending_post, is_status_locked: true, uploader: uploader, created_at: (window + 1.day).ago) }
 
       it "is left pending" do
         expect { prune! }.not_to change(PostFlag, :count)
         expect(post.reload).to have_attributes(is_deleted: false, is_pending: true)
+      end
+
+      it "does not tell the uploader it was deleted" do
+        expect { prune! }.not_to change(Dmail, :count)
+      end
+
+      it "does not stop the remaining posts from being pruned" do
+        other = create(:pending_post, uploader: uploader, created_at: (window + 2.days).ago)
+        expect { prune! }.to change { Dmail.where(to_id: uploader.id).count }.by(1)
+        expect(other.reload.is_deleted).to be true
       end
     end
   end
