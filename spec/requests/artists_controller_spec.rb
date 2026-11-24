@@ -123,6 +123,50 @@ RSpec.describe ArtistsController do
     end
   end
 
+  describe "subscription fields (json)" do
+    let(:other) { create(:user, created_at: 2.weeks.ago) }
+
+    it "reports zero and not subscribed when logged out" do
+      get artist_path(artist, format: :json)
+      expect(response.parsed_body).to include("subscription_count" => 0, "subscribed" => false)
+    end
+
+    it "reports the count and the current user's subscription" do
+      create(:tag_subscription, user: user, tag: artist.tag)
+      create(:tag_subscription, user: other, tag: artist.tag)
+      sign_in_as user
+      get artist_path(artist, format: :json)
+      expect(response.parsed_body).to include("subscription_count" => 2, "subscribed" => true)
+    end
+
+    it "follows aliases" do
+      consequent = CurrentUser.scoped(user) do
+        create(:artist_tag, name: "artist1_new").tap do |tag|
+          create(:active_tag_alias, antecedent_name: artist.name, consequent_name: tag.name)
+        end
+      end
+      create(:tag_subscription, user: user, tag: consequent)
+      sign_in_as user
+      get show_or_new_artists_path(name: artist.name, format: :json)
+      expect(response.parsed_body).to include("subscription_count" => 1, "subscribed" => true)
+    end
+
+    it "loads the index in bulk" do
+      artists = [artist, masao, artgerm]
+      artists.each { |a| create(:tag_subscription, user: user, tag: a.tag) }
+      sign_in_as user
+      get artists_path(format: :json)
+      expect(response.parsed_body.pluck("subscription_count")).to all(eq(1))
+      expect(response.parsed_body.pluck("subscribed")).to all(be(true))
+
+      queries = 0
+      counter = ->(*, payload) { queries += 1 if payload[:sql].include?("tag_subscriptions") }
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") { get artists_path(format: :json) }
+      # One for the user's subscriptions; the counts are cached by now
+      expect(queries).to eq(1)
+    end
+  end
+
   describe "create action" do
     it "correctly creates the artist when using the API" do
       attributes = attributes_for(:artist)
