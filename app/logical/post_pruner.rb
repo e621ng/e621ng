@@ -15,7 +15,7 @@ class PostPruner
 
     CurrentUser.as_system do
       Post.where("is_deleted = ? and is_pending = ? and created_at < ?", false, true, window.ago).find_each do |post|
-        post.delete!("Unapproved in #{window.inspect}")
+        next unless post.delete!("Unapproved in #{window.inspect}") # false for status-locked posts
         if dmail.is_a?(Hash) && dmail[:body].present?
           Dmail.create_automated({
             to_id: post.uploader.id,
