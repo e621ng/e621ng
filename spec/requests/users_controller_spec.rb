@@ -308,24 +308,69 @@ RSpec.describe UsersController do
   # GET /users/custom_style — member_only
   # ---------------------------------------------------------------------------
 
-  # The view template is custom_style.css.erb, so authenticated requests use format :css
-  # (as stylesheet_link_tag produces in the application layout).
-  # access_denied only handles HTML and JSON formats, so the anonymous test uses HTML.
+  # The layout links this as .css via stylesheet_link_tag; .json is for API clients.
+  # access_denied only handles HTML and JSON formats, so the anonymous tests use those.
   describe "GET /users/custom_style" do
+    let(:style) { "body { color: red; }\n@import url(foo.css);" }
+    let(:parsed) { "body { color: red !important; }\n@import url(foo.css);" }
+
     context "as anonymous" do
       it "redirects to the login page" do
         get custom_style_users_path
         expect(response).to redirect_to(new_session_path(url: custom_style_users_path))
       end
+
+      it "returns 403 for JSON requests" do
+        get custom_style_users_path(format: :json)
+        expect(response).to have_http_status(:forbidden)
+      end
     end
 
     context "as a member" do
-      before { sign_in_as create(:user) }
+      let(:user) { create(:user, custom_style: style) }
 
-      it "returns 200 with a CSS content type" do
+      before { sign_in_as user }
+
+      it "returns the parsed CSS with a long cache lifetime" do
         get custom_style_users_path(format: :css)
         expect(response).to have_http_status(:ok)
         expect(response.content_type).to include("text/css")
+        expect(response.body).to eq(parsed)
+        expect(response.headers["Cache-Control"]).to include("max-age=#{10.years.to_i}")
+      end
+
+      it "returns the raw and parsed CSS as JSON" do
+        get custom_style_users_path(format: :json)
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to eq("raw" => style, "parsed" => parsed)
+        expect(response.headers["Cache-Control"]).not_to include("max-age=#{10.years.to_i}")
+      end
+
+      it "returns empty strings as JSON when no custom style is set" do
+        user.update_columns(custom_style: nil)
+        get custom_style_users_path(format: :json)
+        expect(response.parsed_body).to eq("raw" => "", "parsed" => "")
+      end
+
+      it "returns 406 for HTML requests" do
+        get custom_style_users_path
+        expect(response).to have_http_status(:not_acceptable)
+      end
+    end
+
+    context "with an API key" do
+      let(:user) { create(:user, custom_style: style) }
+      let(:api_key) { create(:api_key, user: user) }
+
+      it "returns the raw and parsed CSS as JSON" do
+        get custom_style_users_path(format: :json), params: { login: user.name, api_key: api_key.key }
+        expect(response).to have_http_status(:ok)
+        expect(response.parsed_body).to eq("raw" => style, "parsed" => parsed)
+      end
+
+      it "rejects the credentials on CSS requests" do
+        get custom_style_users_path(format: :css), params: { login: user.name, api_key: api_key.key }
+        expect(response).to have_http_status(:unauthorized)
       end
     end
   end
