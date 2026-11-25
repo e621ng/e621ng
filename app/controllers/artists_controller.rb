@@ -21,9 +21,9 @@ class ArtistsController < ApplicationController
     @artists = Artist.search(search_params).paginate(params[:page], limit: params[:limit], search_count: search_params_for_count)
     respond_with(@artists) do |format|
       format.json do
-        # Eager load URLs only for JSON response to avoid N+1 queries
-        ActiveRecord::Associations::Preloader.new(records: @artists, associations: :urls).call
-        render json: @artists.to_json(include: [:urls])
+        # Eager load only for JSON response to avoid N+1 queries
+        ActiveRecord::Associations::Preloader.new(records: @artists, associations: %i[urls wiki_page]).call
+        render json: render_artists(@artists)
         expires_in params[:expiry].to_i.days if params[:expiry]
       end
     end
@@ -41,7 +41,7 @@ class ArtistsController < ApplicationController
       end
       format.json do
         load_artist
-        render(json: @artist.to_json(methods: [:domains], include: [:urls]))
+        render(json: render_artists(@artist, view: :with_domains))
       end
     end
   end
@@ -90,11 +90,15 @@ class ArtistsController < ApplicationController
     raise ActiveRecord::RecordNotFound if name.blank?
     respond_to do |format|
       format.html { redirect_to(short_artist_path(name), status: 301) }
-      format.json { render(json: Artist.find_by!(name: name).to_json(methods: [:domains], include: [:urls])) }
+      format.json { render(json: render_artists(Artist.find_by!(name: name), view: :with_domains)) }
     end
   end
 
   private
+
+  def render_artists(artists, view: :default)
+    ArtistBlueprint.render_as_hash(artists, view: view, subscriptions: Artist.subscription_info(Array(artists), CurrentUser.user))
+  end
 
   def load_artist
     if params[:id] =~ /\A\d+\z/

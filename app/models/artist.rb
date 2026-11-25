@@ -376,6 +376,8 @@ class Artist < ApplicationRecord
   end
 
   module TagMethods
+    extend ActiveSupport::Concern
+
     def category_id
       Tag.category_for(name)
     end
@@ -383,6 +385,21 @@ class Artist < ApplicationRecord
     def categorize_tag
       if new_record? || saved_change_to_name?
         Tag.find_or_create_by_name("artist:#{name}")
+      end
+    end
+
+    module ClassMethods
+      # Returns { artist_id => { subscription_count:, subscribed: } }. Follows aliases, like subscribing does.
+      def subscription_info(artists, user)
+        return {} if artists.empty?
+        names = TagAlias.to_aliased_with_originals(artists.map(&:name))
+        tag_ids = Tag.where(name: names.values.uniq).pluck(:name, :id).to_h
+        counts = tag_ids.empty? ? {} : TagSubscription.subscriber_counts(tag_ids.values)
+        subscribed = user.is_anonymous? ? Set.new : TagSubscription.where(user_id: user.id, tag_id: tag_ids.values).pluck(:tag_id).to_set
+        artists.to_h do |artist|
+          tag_id = tag_ids[names[artist.name]]
+          [artist.id, { subscription_count: counts.fetch(tag_id, 0), subscribed: subscribed.include?(tag_id) }]
+        end
       end
     end
   end
