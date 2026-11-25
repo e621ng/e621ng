@@ -258,8 +258,21 @@ class UsersController < ApplicationController
   end
 
   def custom_style
-    @css = CustomCss.parse(CurrentUser.user.custom_style)
-    expires_in 10.years
+    raw = CurrentUser.user.custom_style
+    parsed = CustomCss.parse(raw)
+
+    respond_to do |format|
+      format.css do
+        expires_in(10.years)
+        render(plain: parsed, content_type: "text/css")
+      end
+      format.json do
+        render(json: {
+          raw: raw.to_s,
+          parsed: parsed,
+        })
+      end
+    end
   end
 
   def avatar_menu
