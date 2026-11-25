@@ -1,4 +1,4 @@
-import Sortable from "@/utility/sortable";
+import Sortable from "@/utility/Sortable";
 
 $(() => {
   const orderForm = $("#ordering-form"),

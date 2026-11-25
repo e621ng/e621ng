@@ -24,21 +24,79 @@
  * // Cleanup
  * sortable.destroy();
  */
+export interface SortableOptions {
+  /** CSS selector for sortable items within the container. Defaults to `"li"`. */
+  itemSelector?: string;
+  /** CSS selector for the drag handle within each item; if unset, the entire item is the handle. */
+  handleSelector?: string | null;
+  /** Data attribute key for item IDs (e.g. `"postId"` for `data-post-id`). Defaults to `"id"`. */
+  idDataKey?: string;
+  /** Fired after a successful drop with the item IDs in their new order. */
+  onReorder?: SortableReorderCallback;
+}
+
+export type SortableReorderCallback = (ids: string[]) => void;
+
+/** Options with their defaults applied. */
+interface SortableSettings {
+  itemSelector: string;
+  handleSelector: string | null;
+  idDataKey: string;
+  onReorder: SortableReorderCallback | null;
+}
+
+interface DragState {
+  pointerId: number;
+  /** The sortable item being dragged */
+  el: HTMLElement;
+  /** The element that received pointerdown (the handle, or the item itself) and holds pointer capture */
+  captureEl: HTMLElement;
+  /** Where to put the item back if the drag is cancelled */
+  originNextSibling: ChildNode | null;
+  /** Pointer offset within the item, so the ghost keeps the grab point under the pointer */
+  offsetX: number;
+  offsetY: number;
+}
+
+interface PointerPosition {
+  clientX: number;
+  clientY: number;
+}
+
+/** jQuery pointer events, bound on the container (delegated) or on the capture element. */
+type SortablePointerEvent = JQuery.TriggeredEvent<HTMLElement, undefined, HTMLElement, HTMLElement>;
+
+/** The native pointer event behind a jQuery event; plain dispatched events have no `originalEvent`. */
+function nativePointer (event: SortablePointerEvent): PointerEvent {
+  return (event.originalEvent || event) as unknown as PointerEvent;
+}
+
 export default class Sortable {
+
+  private $container: JQuery<HTMLElement>;
+  private settings: SortableSettings;
+
+  /** Active drag state; null when idle */
+  private _drag: DragState | null;
+
+  /** requestAnimationFrame coalescing for placeholder repositioning */
+  private _rafId: number;
+  private _pendingMove: PointerPosition | null;
+
+  private $ghost: JQuery<HTMLElement> | null = null;
+  private $placeholder: JQuery<HTMLElement> | null = null;
 
   /**
    * Create a new Sortable instance.
    *
-   * @param {Element|JQuery<HTMLElement>} container Container element holding sortable items
-   * @param {Object} [options={}] Configuration options
-   * @param {string} [options.itemSelector="li"] CSS selector for sortable items within container
-   * @param {string|null} [options.handleSelector=null] CSS selector for drag handle within each item; if null, the entire item is the handle
-   * @param {string} [options.idDataKey="id"] Data attribute key for item IDs (e.g., "postId" for data-post-id)
-   * @param {Function} [options.onReorder] Callback fired when items are reordered, receives array of IDs
+   * @param container Container element holding sortable items
+   * @param options Configuration options
    */
-  constructor (container, options = {}) {
+  constructor (container: Element | JQuery<HTMLElement>, options: SortableOptions = {}) {
     if (!container) throw new Error("Sortable: container is required");
-    this.$container = $(container);
+    this.$container = container instanceof Element
+      ? $(container) as JQuery<HTMLElement>
+      : $(container.toArray());
 
     this.settings = {
       itemSelector: options.itemSelector || "li",
@@ -47,10 +105,7 @@ export default class Sortable {
       onReorder: typeof options.onReorder === "function" ? options.onReorder : null,
     };
 
-    // Active drag state; null when idle
     this._drag = null;
-
-    // requestAnimationFrame coalescing for placeholder repositioning
     this._rafId = 0;
     this._pendingMove = null;
 
@@ -59,7 +114,7 @@ export default class Sortable {
   }
 
   /** Clean up the sortable instance and remove all event listeners. */
-  destroy () {
+  public destroy (): void {
     this.unbindAll();
     if (this._drag) this._endDrag(true);
     if (this._rafId) {
@@ -75,16 +130,16 @@ export default class Sortable {
   // ============ Binding Helpers =========== //
   // ======================================== //
 
-  bindAll () {
+  public bindAll (): void {
     // If a handle selector is configured, only start drags from the handle;
     // otherwise the whole item is the drag target.
     const pointerTarget = this.settings.handleSelector
       ? `${this.settings.itemSelector} ${this.settings.handleSelector}`
       : this.settings.itemSelector;
-    this.$container.on("pointerdown.sortable", pointerTarget, (evt) => this.onPointerDown(evt));
+    this.$container.on("pointerdown.sortable", pointerTarget, (evt: SortablePointerEvent) => this.onPointerDown(evt));
   }
 
-  unbindAll () {
+  public unbindAll (): void {
     this.$container.off(".sortable");
   }
 
@@ -99,7 +154,7 @@ export default class Sortable {
    * container.append('<li data-id="new-item">New Item</li>');
    * sortable.refresh();
    */
-  refresh () {
+  public refresh (): void {
     this.unbindAll();
     this.bindAll();
     this._rebuildIndex();
@@ -110,13 +165,13 @@ export default class Sortable {
   // =========== Pointer Handlers =========== //
   // ======================================== //
 
-  onPointerDown (event) {
+  public onPointerDown (event: SortablePointerEvent): void {
     // Primary button only (left mouse / first touch / pen contact)
     if (event.button !== 0) return;
     // Don't start a second drag while one is active
     if (this._drag) return;
 
-    const nativeEvent = event.originalEvent || event;
+    const nativeEvent = nativePointer(event);
     // captureEl is the element that received pointerdown (handle or item).
     // itemEl is always the sortable item (the li), found via closest() when a handle is in use.
     const captureEl = event.currentTarget;
@@ -144,8 +199,8 @@ export default class Sortable {
     captureEl.setPointerCapture(nativeEvent.pointerId);
 
     // Bind move/end events on the captured element
-    $(captureEl).on("pointermove.sortable-drag", (e) => this.onPointerMove(e));
-    $(captureEl).on("pointerup.sortable-drag pointercancel.sortable-drag", (e) => this.onPointerUp(e));
+    $(captureEl).on("pointermove.sortable-drag", (e: SortablePointerEvent) => this.onPointerMove(e));
+    $(captureEl).on("pointerup.sortable-drag pointercancel.sortable-drag", (e: SortablePointerEvent) => this.onPointerUp(e));
 
     // Insert placeholder at original position, then hide original
     this._createPlaceholder(itemEl);
@@ -156,9 +211,9 @@ export default class Sortable {
     this._createGhost(itemEl, rect, nativeEvent.clientX, nativeEvent.clientY);
   }
 
-  onPointerMove (event) {
+  public onPointerMove (event: SortablePointerEvent): void {
     if (!this._drag) return;
-    const nativeEvent = event.originalEvent || event;
+    const nativeEvent = nativePointer(event);
     if (nativeEvent.pointerId !== this._drag.pointerId) return;
 
     // Update ghost position immediately for smooth visual feedback
@@ -181,9 +236,9 @@ export default class Sortable {
     }
   }
 
-  onPointerUp (event) {
+  public onPointerUp (event: SortablePointerEvent): void {
     if (!this._drag) return;
-    const nativeEvent = event.originalEvent || event;
+    const nativeEvent = nativePointer(event);
     if (nativeEvent.pointerId !== this._drag.pointerId) return;
 
     const cancelled = nativeEvent.type === "pointercancel";
@@ -195,7 +250,7 @@ export default class Sortable {
   // ============= Drag Lifecycle =========== //
   // ======================================== //
 
-  _endDrag (cancelled) {
+  private _endDrag (cancelled: boolean): void {
     if (!this._drag) return;
     const { el, originNextSibling } = this._drag;
 
@@ -242,8 +297,8 @@ export default class Sortable {
   // ========== Ghost & Placeholder ========= //
   // ======================================== //
 
-  _createGhost (refEl, rect, clientX, clientY) {
-    this.$ghost = $(refEl.cloneNode(true))
+  private _createGhost (refEl: HTMLElement, rect: DOMRect, clientX: number, clientY: number): void {
+    this.$ghost = $(refEl.cloneNode(true) as HTMLElement)
       .addClass("sortable-ghost")
       .css({
         position: "fixed",
@@ -258,14 +313,14 @@ export default class Sortable {
       .appendTo(document.body);
   }
 
-  _createPlaceholder (refEl) {
+  private _createPlaceholder (refEl: HTMLElement): void {
     const tag = refEl?.tagName || "LI";
-    this.$placeholder = $(`<${tag}>`)
+    this.$placeholder = $<HTMLElement>(`<${tag}>`)
       .addClass("sortable-placeholder")
       .attr("aria-hidden", "true");
   }
 
-  _repositionPlaceholder (clientX, clientY) {
+  private _repositionPlaceholder (clientX: number, clientY: number): void {
     const ph = this.$placeholder && this.$placeholder[0];
     if (!ph) return;
 
@@ -294,15 +349,15 @@ export default class Sortable {
   // ============ Indexing Helpers ========== //
   // ======================================== //
 
-  getElementById (id) { return this._elementCache.get(id) || null; }
-  _elementCache = new Map();
+  public getElementById (id: string): HTMLElement | null { return this._elementCache.get(id) || null; }
+  private _elementCache = new Map<string, HTMLElement>();
 
-  getIdByElement (el) {
+  public getIdByElement (el: HTMLElement): string | null {
     const val = el.dataset[this.settings.idDataKey];
     return val != null ? String(val) : null;
   }
 
-  _rebuildIndex () {
+  private _rebuildIndex (): void {
     this._clearCache();
 
     const els = Array.from(this.$container.find(this.settings.itemSelector));
@@ -317,12 +372,12 @@ export default class Sortable {
     }
   }
 
-  _clearCache () {
+  private _clearCache (): void {
     this._elementCache.clear();
     this._idCache = [];
   }
 
-  /** @returns {string[]} Array of item IDs in their current DOM order */
-  get order () { return this._idCache.slice(); }
-  _idCache = [];
+  /** Item IDs in their current DOM order */
+  public get order (): string[] { return this._idCache.slice(); }
+  private _idCache: string[] = [];
 }
