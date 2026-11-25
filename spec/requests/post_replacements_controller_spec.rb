@@ -134,6 +134,16 @@ RSpec.describe PostReplacementsController do
       expect(response.parsed_body["message"]).to be_present
     end
 
+    it "returns 412 without approving when a staff approver provides no file or URL" do
+      sign_in_as create(:janitor_user, can_approve_posts: true)
+      expect do
+        post post_replacements_path(format: :json), params: base_params
+      end.not_to change(PostReplacement, :count)
+      expect(response).to have_http_status(:precondition_failed)
+      expect(response.parsed_body).to include("success" => false)
+      expect(response.parsed_body["message"]).to be_present
+    end
+
     context "when post replacements are disabled" do
       before { allow(Security::Lockdown).to receive(:post_replacements_disabled?).and_return(true) }
 
@@ -199,6 +209,33 @@ RSpec.describe PostReplacementsController do
       sign_in_as approver
       put approve_post_replacement_path(replacement, format: :json)
       expect(response).to have_http_status(:no_content)
+    end
+
+    context "when the approval fails" do
+      before do
+        allow(replacement).to receive(:approve!) { replacement.errors.add(:post, "is locked") }
+        sign_in_as approver
+      end
+
+      it "returns 400 with the errors" do
+        put approve_post_replacement_path(replacement)
+        expect(response).to have_http_status(:bad_request)
+        expect(response.body).to eq("Replacement approval failed: Post is locked")
+      end
+
+      it "returns 400 for JSON as well" do
+        put approve_post_replacement_path(replacement, format: :json)
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
+
+    it "names the reset-to action when the target post is deleted" do
+      post_record.update_columns(is_deleted: true)
+      sign_in_as approver
+      put approve_post_replacement_path(replacement), params: { penalize_current_uploader: "false" }
+      expect(response).to have_http_status(:unprocessable_content)
+      expect(response.body).to eq("Error: Cannot reset to replacement for deleted target post")
+      expect(replacement).not_to have_received(:approve!)
     end
 
     # approver_only checks can_approve_posts?, not the moderator level flag.
@@ -347,6 +384,45 @@ RSpec.describe PostReplacementsController do
       sign_in_as approver
       post promote_post_replacement_path(replacement, format: :json)
       expect(response).to have_http_status(:created)
+    end
+
+    context "when promote! leaves errors on the replacement" do
+      before do
+        replacement.errors.add(:status, "must be pending to promote")
+        sign_in_as approver
+      end
+
+      it "returns 422 for HTML" do
+        post promote_post_replacement_path(replacement)
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+
+      it "returns 422 with the errors for JSON" do
+        post promote_post_replacement_path(replacement, format: :json)
+        expect(response).to have_http_status(:unprocessable_content)
+        expect(response.parsed_body.dig("errors", "status")).to include("must be pending to promote")
+      end
+    end
+
+    context "when the promoted upload is invalid" do
+      let(:upload_double) do
+        errors = ActiveModel::Errors.new(Upload.new).tap { |e| e.add(:md5, "duplicate: 1") }
+        instance_double(Upload, errors: errors, post: nil)
+      end
+
+      before { sign_in_as approver }
+
+      it "returns 422 for HTML" do
+        post promote_post_replacement_path(replacement)
+        expect(response).to have_http_status(:unprocessable_content)
+      end
+    end
+
+    it "renders the replacement card for HTML when promote! succeeds" do
+      sign_in_as approver
+      post promote_post_replacement_path(replacement)
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("replacement-#{replacement.id}")
     end
 
     # FIXME: When promote! returns nil (e.g. invalid status), the controller

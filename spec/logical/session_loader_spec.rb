@@ -446,6 +446,37 @@ RSpec.describe SessionLoader do
       end
     end
 
+    context "with array-valued login and api_key params" do
+      before { env["QUERY_STRING"] = "login[]=#{user.name}&api_key[]=#{api_key.key}" }
+
+      it "raises AuthenticationFailure" do
+        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+        expect(CurrentUser.api_key).to be_nil
+      end
+    end
+
+    context "when the database rejects the credentials' encoding" do
+      before do
+        env["QUERY_STRING"] = Rack::Utils.build_query(login: user.name, api_key: api_key.key)
+        allow(User).to receive(:authenticate_api_key).and_raise(ActiveRecord::StatementInvalid, "PG::CharacterNotInRepertoire: invalid byte sequence for encoding")
+      end
+
+      it "raises AuthenticationFailure" do
+        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      end
+    end
+
+    context "when the database fails for another reason" do
+      before do
+        env["QUERY_STRING"] = Rack::Utils.build_query(login: user.name, api_key: api_key.key)
+        allow(User).to receive(:authenticate_api_key).and_raise(ActiveRecord::StatementInvalid, "PG::UndefinedTable: relation does not exist")
+      end
+
+      it "re-raises instead of reporting an authentication failure" do
+        expect { loader.load }.to raise_error(ActiveRecord::StatementInvalid)
+      end
+    end
+
     # FIXME: Rack raises ActionController::BadRequest ("Invalid query parameters: Invalid encoding
     # for parameter") for non-UTF-8 query strings before SessionLoader#initialize can rescue it.
     # SessionLoader only rescues ActionDispatch::Http::Parameters::ParseError, not BadRequest.
@@ -500,6 +531,23 @@ RSpec.describe SessionLoader do
     #     expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
     #   end
     # end
+
+    context "with credentials that have no colon separator" do
+      before { env["HTTP_AUTHORIZATION"] = "Basic #{Base64.strict_encode64(user.name)}" }
+
+      it "raises AuthenticationFailure" do
+        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+      end
+    end
+
+    context "with a null byte inside the login" do
+      before { env["HTTP_AUTHORIZATION"] = basic_header(user.name.dup.insert(1, "\u0000"), api_key.key) }
+
+      it "raises AuthenticationFailure" do
+        expect { loader.load }.to raise_error(SessionLoader::AuthenticationFailure)
+        expect(CurrentUser.api_key).to be_nil
+      end
+    end
 
     context "with invalid UTF-8 in the decoded credentials" do
       before { env["HTTP_AUTHORIZATION"] = "Basic #{Base64.strict_encode64("\xFF\xFE:key")}" }

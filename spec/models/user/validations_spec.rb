@@ -128,6 +128,27 @@ RSpec.describe User do
       end
     end
 
+    describe "email blacklist" do
+      before { create(:email_blacklist, domain: "banned.example", creator: create(:admin_user)) }
+
+      it "is invalid on create with a blacklisted email domain" do
+        user = build(:user, email: "someone@banned.example")
+        expect(user).not_to be_valid
+        expect(user.errors[:base]).to include("Email address may not be used")
+      end
+
+      it "is invalid when changing to a blacklisted email domain" do
+        user = create(:user)
+        user.email = "someone@banned.example"
+        expect(user).not_to be_valid
+        expect(user.errors[:base]).to include("Email address may not be used")
+      end
+
+      it "is valid with another domain" do
+        expect(build(:user, email: "someone@allowed.example")).to be_valid
+      end
+    end
+
     describe "blacklisted_tags" do
       it "is invalid when exceeding 150,000 characters" do
         user = build(:user, blacklisted_tags: "a" * 150_001)

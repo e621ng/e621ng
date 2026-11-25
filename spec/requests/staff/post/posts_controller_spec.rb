@@ -95,6 +95,110 @@ RSpec.describe Staff::Post::PostsController do
         expect(post_record.reload.is_deleted?).to be false
       end
 
+      it "passes the search query back to confirm_delete when reason is blank" do
+        post delete_staff_post_post_path(post_record), params: { commit: "Delete", reason: "", q: "some_tag" }
+        expect(response).to redirect_to(confirm_delete_staff_post_post_path(post_record, q: "some_tag"))
+        expect(post_record.reload.is_deleted?).to be false
+      end
+
+      context "when deleting from a flag without giving a reason" do
+        it "uses the flag's reason" do
+          flag = create(:post_flag, post: post_record)
+          post delete_staff_post_post_path(post_record), params: { commit: "Delete", reason: "", from_flag: "1" }
+          expect(response).to redirect_to(post_path(post_record))
+          expect(post_record.reload.is_deleted?).to be true
+          expect(post_record.flags.where(is_deletion: true).last.reason).to eq(flag.reason)
+        end
+
+        it "fills %REASON% in the dmail with the flag's reason" do
+          flag = create(:post_flag, post: post_record)
+          post delete_staff_post_post_path(post_record), params: { commit: "Delete", reason: "", from_flag: "1", dmail: "Deleted: %REASON%" }
+          expect(Dmail.where(to_id: post_record.uploader_id).last.body).to eq("Deleted: #{flag.reason}")
+        end
+
+        it "is rejected when from_flag is not set" do
+          create(:post_flag, post: post_record)
+          post delete_staff_post_post_path(post_record), params: { commit: "Delete", reason: "" }
+          expect(response).to redirect_to(confirm_delete_staff_post_post_path(post_record))
+          expect(flash[:notice]).to eq("You must provide a reason for the deletion")
+          expect(post_record.reload.is_deleted?).to be false
+        end
+
+        it "is rejected when the flag reason needs an explicit staff reason" do
+          create(:needs_staff_reason_post_flag, post: post_record)
+          post delete_staff_post_post_path(post_record), params: { commit: "Delete", reason: "", from_flag: "1" }
+          expect(response).to redirect_to(confirm_delete_staff_post_post_path(post_record))
+          expect(flash[:notice]).to eq("You must explicitly provide a deletion reason for this flag")
+          expect(post_record.reload.is_deleted?).to be false
+        end
+      end
+
+      context "with a dmail" do
+        let(:params) { { commit: "Delete", reason: "rule violation", dmail: "Post #%POST_ID% was deleted: %REASON%" } }
+
+        it "notifies the uploader with the placeholders filled in" do
+          expect { post delete_staff_post_post_path(post_record), params: params }.to change { Dmail.where(to_id: post_record.uploader_id).count }.by(1)
+          expect(Dmail.where(to_id: post_record.uploader_id).last).to have_attributes(
+            from_id: User.system.id,
+            title: "Post ##{post_record.id} has been deleted",
+            body: "Post ##{post_record.id} was deleted: rule violation",
+          )
+        end
+
+        it "uses the given dmail title" do
+          post delete_staff_post_post_path(post_record), params: params.merge(dmail_title: "About post #%POST_ID%")
+          expect(Dmail.where(to_id: post_record.uploader_id).last.title).to eq("About post ##{post_record.id}")
+        end
+
+        it "sends nothing when the deletion is cancelled" do
+          expect { post delete_staff_post_post_path(post_record), params: params.merge(commit: "Cancel") }.not_to change(Dmail, :count)
+        end
+
+        it "sends nothing without a dmail body" do
+          expect { post delete_staff_post_post_path(post_record), params: params.merge(dmail: "") }.not_to change(Dmail, :count)
+        end
+      end
+
+      context "when the post has a parent" do
+        let(:parent)      { create(:post, source: "https://parent.example/a") }
+        let(:post_record) { create(:post, parent_id: parent.id, source: "https://child.example/b", tag_string: "child_only_tag shared_tag") }
+        let(:params)      { { commit: "Delete", reason: "inferior version" } }
+
+        it "leaves the parent alone by default" do
+          expect { post delete_staff_post_post_path(post_record), params: params }.not_to(change { parent.reload.attributes.slice("source", "tag_string") })
+          expect(TransferFavoritesJob).not_to have_enqueued_sidekiq_job
+        end
+
+        it "copies sources to the parent when requested" do
+          post delete_staff_post_post_path(post_record), params: params.merge(copy_sources: "1")
+          expect(parent.reload.source).to include("https://parent.example/a", "https://child.example/b")
+        end
+
+        it "copies tags to the parent when requested" do
+          post delete_staff_post_post_path(post_record), params: params.merge(copy_tags: "1")
+          expect(parent.reload.tag_array).to include("child_only_tag", "shared_tag")
+        end
+
+        it "queues a favorites transfer when requested" do
+          post delete_staff_post_post_path(post_record), params: params.merge(move_favorites: "1")
+          expect(TransferFavoritesJob).to have_enqueued_sidekiq_job(post_record.id, approver.id)
+        end
+
+        it "moves the post's sets to the parent when moving favorites" do
+          set = create(:post_set, transfer_on_delete: true)
+          set.add!(post_record)
+          set.save!
+          post delete_staff_post_post_path(post_record), params: params.merge(move_favorites: "1")
+          expect(set.reload.post_ids).to eq([parent.id])
+        end
+      end
+
+      it "ignores the transfer options for a post without a parent" do
+        post delete_staff_post_post_path(post_record), params: { commit: "Delete", reason: "rule violation", copy_tags: "1", copy_sources: "1", move_favorites: "1" }
+        expect(post_record.reload.is_deleted?).to be true
+        expect(TransferFavoritesJob).not_to have_enqueued_sidekiq_job
+      end
+
       context "when the post is already deleted" do
         let(:post_record) { create(:deleted_post) }
 
