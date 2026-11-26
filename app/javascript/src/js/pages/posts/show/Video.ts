@@ -42,6 +42,14 @@ class VideoPlayer {
     this.storeSettings();
   };
 
+  public play () {
+    return this.videoElement.play();
+  }
+
+  public pause () {
+    this.videoElement.pause();
+  }
+
   public storeSettings () {
     // muted != volume set to 0. we store both states to allow muting and unmuting while retaining vol.
     LStorage.Posts.Video.Volume = this.videoElement.volume;
@@ -195,5 +203,8 @@ export default class PostVideo {
 
     const player = new (getPlayerType())(videoContainer);
     player.loadSettings();
+
+    if (LStorage.Posts.VideoAutoPlay)
+      player.play().catch(() => {});
   }
 }

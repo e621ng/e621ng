@@ -86,6 +86,7 @@ class LStorage extends StorageObject {
     Recommendations: "artist" as "artist" | "tags",
     AutocompleteCache: true,
     VideoPlayer: "custom" as "custom" | "native",
+    VideoAutoPlay: false,
 
     Video: {
       Volume: 0.25,
@@ -296,6 +297,7 @@ const StorageKeys: StorageConfig<LStorage> = {
     Recommendations: "e6.posts.recommended.type",
     AutocompleteCache: "e6.posts.acache",
     VideoPlayer: "e6.posts.video_player",
+    VideoAutoPlay: "e6.posts.video.auto_play",
 
     Video: {
       Volume: "e6.posts.video.volume",
